@@ -22,7 +22,9 @@ Requisitos: RF-AC-01 · RN-CD-01, RN-CD-02
 - [ ] Dado um e-mail pré-cadastrado, quando peço acesso, então recebo um código de 6 dígitos válido por 15 minutos.
 - [ ] Dado o código correto e dentro da validade, quando o informo, então crio minha senha e entro no app.
 - [ ] Dado um código errado 5 vezes, quando tento de novo, então o código é invalidado e preciso pedir outro.
-- [ ] Dado um e-mail não pré-cadastrado, quando peço acesso, então vejo a mensagem para procurar a administradora ou o síndico, sem revelar se o e-mail existe.
+- [ ] Dado um e-mail não pré-cadastrado, quando peço acesso, então vejo a mesma mensagem exibida para e-mails cadastrados ("se o e-mail estiver cadastrado, enviamos um código"), com a orientação de procurar a administradora ou o síndico se o código não chegar.
+- [ ] Dado que pedi um código, quando peço outro, então o botão só é liberado após 60 segundos e o código anterior deixa de valer.
+- [ ] Dado a criação da senha, quando informo menos de 8 caracteres, então o app mostra o requisito e não avança.
 
 ### US-AC-02 — Aceitar termos e conhecer as regras
 
@@ -53,6 +55,7 @@ Requisitos: RF-AC-03 · RN-CD-02
 
 - [ ] Dado um e-mail cadastrado, quando peço para redefinir, então recebo um código com as mesmas regras do primeiro acesso.
 - [ ] Dado o código válido, quando crio uma nova senha, então a senha antiga deixa de funcionar e as outras sessões são encerradas.
+- [ ] Dado 5 senhas erradas seguidas no login, quando tento de novo, então o acesso fica pausado por 15 minutos, com a opção de redefinir a senha (SEG-04).
 
 ### US-AC-05 — Trocar de unidade
 
@@ -72,6 +75,7 @@ Requisitos: RF-AC-05, RF-AC-06
 
 - [ ] Dado um navegador atual (Chrome, Safari ou Edge), quando acesso o endereço do app, então entro com o mesmo login do celular.
 - [ ] Dado o primeiro acesso, quando abro o app, então o tema segue o do aparelho.
+- [ ] Dado a tela de aparência, quando a abro, então vejo as opções "Igual ao aparelho", "Claro" e "Escuro".
 - [ ] Dado que escolho o tema manualmente, quando volto ao app, então a escolha é mantida.
 
 ## Épico 2 — Administração do condomínio
@@ -121,13 +125,13 @@ Requisitos: RF-AD-07, RF-RE-07 · RN-GE-01 a RN-GE-03, RN-RE-01
 
 ### US-AD-05 — Cadastrar conta bancária
 
-Como administradora, quero cadastrar a conta que recebe os pagamentos de reservas, para o dinheiro cair direto para o condomínio.
+Como administradora, quero cadastrar a conta que recebe os pagamentos de reservas e da taxa condominial, para o dinheiro cair direto para o condomínio.
 
-Requisitos: RF-AD-08 · RN-PG-01 a RN-PG-04
+Requisitos: RF-AD-08 · RN-PG-01 a RN-PG-04, RN-FI-01
 
 - [ ] Dado o cadastro da conta, quando escolho o titular, então o app recomenda o CNPJ do condomínio.
 - [ ] Dado uma conta de pessoa física, quando salvo, então o titular precisa aceitar o termo de responsabilidade pelo valor recebido.
-- [ ] Dado um condomínio sem conta cadastrada, quando tento criar uma área paga, então o sistema bloqueia e explica o motivo.
+- [ ] Dado um condomínio sem conta cadastrada, quando tento criar uma área paga ou ativar o módulo de cobrança, então o sistema bloqueia e explica o motivo.
 
 ### US-AD-06 — Registrar mandatos
 
@@ -181,6 +185,7 @@ Requisitos: RF-RE-01 · RN-RE-04, RN-RE-05
 
 - [ ] Dado um horário reservado, quando abro o calendário, então ele aparece como "ocupado", sem nome nem unidade.
 - [ ] Dado um horário fora da antecedência permitida (menos de 24h ou mais de 60 dias), quando abro o calendário, então ele aparece indisponível.
+- [ ] Dado o calendário aberto, quando vejo os horários, então cada estado (livre, ocupado, indisponível, bloqueado pelo score) é identificado por texto ou ícone, e não só por cor.
 - [ ] Dado dois moradores tentando o mesmo horário, quando o primeiro faz o pedido, então o segundo passa a ver "ocupado".
 
 ### US-RE-02 — Fazer reserva gratuita
@@ -236,7 +241,7 @@ Requisitos: RF-RE-08, RF-RE-09 · RN-RE-09, RN-RE-10, RN-RC-12
 - [ ] Dado o fim de uma reserva, quando registro a vistoria, então preencho o checklist e anexo fotos.
 - [ ] Dado um dano na vistoria, quando o registro, então é aberta uma reclamação contra a unidade em nome do condomínio, com as fotos como evidência.
 - [ ] Dado uma reserva gratuita não usada, quando registro o não comparecimento, então a reserva fica com esse status.
-- [ ] Dado a segunda falta do morador no mesmo trimestre, quando é registrada, então ele perde 5 pontos.
+- [ ] Dado a segunda falta do morador no mesmo trimestre, quando a rotina diária roda, então ele perde 5 pontos; a quarta falta no trimestre tira mais 5.
 
 ## Épico 4 — Visitantes e portaria
 
@@ -244,9 +249,11 @@ Requisitos: RF-RE-08, RF-RE-09 · RN-RE-09, RN-RE-10, RN-RC-12
 
 Como morador, quero cadastrar um visitante a qualquer momento antes da chegada, para que ele entre sem a portaria me ligar.
 
-Requisitos: RF-VI-01, RF-VI-03 · RN-VI-01, RN-VI-02
+Requisitos: RF-VI-01, RF-VI-03 · RN-VI-01, RN-VI-02, RN-VI-09
 
 - [ ] Dado o nome do visitante, quando salvo, então ele aparece na lista da portaria em até 5 segundos.
+- [ ] Dado um visitante avulso, quando o cadastro, então a data da visita vem preenchida com hoje e não aceita datas passadas.
+- [ ] Dado um visitante avulso que não entrou até o fim do dia da visita, quando a rotina da meia-noite roda, então ele fica "não compareceu".
 - [ ] Dado o cadastro, quando deixo o documento em branco, então o app aceita, porque só o nome é obrigatório.
 - [ ] Dado um visitante cadastrado, quando o edito ou cancelo, então a lista da portaria é atualizada na hora.
 
@@ -361,11 +368,11 @@ Requisitos: RF-CH-04, RF-CH-05 · RN-CH-05 a RN-CH-07
 
 ### US-RS-01 — Registrar reclamação
 
-Como morador, quero registrar uma reclamação contra um funcionário ou uma unidade do meu condomínio, para que o problema seja tratado com critério.
+Como morador, quero registrar uma reclamação contra um funcionário, uma unidade, o síndico ou o subsíndico do meu condomínio, para que o problema seja tratado com critério.
 
 Requisitos: RF-RS-01, RF-RS-02, RF-RS-07 · RN-RC-01, RN-RC-02, RN-RC-09, RN-RC-10
 
-- [ ] Dado o formulário, quando escolho o alvo, então só aparecem funcionários e unidades do meu condomínio, e só posso escolher um.
+- [ ] Dado o formulário, quando escolho o alvo, então só aparecem funcionários, unidades, síndico e subsíndico do meu condomínio, e só posso escolher um.
 - [ ] Dado a categoria escolhida, quando salvo, então a gravidade padrão é definida pela categoria.
 - [ ] Dado a reclamação registrada, quando o alvo é notificado, então ele não vê quem reclamou.
 - [ ] Dado que quero reclamar do síndico e do subsíndico, quando tento, então preciso abrir duas reclamações separadas.
@@ -374,10 +381,12 @@ Requisitos: RF-RS-01, RF-RS-02, RF-RS-07 · RN-RC-01, RN-RC-02, RN-RC-09, RN-RC-
 
 Como julgador, quero ver a reclamação com o score do reclamante e do alvo e conversar com o alvo, para decidir com os dois lados.
 
-Requisitos: RF-RS-03, RF-RS-05 · RN-RC-04, RN-RC-06, RN-SC-11
+Requisitos: RF-RS-03, RF-RS-05 · RN-RC-04, RN-RC-06, RN-CO-04, RN-SC-11
 
 - [ ] Dado uma reclamação no meu painel, quando a abro, então vejo identidade e score do reclamante e do alvo.
-- [ ] Dado que ainda não registrei a conversa com o alvo, quando tento decidir, então os botões de validar e negar ficam bloqueados.
+- [ ] Dado que ainda não iniciei a conversa com o alvo, quando tento decidir, então os botões de validar e negar ficam bloqueados.
+- [ ] Dado a conversa iniciada, quando o alvo responde ou passam 5 dias sem resposta, então os botões são liberados; sem resposta, a reclamação registra "alvo não respondeu".
+- [ ] Dado que sou administradora ou conselho fiscal julgando, quando abro a reclamação, então também posso iniciar a conversa com o alvo.
 - [ ] Dado a conversa feita por comunicado individual vinculado, quando o alvo responde, então a resposta aparece na reclamação.
 - [ ] Dado 15 dias sem decisão, quando o prazo vence, então recebo lembrete e outro a cada 5 dias.
 
@@ -400,17 +409,19 @@ Requisitos: RF-RS-04 · RN-RC-03, RN-RC-11
 
 - [ ] Dado reclamação contra o síndico ou a unidade dele, quando é aberta, então vai para o subsíndico; sem subsíndico, para a administradora; sem ela, para o conselho fiscal.
 - [ ] Dado reclamação contra o subsíndico, quando é aberta, então vai para o síndico.
-- [ ] Dado reclamação contra o subsíndico com a substituição ativa, quando é aberta, então vai para a administradora; sem ela, fica "pendente" até o síndico voltar.
+- [ ] Dado reclamação contra o subsíndico com a substituição ativa, quando é aberta, então vai para a administradora; sem ela, fica "pendente" até o fim da substituição.
 - [ ] Dado reclamação feita pelo próprio julgador, quando é aberta, então vai para quem julgaria uma reclamação contra ele.
 
 ### US-RS-05 — Recorrer de uma decisão
 
 Como quem perdeu pontos, quero recorrer uma vez, para ter a decisão revista por outra pessoa.
 
-Requisitos: RF-RS-09 · RN-RC-07
+Requisitos: RF-RS-09 · RN-RC-07, RN-RC-14, RN-RC-15
 
 - [ ] Dado uma decisão que me tirou pontos, quando estou dentro de 7 dias, então posso recorrer uma vez.
 - [ ] Dado decisão do síndico, quando recorro, então o recurso vai ao subsíndico (sem subsíndico, à administradora; sem ela, ao conselho fiscal); decisão do subsíndico vai ao síndico.
+- [ ] Dado que o julgador do recurso seria parte da reclamação (ex.: subsíndico decidiu uma reclamação contra o síndico), quando recorro, então o recurso vai à administradora; sem ela, ao conselho fiscal.
+- [ ] Dado 7 dias sem recurso, quando a rotina roda, então a reclamação fica "encerrada".
 - [ ] Dado decisão da administradora ou do conselho fiscal, quando abro a reclamação, então não há opção de recurso.
 - [ ] Dado recurso aceito, quando é decidido, então os pontos voltam e essa perda deixa de contar para a regularidade.
 

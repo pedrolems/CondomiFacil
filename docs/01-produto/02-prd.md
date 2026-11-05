@@ -29,10 +29,11 @@ O CondomiFacil é um app em React Native (celular e web) que centraliza a rotina
 | Participação em votações (unidades que votaram / unidades habilitadas) | ≥ 40% |
 | Condomínios que renovam após 12 meses | ≥ 85% |
 | Recursos aceitos / reclamações decididas | Medir no piloto; alto demais indica julgamentos ruins |
+| Cobranças pagas pelo app até o vencimento / cobranças emitidas | Medir no piloto e definir a meta |
 
 ## 2. Escopo e planos comerciais
 
-O MVP inclui todos os módulos abaixo, exceto relatórios; o produto é vendido em dois planos, conforme o condomínio tenha ou não administradora.
+O MVP inclui todos os módulos abaixo, exceto relatórios e acordos de parcelamento; o produto é vendido em dois planos, conforme o condomínio tenha ou não administradora.
 
 | Módulo | Entrega |
 | --- | --- |
@@ -68,7 +69,7 @@ O MVP inclui todos os módulos abaixo, exceto relatórios; o produto é vendido 
 
 ## 3. Perfis de usuário e permissões
 
-O CondomiFacil tem 10 perfis; síndico e subsíndico são papéis atribuídos por mandato, e cada usuário vê apenas as informações das unidades a que está vinculado.
+O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos por mandato, e cada usuário vê apenas as informações das unidades a que está vinculado.
 
 | Perfil | Quem é |
 | --- | --- |
@@ -79,9 +80,10 @@ O CondomiFacil tem 10 perfis; síndico e subsíndico são papéis atribuídos po
 | Funcionário de limpeza | Recebe e conclui chamados de limpeza |
 | Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados |
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
-| Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio |
+| Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores |
 | Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
-| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; obrigatório em condomínio sem subsíndico. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora |
+| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; obrigatório em condomínio sem subsíndico. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14 |
+| Proprietário não residente | Dono da unidade que não mora nela, definido como responsável financeiro; só vê e paga as cobranças da unidade (RN-CD-19) |
 
 **Visão por unidade.** O app exibe reservas, visitantes, reuniões, votações e métricas da unidade ativa. Quem tem mais de uma unidade vê um painel separado para cada uma.
 
@@ -136,6 +138,14 @@ O CondomiFacil tem 10 perfis; síndico e subsíndico são papéis atribuídos po
 | Ver painel de inadimplência | — | Sim | Sim | Em substituição | — | — | Sim |
 | Solicitar cobrança extra | — | Sim | Sim | Em substituição | — | — | — |
 
+**Perfis fora da matriz**
+
+- **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações e ver scores.
+- **Conselho fiscal:** julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador.
+- **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
+- **Proprietário não residente:** só "Ver e pagar cobranças da própria unidade".
+- **Julgador de reclamação:** quem julga, seja quem for, pode iniciar a conversa com o alvo (RN-CO-04), mesmo sem permissão para enviar comunicados.
+
 ## 4. Requisitos funcionais
 
 São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
@@ -144,11 +154,11 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
-| RF-AC-01 | No primeiro acesso, enviar código ao e-mail pré-cadastrado; validado, o usuário cria a senha | Todos | Código de 6 dígitos, válido por 15 min, até 5 tentativas |
+| RF-AC-01 | No primeiro acesso, enviar código ao e-mail pré-cadastrado; validado, o usuário cria a senha | Todos | Código de 6 dígitos, válido por 15 min, até 5 tentativas; reenvio após 60 s; mesma mensagem para e-mail cadastrado ou não; senha com no mínimo 8 caracteres |
 | RF-AC-02 | Aceitar termos de uso, política de privacidade e regimento do condomínio | Todos | Versão e data do aceite guardadas; novo aceite quando mudarem |
 | RF-AC-03 | Recuperar senha por e-mail | Todos | Mesmo fluxo do código de primeiro acesso |
 | RF-AC-04 | Escolher a unidade ativa; painéis e métricas separados por unidade | Quem tem mais de uma unidade | Seletor no topo da tela inicial |
-| RF-AC-05 | Alternar tema claro e escuro | Todos | Segue o tema do celular por padrão |
+| RF-AC-05 | Alternar tema claro e escuro | Todos | Opções "Igual ao aparelho" (padrão), "Claro" e "Escuro"; a escolha fica salva |
 | RF-AC-06 | Acessar o app pelo navegador (versão web) | Administradora, Suporte, Síndico | Mesmo código do app, via React Native Web |
 | RF-AC-07 | Exibir a página "Como funciona" com as regras de score, reclamações e recursos, aceita junto com o regimento | Todos | Texto revisado pelo parecer jurídico (SEG-16); sempre acessível no menu |
 | RF-AC-08 | Onboarding guiado no primeiro acesso, por perfil | Todos | 3 a 5 telas mostrando as tarefas principais do perfil; pode ser pulado e revisto depois |
@@ -164,7 +174,7 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-AD-05 | Registrar mudança de morador | Administradora | Acesso desativado, histórico mantido, reservas futuras e visitas recorrentes canceladas |
 | RF-AD-06 | Cadastrar e desligar funcionários, próprios ou terceirizados | Administradora | Campo "empresa" para terceirizados; chamados abertos voltam à fila do setor |
 | RF-AD-07 | Cadastrar áreas comuns como pagas ou gratuitas, com regras | Administradora | Herança de regras: padrão da plataforma → condomínio → área |
-| RF-AD-08 | Cadastrar a conta bancária que recebe pagamentos de reservas | Administradora | CNPJ do condomínio recomendado; conta de pessoa física exige aceite de termos específicos |
+| RF-AD-08 | Cadastrar a conta bancária que recebe pagamentos de reservas e da taxa condominial | Administradora | CNPJ do condomínio recomendado; conta de pessoa física exige aceite de termos específicos |
 | RF-AD-09 | Registrar mandatos de síndico e subsíndico | Administradora | Bloqueia síndico e subsíndico da mesma unidade |
 | RF-AD-10 | Configurar regras de reeleição do síndico morador | Administradora | Padrão: reeleição permitida, como na lei |
 | RF-AD-11 | Registrar contratação, recontratação ou desligamento de síndico profissional | Administradora | Sem regra de reeleição |
@@ -179,7 +189,7 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
-| RF-RE-01 | Ver disponibilidade das áreas em calendário | Morador | Horário reservado aparece como "ocupado", sem nome ou unidade |
+| RF-RE-01 | Ver disponibilidade das áreas em calendário | Morador | Horário reservado aparece como "ocupado", sem nome ou unidade; cada estado identificado por texto, não só por cor |
 | RF-RE-02 | Fazer reserva gratuita | Morador | Confirmação imediata se as regras forem cumpridas |
 | RF-RE-03 | Fazer reserva paga | Morador | Horário bloqueado até o fim do prazo de pagamento |
 | RF-RE-04 | Cancelar com reembolso até 12h antes do início | Morador | Prazo configurável por condomínio e área |
@@ -202,7 +212,7 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
-| RF-VI-01 | Cadastrar visitante avulso a qualquer momento antes da chegada | Morador | Nome obrigatório, documento opcional; aparece na portaria em tempo real |
+| RF-VI-01 | Cadastrar visitante avulso a qualquer momento antes da chegada | Morador | Nome obrigatório, documento opcional, data da visita (padrão: hoje); aparece na portaria em tempo real; sem entrada até o fim do dia, fica "não compareceu" |
 | RF-VI-02 | Cadastrar visitante recorrente com dias da semana | Morador | Faixa de horário e data de término opcionais |
 | RF-VI-03 | Editar ou cancelar visitantes | Morador | Atualiza a portaria na hora |
 | RF-VI-04 | Ver a lista de visitantes em tempo real | Portaria | Busca por nome, unidade e bloco; filtro "esperados hoje"; cada portaria vê os blocos que atende |
@@ -238,11 +248,11 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
-| RF-RS-01 | Registrar reclamação identificada contra um funcionário ou uma unidade | Morador | Um alvo por reclamação, do mesmo condomínio; categoria, descrição, data e foto opcional |
+| RF-RS-01 | Registrar reclamação identificada contra um funcionário, uma unidade, o síndico ou o subsíndico | Morador | Um alvo por reclamação, do mesmo condomínio; categoria, descrição, data e foto opcional |
 | RF-RS-02 | Classificar por categoria com gravidade padrão | Sistema | Categorias e gravidade nas Regras de Negócio, 5.4 |
-| RF-RS-03 | Painel de reclamações com o score do reclamante e do alvo | Síndico, Subsíndico | Ordenar por data e por score |
+| RF-RS-03 | Painel de reclamações com o score do reclamante e do alvo | Julgador (síndico, subsíndico, administradora ou conselho fiscal) | Ordenar por data e por score |
 | RF-RS-04 | Encaminhar reclamações contra o síndico ao subsíndico, e contra o subsíndico ao síndico | Sistema | Automático |
-| RF-RS-05 | Conversar com o alvo antes da decisão | Julgador | Comunicado individual vinculado à reclamação |
+| RF-RS-05 | Conversar com o alvo antes da decisão | Julgador | Comunicado individual vinculado à reclamação; decisão liberada com a resposta do alvo ou após 5 dias sem resposta (RN-RC-04) |
 | RF-RS-06 | Validar ou negar; ao negar, informar o motivo | Julgador | Lista de motivos + texto livre |
 | RF-RS-07 | Notificar o alvo sem revelar quem reclamou | Sistema | Na abertura e na decisão |
 | RF-RS-08 | Aplicar pontos ao alvo ou ao reclamante conforme a decisão | Sistema | Ver Regras de Negócio, 4.1 |
@@ -267,7 +277,7 @@ São 107 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | --- | --- | --- | --- |
 | RF-VO-01 | Convocar reunião com data, local e pautas | Síndico | Cada pauta é informativa ou com votação; opções e quórum definidos pelo síndico |
 | RF-VO-02 | Votar em cada pauta, um voto por unidade | Morador habilitado | O voto vale pela unidade inteira; votação aberta da convocação até o encerramento da reunião |
-| RF-VO-03 | Indicar procurador para uma votação | Morador habilitado | Cada pessoa representa no máximo 1 unidade além da sua |
+| RF-VO-03 | Indicar procurador para uma votação | Morador habilitado | Antes de a unidade votar; procurador é usuário do mesmo condomínio e representa no máximo 1 unidade além da sua |
 | RF-VO-04 | Registrar votos presenciais por unidade | Síndico | Junto com a ata |
 | RF-VO-05 | Abrir eleição de síndico e subsíndico com candidaturas | Síndico, Administradora | Inscrição no app, com prazo |
 | RF-VO-06 | Bloquear candidaturas inelegíveis | Sistema | Mesma unidade do outro cargo; reeleição conforme a configuração do condomínio |
@@ -330,9 +340,11 @@ As regras completas, com IDs, valores padrão e parâmetros configuráveis, est�
 
 ## 6. Fluxo da reclamação
 
-&#91;embedded content: fluxo da reclamação · 3 decisões\]
+O fluxo completo, com diagramas e caminhos de erro, está no User Flows — CondomiFacil (`docs/02-design/02-user-flows.md`, seções 9.1 a 9.3). Em resumo, são três decisões:
 
-O julgador (síndico, ou subsíndico quando a reclamação é contra o síndico) só decide depois de conversar com o alvo; a negativa por motivo punitivo é o único caminho em que o reclamante perde pontos.
+1. **Quem julga.** Definido na abertura pela tabela 5.1 das Regras de Negócio: em regra o síndico; o subsíndico quando o alvo é o síndico; administradora ou conselho fiscal quando não há julgador sem conflito.
+2. **Validar ou negar.** O julgador só decide depois de ouvir o alvo, ou após 5 dias sem resposta. A negativa por motivo punitivo (desproporcional ou falsa) é o único caminho em que o reclamante perde pontos.
+3. **Recurso.** Quem perdeu pontos recorre uma vez, em até 7 dias, a um julgador que não seja parte da reclamação (RN-RC-14).
 
 ## 7. Requisitos não funcionais
 
@@ -351,10 +363,10 @@ O app funciona online, com duas exceções offline: a portaria (consulta e regis
 | RNF-09 | Disponibilidade | 99,5% ao mês |
 | RNF-10 | Escalabilidade | 100 condomínios e 15.000 usuários no lançamento, sem mudança de arquitetura; um único condomínio com até 5.000 unidades e 10 portarias sem perda de desempenho |
 | RNF-11 | Isolamento | Dados de um condomínio nunca visíveis a outro |
-| RNF-12 | Acessibilidade | Contraste WCAG AA nos dois temas; área de toque mínima de 44 px |
+| RNF-12 | Acessibilidade | WCAG 2.2 AA nos dois temas: contraste de 4,5:1 para texto e 3:1 para ícones e componentes; área de toque mínima de 48 × 48 dp (56 dp nos botões da portaria); fonte ampliada até 200%; uso completo com TalkBack e VoiceOver (detalhes no Design System — CondomiFacil) |
 | RNF-13 | Backup | Diário, retenção de 7 dias, teste de restauração mensal |
 | RNF-14 | Idioma | Português do Brasil |
-| RNF-15 | Simplicidade | Tarefas comuns (reservar, cadastrar visitante, abrir chamado, registrar entrada) em até 3 toques a partir da tela inicial |
+| RNF-15 | Simplicidade | Tarefas comuns (reservar, cadastrar visitante, abrir chamado, registrar entrada) em até 3 toques a partir da tela inicial; contagem conforme o Design System — CondomiFacil, seção 2 |
 | RNF-16 | Testes do modo offline | Testes automatizados de queda de conexão, fila de sincronização e divergências, executados a cada versão |
 | RNF-17 | Teste de carga | Antes do lançamento e a cada versão principal: condomínio simulado com 5.000 unidades e 10 portarias simultâneas, mantendo RNF-01 e RNF-05 |
 | RNF-18 | Controle de custos | Limite de gasto e alertas em 80% e 100% do orçamento em todos os serviços pagos de infraestrutura |
@@ -368,7 +380,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-01 | Proteger os dados dos usuários | HTTPS em toda comunicação; dados sensíveis criptografados no banco |
 | SEG-02 | Esconder chaves de API | Segredos só no servidor, em variáveis de ambiente; nunca dentro do app |
 | SEG-03 | Aceite de termos e política de privacidade | Versionado, com data e versão por usuário |
-| SEG-04 | Senhas e códigos | Hash Argon2 ou bcrypt; código de e-mail com validade de 15 min e limite de tentativas |
+| SEG-04 | Senhas e códigos | Hash Argon2 ou bcrypt; código de e-mail com validade de 15 min e limite de tentativas; login pausado por 15 min após 5 senhas erradas seguidas; mensagens de erro que não revelam se o e-mail está cadastrado |
 | SEG-05 | Isolamento entre condomínios | Row Level Security no PostgreSQL |
 | SEG-06 | Sigilo do voto | Registro de que a unidade votou separado do conteúdo do voto |
 | SEG-07 | Sigilo do score e do reclamante | A API devolve o score só ao dono, exceto nos casos de RN-SC-02; a identidade do reclamante nunca é enviada ao alvo |
@@ -385,7 +397,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 
 ## 9. Design e identidade visual
 
-Interface moderna nas cores da marca: azul (#0E359D), branco (#FFFFFF) e coral (#FF606A), em tema claro e escuro; os demais tons (fundo escuro, textos) derivam do azul.
+Interface moderna nas cores da marca: azul (#0E359D), branco (#FFFFFF) e coral (#FF606A), em tema claro e escuro; os demais tons (fundo escuro, textos) derivam do azul. Os padrões completos (tokens, tipografia, ícones, componentes, escrita e acessibilidade) estão no Design System — CondomiFacil, que é a fonte oficial de design; esta seção é um resumo.
 
 | Uso | Tema claro | Tema escuro |
 | --- | --- | --- |
@@ -393,25 +405,26 @@ Interface moderna nas cores da marca: azul (#0E359D), branco (#FFFFFF) e coral (
 | Superfície (cards) | #F3F6FC | #0E2766 |
 | Barra superior e áreas de marca | #0E359D | #0E359D |
 | Botão primário | Fundo #0E359D, texto #FFFFFF | Fundo #FF606A, texto #081B52 |
-| Destaques (ícones, selos, gráficos, botão flutuante) | #FF606A | #FF606A |
+| Destaques em preenchimento (selos, gráficos, botão flutuante) | #FF606A, com conteúdo #081B52 | #FF606A, com conteúdo #081B52 |
+| Texto e ícones de destaque em coral | #C8323F | #FF606A |
 | Links | #0E359D | #8FA8F0 |
 | Texto principal | #0B1A44 | #FFFFFF |
 | Texto secundário | #5A6785 | #B8C4E6 |
-| Sucesso / alerta / erro | #2E7D32 / #B26A00 / #C62828 | #66BB6A / #FFB74D / #EF5350 |
+| Sucesso / alerta / erro | #2E7D32 / #8F5600 / #C62828 | #66BB6A / #FFB74D / #FF8A8A |
 
-**Contraste (RNF-12).** Azul sobre branco tem 10,4:1 e passa no WCAG AA. Coral sobre branco tem 2,9:1 e não passa para texto: no tema claro, o coral só é usado em ícones, selos, gráficos e elementos grandes. No tema escuro, coral sobre #081B52 tem 5,5:1 e pode ser usado em texto. O vermelho de erro é diferente do coral e sempre vem com ícone e texto.
+**Contraste (RNF-12).** Todos os pares de texto da tabela passam no WCAG 2.2 AA (4,5:1). Coral sobre branco tem 2,9:1 e não passa nem para texto (4,5:1) nem para ícones e componentes (3:1): no tema claro, o #FF606A só aparece como preenchimento com conteúdo azul-escuro, e texto ou ícone coral usa #C8323F (5,3:1). No tema escuro, coral sobre #081B52 tem 5,5:1 e pode ser usado em texto. O vermelho de erro é diferente do coral e sempre vem com ícone e texto. Nenhuma informação é dada só por cor.
 
 | Tela | Diretriz |
 | --- | --- |
-| Portaria | Botões grandes, busca por unidade, no máximo 2 toques para registrar entrada; faixa de "sem internet" com a hora da última sincronização |
+| Portaria | Botões de 56 dp, texto de 18 dp, busca por nome, unidade e bloco, no máximo 2 toques para registrar entrada (com "desfazer" em vez de confirmação); faixa de "sem internet" com a hora da última sincronização |
 | Limpeza | Chamados em cartões, com botão "concluir" visível sem abrir o chamado |
-| Reservas | Calendário com cores para livre, ocupado e indisponível pelo score |
-| Score | Número grande, histórico de ganhos e perdas e data da próxima recuperação |
+| Reservas | Calendário com quatro estados (livre, ocupado, indisponível e bloqueado pelo score), cada um com cor e texto |
+| Score | Número grande, barra com o limite das reservas gratuitas, histórico de ganhos e perdas e data da próxima recuperação |
 | Transparência | Score do síndico e nota de cada setor em cartões |
 | Seletor de unidade | Topo da tela inicial, para quem tem mais de uma unidade |
-| Versão web (administradora) | Layout de tabela para telas grandes |
+| Versão web (administradora) | Navegação lateral e layout de tabela para telas grandes |
 
-Imagens comprimidas e poucas animações, para rodar bem em celulares fracos.
+Imagens comprimidas e poucas animações, para rodar bem em celulares fracos. Os fluxos de cada tela, com os caminhos de erro e as mensagens propostas, estão no User Flows — CondomiFacil (`docs/02-design/02-user-flows.md`).
 
 ## 10. Stack técnica
 

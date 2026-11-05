@@ -157,6 +157,39 @@ IDs RF, RNF e SEG estão no PRD — CondomiFacil; IDs RN estão nas Regras de Ne
 
 ## Roadmap
 
-&#91;embedded content: roadmap · 12 meses · 3 marcos\]
+**MVP em 6 meses e lançamento no mês 8 (estimativa).** Cada hexágono é um marco que precisa ser cumprido antes da fase seguinte.
 
-O MVP inclui todos os módulos do PRD, exceto relatórios e acordos de parcelamento, e a cobrança condominial acrescenta cerca de um mês a ele; cada linha tracejada é um marco que precisa ser cumprido antes da fase seguinte. Os prazos são estimativas para uma equipe pequena e mudam com o tamanho do time.
+```mermaid
+flowchart LR
+    D["Descoberta<br/>M1<br/><small>entrevistas e concorrentes</small>"]
+    DS["Design<br/>M2<br/><small>fluxos e protótipo no Figma</small>"]
+    G1{{"Marco 1<br/>protótipo validado"}}
+    MVP["MVP<br/>M3 a M6<br/><small>app, web, API e cobrança</small>"]
+    G2{{"Marco 2<br/>parecer jurídico"}}
+    P["Piloto<br/>M7<br/><small>1 a 3 condomínios</small>"]
+    G3{{"Marco 3<br/>piloto aprovado"}}
+    L["Lançamento<br/>M8<br/><small>lojas e primeiros clientes</small>"]
+    V2["Versão 2<br/>M9 a M11<br/><small>relatórios e acordos de débito</small>"]
+    F["Futuro<br/>M12<br/><small>catracas e interfones</small>"]
+
+    D --> DS --> G1 --> MVP --> G2 --> P --> G3 --> L --> V2 -.-> F
+
+    classDef mvp fill:#E7ECFA,stroke:#0E359D,stroke-width:2px,color:#0B1A44
+    classDef gate fill:#FFE9EB,stroke:#C8323F,color:#0B1A44
+    classDef futuro stroke-dasharray:4 3
+    class MVP mvp
+    class G1,G2,G3 gate
+    class F futuro
+```
+
+| Fase | Meses | Entrega | Marco ao final |
+| --- | --- | --- | --- |
+| Descoberta | M1 | Entrevistas e análise de concorrentes | — |
+| Design | M2 | Fluxos e protótipo no Figma | Marco 1: protótipo validado |
+| MVP | M3 a M6 | App, versão web, API e cobrança condominial | Marco 2: parecer jurídico aprovado (SEG-16) |
+| Piloto | M7 | Uso real em 1 a 3 condomínios | Marco 3: piloto aprovado |
+| Lançamento | M8 | Publicação nas lojas e primeiros clientes | — |
+| Versão 2 | M9 a M11 | Relatórios e acordos de parcelamento de débitos | — |
+| Futuro | M12 | Integração com catracas e interfones (a definir; hoje fora de escopo) | — |
+
+O MVP inclui todos os módulos do PRD, exceto relatórios e acordos de parcelamento; a cobrança condominial já está contada nos 4 meses do MVP e é o módulo que mais pesa no prazo. Os prazos são estimativas para uma equipe pequena e mudam com o tamanho do time.

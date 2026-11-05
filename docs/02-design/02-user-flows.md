@@ -43,6 +43,7 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 4.2 | Solicitação do síndico | Síndico | Mudança em cadastro | US-AD-02 |
 | 4.3 | Mudança de morador e desligamento | Administradora, Suporte | Saída de alguém | US-AD-03, US-AD-09 |
 | 4.4 | Mandatos e substituição | Administradora, Síndico | Eleição, ausência ou renúncia | US-AD-06, US-AD-07 |
+| 4.5 | Locação e unidade desocupada | Administradora, Proprietário não residente | Contrato de locação | US-AD-10, US-AD-11 |
 | 5.1 | Fazer reserva | Morador | Querer usar uma área | US-RE-01 a US-RE-03, US-RE-05 |
 | 5.2 | Cancelar reserva | Morador, Condomínio | Desistência ou manutenção | US-RE-04 |
 | 5.3 | Vistoria e não comparecimento | Portaria, Limpeza | Fim da reserva | US-RE-06 |
@@ -53,13 +54,13 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 7.1 | Encomendas | Portaria, Morador | Entrega na portaria | US-EN-01, US-EN-02 |
 | 8.1 | Abrir chamado | Morador, Síndico, Portaria | Problema no condomínio | US-CH-01 |
 | 8.2 | Atender chamado de limpeza | Limpeza | Chamado na fila | US-CH-02 |
-| 8.3 | Acompanhar manutenção | Síndico | Chamado de manutenção | US-CH-03 |
+| 8.3 | Acompanhar manutenção | Síndico, Subsíndico | Chamado de manutenção | US-CH-03, US-AD-12 |
 | 9.1 | Registrar reclamação | Morador | Problema de convivência | US-RS-01, US-RS-04 |
 | 9.2 | Julgar reclamação | Julgador | Reclamação aberta | US-RS-02, US-RS-03 |
 | 9.3 | Recorrer | Quem perdeu pontos | Decisão com perda de pontos | US-RS-05 |
 | 9.4 | Acompanhar score e transparência | Todos | Consulta | US-RS-06, US-RS-07 |
-| 10.1 | Comunicados | Síndico | Aviso ao condomínio | US-CO-01, US-CO-02 |
-| 11.1 | Convocar reunião e votar | Síndico, Morador habilitado | Assembleia | US-VO-01, US-VO-02 |
+| 10.1 | Comunicados | Síndico, Subsíndico | Aviso ao condomínio | US-CO-01 a US-CO-03 |
+| 11.1 | Convocar reunião e votar | Síndico, Proprietário, Inquilino | Assembleia | US-VO-01, US-VO-02 |
 | 11.2 | Eleição de síndico e subsíndico | Síndico, Administradora, Morador | Fim de mandato | US-VO-03 |
 | 12.1 | Pesquisa mensal | Morador | Mês aberto | US-PE-01, US-PE-02 |
 | 13.1 | Pagar a taxa condominial | Responsável financeiro | Cobrança emitida | US-FI-02, US-FI-03 |
@@ -118,7 +119,7 @@ flowchart TD
 | Não aceita os termos | "Para usar o CondomiFacil, é preciso aceitar os documentos do seu condomínio." | Aceita depois; a conta fica ativa, mas sem acesso | RN-CD-03 |
 | Sem internet | "Não foi possível conectar. Verifique a internet e tente de novo." | Tenta de novo | DS 13.4 |
 
-O proprietário não residente vê o onboarding só de cobranças e entra direto em Cobranças (RN-CD-19).
+O proprietário não residente vê o onboarding de proprietário (unidade, cobranças e assembleias) e entra na aba Unidade (RN-CD-19).
 
 ### 3.2 Login e recuperação de senha
 
@@ -188,8 +189,8 @@ flowchart TD
     F --> G{"Há erros?"}
     G -->|"Sim"| E2["Corrige na planilha ou na prévia e reimporta"]
     E2 --> F
-    G -->|"Não"| H{"Toda unidade tem morador habilitado?"}
-    H -->|"Não"| E3["Destaca as unidades sem habilitado e exige a escolha"]
+    G -->|"Não"| H{"Toda unidade ocupada tem morador habilitado?"}
+    H -->|"Não"| E3["Destaca as unidades sem habilitado e exige a escolha ou a marcação como desocupada"]
     E3 --> H
     H -->|"Sim"| I["Confirma a importação"]
     I --> S1["Sistema envia o convite de primeiro acesso a cada pessoa"]
@@ -210,7 +211,8 @@ flowchart TD
 | --- | --- | --- | --- |
 | Planilha fora do modelo | "O arquivo não segue o modelo. Baixe o modelo e preencha de novo." | Baixa o modelo | RF-AD-01 |
 | Linha com e-mail repetido, unidade inexistente ou campo obrigatório vazio | Linha em vermelho com o motivo | Corrige e reimporta; linhas válidas não são perdidas | RF-AD-01 |
-| Unidade sem morador habilitado | "Escolha o morador habilitado da unidade X." | Escolhe | RN-CD-04 |
+| Unidade sem morador habilitado | "Escolha o morador habilitado da unidade X ou marque-a como desocupada." | Escolhe ou marca | RN-CD-04, RN-CD-24 |
+| Unidade alugada na planilha | Colunas do inquilino com início e fim do contrato; o proprietário entra como não residente | Preenche | RN-CD-20 |
 | Síndico e subsíndico da mesma unidade | "Síndico e subsíndico precisam ser de unidades diferentes." | Escolhe outra pessoa | RN-CD-10 |
 | Condomínio sem subsíndico nem conselho fiscal | Alerta pendente no painel até cadastrar um membro do conselho | Cadastra o conselho | RN-VO-09 |
 | Área paga sem conta bancária | "Cadastre a conta bancária do condomínio antes de criar áreas pagas." | Cadastra a conta | RN-PG-03 |
@@ -270,8 +272,9 @@ flowchart TD
 
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
-| Unidade ficaria sem morador habilitado | "Escolha quem passa a responder pela unidade." | Escolhe | RN-CD-04 |
-| Morador era o responsável financeiro | "Defina o novo responsável financeiro." (padrão: novo morador habilitado) | Confirma ou escolhe | RN-FI-03 |
+| Unidade ficaria sem morador habilitado | "Escolha quem passa a responder pela unidade ou marque-a como desocupada." | Escolhe ou marca | RN-CD-04, RN-CD-24 |
+| Quem sai é o inquilino | A mudança encerra o contrato de locação na data informada | Fluxo 4.5 | RN-CD-21 |
+| Morador era responsável financeiro | "Defina o novo responsável pelas despesas [ordinárias/extraordinárias]." (padrão: novo morador habilitado; na unidade desocupada, o proprietário) | Confirma ou escolhe | RN-FI-03 |
 | Morador era síndico ou subsíndico | "Esta pessoa tem mandato ativo. Encerre o mandato antes." | Fluxo 4.4 | RN-CD-13 |
 
 ### 4.4 Mandatos e substituição do síndico
@@ -282,7 +285,7 @@ flowchart TD
     B -->|"Ausência temporária"| C["Síndico ou administradora ativa a substituição"]
     C --> C1{"Há subsíndico?"}
     C1 -->|"Não"| E1["Substituição indisponível"]
-    C1 -->|"Sim"| C2["Subsíndico ganha as funções de síndico"]
+    C1 -->|"Sim"| C2["Subsíndico ganha as funções de síndico, exceto desativar a substituição; sugestões pendentes voltam para ele"]
     C2 --> C3["Síndico ou administradora desativa quando quiser"]
     C3 --> Z1(["Funções voltam ao síndico na hora; tudo registrado"])
     B -->|"Fim antecipado"| D["Administradora encerra o mandato"]
@@ -296,6 +299,50 @@ flowchart TD
     class Z1,Z2 ok
     class E1,D3 erro
 ```
+
+Fora da substituição, o subsíndico tem as mesmas abas do síndico, com a Gestão enxuta (RN-CD-27): reclamações contra o síndico, chamados de manutenção só para acompanhar, comunicados e sugestões, reuniões para registrar votos presenciais, encomendas com prazo vencido e o estado da substituição. Ao abrir uma função que é só do síndico, vê "Esta função é do síndico. Você passa a ter acesso quando a substituição pelo subsíndico estiver ativa."
+
+### 4.5 Locação: inquilino, fim do contrato e unidade desocupada
+
+O inquilino responde pela unidade no dia a dia; o proprietário continua votando e acompanha a unidade sem ver a rotina do inquilino (RN-CD-19 a RN-CD-26).
+
+```mermaid
+flowchart TD
+    A(["Proprietário pede o cadastro do inquilino, ou a administradora o inicia"]) --> B["Administradora informa o inquilino, os dependentes e as datas de início e fim do contrato"]
+    B --> C{"Datas válidas?"}
+    C -->|"Não"| E1["Recusa e pede datas válidas"]
+    E1 --> B
+    C -->|"Sim"| D["Inquilino vira morador habilitado; proprietário passa a não residente"]
+    D --> D1["Responsáveis financeiros sugeridos: inquilino nas ordinárias, proprietário nas extraordinárias"]
+    D1 --> S1["Convite de primeiro acesso ao inquilino e aos dependentes"]
+    S1 --> F(["Alugada"])
+    F --> S2["30 dias antes do fim: aviso à administradora, ao proprietário e ao inquilino"]
+    S2 --> G{"Renova?"}
+    G -->|"Sim, com nova data de fim"| F
+    G -->|"Encerra ou não responde"| S3["7 dias após o fim: inquilino e dependentes desativados, como numa mudança (fluxo 4.3)"]
+    S3 --> H(["Desocupada"])
+    H --> I{"O que acontece depois?"}
+    I -->|"Novo inquilino"| B
+    I -->|"Proprietário volta a morar"| J(["Ocupada pelo proprietário"])
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class F,H,J ok
+    class E1 erro
+    class S1,S2,S3 sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Data de fim antes do início | "A data de fim precisa ser depois do início do contrato." | Corrige | RN-CD-20 |
+| Inquilino escolhe uma data de reserva depois do fim do contrato | A data aparece indisponível: "Seu contrato vai até [data]." | Escolhe outra data ou pede a renovação ao proprietário | RN-CD-22 |
+| Visita recorrente além do fim do contrato | O término vem preenchido com o fim do contrato e não pode passar dele | Ajusta | RN-CD-22 |
+| Proprietário pede cadastro, renovação ou encerramento | O pedido entra na fila de solicitações da administradora | Acompanha em Unidade | RN-CD-23 |
+| Pedido do proprietário recusado | Notificação com o motivo | Corrige e envia de novo | RN-CD-23 |
+| Inquilino sai com cobranças em aberto | As cobranças emitidas continuam no nome dele; as novas ordinárias vão ao proprietário enquanto a unidade estiver desocupada | A administradora acompanha na inadimplência | RN-FI-03 |
+| Ação de morador numa unidade desocupada | Reservas, visitantes e chamados não aparecem para a unidade | — | RN-CD-24 |
+| Hóspede de temporada com a temporada desligada (padrão) | A opção não aparece para o proprietário | — | RN-VI-10 |
+| Proprietário volta a morar | A administradora muda o vínculo; ele ganha as abas de morador e score 100 | — | RN-CD-25 |
 
 ## 5. Reservas
 
@@ -636,7 +683,7 @@ flowchart TD
 
 ### 8.3 Acompanhar manutenção
 
-O síndico (ou o subsíndico em substituição) escolhe a empresa cadastrada e avança o status: aberto → orçamento → agendado → concluído (RN-CH-05). Sem primeira atualização em 48h, o chamado fica em destaque no painel. Se a empresa não estiver cadastrada, o síndico a cadastra ali mesmo, com nome, serviço e telefone (RF-AD-14). Quem abriu é avisado na conclusão e pode reabrir em até 48h.
+O síndico (ou o subsíndico em substituição) escolhe a empresa cadastrada e avança o status: aberto → orçamento → agendado → concluído (RN-CH-05). Sem primeira atualização em 48h, o chamado fica em destaque no painel. Se a empresa não estiver cadastrada, o síndico a cadastra ali mesmo, com nome, serviço e telefone (RF-AD-14). Quem abriu é avisado na conclusão e pode reabrir em até 48h. Fora da substituição, o subsíndico vê a mesma tela sem a escolha de empresa nem o botão de avançar, com a faixa "Você acompanha o andamento. Quem define a empresa e avança o status é o síndico." (RN-CH-05).
 
 ## 9. Reclamações e score
 
@@ -697,7 +744,7 @@ flowchart TD
     F --> H{"Decisão"}
     G --> H
     H -->|"Validar"| I["Confirma ou ajusta a gravidade, com justificativa se mudar"]
-    I --> S1["Alvo perde 5, 10 ou 20 pontos; se for unidade, o morador habilitado"]
+    I --> S1["Alvo perde 5, 10 ou 20 pontos; se for unidade, o morador habilitado (na desocupada, ninguém)"]
     H -->|"Negar"| J["Escolhe o motivo"]
     J --> K{"Motivo"}
     K -->|"Boa-fé ou duplicada"| L(["Encerrada; negada sem penalidade"])
@@ -726,6 +773,8 @@ flowchart TD
 | Prazo de decisão vencido | Lembrete ao julgador; destaque no painel | Decide | RN-RC-06 |
 | Reclamação de vistoria negada | Sem penalidade, porque o reclamante é o condomínio | — | RN-RC-12 |
 | Reclamação contra uma unidade cujo morador habilitado mudou | Os pontos vão para o habilitado na data da decisão | — | RN-SC-04 |
+| Alvo é uma unidade desocupada | A conversa é com o proprietário; validada, ninguém perde pontos | — | RN-RC-04, RN-CD-24 |
+| Reclamação validada contra unidade alugada ou desocupada | O proprietário recebe a categoria, a data, a decisão e a multa, sem a conversa e sem quem reclamou | — | RN-RC-16 |
 
 ### 9.3 Recorrer
 
@@ -774,6 +823,11 @@ Quem é parte da reclamação (reclamante ou alvo) nunca julga o recurso; sem ne
 
 ```mermaid
 flowchart TD
+    A0(["Subsíndico fora da substituição toca em Comunicados e Sugerir"]) --> A1["Escreve e envia a sugestão ao síndico"]
+    A1 --> A2["Sugestão aguardando o síndico"]
+    A2 --> A3{"Síndico revisa"}
+    A3 -->|"Descarta"| A4(["Descartada; subsíndico avisado"])
+    A3 -->|"Edita e envia"| B
     A(["Síndico toca em Comunicados e Novo"]) --> B{"Geral ou individual?"}
     B -->|"Geral"| C["Escolhe o público: moradores, funcionários ou todos"]
     B -->|"Individual"| D["Escolhe o destinatário"]
@@ -794,7 +848,7 @@ flowchart TD
     class S1,S2 sis
 ```
 
-Só o síndico, ou o subsíndico em substituição, envia comunicados (RN-CO-01). A única exceção é a conversa com o alvo de uma reclamação, que qualquer julgador inicia de dentro da reclamação (RN-CO-04).
+Só o síndico, ou o subsíndico em substituição, envia comunicados (RN-CO-01). Fora da substituição, o subsíndico sugere, e a sugestão sai em nome do síndico quando ele a envia (RN-CO-05). A única exceção é a conversa com o alvo de uma reclamação, que qualquer julgador inicia de dentro da reclamação (RN-CO-04).
 
 ## 11. Reuniões, votações e eleições
 
@@ -802,13 +856,17 @@ Só o síndico, ou o subsíndico em substituição, envia comunicados (RN-CO-01)
 
 ```mermaid
 flowchart TD
-    A(["Síndico convoca: data, local e pautas"]) --> B["Cada pauta é informativa ou com votação, com opções e quórum"]
-    B --> S1["Moradores notificados; votação online aberta"]
-    S1 --> C(["Morador abre a pauta"])
-    C --> D{"É o morador habilitado?"}
-    D -->|"Não"| E1["Vê a pauta sem botão de votar"]
-    D -->|"Sim"| F{"Unidade em atraso?"}
-    F -->|"Sim"| E2["Voto bloqueado; motivo visível só para ele"]
+    A(["Síndico convoca: data, local e pautas"]) --> B["Cada pauta é informativa ou com votação, com opções, quórum e se envolve despesa extraordinária"]
+    B --> S1["Proprietários e moradores notificados; votação online aberta"]
+    S1 --> C(["Usuário abre a pauta"])
+    C --> D{"Quem é na unidade?"}
+    D -->|"Outro morador"| E1["Vê a pauta sem botão de votar, com o motivo"]
+    D -->|"Inquilino"| D1{"Pauta envolve despesa extraordinária?"}
+    D1 -->|"Sim"| E1
+    D1 -->|"Não"| D2["Aviso: se o proprietário votar até o encerramento, o voto dele vale no lugar do seu"]
+    D2 --> F
+    D -->|"Proprietário ou procurador"| F{"Unidade em atraso?"}
+    F -->|"Sim"| E2["Voto bloqueado; motivo visível só para quem vota e para os responsáveis financeiros"]
     F -->|"Não"| G{"Já votou nesta pauta?"}
     G -->|"Sim"| E3["Mostra: sua unidade já votou"]
     G -->|"Não"| H{"Vota ou indica procurador?"}
@@ -818,6 +876,7 @@ flowchart TD
     H -->|"Vota"| K["Escolhe a opção e confirma"]
     J --> L(["Voto secreto registrado"])
     K --> L
+    L -.-> S2["Se o proprietário votar depois do inquilino, o voto dele substitui o do inquilino, que é avisado"]
     L --> M["Reunião: síndico registra votos presenciais"]
     M --> N{"Unidade já votou online?"}
     N -->|"Sim"| E5["Voto presencial recusado"]
@@ -831,15 +890,20 @@ flowchart TD
     classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
     class L,Q ok
     class E1,E2,E3,E4,E5,E6 erro
-    class S1 sis
+    class S1,S2 sis
 ```
 
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
-| Não é o morador habilitado | "Quem vota pela unidade é [nome do habilitado]." | — | RN-VO-01 |
-| Unidade em atraso | Só para o habilitado: "Sua unidade tem cobrança em atraso e não pode votar (Código Civil, art. 1.335, III). Pague para votar nas próximas pautas." | Paga | RN-VO-16 |
+| Não vota pela unidade | "Quem vota pela unidade é o proprietário, [nome]." | — | RN-VO-01 |
+| Inquilino em pauta com despesa extraordinária | "Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador." | Pede a procuração ao proprietário | RN-VO-18 |
+| Inquilino em pauta sem despesa extraordinária | Faixa `info`: "Você pode votar nesta pauta. Se o proprietário votar até o encerramento, o voto dele vale no lugar do seu." | Vota | RN-VO-18 |
+| Proprietário votou depois do inquilino | Notificação ao inquilino: "O proprietário votou na pauta [nome], e o voto dele substituiu o seu." | — | RN-VO-18 |
+| Proprietário vota presencialmente depois do voto online do inquilino | O voto presencial substitui o do inquilino | — | RN-VO-11, RN-VO-18 |
+| Unidade em atraso | Só para quem vota e para os responsáveis financeiros: "Sua unidade tem cobrança em atraso e não pode votar (Código Civil, art. 1.335, III). Pague para votar nas próximas pautas." | Paga | RN-VO-16 |
 | Procurador já representa outra unidade | "[Nome] já representa outra unidade. Escolha outra pessoa." | Escolhe outra | RN-VO-08 |
 | Voto presencial de quem votou online | "Esta unidade já votou pelo app." | — | RN-VO-11 |
+| Subsíndico fora da substituição na reunião | Registra votos presenciais; no lugar de "Encerrar reunião", vê "Quem encerra a reunião e publica o resultado é o síndico." | — | RN-CD-27, RN-VO-11 |
 | Ver o resultado antes do fim | "O resultado aparece quando a reunião for encerrada." | Espera | RN-VO-03 |
 | Quórum não atingido ou empate em pauta | Resultado com a contagem e o rótulo "sem quórum" ou "empate" | Decisão segue a convenção, fora do app | RN-VO-17 |
 
@@ -902,7 +966,7 @@ No fechamento: média abaixo de 3 tira 5 pontos; de 3 até menos de 4,5 mantém;
 
 ### 13.1 Pagar a taxa condominial
 
-- **Perfil:** responsável financeiro (por padrão, o morador habilitado; pode ser o proprietário não residente (RN-CD-19)).
+- **Perfil:** responsável financeiro. Cada unidade tem um responsável pelas despesas ordinárias e outro pelas extraordinárias; por padrão, os dois são o morador habilitado, e na unidade alugada são o inquilino e o proprietário (RN-FI-03). Cada um paga as cobranças emitidas para ele, e o proprietário vê a situação de todas (RN-FI-10).
 - **Pré-condição:** módulo de cobrança ativo no condomínio.
 
 ```mermaid
@@ -942,6 +1006,7 @@ flowchart TD
 | Pagamento ainda não confirmado | "Pagamento em processamento. Boleto pode levar até 3 dias úteis." | Espera; a baixa é automática | RN-FI-13 |
 | Pagamento em duplicidade | "Identificamos dois pagamentos desta cobrança. A administradora vai devolver um deles ou abatê-lo na próxima." | Automático | RN-FI-19 |
 | Pagou fora do app | A administradora registra com comprovante; a cobrança fica paga | Envia o comprovante à administradora | RN-FI-13 |
+| Proprietário vê cobrança emitida ao inquilino | A cobrança aparece com o selo de estado e "Paga pelo inquilino", sem botão de pagar | — | RN-FI-10 |
 | Gateway fora do ar, cobrança no prazo | "Pagamento indisponível agora. Tente de novo mais tarde; o vencimento continua em [data]." | Tenta depois | RN-FI-04 |
 | Gateway fora do ar, cobrança vencida | "Pagamento indisponível agora. Quando você pagar, o valor será atualizado com multa e juros até o dia do pagamento." | Tenta depois | RN-FI-06, RN-FI-08 |
 
@@ -956,8 +1021,9 @@ flowchart TD
     D -->|"Não"| E2["Recusa e mostra o limite"]
     E2 --> C
     D -->|"Sim"| Z1(["Cobrança ativa"])
-    X(["Síndico solicita cobrança extra"]) --> X1["Administradora lança: descrição, valor, unidades e vencimento"]
-    X1 --> Z2(["Emitida; cobrança extra"])
+    X(["Síndico solicita cobrança extra"]) --> X1["Administradora lança: descrição, tipo (ordinária ou extraordinária), valor, unidades e vencimento"]
+    X1 --> X2["Cada unidade recebe a cobrança no nome do responsável daquele tipo"]
+    X2 --> Z2(["Emitida; cobrança extra"])
     P(["Painel de inadimplência"]) --> P1["Unidades em atraso, valor e dias"]
     P1 --> P2["Exporta CSV para a contabilidade"]
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
@@ -972,6 +1038,8 @@ flowchart TD
 | Nenhuma forma de pagamento | "Escolha pelo menos uma forma de pagamento." | Escolhe | RN-FI-02 |
 | Síndico tenta lançar cobrança | Só vê "Solicitar cobrança extra" | Envia a solicitação | RN-FI-14 |
 | Cancelar cobrança | Exige o motivo; fica na auditoria | Informa o motivo | RN-FI-15 |
+| Cobrança extra sem tipo | "Escolha se a cobrança é ordinária ou extraordinária." (fundo de reserva e obras vêm como extraordinárias) | Escolhe | RN-FI-20 |
+| Multa por infração em unidade alugada | Vai ao inquilino; o proprietário é avisado. Vencida, a administradora pode reemiti-la ao proprietário | Reemite ou aguarda | RN-FI-20 |
 | Morador comum procura a situação de outra unidade | Nenhuma tela mostra esse dado | — | RN-FI-10 |
 
 ## 14. Notificações e LGPD
@@ -988,8 +1056,8 @@ flowchart TD
     B -->|"Cópia dos meus dados"| F["Confirma o pedido"]
     F --> Z2(["Arquivo por e-mail em até 15 dias"])
     B -->|"Excluir conta"| G["Aviso: histórico anonimizado; votos e reclamações continuam sem identificação"]
-    G --> H{"É morador habilitado ou responsável financeiro?"}
-    H -->|"Sim"| S1["Administradora avisada para definir substituto; até lá a unidade não vota"]
+    G --> H{"É morador habilitado, proprietário ou responsável financeiro?"}
+    H -->|"Sim"| S1["Administradora avisada para definir substituto; sem habilitado a unidade não reserva, sem proprietário não vota"]
     H -->|"Não"| I
     S1 --> I["Confirma com a senha"]
     I --> Z3(["Acesso encerrado; dados anonimizados"])
@@ -1045,6 +1113,13 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-21 | Pequenas divergências de texto | "Autorizado por interfone" com a mesma grafia em todos os documentos; RN-CD-03 inclui "Como funciona"; aviso sobre IDs não reaproveitados; parâmetros de cobrança formatados como código; reclamação decidida sem recurso encerrada pela rotina (nova RN-RC-15); painel de reclamações aberto a todo julgador (RF-RS-03). O escopo do MVP sem acordos de parcelamento e a métrica de cobrança no PRD foram corrigidos junto com o Design System | PRD 1, 2 e 4, RN 1, RN-CD-03, RN-VI-04, RN 13, RN 14 |
 | D-22 | O estado "Em atendimento" da limpeza não tinha gatilho | Botão opcional "Iniciar atendimento" no detalhe; "Concluir" no cartão vai de "Aberto" direto para "Concluído" | DS 11.2 |
 | D-23 | Finais de diagrama com texto diferente dos selos, e o cancelamento de reserva terminando sempre em "Cancelada" | Finais começam pelo texto exato do selo; o fluxo 5.2 termina em quatro estados, conforme a RN 7.4 | Fluxos 5.1, 5.2, 5.3, 6.1, 7.1, 9.1, 9.2, 9.3, 13.1 e 13.2 |
+| D-24 | O inquilino podia ser o morador habilitado e, por isso, votar, mas o voto é do proprietário (Código Civil, art. 1.335, III); o inquilino só vota nas decisões sem despesa extraordinária, se o proprietário não comparecer (Lei 8.245/1991, art. 24, §4º) | Vota o proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária, e o voto do proprietário prevalece | RN-VO-01, RN-VO-08, RN-VO-11, RN-VO-18, RF-VO-02, RF-VO-03, RF-VO-10, RF-VO-11, US-VO-01, US-VO-02 |
+| D-25 | Um único responsável financeiro não seguia a divisão de despesas da locação (Lei 8.245/1991, arts. 22 e 23) | Um responsável para as despesas ordinárias e outro para as extraordinárias; cada cobrança tem um tipo | RN-FI-03, RN-FI-10, RN-FI-11, RN-FI-14, RN-FI-20, RF-FI-04, RF-FI-16, US-FI-01, US-FI-04, US-FI-05 |
+| D-26 | O inquilino não tinha datas de contrato e continuaria com acesso depois de sair | Inquilino cadastrado com início e fim do contrato; aviso 30 dias antes e desativação 7 dias após o fim | RN-CD-20 a RN-CD-23, RN 13, RN 14, RF-AD-18 a RF-AD-20, US-AD-10 |
+| D-27 | O proprietário não residente só tinha login quando era responsável financeiro e não acompanhava a unidade | Login para todo proprietário não residente, com assembleias, comunicados, contrato e ocorrências, sem a rotina do inquilino | RN-CD-19, RN-RC-16, RN-SC-13, RF-RS-15, RF-AD-19, US-AD-11, DS 12 e 15 |
+| D-29 | Fora da substituição, o subsíndico tinha as abas do morador e só julgava reclamações contra o síndico | Mesmas abas do síndico, com a Gestão enxuta: acompanha a manutenção, sugere comunicados, registra votos presenciais e vê encomendas com prazo vencido | RN-CD-27, RN-CD-28, RN-CH-05, RN-EN-04, RN-VO-11, RF-CH-04, RF-EN-05, RF-VO-04, US-AD-12, DS 11.11 e 12 |
+| D-30 | O subsíndico não tinha como contribuir com comunicados sem a substituição | Sugestão de comunicado, que o síndico revisa e envia ou descarta | RN-CO-01, RN-CO-05, RF-CO-04, US-CO-03 |
+| D-28 | Unidade entre dois contratos ficaria sem morador habilitado, o que RN-CD-04 proíbe | Novo estado "Desocupada"; aluguel por temporada entra como hóspede, desligado por padrão | RN-CD-04, RN-CD-18, RN-CD-24, RN-CD-25, RN-VI-10, RF-AD-21, RF-VI-13 |
 
 ## 17. Pendências
 
@@ -1056,4 +1131,5 @@ Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma
 | Escolha do gateway de pagamento | Define os prazos reais de confirmação de boleto e Pix e os erros possíveis nos fluxos 5.1 e 13.1 | Produto e engenharia |
 | Prazo de 5 dias para resposta do alvo | Valor novo, sem dado de uso; validar no piloto | Produto, após o piloto |
 | Reserva paga não usada | A RN 7.4 não define o estado nem se há vistoria; hoje ela ficaria "Confirmada" para sempre | Produto |
+| Revisão jurídica das regras de locação | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
 | Cobrança em atraso como notificação obrigatória | Proposta da revisão de fluxos; não está nas RN nem no US-NO-01 | Produto |

@@ -4,7 +4,7 @@ Nov 4, 2026 · @Pedro Lemos
 
 ## Como ler
 
-São 56 histórias em 13 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
+São 60 histórias em 13 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
 
 - **Formato:** "Como \[perfil\], quero \[ação\], para \[objetivo\]".
 - **IDs:** `US-<módulo>-<número>`. Cada história cita os requisitos (RF, RNF, SEG) do PRD — CondomiFacil e as regras (RN) das Regras de Negócio — CondomiFacil que ela implementa.
@@ -87,7 +87,7 @@ Como administradora, quero cadastrar moradores individualmente ou por planilha, 
 Requisitos: RF-AD-01, RF-AD-04 · RN-CD-01, RN-CD-04
 
 - [ ] Dado uma planilha no modelo do app, quando a importo, então vejo uma prévia com as linhas válidas e os erros por linha antes de confirmar.
-- [ ] Dado uma unidade sem morador habilitado, quando tento salvar, então o sistema exige que eu escolha um.
+- [ ] Dado uma unidade sem morador habilitado, quando tento salvar, então o sistema exige que eu escolha um, a não ser que eu a marque como desocupada.
 - [ ] Dado uma unidade que já tem morador habilitado, quando escolho outro, então o anterior deixa de ser habilitado e a troca fica registrada com data.
 - [ ] Dado o cadastro concluído, quando salvo, então cada pessoa recebe o convite de primeiro acesso por e-mail.
 
@@ -153,6 +153,20 @@ Requisitos: RF-AD-13 · RN-CD-12
 - [ ] Dado que ativo a substituição, quando o subsíndico abre o app, então ele tem as funções de síndico.
 - [ ] Dado a substituição ativa, quando eu (síndico ou administradora) a desativo, então as funções voltam ao síndico na hora.
 - [ ] Dado cada ativação ou desativação, quando ocorre, então fica registrada com autor e data.
+- [ ] Dado a substituição ativa, quando o subsíndico abre a substituição, então vê que está ativa, mas não tem a opção de desativar.
+
+### US-AD-12 — Apoiar a gestão como subsíndico
+
+Como subsíndico, quero uma aba Gestão com as funções que exerço no dia a dia, para ajudar o síndico sem precisar da substituição.
+
+Requisitos: RF-CH-04, RF-EN-05, RF-VO-04, RF-RS-03 · RN-CD-27, RN-CD-28, RN-CH-05, RN-EN-04, RN-VO-11
+
+- [ ] Dado que sou subsíndico sem a substituição ativa, quando abro o app, então vejo as abas Início, Gestão, Reservas, Visitantes e Menu, e a Gestão mostra só reclamações contra o síndico, chamados de manutenção, comunicados e sugestões, reuniões, encomendas com prazo vencido e o estado da substituição.
+- [ ] Dado um chamado de manutenção, quando o abro, então vejo a empresa e o andamento, sem poder indicar empresa nem avançar o status.
+- [ ] Dado uma reunião convocada pelo síndico, quando a abro, então posso registrar votos presenciais, mas não convocar, criar pautas nem encerrar a votação.
+- [ ] Dado encomendas com prazo vencido, quando abro a lista, então vejo as encomendas, sem marcar a devolução.
+- [ ] Dado que tento abrir solicitações ou inadimplência, quando não há substituição ativa, então vejo que a função é do síndico e fica disponível na substituição.
+- [ ] Dado que a substituição é ativada, quando abro a Gestão, então vejo todas as funções de síndico e um aviso de que tudo fica registrado.
 
 ### US-AD-08 — Cadastrar blocos e portarias
 
@@ -174,6 +188,32 @@ Requisitos: RF-AD-06, RF-AD-14 · RN-CD-08, RN-CD-09, RN-VO-09
 - [ ] Dado um funcionário desligado, quando registro o desligamento, então os chamados abertos dele voltam para a fila do setor.
 - [ ] Dado uma empresa de manutenção, quando a cadastro, então ela não recebe login.
 - [ ] Dado um condomínio sem subsíndico e sem conselho fiscal, quando abro o painel, então vejo um alerta pendente até cadastrar ao menos um membro do conselho.
+
+### US-AD-10 — Cadastrar inquilino e contrato de locação
+
+Como administradora, quero cadastrar o inquilino de uma unidade alugada com as datas do contrato, para que ele use o app como morador e saia na hora certa.
+
+Requisitos: RF-AD-18, RF-AD-20, RF-AD-21, RF-FI-04 · RN-CD-04, RN-CD-20 a RN-CD-22, RN-CD-24, RN-FI-03
+
+- [ ] Dado uma unidade, quando cadastro um inquilino com início e fim do contrato, então ele passa a ser o morador habilitado e o proprietário passa a não residente, sem perder o acesso.
+- [ ] Dado o inquilino cadastrado, quando salvo, então os responsáveis financeiros vêm preenchidos com o inquilino nas despesas ordinárias e o proprietário nas extraordinárias, e posso trocá-los.
+- [ ] Dado um contrato sem data de fim, quando salvo, então ele fica por prazo indeterminado e nenhum aviso de fim é enviado.
+- [ ] Dado um contrato que termina em 30 dias, quando a rotina diária roda, então eu, o proprietário e o inquilino somos avisados.
+- [ ] Dado um contrato vencido sem renovação, quando passam 7 dias do fim, então o inquilino e os dependentes perdem o acesso, as reservas futuras são canceladas com reembolso e a unidade fica desocupada.
+- [ ] Dado que o inquilino tenta reservar uma data depois do fim do contrato, quando escolhe o dia, então a data aparece indisponível com o motivo.
+- [ ] Dado uma unidade desocupada, quando a salvo, então ela fica sem morador habilitado e o proprietário responde pelas cobranças e pelo voto.
+
+### US-AD-11 — Acompanhar a unidade alugada como proprietário
+
+Como proprietário que não mora na unidade, quero acompanhar o contrato, as cobranças e as ocorrências da unidade, para cuidar do meu imóvel sem invadir a privacidade do inquilino.
+
+Requisitos: RF-AD-19, RF-RS-15, RF-VI-13 · RN-CD-19, RN-CD-23, RN-CD-25, RN-CD-26, RN-RC-16, RN-VI-10, RN-SC-13
+
+- [ ] Dado que sou proprietário não residente, quando entro no app, então vejo cobranças, assembleias, a minha unidade e o menu, e não vejo reservas, visitantes, chamados, encomendas nem o score do inquilino.
+- [ ] Dado o contrato da unidade, quando peço a renovação, o encerramento ou o cadastro de um novo inquilino, então a administradora recebe o pedido e sou avisado do resultado.
+- [ ] Dado uma reclamação validada contra a unidade, quando a decisão sai, então recebo a categoria, a data, a decisão e a multa, sem a conversa e sem quem reclamou, e não perco pontos.
+- [ ] Dado uma unidade desocupada e a temporada permitida no condomínio, quando cadastro um hóspede com entrada e saída, então ele aparece na portaria como "hóspede de temporada"; com a temporada desligada (padrão), a opção não aparece.
+- [ ] Dado que volto a morar na unidade, quando a administradora muda o meu vínculo, então passo a ser o morador habilitado e ganho score começando em 100.
 
 ## Épico 3 — Reservas e pagamentos
 
@@ -363,6 +403,7 @@ Requisitos: RF-CH-04, RF-CH-05 · RN-CH-05 a RN-CH-07
 - [ ] Dado um chamado de manutenção, quando o atualizo, então escolho a empresa cadastrada e o status (aberto, orçamento, agendado, concluído).
 - [ ] Dado 48h sem primeira atualização, quando o prazo vence, então o chamado aparece em destaque no meu painel.
 - [ ] Dado a conclusão, quando registro, então quem abriu é avisado e pode reabrir em até 48h.
+- [ ] Dado que sou subsíndico sem a substituição ativa, quando abro um chamado de manutenção, então só acompanho o andamento.
 
 ## Épico 7 — Reclamações e score
 
@@ -397,7 +438,7 @@ Como julgador, quero validar a reclamação ou negá-la com motivo, para aplicar
 Requisitos: RF-RS-06, RF-RS-08 · RN-RC-05, RN-SC-03 a RN-SC-05
 
 - [ ] Dado que valido, quando confirmo, então o alvo perde 5, 10 ou 20 pontos conforme a gravidade, que posso ajustar com justificativa.
-- [ ] Dado reclamação contra uma unidade validada, quando confirmo, então só o morador habilitado da unidade perde pontos.
+- [ ] Dado reclamação contra uma unidade validada, quando confirmo, então só o morador habilitado da unidade perde pontos; na unidade desocupada, ninguém perde pontos e o proprietário é avisado.
 - [ ] Dado que nego, quando confirmo, então preciso escolher um motivo: boa-fé (0), desproporcional (−5), falsa (−15) ou duplicada (0).
 - [ ] Dado um motivo com penalidade, quando confirmo, então preciso escrever a justificativa, e o reclamante perde os pontos.
 
@@ -493,26 +534,42 @@ Requisitos: RF-CO-02, RF-CO-03 · RN-CO-03, RN-CO-04
 - [ ] Dado um comunicado individual, quando o destinatário responde, então sou notificado e a conversa fica no histórico dos dois.
 - [ ] Dado uma reclamação em análise, quando inicio a conversa com o alvo por ela, então o comunicado fica vinculado à reclamação.
 
+### US-CO-03 — Sugerir comunicado como subsíndico
+
+Como subsíndico, quero escrever comunicados para o síndico revisar e enviar, para ajudar na comunicação sem falar em nome do condomínio sozinho.
+
+Requisitos: RF-CO-04 · RN-CO-01, RN-CO-05
+
+- [ ] Dado que sou subsíndico sem a substituição ativa, quando escrevo um comunicado, então o botão é "Enviar sugestão ao síndico" e a sugestão fica "Aguardando o síndico".
+- [ ] Dado uma sugestão pendente, quando o síndico abre Comunicados, então vê a seção "Sugestões da subsíndica" e pode revisar, editar e enviar, ou descartar.
+- [ ] Dado que o síndico envia ou descarta, quando decide, então sou avisado e a sugestão muda para "Enviado pelo síndico" ou "Descartada".
+- [ ] Dado uma sugestão com termo ofensivo, quando a envio, então o trecho é destacado como num comunicado comum.
+- [ ] Dado que a substituição é ativada, quando tenho sugestões pendentes, então elas voltam para mim e posso enviá-las.
+
 ## Épico 10 — Reuniões, votações e eleições
 
 ### US-VO-01 — Convocar reunião
 
 Como síndico, quero convocar uma reunião com pautas e, depois, anexar a ata, para registrar tudo no app.
 
-Requisitos: RF-VO-01, RF-VO-09 · RN-VO-02, RN-VO-12
+Requisitos: RF-VO-01, RF-VO-09, RF-VO-10 · RN-VO-02, RN-VO-12, RN-VO-18
 
 - [ ] Dado a convocação, quando a crio, então informo data, local e pautas, e marco cada pauta como informativa ou com votação.
 - [ ] Dado uma pauta com votação, quando a configuro, então defino as opções de voto e o quórum.
+- [ ] Dado uma pauta com votação, quando a configuro, então ela vem marcada como "envolve despesa extraordinária", e posso desmarcar.
 - [ ] Dado a reunião encerrada, quando anexo ata e lista de presença em PDF, então ficam disponíveis para os moradores.
 
 ### US-VO-02 — Votar
 
-Como morador habilitado, quero votar em cada pauta pelo app ou indicar um procurador, para participar mesmo sem ir à reunião.
+Como proprietário, quero votar em cada pauta pelo app ou indicar um procurador, para participar mesmo sem ir à reunião.
 
-Requisitos: RF-VO-02 a RF-VO-04, RF-VO-07 · RN-VO-01, RN-VO-03, RN-VO-08, RN-VO-10, RN-VO-11
+Requisitos: RF-VO-02 a RF-VO-04, RF-VO-07, RF-VO-11 · RN-VO-01, RN-VO-03, RN-VO-08, RN-VO-10, RN-VO-11, RN-VO-18
 
-- [ ] Dado que sou o morador habilitado, quando a votação está aberta (da convocação ao encerramento da reunião), então voto uma vez por pauta pela unidade.
-- [ ] Dado que não sou o morador habilitado, quando abro a pauta, então vejo a votação sem a opção de votar.
+- [ ] Dado que sou o proprietário, more ou não na unidade, quando a votação está aberta (da convocação ao encerramento da reunião), então voto uma vez por pauta pela unidade.
+- [ ] Dado que sou morador mas não sou o proprietário nem o procurador dele, quando abro uma pauta que envolve despesa extraordinária, então vejo a votação sem a opção de votar e com o motivo.
+- [ ] Dado que sou o inquilino, quando abro uma pauta sem despesa extraordinária, então posso votar, e o app avisa que o voto do proprietário substitui o meu se ele votar até o encerramento.
+- [ ] Dado que o proprietário votou depois de mim numa pauta sem despesa extraordinária, quando a votação encerra, então só o voto dele conta e eu sou avisado.
+- [ ] Dado que sou o proprietário, quando indico o inquilino como procurador, então ele vota em todas as pautas pela unidade.
 - [ ] Dado que indico um procurador antes da votação, quando ele já representa outra unidade além da dele, então o sistema recusa.
 - [ ] Dado votos presenciais registrados pelo síndico, quando a unidade já votou online, então o voto presencial dela é recusado.
 - [ ] Dado a votação aberta, quando consulto o resultado, então ele só aparece após o encerramento, com a contagem por opção e sem identificar votos.
@@ -585,7 +642,8 @@ Requisitos: RF-FI-01 a RF-FI-04 · RN-FI-01 a RN-FI-07
 - [ ] Dado um condomínio, quando ativo o módulo de cobrança, então escolho entre boleto (com QR Code Pix), Pix e cartão, e o sistema exige pelo menos uma forma.
 - [ ] Dado as unidades, quando defino os valores, então posso usar valor fixo ou por fração ideal.
 - [ ] Dado a multa por atraso, quando tento configurar mais de 2%, então o sistema recusa e mostra o limite legal.
-- [ ] Dado uma unidade, quando não escolho o responsável financeiro, então ele é o morador habilitado.
+- [ ] Dado uma unidade, quando não escolho os responsáveis financeiros, então o morador habilitado responde pelas despesas ordinárias e pelas extraordinárias.
+- [ ] Dado uma unidade alugada, quando abro os responsáveis financeiros, então posso definir um para as ordinárias e outro para as extraordinárias.
 
 ### US-FI-02 — Receber as cobranças do mês
 
@@ -612,9 +670,11 @@ Requisitos: RF-FI-07 a RF-FI-09, RF-FI-12 · RN-FI-06, RN-FI-08, RN-FI-13, RN-FI
 
 Como administradora, quero lançar rateios e outras cobranças extras e registrar pagamentos feitos por fora, para manter a cobrança completa e correta.
 
-Requisitos: RF-FI-06, RF-FI-10 · RN-FI-14, RN-FI-15
+Requisitos: RF-FI-06, RF-FI-10, RF-FI-16 · RN-FI-14, RN-FI-15, RN-FI-20
 
-- [ ] Dado uma solicitação do síndico, quando lanço uma cobrança extra, então informo descrição, valor, unidades (uma, várias ou todas) e vencimento.
+- [ ] Dado uma solicitação do síndico, quando lanço uma cobrança extra, então informo descrição, tipo (ordinária ou extraordinária), valor, unidades (uma, várias ou todas) e vencimento.
+- [ ] Dado uma cobrança extraordinária para uma unidade alugada, quando a lanço, então ela é emitida ao proprietário; uma ordinária, ao inquilino.
+- [ ] Dado uma multa por infração numa unidade alugada, quando a lanço, então ela vai ao inquilino e o proprietário é avisado.
 - [ ] Dado um pagamento feito fora do app, quando o registro, então anexo o comprovante e o motivo, e a cobrança fica paga.
 - [ ] Dado uma cobrança emitida por engano, quando a cancelo, então informo o motivo e o cancelamento fica na auditoria.
 - [ ] Dado que sou síndico, quando abro a cobrança, então só consigo solicitar cobranças extras, não lançá-las.
@@ -627,7 +687,7 @@ Requisitos: RF-FI-13, RF-FI-15 · RN-FI-09 a RN-FI-12, SEG-17
 
 - [ ] Dado uma cobrança vencida sem pagamento, quando passa o dia do vencimento, então a unidade fica "em atraso" e entra no painel, com valor e dias de atraso.
 - [ ] Dado que sou morador comum, quando uso o app, então não vejo em lugar nenhum a situação financeira de outras unidades.
-- [ ] Dado uma unidade em atraso, quando o morador habilitado tenta votar, então o voto é bloqueado e só ele vê o motivo.
+- [ ] Dado uma unidade em atraso, quando quem vota por ela tenta votar, então o voto é bloqueado, e o motivo só aparece para quem vota e para os responsáveis financeiros da unidade.
 - [ ] Dado o bloqueio de reservas por atraso desligado (padrão), quando a unidade em atraso reserva, então reserva normalmente; ligado, novas reservas ficam bloqueadas até quitar.
 - [ ] Dado o painel, quando exporto, então recebo um CSV de cobranças e pagamentos para a contabilidade.
 
@@ -642,20 +702,20 @@ Requisitos: RF-FI-14 · RN-FI-18
 
 ## Cobertura
 
-As 56 histórias cobrem os 107 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 60 histórias cobrem os 118 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
 | 1. Acesso e conta | US-AC-01 a US-AC-06 | RF-AC-01 a RF-AC-08 |
-| 2. Administração | US-AD-01 a US-AD-09 | RF-AD-01 a RF-AD-15, RF-AD-17 |
+| 2. Administração | US-AD-01 a US-AD-12 | RF-AD-01 a RF-AD-15, RF-AD-17 a RF-AD-21 |
 | 3. Reservas e pagamentos | US-RE-01 a US-RE-06 | RF-RE-01 a RF-RE-09, RF-PG-01 a RF-PG-04 |
-| 4. Visitantes e portaria | US-VI-01 a US-VI-06 | RF-VI-01 a RF-VI-12 |
-| 5. Encomendas | US-EN-01, US-EN-02 | RF-EN-01 a RF-EN-04 |
+| 4. Visitantes e portaria | US-VI-01 a US-VI-06, US-AD-11 | RF-VI-01 a RF-VI-13 |
+| 5. Encomendas | US-EN-01, US-EN-02, US-AD-12 | RF-EN-01 a RF-EN-05 |
 | 6. Chamados | US-CH-01 a US-CH-03 | RF-CH-01 a RF-CH-05 |
-| 7. Reclamações e score | US-RS-01 a US-RS-07 | RF-RS-01 a RF-RS-14 |
+| 7. Reclamações e score | US-RS-01 a US-RS-07, US-AD-11 | RF-RS-01 a RF-RS-15 |
 | 8. Pesquisa mensal | US-PE-01, US-PE-02 | RF-PE-01 a RF-PE-04 |
-| 9. Comunicação | US-CO-01, US-CO-02 | RF-CO-01 a RF-CO-03 |
-| 10. Reuniões, votações e eleições | US-VO-01 a US-VO-03 | RF-VO-01 a RF-VO-09 |
+| 9. Comunicação | US-CO-01 a US-CO-03 | RF-CO-01 a RF-CO-04 |
+| 10. Reuniões, votações e eleições | US-VO-01 a US-VO-03 | RF-VO-01 a RF-VO-11 |
 | 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
 | 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 |
-| 13. Cobrança condominial | US-FI-01 a US-FI-06 | RF-FI-01 a RF-FI-15 |
+| 13. Cobrança condominial | US-FI-01 a US-FI-06 | RF-FI-01 a RF-FI-16 |

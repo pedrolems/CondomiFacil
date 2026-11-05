@@ -25,7 +25,7 @@ Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
 | `js/data.js` | Dados fictícios em memória |
 | `js/telas/acesso.js` | Fluxos 3.1 a 3.3: primeiro acesso, login, recuperação, termos, onboarding |
 | `js/telas/morador.js` | Morador (e telas que o síndico reaproveita) e proprietário não residente |
-| `js/telas/sindico.js` | Aba Gestão do síndico |
+| `js/telas/sindico.js` | Aba Gestão do síndico e do subsíndico (permissões por estado da substituição) |
 | `js/telas/funcionarios.js` | Portaria, limpeza e manutenção |
 | `js/telas/admin.js` | Painel web da administradora |
 
@@ -34,10 +34,12 @@ Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
 - **Acesso e conta:** primeiro acesso (código: `123456`), login (senha `errada` ou `desativada` simula erros), novo aceite.
 - **Morador:** Início · Reservas · Visitantes · Chamados · Menu.
 - **Síndico:** Início · Gestão · Reservas · Visitantes · Menu.
+- **Subsíndico:** as mesmas abas do síndico. Fora da substituição, a Gestão é enxuta: reclamações contra o síndico, manutenção só para acompanhar, sugestões de comunicado, votos presenciais e encomendas vencidas. "Substituição ativa" no painel lateral libera todas as funções de síndico.
 - **Administradora:** painel web com navegação lateral.
 - **Portaria:** Visitantes · Encomendas · Áreas · Menu (sem internet, divergência e modo treinamento).
 - **Limpeza:** Chamados · Áreas · Menu.
 - **Manutenção:** *proposta*; o PRD não tem esse perfil (hoje o síndico acompanha empresas cadastradas).
-- **Proprietário não residente:** entra direto em Cobranças.
+- **Proprietário não residente:** Unidade · Cobranças · Assembleias · Menu. Acompanha o contrato de locação e as ocorrências, paga as despesas extraordinárias e vota.
+- **Locação no painel da administradora:** Unidades e moradores > "Alugadas" ou "Desocupadas" abre o detalhe da unidade (cadastrar, renovar e encerrar contrato, responsáveis financeiros por tipo).
 
-O painel à esquerda lista todas as telas do perfil, troca o tema e simula situações (score baixo, unidade em atraso, termos novos, sem internet).
+O painel à esquerda lista todas as telas do perfil, troca o tema e simula situações (score baixo, unidade em atraso, termos novos, sem internet). No morador, "Morador é inquilino" mostra o voto do inquilino e as cobranças só ordinárias; no proprietário, há "Unidade desocupada", "Temporada permitida" e "Contrato vence em 20 dias".

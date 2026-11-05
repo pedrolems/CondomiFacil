@@ -9,6 +9,19 @@ const S = {
   unit: 0,
   units: [{ cond: 'Residencial Jardim Azul', name: 'Bloco A · Apto 101' }, { cond: 'Residencial Jardim Azul', name: 'Bloco B · Apto 302' }],
   score: 78, atraso: false,
+  // Locação (RN-CD-20 a RN-CD-26): o morador pode ser simulado como inquilino; a proprietária Helena acompanha o Bloco B · Apto 302
+  inquilino: false, contratoFim: '05/12/2026', contratoDias: 30,
+  prop: {
+    nome: 'Helena Duarte', un: 'Bloco B · Apto 302', desocupada: false, temporada: false, venceLogo: false,
+    inq: { nome: 'Marina Souza', ini: '01/02/2025', fim: '31/01/2027', dias: 87, dependentes: ['Theo Souza'] },
+    resp: { ord: 'Marina Souza · inquilina', ext: 'Helena Duarte · proprietária' },
+    ocorrencias: [
+      { id: 'o1', cat: 'Barulho', data: '12/10', decisao: 'Validada · leve', multa: null },
+      { id: 'o2', cat: 'Vaga de garagem', data: '02/09', decisao: 'Validada · leve · multa por infração', multa: 95 },
+    ],
+    pedidos: [{ id: 'q1', tipo: 'Renovação do contrato', det: 'Marina Souza · até 31/01/2028', estado: 'Concluída', data: '15/01' }],
+    hospedes: [],
+  },
   scoreHist: [
     { d: '01/11', t: 'Pesquisa mensal: boa convivência', p: +5 },
     { d: '12/10', t: 'Reclamação validada: barulho após as 22h', p: -10 },
@@ -51,13 +64,22 @@ const S = {
   julgar: [
     { id: 'j1', estado: 'Aberta', cat: 'Barulho', grav: 'Média · −10', desc: 'Música alta todas as sextas depois da meia-noite.', data: '02/11', reclamante: { nome: 'Ana Lima', un: 'Bloco A · Apto 101', score: 78 }, alvo: { nome: 'Rafael Costa', un: 'Bloco C · Apto 504', score: 85 }, conversa: false, resposta: null, liberaEm: '07/11' },
     { id: 'j2', estado: 'Em conversa com o alvo', cat: 'Animal sem coleira', grav: 'Leve · −5', desc: 'Cachorro solto no playground.', data: '28/10', reclamante: { nome: 'Pedro Alves', un: 'Bloco B · Apto 101', score: 92 }, alvo: { nome: 'Luiza Prado', un: 'Bloco A · Apto 303', score: 70 }, conversa: true, resposta: 'O portão do apartamento abriu sozinho, já consertei. Peço desculpas.', liberaEm: '02/11' },
+    { id: 'j4', estado: 'Aberta', cat: 'Conduta do síndico', grav: 'Média · −10', desc: 'O síndico não respondeu os pedidos de conserto do interfone do Bloco C, feitos há três semanas.', data: '03/11', reclamante: { nome: 'Rafael Costa', un: 'Bloco C · Apto 504', score: 85 }, alvo: { nome: 'Pedro Alves', un: 'Síndico · Bloco B · Apto 101', score: 72 }, conversa: false, resposta: null, liberaEm: '08/11', contraSindico: true },
     { id: 'j3', estado: 'Em recurso', cat: 'Atendimento na portaria', grav: 'Média · −10', desc: 'Porteiro não registrou visita e deixou o visitante esperando 40 minutos.', data: '20/10', reclamante: { nome: 'Carla Mendes', un: 'Bloco B · Apto 202', score: 88 }, alvo: { nome: 'José Ribeiro', un: 'Portaria', score: 81 }, conversa: true, resposta: 'O sistema estava sem internet e o interfone com defeito.', liberaEm: '25/10' },
   ],
   cobrancas: [
-    { id: 'b1', ref: 'Novembro de 2026', valor: 620, venc: '10/11', estado: 'Emitida' },
-    { id: 'b2', ref: 'Outubro de 2026', valor: 620, venc: '10/10', estado: 'Paga', pago: '08/10' },
-    { id: 'b3', ref: 'Fundo de obras (extra)', valor: 180, venc: '10/10', estado: 'Paga com atraso', pago: '16/10' },
-    { id: 'b4', ref: 'Setembro de 2026', valor: 620, venc: '10/09', estado: 'Paga', pago: '05/09' },
+    { id: 'b1', ref: 'Novembro de 2026', valor: 620, venc: '10/11', estado: 'Emitida', tipo: 'Ordinária' },
+    { id: 'b2', ref: 'Outubro de 2026', valor: 620, venc: '10/10', estado: 'Paga', pago: '08/10', tipo: 'Ordinária' },
+    { id: 'b3', ref: 'Fundo de obras (extra)', valor: 180, venc: '10/10', estado: 'Paga com atraso', pago: '16/10', tipo: 'Extraordinária' },
+    { id: 'b4', ref: 'Setembro de 2026', valor: 620, venc: '10/09', estado: 'Paga', pago: '05/09', tipo: 'Ordinária' },
+  ],
+  // Cobranças do Bloco B · Apto 302 vistas pela proprietária: as extraordinárias são dela; as ordinárias, da inquilina (RN-FI-03, RN-FI-10)
+  cobrancasProp: [
+    { id: 'h1', ref: 'Fundo de obras · parcela 2 de 3', valor: 180, venc: '10/12', estado: 'Emitida', tipo: 'Extraordinária' },
+    { id: 'h2', ref: 'Novembro de 2026', valor: 620, venc: '10/11', estado: 'Emitida', tipo: 'Ordinária', inq: true },
+    { id: 'h3', ref: 'Multa por infração: vaga de garagem', valor: 95, venc: '10/10', estado: 'Paga', pago: '09/10', tipo: 'Ordinária', inq: true },
+    { id: 'h4', ref: 'Fundo de obras · parcela 1 de 3', valor: 180, venc: '10/11', estado: 'Paga', pago: '03/11', tipo: 'Extraordinária' },
+    { id: 'h5', ref: 'Outubro de 2026', valor: 620, venc: '10/10', estado: 'Paga', pago: '07/10', tipo: 'Ordinária', inq: true },
   ],
   encomendas: [
     { id: 'e1', un: 'Bloco A · Apto 101', rem: 'Amazon', data: 'Hoje, 10h12', estado: 'Recebida', foto: true },
@@ -73,12 +95,12 @@ const S = {
   ],
   reunioes: [
     { id: 'g1', titulo: 'Assembleia geral ordinária', data: '20/11 às 19h', local: 'Salão de festas', estado: 'Votação aberta', pautas: [
-      { id: 'p1', q: 'Aprovar a previsão orçamentária de 2027?', tipo: 'votacao', opcoes: ['Aprovar', 'Reprovar', 'Abster-se'], quorum: 'Maioria simples dos presentes', voto: null, res: [62, 12, 6] },
-      { id: 'p2', q: 'Qual cor para a pintura da fachada?', tipo: 'votacao', opcoes: ['Cinza claro', 'Bege', 'Manter a atual'], quorum: '2/3 das unidades', voto: null, res: [41, 30, 9] },
+      { id: 'p1', q: 'Aprovar a previsão orçamentária de 2027?', tipo: 'votacao', opcoes: ['Aprovar', 'Reprovar', 'Abster-se'], quorum: 'Maioria simples dos presentes', voto: null, res: [62, 12, 6], extra: false },
+      { id: 'p2', q: 'Aprovar a pintura da fachada com rateio de R$ 300 por unidade?', tipo: 'votacao', opcoes: ['Aprovar', 'Reprovar', 'Abster-se'], quorum: '2/3 das unidades', voto: null, res: [41, 30, 9], extra: true },
       { id: 'p3', q: 'Prestação de contas do 3º trimestre', tipo: 'informativa' },
     ] },
     { id: 'g2', titulo: 'Eleição de síndico e subsíndico 2027–2028', data: 'Candidaturas até 15/11', local: 'Online e no salão de festas', estado: 'Candidaturas abertas', eleicao: true, pautas: [] },
-    { id: 'g3', titulo: 'Assembleia extraordinária: obras da garagem', data: '15/09 às 19h', local: 'Salão de festas', estado: 'Encerrada', pautas: [{ id: 'p9', q: 'Aprovar a reforma da garagem?', tipo: 'votacao', opcoes: ['Aprovar', 'Reprovar'], quorum: 'Maioria simples', voto: 'Aprovar', res: [71, 18], encerrada: true }] },
+    { id: 'g3', titulo: 'Assembleia extraordinária: obras da garagem', data: '15/09 às 19h', local: 'Salão de festas', estado: 'Encerrada', pautas: [{ id: 'p9', q: 'Aprovar a reforma da garagem?', tipo: 'votacao', opcoes: ['Aprovar', 'Reprovar'], quorum: 'Maioria simples', voto: 'Aprovar', votoProp: 'Aprovar', res: [71, 18], encerrada: true, extra: true }] },
   ],
   pesquisa: { mes: 'Novembro', fecha: '30/11', setores: [
     { nome: 'Portaria', funcs: [{ id: 'f1', nome: 'José Ribeiro', turno: 'Diurno' }, { id: 'f2', nome: 'Antônio Melo', turno: 'Noturno' }] },
@@ -106,6 +128,7 @@ const S = {
     { id: 's1', tipo: 'Incluir morador', det: 'Lucas Lima · Bloco A · Apto 101 · dependente', estado: 'Pendente', data: '04/11', por: 'Síndico' },
     { id: 's2', tipo: 'Alterar dados', det: 'Telefone de Rafael Costa · Bloco C · Apto 504', estado: 'Concluída', data: '30/10', por: 'Síndico' },
     { id: 's3', tipo: 'Remover funcionário', det: 'Pedro Gomes · Portaria', estado: 'Recusada', motivo: 'Desligamento já registrado em 20/10.', data: '21/10', por: 'Síndico' },
+    { id: 's4', tipo: 'Cadastrar inquilino', det: 'Bloco C · Apto 102 · Diego Ramos · contrato de 01/12/2026 a 30/11/2027', estado: 'Pendente', data: '05/11', por: 'Proprietária Sílvia Nunes' },
   ],
   franquia: { usadas: 7, total: 10 },
   inad: [
@@ -114,6 +137,10 @@ const S = {
     { un: 'Bloco A · Apto 303', resp: 'Luiza Prado', valor: 627.0, dias: 9, cobr: 1 },
   ],
   substituicao: false,
+  rascunhos: [   // sugestões de comunicado da subsíndica (RN-CO-05)
+    { id: 'r1', titulo: 'Limpeza da caixa d’água', txt: 'No sábado, 14/11, das 8h às 12h, a água do Bloco B fica desligada para a limpeza semestral da caixa d’água. Deixe água separada.', publico: 'Moradores', estado: 'Aguardando o síndico', data: '04/11' },
+    { id: 'r2', titulo: 'Horário da academia', txt: 'A academia passa a abrir às 6h a partir de dezembro.', publico: 'Moradores', estado: 'Enviado pelo síndico', data: '22/10' },
+  ],
   // Administradora
   condo: 0,
   condos: [{ nome: 'Residencial Jardim Azul', unidades: 120, plano: 'Gestão + Suporte' }, { nome: 'Edifício Solar das Flores', unidades: 48, plano: 'Gestão' }, { nome: 'Condomínio Vila Verde', unidades: 86, plano: 'Gestão' }],
@@ -123,7 +150,9 @@ const S = {
     { nome: 'Pedro Alves', un: 'Bloco B · Apto 101', papel: 'Morador habilitado · Síndico', email: 'pedro.alves@email.com', ativo: true },
     { nome: 'Carla Mendes', un: 'Bloco B · Apto 202', papel: 'Morador habilitado · Subsíndica', email: 'carla.m@email.com', ativo: true },
     { nome: 'Rafael Costa', un: 'Bloco C · Apto 504', papel: 'Morador habilitado', email: 'rafa.costa@email.com', ativo: true },
-    { nome: 'Helena Duarte', un: 'Bloco B · Apto 302', papel: 'Proprietária não residente · Responsável financeira', email: 'helena.d@email.com', ativo: true },
+    { nome: 'Marina Souza', un: 'Bloco B · Apto 302', papel: 'Inquilina · Morador habilitado · Responsável pelas ordinárias', email: 'marina.s@email.com', ativo: true },
+    { nome: 'Helena Duarte', un: 'Bloco B · Apto 302', papel: 'Proprietária não residente · Responsável pelas extraordinárias', email: 'helena.d@email.com', ativo: true },
+    { nome: 'Sílvia Nunes', un: 'Bloco C · Apto 102', papel: 'Proprietária não residente · Unidade desocupada', email: 'silvia.n@email.com', ativo: true },
     { nome: 'Luiza Prado', un: 'Bloco A · Apto 303', papel: 'Morador habilitado · Conselho fiscal', email: 'luiza.prado@email.com', ativo: true },
   ],
   funcionarios: [
@@ -171,11 +200,12 @@ const ADMIN_NAV = [
 
 const HUB = [
   { p: 'acesso', t: 'Acesso e conta', s: 'Todos os perfis · fluxos 3.1 a 3.3', f: ['Primeiro acesso com código de 6 dígitos', 'Login, conta pausada e recuperação de senha', 'Aceite de termos e onboarding', 'Novo aceite de termos'] },
-  { p: 'morador', t: 'Morador', s: 'App · Início, Reservas, Visitantes, Chamados, Menu', f: ['Reserva gratuita e paga (Pix e cartão), cancelamento', 'Visitantes avulsos e recorrentes', 'Chamados, reclamações, recurso e score', 'Cobranças, votações, pesquisa mensal e transparência', 'Comunicados, encomendas, aparência e LGPD'] },
+  { p: 'morador', t: 'Morador', s: 'App · Início, Reservas, Visitantes, Chamados, Menu', f: ['Reserva gratuita e paga (Pix e cartão), cancelamento', 'Visitantes avulsos e recorrentes', 'Chamados, reclamações, recurso e score', 'Cobranças, votações, pesquisa mensal e transparência', 'Simulação de inquilino: voto em pauta sem despesa extraordinária', 'Comunicados, encomendas, aparência e LGPD'] },
   { p: 'sindico', t: 'Síndico', s: 'App · Início, Gestão, Reservas, Visitantes, Menu', f: ['Julgar reclamações (conversa antes de decidir)', 'Acompanhar manutenção e empresas', 'Comunicados gerais e individuais', 'Convocar reunião, votos presenciais e resultado', 'Solicitações de cadastro, inadimplência e substituição'] },
+  { p: 'subsindico', t: 'Subsíndico', s: 'App · Início, Gestão, Reservas, Visitantes, Menu', f: ['Gestão enxuta no dia a dia', 'Julga reclamações contra o síndico', 'Acompanha a manutenção, sem avançar o status', 'Sugere comunicados que o síndico revisa e envia', 'Registra votos presenciais e vê encomendas vencidas', 'Na substituição, todas as funções de síndico'] },
   { p: 'admin', t: 'Administradora', s: 'Painel web · navegação lateral', f: ['Implantação: estrutura, conta bancária e planilha', 'Unidades, moradores, mudanças e funcionários', 'Áreas, regras e parâmetros com faixa permitida', 'Cobrança, cobranças extras e inadimplência', 'Reclamações, mandatos, solicitações e bloqueio'] },
   { p: 'portaria', t: 'Funcionário · Portaria', s: 'App · Visitantes, Encomendas, Áreas, Menu', f: ['Entrada em 1 toque com Desfazer', 'Lista de bloqueio e fora do horário', 'Sem internet, fila e divergência ao sincronizar', 'Encomendas, vistorias e modo treinamento'] },
   { p: 'limpeza', t: 'Funcionário · Limpeza', s: 'App · Chamados, Áreas, Menu', f: ['Fila do setor por prazo, com Concluir no cartão', 'Iniciar atendimento no detalhe', 'Conclusão sem internet', 'Vistoria e não comparecimento'] },
   { p: 'manutencao', t: 'Funcionário · Manutenção', s: 'Proposta · não previsto no PRD', f: ['Fila de chamados de manutenção atribuídos', 'Agenda de visitas', 'Atualizar andamento e concluir com foto', 'Hoje o PRD prevê só empresas cadastradas pelo síndico'] },
-  { p: 'proprietario', t: 'Proprietário não residente', s: 'App · só cobranças da unidade', f: ['Entra direto em Cobranças', 'Pix, boleto e cartão', 'Comprovante', 'Menu reduzido'] },
+  { p: 'proprietario', t: 'Proprietário não residente', s: 'App · Unidade, Cobranças, Assembleias, Menu', f: ['Unidade alugada: contrato, inquilino e pedidos à administradora', 'Paga as extraordinárias; vê as ordinárias do inquilino', 'Vota nas assembleias e indica procurador', 'Ocorrências validadas contra a unidade, sem ver a rotina do inquilino', 'Unidade desocupada e hóspede de temporada'] },
 ];

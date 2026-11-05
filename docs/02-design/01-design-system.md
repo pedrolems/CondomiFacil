@@ -236,6 +236,18 @@ Todo estado aparece num selo (componente 10.8) com o texto exato da tabela e o t
 
 Negada sem penalidade aparece como "Encerrada" (RN 5.5).
 
+**Unidade e contrato de locação (RN-CD-20 a RN-CD-24)**
+
+| Estado | Tom |
+| --- | --- |
+| Ocupada pelo proprietário | `neutral` |
+| Alugada | `info` |
+| Contrato vence em N dias | `warning` (a partir de 30 dias do fim) |
+| Contrato vencido | `danger` (durante os 7 dias de carência) |
+| Desocupada | `neutral` |
+
+O tipo da cobrança ("Ordinária" ou "Extraordinária") não é um estado: aparece como texto `type.label.sm` em `color.text.secondary` ao lado do vencimento, nunca como selo.
+
 Os estados de reserva (RN 7.4) e de reclamação (RN 5.5) estão nas Regras de Negócio, com os mesmos nomes desta seção; os fluxos entre eles estão no User Flows — CondomiFacil (`02-user-flows.md`). Para qualquer estado novo, vale a regra geral: em andamento → `info`; exige ação → `warning`; erro, bloqueio ou perda → `danger`; concluído com sucesso → `success`; finalizado sem julgamento → `neutral`.
 
 ### 4.6 Calendário de reservas
@@ -672,6 +684,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 - **Ações rápidas** em grade de 3: "Cadastrar visitante", "Reservar", "Abrir chamado" (todas em até 3 toques, RNF-15).
 - Depois, cartões "Para você" na ordem: cobrança em aberto (só para o responsável financeiro), "Para julgar" (só para quem tem reclamação ou recurso a julgar, como síndico, subsíndico e conselho fiscal), encomendas aguardando retirada, votação aberta, reservas próximas, últimos comunicados.
 - Cartão "Pesquisa do mês" quando a pesquisa estiver aberta e a pessoa ainda não tiver respondido.
+- Para o inquilino, cartão "Contrato de locação" a partir de 30 dias do fim ("Seu contrato vai até 31/01/2027. Fale com o proprietário sobre a renovação."), com o selo "Contrato vence em N dias".
 
 ### 11.4 Reservas
 
@@ -698,11 +711,16 @@ Cartões com o score do síndico (componente 10.18 em versão compacta) e a nota
 - Cartão da pauta com pergunta, opções em botões de opção grandes, quórum e prazo ("Votação até o fim da reunião, 20/11 às 21h").
 - Confirmação em diálogo com a opção escolhida, porque o voto não pode ser mudado.
 - Depois de votar: selo `success` "Seu voto foi registrado". Resultado só aparece após o encerramento (RF-VO-07).
-- Unidade em atraso: em vez das opções, uma faixa `warning` visível só ao morador habilitado explica o motivo e mostra o botão "Ver cobranças" (RN-FI-11).
+- Unidade em atraso: em vez das opções, uma faixa `warning` visível só a quem vota pela unidade e aos responsáveis financeiros explica o motivo e mostra o botão "Ver cobranças" (RN-FI-11).
+- Cada pauta com votação mostra o texto "Envolve despesa extraordinária" quando for o caso (RN-VO-18).
+- Inquilino em pauta com despesa extraordinária: sem opções; faixa `info` "Só o proprietário vota nesta pauta. Ele pode indicar você como procurador."
+- Inquilino em pauta sem despesa extraordinária: opções liberadas, com a faixa `info` "Se o proprietário votar até o encerramento, o voto dele vale no lugar do seu." Depois de votar, o selo fica "Seu voto foi registrado" e, se for substituído, `neutral` "Substituído pelo voto do proprietário".
+- Morador que não vota pela unidade: sem opções e o texto "Quem vota pela unidade é o proprietário, [nome]."
 
 ### 11.8 Cobranças
 
-- Lista de cobranças da unidade (só para o responsável financeiro), com valor em `type.title.sm`, vencimento e selo de estado.
+- Lista de cobranças emitidas para a pessoa (cada responsável financeiro vê as suas), com valor em `type.title.sm`, vencimento, tipo ("Ordinária" ou "Extraordinária") e selo de estado.
+- O proprietário não residente vê também as cobranças da unidade emitidas ao inquilino, com o selo de estado e o texto "Paga pelo inquilino", sem botão de pagar (RN-FI-10).
 - O detalhe mostra o valor atualizado (com multa e juros discriminados quando em atraso) e as formas ativas: Pix, boleto (código de barras com botão "Copiar código") e cartão.
 - Depois do pagamento, mensagem `success` e botão "Baixar comprovante".
 - O painel de inadimplência (síndico e administradora) fica dentro de "Gestão" e nunca é acessível a outros perfis (SEG-17).
@@ -716,6 +734,35 @@ Para administradora, suporte e síndico (RF-AC-06), na faixa expandida.
 - Configurações mostram, em cada parâmetro, o padrão da plataforma, o valor do condomínio, a faixa permitida e de onde vem o valor ("Herdado do condomínio").
 - No plano Gestão + Suporte, o síndico vê o contador de solicitações antes de enviar ("7 de 10 solicitações usadas este mês. As próximas custam R$ 15,00 cada.") (RN-PL-05).
 - Importação por planilha mostra prévia com as linhas com erro destacadas antes de confirmar.
+- O detalhe da unidade mostra o selo da unidade (4.5), o proprietário, o inquilino com as datas do contrato e os botões "Renovar contrato" e "Encerrar contrato", os responsáveis financeiros por tipo (ordinárias e extraordinárias) e a opção "Marcar como desocupada".
+
+### 11.10 Unidade do proprietário não residente
+
+Tela inicial do proprietário não residente (RN-CD-19).
+
+- Cabeçalho com a unidade, o selo da unidade (4.5) e, se alugada, o nome do inquilino e as datas do contrato. Nada da rotina do inquilino aparece: visitantes, reservas, chamados, encomendas e score.
+- Ações: "Pedir renovação", "Pedir encerramento" e, na unidade desocupada, "Pedir cadastro de inquilino"; cada pedido vira uma solicitação para a administradora, com selo de estado (RN-CD-23).
+- Cartões "Para você": cobrança em aberto, votação aberta, contrato perto do fim.
+- Seção "Ocorrências da unidade": reclamações validadas e multas, só com categoria, data, decisão e valor (RN-RC-16).
+- Na unidade desocupada com temporada permitida, botão "Cadastrar hóspede" com data de entrada e de saída (RN-VI-10).
+
+### 11.11 Gestão do subsíndico
+
+O subsíndico usa as telas do síndico. O que muda depende da substituição (RN-CD-27, RN-CD-28).
+
+| Item da Gestão | Fora da substituição | Na substituição |
+| --- | --- | --- |
+| Reclamações | "Reclamações contra o síndico": só as contra o síndico e os recursos de decisões dele | "Reclamações para julgar": todas, menos as contra ele |
+| Chamados de manutenção | Só acompanha: empresa sem toque e sem botão "Avançar" | Como o síndico |
+| Comunicados | "Comunicados e sugestões": botão flutuante "Sugerir" e seção "Suas sugestões" com selo `warning` "Aguardando o síndico", `success` "Enviado pelo síndico" ou `neutral` "Descartada" | Como o síndico |
+| Reuniões e eleições | Registra votos presenciais; sem "Convocar", "Abrir eleição", "Encerrar reunião" e ata | Como o síndico |
+| Encomendas com prazo vencido | Só vê a lista, sem "Marcar como devolvida" | Como o síndico |
+| Substituição | Cartão com selo `neutral` "Inativa", sem interruptor | Cartão com selo `info` "Ativa", sem interruptor |
+| Limpeza, Solicitações e Inadimplência | Não aparecem; por link direto, estado vazio com cadeado: "Esta função é do síndico. Você passa a ter acesso quando a substituição pelo subsíndico estiver ativa." | Como o síndico |
+
+- No topo da Gestão, faixa `info`: fora da substituição, "Você vê as funções de gestão da subsíndica. As demais aparecem quando a substituição estiver ativa."; na substituição, "Substituição ativa: você tem as funções de síndico até o síndico ou a administradora desativar. Tudo o que fizer fica registrado."
+- No Início, o cartão "Para julgar" diz "reclamações contra o síndico" fora da substituição; na substituição, aparece também o cartão "Substituição ativa".
+- Para o síndico, Comunicados ganha a seção "Sugestões da subsíndica" acima dos enviados, e o item Comunicados da Gestão mostra um selo `accent` com o número de sugestões pendentes. Revisar abre o formulário de novo comunicado preenchido, com a faixa "Sugestão da subsíndica [nome], de [data]. Revise antes de enviar."
 
 ## 12. Navegação por perfil
 
@@ -723,16 +770,17 @@ As abas foram escolhidas para que as tarefas mais frequentes de cada perfil fiqu
 
 | Perfil | Abas da navegação inferior |
 | --- | --- |
-| Morador e subsíndico | Início · Reservas · Visitantes · Chamados · Menu |
-| Síndico morador e subsíndico em substituição | Início · Gestão · Reservas · Visitantes · Menu |
+| Morador | Início · Reservas · Visitantes · Chamados · Menu |
+| Síndico morador e subsíndico | Início · Gestão · Reservas · Visitantes · Menu. A Gestão do subsíndico é enxuta fora da substituição (11.11) |
 | Síndico profissional | Início · Gestão · Comunicados · Chamados · Menu |
 | Portaria | Visitantes · Encomendas · Áreas · Menu |
 | Limpeza | Chamados · Áreas · Menu |
 | Administradora, suporte e admin da plataforma | Web, navegação lateral (11.9) |
 | Conselho fiscal | As abas do morador. Reclamações e recursos para julgar aparecem num cartão "Para julgar" no Início e em Menu > Reclamações |
-| Proprietário não residente | Sem navegação inferior: entra direto em Cobranças; Menu com Cobranças, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair |
+| Proprietário não residente | Unidade · Cobranças · Assembleias · Menu. Menu com Comunicados, Solicitações, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair |
 
-- **Gestão** reúne o que é do síndico: reclamações para julgar, chamados de manutenção, comunicados, reuniões, solicitações de cadastro, inadimplência e substituição.
+- **Gestão** reúne o que é do síndico: reclamações para julgar, chamados de manutenção, comunicados, reuniões, solicitações de cadastro, inadimplência e substituição. Para o subsíndico fora da substituição, só os itens de 11.11.
+- **Meus chamados** fica no Menu do síndico e do subsíndico, porque a aba Chamados dá lugar à Gestão.
 - **Áreas** (portaria e limpeza) reúne vistorias e registro de não comparecimento (RF-RE-08, RF-RE-09).
 - **Menu** reúne, para quem tem: Meu score, Reclamações, Cobranças, Encomendas, Reuniões e votações, Pesquisa do mês, Transparência, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair. Na portaria, o Menu também tem "Abrir chamado" e "Modo treinamento".
 - **Aparência** tem três opções: "Igual ao aparelho" (padrão), "Claro" e "Escuro". A escolha fica salva (RF-AC-05, US-AC-06).
@@ -767,6 +815,10 @@ Use sempre o mesmo termo para a mesma coisa, igual ao glossário das Regras de N
 | Use | Não use |
 | --- | --- |
 | Morador habilitado | Titular, morador principal |
+| Proprietário | Dono, locador, condômino (na tela) |
+| Inquilino | Locatário |
+| Despesa extraordinária | Despesa extra, taxa extra |
+| Desocupada | Vazia, sem morador |
 | Unidade | Apartamento (quando puder ser casa ou sala) |
 | Chamado | Ticket, ordem de serviço, pedido |
 | Reclamação | Denúncia, queixa, ocorrência |
@@ -846,7 +898,9 @@ Estas regras traduzem RN-SC-02, SEG-07 e SEG-17 em decisões de tela. Valem em l
 | Score individual | A própria pessoa; o julgador e a administradora dentro da reclamação; administradora (e síndico e subsíndico sem administradora) para funcionários | Listas de moradores, perfis de outras pessoas, comunicados |
 | Score do síndico | Todos | — |
 | Quem reclamou | Julgador e administradora | Qualquer tela, notificação ou histórico do alvo |
-| Situação financeira da unidade | Responsável financeiro (inclusive o proprietário não residente, quando for o responsável financeiro), administradora, síndico (ou subsíndico em substituição) | Votações (o motivo do bloqueio só aparece ao morador habilitado), listas de unidades vistas por moradores, notificações na tela bloqueada |
+| Situação financeira da unidade | Proprietário, administradora, síndico (ou subsíndico em substituição); cada responsável financeiro vê as cobranças emitidas para ele | Votações (o motivo do bloqueio só aparece a quem vota e aos responsáveis financeiros), listas de unidades vistas por moradores, notificações na tela bloqueada |
+| Rotina do inquilino (visitantes, reservas, chamados, encomendas, score) | O próprio inquilino e os perfis que já veem esses dados (portaria, síndico, julgador) | Qualquer tela do proprietário não residente |
+| Reclamação contra unidade alugada ou desocupada | Proprietário: só categoria, data, decisão e multa, depois da validação | Conversa com o alvo e identidade do reclamante, para o proprietário |
 | Quem reservou | Ninguém no calendário (só "Ocupado") | Calendário e lista de horários |
 | Notas individuais da pesquisa | O próprio funcionário, sem saber quem avaliou | Transparência e qualquer tela de morador |
 | Documento do visitante | Portaria e o morador que cadastrou | Notificações |
@@ -937,6 +991,11 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | 04/11/2026 | Botão opcional "Iniciar atendimento" no detalhe do chamado de limpeza (11.2) | A RN 9.2 tem o estado "Em atendimento", que a tela não previa |
 | 04/11/2026 | Nomes da paleta renumerados sem mudar hex: #0B1A44 `blue.950`, #081B52 `blue.925`, #0E2766 `blue.900`, #0A2878 `blue.850`, #16307A `blue.800`, #133080 `blue.750`, #7D8BB5 `gray.450` | Número maior deve indicar tom mais escuro, e alguns nomes invertiam essa ordem |
 | 04/11/2026 | Exemplo de código da seção 17 sem hex soltos, só com referências a `palette` | A própria seção 17 manda apontar hex solto na revisão |
+| 05/11/2026 | Proprietário não residente com as abas Unidade, Cobranças, Assembleias e Menu (12), tela da unidade (11.10) e novos itens de privacidade (15) | O proprietário passou a votar e acompanhar a unidade alugada (RN-CD-19, RN-VO-01) |
+| 05/11/2026 | Estados da unidade e do contrato de locação (4.5); tipo da cobrança como texto, não selo | Novas regras de locação (RN-CD-20 a RN-CD-24, RN-FI-20) |
+| 05/11/2026 | Votações com textos para o inquilino e para pautas com despesa extraordinária (11.7); cobranças do inquilino visíveis ao proprietário sem botão de pagar (11.8) | RN-VO-18, RN-FI-10 |
+| 05/11/2026 | Termos "Proprietário", "Inquilino", "Despesa extraordinária" e "Desocupada" (13.3) | Evitar sinônimos jurídicos na tela, como locador e locatário |
+| 05/11/2026 | Subsíndico com as abas do síndico e Gestão enxuta fora da substituição (11.11, 12); sugestões de comunicado | O subsíndico passou a ter funções de gestão no dia a dia (RN-CD-27, RN-CO-05) |
 | 04/11/2026 | Diagramas perdidos na conversão para Markdown refeitos: roadmap em Mermaid na Visão de Produto; fluxo e estados da reclamação e estados da reserva em tabelas nas Regras de Negócio e em Mermaid no User Flows — CondomiFacil | Pendência resolvida; saiu da lista de pendências |
 
 **Pendência fora deste documento:** o logotipo definitivo depende de um trabalho de identidade visual.
@@ -947,7 +1006,7 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | --- | --- |
 | 2. Princípios | Princípios da Visão de Produto, RNF-15 |
 | 4. Cores | PRD seção 9, RNF-12, RF-AC-05 |
-| 4.5 Estados | RN 5.5, 7.4, 8.3, 9.1, 9.2, 12.2 |
+| 4.5 Estados | RN 5.5, 7.4, 8.3, 9.1, 9.2, 12.2, RN-CD-20 a RN-CD-24, RN-FI-20 |
 | 4.6 Calendário | RF-RE-01, RF-RE-06, RN-RE-05, RN-RE-06, RN-RE-08, RN-SC-09, RN-SC-10, RN-FI-12, US-RE-01, US-RE-05 |
 | 5. Tipografia | RNF-02, RNF-04, RNF-12, RNF-14 |
 | 6.2 Áreas de toque | RNF-12 |
@@ -965,11 +1024,13 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | 11.4 Reservas | RF-RE-01 a RF-RE-05, RF-PG-01, RN-RE-03, RN-CA-02, RN-CA-03, US-RE-02 a US-RE-04 |
 | 11.5 Reclamações | RF-RS-01 a RF-RS-09, RN-RC-01 a RN-RC-07, SEG-07, US-RS-01 a US-RS-05 |
 | 11.6 Transparência | RF-RS-12, RF-PE-04, RN-PE-08, US-RS-07 |
-| 11.7 Votações | RF-VO-02, RF-VO-07, RN-VO-03, RN-VO-16, RN-FI-11 |
-| 11.8 Cobranças | RF-FI-07 a RF-FI-13, RN-FI-08, RN-FI-10, SEG-17, US-FI-03, US-FI-05 |
-| 11.9 Painel web | RF-AC-06, RF-AD-01, RF-AD-16, RN-PL-05, Regras de Negócio seção 13 |
-| 12. Navegação | RF-AC-05, RF-AC-07, RF-RE-08, RF-RE-09, RNF-15, RN-CD-19 |
+| 11.7 Votações | RF-VO-02, RF-VO-07, RF-VO-11, RN-VO-01, RN-VO-03, RN-VO-16, RN-VO-18, RN-FI-11, US-VO-02 |
+| 11.8 Cobranças | RF-FI-04, RF-FI-07 a RF-FI-13, RF-FI-16, RN-FI-03, RN-FI-08, RN-FI-10, RN-FI-20, SEG-17, US-FI-03, US-FI-05 |
+| 11.9 Painel web | RF-AC-06, RF-AD-01, RF-AD-16, RF-AD-18, RF-AD-21, RN-PL-05, Regras de Negócio seção 13, US-AD-10 |
+| 11.10 Unidade do proprietário | RF-AD-19, RF-RS-15, RF-VI-13, RN-CD-19, RN-CD-23, RN-RC-16, RN-VI-10, US-AD-11 |
+| 11.11 Gestão do subsíndico | RF-CH-04, RF-CO-04, RF-EN-05, RF-VO-04, RN-CD-27, RN-CD-28, RN-CO-05, RN-EN-04, RN-VO-11, US-AD-12, US-CO-03 |
+| 12. Navegação | RF-AC-05, RF-AC-07, RF-RE-08, RF-RE-09, RNF-15, RN-CD-19, RN-VO-01 |
 | 13. Escrita | RNF-14, glossário das Regras de Negócio |
 | 14. Acessibilidade | RNF-12 |
-| 15. Privacidade | RN-SC-02, RN-RC-01, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-CD-19, SEG-07, SEG-17 |
+| 15. Privacidade | RN-SC-02, RN-RC-01, RN-RC-16, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-CD-19, SEG-07, SEG-17 |
 | 16. Desempenho | RNF-02, RNF-04 |

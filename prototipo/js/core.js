@@ -8,6 +8,8 @@ const PROFILES = {
                  tabs: [['inicio','Início','house'],['reservas','Reservas','calendar-days'],['visitantes','Visitantes','users'],['chamados','Chamados','wrench'],['menu','Menu','menu']] },
   sindico:     { name: 'Síndico', icon: 'layout-dashboard', layout: 'phone', home: 'inicio',
                  tabs: [['inicio','Início','house'],['gestao','Gestão','layout-dashboard'],['reservas','Reservas','calendar-days'],['visitantes','Visitantes','users'],['menu','Menu','menu']] },
+  subsindico:  { name: 'Subsíndico', icon: 'user-round-cog', layout: 'phone', home: 'inicio',
+                 tabs: [['inicio','Início','house'],['gestao','Gestão','layout-dashboard'],['reservas','Reservas','calendar-days'],['visitantes','Visitantes','users'],['menu','Menu','menu']] },
   admin:       { name: 'Administradora', icon: 'building-2', layout: 'web', home: 'visao-geral' },
   portaria:    { name: 'Portaria', icon: 'door-open', layout: 'phone', home: 'visitantes', staff: true,
                  tabs: [['visitantes','Visitantes','users'],['encomendas','Encomendas','package'],['areas','Áreas','clipboard-check'],['menu','Menu','menu']] },
@@ -15,7 +17,8 @@ const PROFILES = {
                  tabs: [['chamados','Chamados','spray-can'],['areas','Áreas','clipboard-check'],['menu','Menu','menu']] },
   manutencao:  { name: 'Manutenção', icon: 'wrench', layout: 'phone', home: 'chamados', staff: true, proposta: true,
                  tabs: [['chamados','Chamados','wrench'],['agenda','Agenda','calendar-days'],['menu','Menu','menu']] },
-  proprietario:{ name: 'Proprietário não residente', icon: 'receipt', layout: 'phone', home: 'cobrancas' },
+  proprietario:{ name: 'Proprietário não residente', icon: 'key-round', layout: 'phone', home: 'unidade',
+                 tabs: [['unidade','Unidade','house'],['cobrancas','Cobranças','receipt'],['assembleias','Assembleias','vote'],['menu','Menu','menu']] },
 };
 
 const SCREENS = {};   // 'perfil/tela' -> fn(ctx)
@@ -257,10 +260,18 @@ function renderSide(ctx) {
   }).join('');
   const sim = [];
   if (ctx.P.staff) sim.push(`<button class="${S.online ? '' : 'on'}" ${cb(() => setOnline(!S.online))}>${S.online ? 'Simular sem internet' : 'Voltar internet'}</button>`);
-  if (['morador', 'sindico'].includes(ctx.p)) {
+  if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) {
     sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? 78 : 58; rerender(); })}>Score baixo (58)</button>`);
     sim.push(`<button class="${S.atraso ? 'on' : ''}" ${cb(() => { S.atraso = !S.atraso; rerender(); })}>Unidade em atraso</button>`);
     sim.push(`<button class="${S.termsPending ? 'on' : ''}" ${cb(() => { S.termsPending = !S.termsPending; rerender(); })}>Termos novos</button>`);
+    if (ctx.p !== 'morador') sim.push(`<button class="${S.substituicao ? 'on' : ''}" ${cb(() => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa: Carla Mendes tem as funções de síndico.' : 'Substituição desativada.'); })}>Substituição ativa</button>`);
+    if (ctx.p === 'morador') sim.push(`<button class="${S.inquilino ? 'on' : ''}" ${cb(() => { S.inquilino = !S.inquilino; rerender(); toast(S.inquilino ? 'Ana agora é inquilina: a unidade é alugada.' : 'Ana voltou a ser proprietária moradora.'); })}>Morador é inquilino</button>`);
+  }
+  if (ctx.p === 'proprietario') {
+    const P = S.prop;
+    sim.push(`<button class="${P.desocupada ? 'on' : ''}" ${cb(() => { P.desocupada = !P.desocupada; rerender(); })}>Unidade desocupada</button>`);
+    sim.push(`<button class="${P.temporada ? 'on' : ''}" ${cb(() => { P.temporada = !P.temporada; rerender(); })}>Temporada permitida</button>`);
+    sim.push(`<button class="${P.venceLogo ? 'on' : ''}" ${cb(() => { P.venceLogo = !P.venceLogo; rerender(); })}>Contrato vence em 20 dias</button>`);
   }
   return `<aside class="proto-side" aria-label="Painel do protótipo">
     <a href="#/" class="row" style="text-decoration:none;color:inherit;gap:10px"><span class="app-icon sm">C</span><span><b class="wordmark" style="font-size:16px">CondomiFacil</b><br><span style="font-size:12px;color:#74809E">Protótipo navegável</span></span></a>

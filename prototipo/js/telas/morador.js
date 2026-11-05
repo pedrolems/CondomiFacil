@@ -1,6 +1,6 @@
 /* Morador (e telas compartilhadas com o síndico) — fluxos 5, 6, 7, 8, 9, 10, 11, 12, 13 e 14 */
 'use strict';
-const RES = ['morador', 'sindico'];
+const RES = ['morador', 'sindico', 'subsindico'];
 const TONES = {
   'Esperado': 'info', 'Autorizado por interfone': 'success', 'Entrou': 'success', 'Saiu': 'neutral', 'Saída não registrada': 'warning', 'Cancelado': 'neutral', 'Não compareceu': 'neutral',
   'Recebida': 'info', 'Prazo vencido': 'warning', 'Retirada': 'success', 'Devolvida': 'neutral',
@@ -13,7 +13,10 @@ const TONES = {
 const st = (s, toneOverride) => badge(s, toneOverride || TONES[s] || 'neutral');
 const areaOf = id => S.areas.find(a => a.id === id) || S.areas[0];
 const isRF = () => true; // Ana é a responsável financeira da unidade ativa
-const cobrancaAtual = () => S.cobrancas.map(c => (S.atraso && c.id === 'b1') ? Object.assign({}, c, { estado: 'Em atraso', venc: '10/10', valor: 632.4 }) : c);
+// Na unidade alugada, o inquilino só recebe as cobranças ordinárias; as extraordinárias vão ao proprietário (RN-FI-03)
+const cobrancaAtual = () => S.cobrancas.filter(c => !(S.inquilino && c.tipo === 'Extraordinária')).map(c => (S.atraso && c.id === 'b1') ? Object.assign({}, c, { estado: 'Em atraso', venc: '10/10', valor: 632.4 }) : c);
+const cobList = p => p === 'proprietario' ? S.cobrancasProp : cobrancaAtual();
+const isInq = p => p === 'morador' && S.inquilino;
 
 /* ---------------- Início (11.3) ---------------- */
 def(RES, 'inicio', 'Início', 'Início', ctx => {
@@ -21,16 +24,18 @@ def(RES, 'inicio', 'Início', 'Início', ctx => {
   const cob = cobrancaAtual().find(c => ['Emitida', 'Em atraso'].includes(c.estado));
   const enc = S.encomendas.filter(e => e.un === S.units[S.unit].name && e.estado === 'Recebida');
   const prox = S.reservas.filter(r => ['Confirmada', 'Aguardando pagamento'].includes(r.estado));
-  const julgar = S.julgar.filter(j => j.estado !== 'Encerrada');
+  const julgar = GES.includes(p) ? julgaveis().filter(j => !['Validada', 'Negada', 'Encerrada'].includes(j.estado)) : [];
   const quick = [['users', 'Cadastrar visitante', p + '/visitante-novo'], ['calendar-days', 'Reservar', p + '/reservas'], ['wrench', 'Abrir chamado', p + '/chamado-novo']];
   return {
     tab: 'inicio', top: { unit: true, actions: [{ icon: 'bell', label: 'Notificações', on: p + '/notificacoes', dot: true }] },
     body: `<div class="stack">
-      <h1 class="t-title-lg">Olá, ${p === 'sindico' ? 'Pedro' : 'Ana'}</h1>
+      <h1 class="t-title-lg">Olá, ${p === 'sindico' ? 'Pedro' : p === 'subsindico' ? 'Carla' : 'Ana'}</h1>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${quick.map(([i, l, r]) => `<button type="button" class="card tap" style="align-items:center;text-align:center;padding:14px 8px;gap:8px" ${goAttr(r)}><span class="card-icon">${ic(i)}</span><span class="t-label-sm">${l}</span></button>`).join('')}</div>
       <h2 class="t-title-sm section-title" style="margin-bottom:0">Para você</h2>
       ${cob ? card({ icon: 'receipt', title: cob.estado === 'Em atraso' ? 'Cobrança em atraso' : 'Cobrança em aberto', sub: `${cob.ref} · vence em ${cob.venc}`, badge: st(cob.estado), body: `<span class="t-title-sm num">${money(cob.valor)}</span>`, on: p + '/cobranca/' + cob.id }) : ''}
-      ${p === 'sindico' && julgar.length ? card({ icon: 'scale', title: 'Para julgar', sub: `${julgar.length} reclamações aguardando você`, badge: badge(String(julgar.length), 'warning'), on: 'sindico/julgar' }) : ''}
+      ${isInq(p) ? card({ icon: 'file-text', title: 'Contrato de locação', sub: `Seu contrato vai até ${S.contratoFim}. Fale com o proprietário sobre a renovação.`, badge: badge(`Contrato vence em ${S.contratoDias} dias`, 'warning') }) : ''}
+      ${p === 'subsindico' && S.substituicao ? card({ icon: 'user-round-cog', title: 'Substituição ativa', sub: 'Você tem as funções de síndico até a desativação.', badge: badge('Ativa', 'info'), on: p + '/gestao' }) : ''}
+      ${julgar.length ? card({ icon: 'scale', title: 'Para julgar', sub: p === 'subsindico' && !S.substituicao ? `${julgar.length} ${julgar.length > 1 ? 'reclamações' : 'reclamação'} contra o síndico aguardando você` : `${julgar.length} reclamações aguardando você`, badge: badge(String(julgar.length), 'warning'), on: p + '/julgar' }) : ''}
       ${enc.length ? card({ icon: 'package', title: 'Encomendas na portaria', sub: enc.map(e => e.rem).join(' e ') + ' aguardando retirada', badge: st('Recebida'), on: p + '/encomendas' }) : ''}
       ${card({ icon: 'vote', title: 'Votação aberta', sub: 'Assembleia geral ordinária · até 20/11 às 21h', badge: st('Votação aberta'), on: p + '/reuniao/g1' })}
       ${!S.pesquisa.respondida ? card({ icon: 'star', title: 'Pesquisa do mês', sub: `Avalie a equipe do condomínio até ${S.pesquisa.fecha}.`, badge: badge('Novo', 'accent'), on: p + '/pesquisa' }) : ''}
@@ -42,7 +47,7 @@ def(RES, 'inicio', 'Início', 'Início', ctx => {
 });
 
 def([...RES, 'proprietario'], 'notificacoes', 'Notificações', 'Início', ctx => ({
-  noTabs: ctx.p === 'proprietario', top: { title: 'Notificações', back: ctx.p + '/' + (ctx.p === 'proprietario' ? 'cobrancas' : 'inicio') },
+  tab: ctx.p === 'proprietario' ? 'unidade' : undefined, top: { title: 'Notificações', back: ctx.p + '/' + (ctx.p === 'proprietario' ? 'unidade' : 'inicio') },
   flush: true,
   body: `<div class="list">${[
     ['package', 'Encomenda na portaria', 'Chegou um pacote da Amazon para Bloco A · Apto 101. Retire quando puder.', 'há 2 horas', 'encomendas'],
@@ -51,7 +56,12 @@ def([...RES, 'proprietario'], 'notificacoes', 'Notificações', 'Início', ctx =
     ['receipt', 'Cobrança vencendo', 'Você tem uma cobrança vencendo em 5 dias.', '05/11', 'cobranca/b1'],
     ['megaphone', 'Novo comunicado', 'Manutenção da piscina', 'hoje', 'comunicado/k1'],
     ['calendar-days', 'Reserva confirmada', 'Churrasqueira, 15/11 das 12h às 16h.', '03/11', 'reserva/r1'],
-  ].filter(n => ctx.p !== 'proprietario' || n[4].startsWith('cobranca')).map(([i, t, s, d, r]) => row({ icon: i, title: t, sub: s, sub2: d, on: ctx.p + '/' + r })).join('')}</div>`,
+  ].filter(() => ctx.p !== 'proprietario').concat(ctx.p !== 'proprietario' ? [] : [
+    ['message-square-warning', 'Ocorrência na unidade', 'Uma reclamação contra o Bloco B · Apto 302 foi validada: barulho.', '12/10', 'unidade'],
+    ['receipt', 'Cobrança vencendo', 'Você tem uma cobrança vencendo em 5 dias.', '05/11', 'cobranca/h1'],
+    ['vote', 'Assembleia convocada', 'Assembleia geral ordinária em 20/11 às 19h.', 'há 3 dias', 'reuniao/g1'],
+    ['file-text', 'Contrato de locação', 'O contrato de Marina Souza vai até 31/01/2027.', '01/11', 'unidade'],
+  ]).map(([i, t, s, d, r]) => row({ icon: i, title: t, sub: s, sub2: d, on: ctx.p + '/' + r })).join('')}</div>`,
 }));
 
 /* ---------------- Reservas (5.1, 5.2, 11.4) ---------------- */
@@ -93,7 +103,7 @@ def(RES, 'area', 'Calendário da área', 'Reservas (5.1)', ctx => {
   let cells = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => `<span class="dow" aria-label="${['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][i]}">${d}</span>`).join('');
   for (let i = 0; i < first; i++) cells += '<span></span>';
   for (let d = 1; d <= days; d++) {
-    const past = month === 0 && d < 5;
+    const past = (month === 0 && d < 5) || (isInq(p) && month === 1 && d > 5); // inquilino: nada depois do fim do contrato (RN-CD-22)
     const hasFree = !past && slotsFor(a, d, month).some(s => s.state === 'free');
     cells += `<button type="button" class="day ${hasFree ? 'free' : ''} ${month === 0 && d === 5 ? 'today' : ''} ${dia === d ? 'sel' : ''}" ${past ? 'disabled' : cb(() => { FORM.dia = d; FORM.slot = null; rerender(); })} aria-label="${d} de ${month === 0 ? 'novembro' : 'dezembro'}${hasFree ? ', com horário livre' : ''}">${d}</button>`;
   }
@@ -101,7 +111,7 @@ def(RES, 'area', 'Calendário da área', 'Reservas (5.1)', ctx => {
   const scoreBlocked = !a.paga && S.score <= 60;
   return {
     tab: 'reservas', top: { title: a.nome, back: p + '/reservas' },
-    banner: scoreBlocked ? banner('warning', 'lock', `Seu score está em ${S.score}. Reservas gratuitas voltam quando ele passar de 60. Áreas pagas continuam liberadas.`, { action: btn('Ver score', { v: 'secondary', size: 'sm', on: p + '/score' }) }) : undefined,
+    banner: scoreBlocked ? banner('warning', 'lock', `Seu score está em ${S.score}. Reservas gratuitas voltam quando ele passar de 60. Áreas pagas continuam liberadas.`, { action: btn('Ver score', { v: 'secondary', size: 'sm', on: p + '/score' }) }) : isInq(p) ? banner('info', 'file-text', `Seu contrato vai até ${S.contratoFim}. Datas depois disso ficam indisponíveis.`) : undefined,
     body: `<div class="stack">
       <div class="row-between"><button type="button" class="icon-btn" aria-label="Mês anterior" ${month === 0 ? 'disabled style="opacity:.3"' : cb(() => { FORM.mes = 0; FORM.dia = null; rerender(); })}>${ic('chevron-left')}</button>
         <h2 class="t-title-sm">${month === 0 ? 'Novembro de 2026' : 'Dezembro de 2026'}</h2>
@@ -161,11 +171,11 @@ def(RES, 'reserva-pagamento', 'Forma de pagamento', 'Reservas (5.1)', ctx => {
 function payTarget(arg) {
   const [kind, id] = arg.split(/-(.+)/);
   if (kind === 'reserva') { const r = S.reservas.find(x => x.id === id) || S.reservas[1]; return { kind, obj: r, valor: r.valor, titulo: areaOf(r.area).nome + ' · ' + r.dia, back: 'reserva-pagamento/' + r.id }; }
-  const c = cobrancaAtual().find(x => x.id === id) || S.cobrancas[0]; return { kind, obj: c, valor: c.valor, titulo: c.ref, back: 'cobranca/' + c.id };
+  const c = cobrancaAtual().concat(S.cobrancasProp).find(x => x.id === id) || S.cobrancas[0]; return { kind, obj: c, valor: c.valor, titulo: c.ref, back: 'cobranca/' + c.id };
 }
 function payApproved(p, t) {
   if (t.kind === 'reserva') { t.obj.estado = 'Confirmada'; go(p + '/reserva-ok/' + t.obj.id); }
-  else { const c = S.cobrancas.find(x => x.id === t.obj.id); c.estado = S.atraso && c.id === 'b1' ? 'Paga com atraso' : 'Paga'; c.pago = 'hoje'; if (c.id === 'b1') S.atraso = false; go(p + '/cobranca-paga/' + c.id); }
+  else { const c = S.cobrancas.concat(S.cobrancasProp).find(x => x.id === t.obj.id); c.estado = S.atraso && c.id === 'b1' ? 'Paga com atraso' : 'Paga'; c.pago = 'hoje'; if (c.id === 'b1') S.atraso = false; go(p + '/cobranca-paga/' + c.id); }
 }
 def([...RES, 'proprietario'], 'pix', 'Pagar com Pix', 'Pagamentos', ctx => {
   const t = payTarget(ctx.arg || 'reserva-r2'), p = ctx.p;
@@ -300,7 +310,7 @@ const CAT_CH = { limpeza: ['Área comum suja', 'Lixo acumulado', 'Derramamento',
 def(RES, 'chamados', 'Meus chamados', 'Chamados (8.1)', ctx => {
   const list = S.chamados.filter(c => c.mine);
   return {
-    tab: ctx.p === 'sindico' ? 'menu' : 'chamados', top: { title: 'Chamados', back: ctx.p === 'sindico' ? 'sindico/menu' : null }, flush: true,
+    tab: GES.includes(ctx.p) ? 'menu' : 'chamados', top: { title: 'Chamados', back: GES.includes(ctx.p) ? ctx.p + '/menu' : null }, flush: true,
     body: `<div class="list">${list.map(c => row({ icon: c.tipo === 'limpeza' ? 'spray-can' : 'wrench', title: c.cat + ' · ' + c.local, sub: (c.tipo === 'limpeza' ? 'Limpeza' : 'Manutenção') + ' · aberto ' + c.aberto, right: st(c.estado), on: ctx.p + '/chamado/' + c.id })).join('')}</div>`,
     fab: { icon: 'plus', label: 'Abrir chamado', on: () => { resetForm({ ctipo: 'limpeza' }); go(ctx.p + '/chamado-novo'); } },
   };
@@ -349,12 +359,12 @@ def(RES, 'menu', 'Menu', 'Menu', ctx => {
     ['gauge', 'Meu score', 'score', S.score + ' de 100'], ['message-square-warning', 'Reclamações', 'reclamacoes'], ['receipt', 'Cobranças', 'cobrancas'],
     ['package', 'Encomendas', 'encomendas'], ['vote', 'Reuniões e votações', 'votacoes'], ['star', 'Pesquisa do mês', 'pesquisa'],
     ['megaphone', 'Comunicados', 'comunicados'], ['eye', 'Transparência', 'transparencia'],
-    ...(p === 'sindico' ? [['wrench', 'Meus chamados', 'chamados']] : []),
+    ...(GES.includes(p) ? [['wrench', 'Meus chamados', 'chamados']] : []),
   ];
   const conf = [['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']];
   return {
     tab: 'menu', top: { title: 'Menu' }, flush: true,
-    body: `<div class="pad row"><span class="lead avatar" style="width:56px;height:56px;border-radius:50%;background:var(--info-container);color:var(--info-on);display:flex;align-items:center;justify-content:center;font-weight:700">${p === 'sindico' ? 'PA' : 'AL'}</span><div><div class="t-title-sm">${p === 'sindico' ? 'Pedro Alves' : 'Ana Lima'}</div><div class="t-body-sm muted">${p === 'sindico' ? 'Síndico · Bloco B · Apto 101' : S.units[S.unit].name + ' · Morador habilitado'}</div></div></div>
+    body: `<div class="pad row"><span class="lead avatar" style="width:56px;height:56px;border-radius:50%;background:var(--info-container);color:var(--info-on);display:flex;align-items:center;justify-content:center;font-weight:700">${p === 'sindico' ? 'PA' : p === 'subsindico' ? 'CM' : 'AL'}</span><div><div class="t-title-sm">${p === 'sindico' ? 'Pedro Alves' : p === 'subsindico' ? 'Carla Mendes' : 'Ana Lima'}</div><div class="t-body-sm muted">${p === 'sindico' ? 'Síndico · Bloco B · Apto 101' : p === 'subsindico' ? 'Subsíndica · Bloco B · Apto 202' + (S.substituicao ? ' · em substituição' : '') : S.units[S.unit].name + (S.inquilino ? ' · Inquilina · Morador habilitado' : ' · Proprietária · Morador habilitado')}</div></div></div>
       <div class="list">${items.map(([i, l, r, s]) => row({ icon: i, title: l, sub: s, on: p + '/' + r })).join('')}</div><hr class="hr">
       <div class="list">${conf.map(([i, l, r]) => row({ icon: i, title: l, on: p + '/' + r })).join('')}
       ${row({ icon: 'log-out', title: 'Sair', on: () => dialog({ title: 'Sair da conta?', text: 'Você vai precisar do e-mail e da senha para entrar de novo.', actions: [{ label: 'Sair', on: () => go('acesso/boas-vindas') }, { label: 'Continuar no app', v: 'secondary' }] }) })}</div>`,
@@ -470,23 +480,26 @@ def(RES, 'recurso', 'Recorrer', 'Score e reclamações (9)', ctx => {
 
 /* ---------------- Cobranças (13.1, 11.8) ---------------- */
 def([...RES, 'proprietario'], 'cobrancas', 'Cobranças', 'Cobranças (13.1)', ctx => {
-  const p = ctx.p, list = cobrancaAtual();
+  const p = ctx.p, list = cobList(p);
   const isProp = p === 'proprietario';
+  const info = isProp ? (S.prop.desocupada ? 'Unidade desocupada: você responde pelas cobranças ordinárias e extraordinárias.' : 'Você paga as despesas extraordinárias. As ordinárias são da inquilina, Marina Souza; aqui você só acompanha.')
+    : isInq(p) ? 'Você paga as despesas ordinárias. As extraordinárias, como o fundo de obras, são do proprietário.' : '';
   return {
-    tab: 'menu', noTabs: isProp, top: { title: isProp ? 'Cobranças · Bloco B · Apto 302' : 'Cobranças', back: isProp ? null : p + '/menu', actions: isProp ? [{ icon: 'bell', label: 'Notificações', on: 'proprietario/notificacoes' }, { icon: 'menu', label: 'Menu', on: 'proprietario/menu' }] : [] },
+    tab: isProp ? 'cobrancas' : 'menu', top: { title: isProp ? 'Cobranças · Bloco B · Apto 302' : 'Cobranças', back: isProp ? null : p + '/menu', actions: isProp ? [{ icon: 'bell', label: 'Notificações', on: 'proprietario/notificacoes' }] : [] },
     flush: true,
-    body: `<div class="list">${list.map(c => row({ icon: 'receipt', title: `<span class="t-title-sm num">${money(c.valor)}</span>`, sub: c.ref, sub2: (c.estado.startsWith('Paga') ? 'Paga em ' + c.pago : 'Vence em ' + c.venc), right: st(c.estado), on: p + '/cobranca/' + c.id })).join('')}</div>`,
+    body: `${info ? `<div class="pad">${banner('info', 'info', info, { inline: true })}</div>` : ''}<div class="list">${list.map(c => row({ icon: 'receipt', title: `<span class="t-title-sm num">${money(c.valor)}</span>`, sub: c.ref, sub2: (c.estado.startsWith('Paga') ? 'Paga em ' + c.pago : 'Vence em ' + c.venc) + ' · ' + c.tipo + (c.inq ? ' · Paga pelo inquilino' : ''), right: st(c.estado), on: p + '/cobranca/' + c.id })).join('')}</div>`,
   };
 });
 def([...RES, 'proprietario'], 'cobranca', 'Detalhe da cobrança', 'Cobranças (13.1)', ctx => {
-  const c = cobrancaAtual().find(x => x.id === ctx.arg) || cobrancaAtual()[0], p = ctx.p;
-  const aberta = ['Emitida', 'Em atraso'].includes(c.estado);
+  const p = ctx.p, L = cobList(p), c = L.find(x => x.id === ctx.arg) || L[0];
+  const aberta = ['Emitida', 'Em atraso'].includes(c.estado) && !c.inq;
   const atraso = c.estado === 'Em atraso';
   return {
-    tab: 'menu', noTabs: p === 'proprietario', top: { title: 'Cobrança', back: p + '/cobrancas' },
+    tab: p === 'proprietario' ? 'cobrancas' : 'menu', top: { title: 'Cobrança', back: p + '/cobrancas' },
     body: `<div class="stack">
       <div class="card"><div class="row-between"><span class="t-body-sm muted">${c.ref}</span>${st(c.estado)}</div><div class="t-title-lg num">${money(c.valor)}</div>
-        <div class="t-body-sm muted">${atraso ? 'Venceu em ' + c.venc : c.estado.startsWith('Paga') ? 'Paga em ' + c.pago : 'Vence em ' + c.venc}</div></div>
+        <div class="t-body-sm muted">${atraso ? 'Venceu em ' + c.venc : c.estado.startsWith('Paga') ? 'Paga em ' + c.pago : 'Vence em ' + c.venc} · ${c.tipo}${c.inq ? ' · Paga pelo inquilino' : ''}</div></div>
+      ${c.inq ? banner('info', 'info', 'Esta cobrança foi emitida para a inquilina, Marina Souza. Você acompanha a situação, mas o pagamento é dela.', { inline: true }) : ''}
       ${atraso ? `<div class="card t-body-sm"><div class="row-between"><span>Valor original</span><span class="num">${money(620)}</span></div><div class="row-between"><span>Multa (2%)</span><span class="num">${money(12.4)}</span></div><div class="row-between"><span>Juros (1% ao mês, 26 dias)</span><span class="num">${money(0)}</span></div><div class="row-between"><b>Total atualizado</b><b class="num">${money(632.4)}</b></div>
         <p class="help" style="margin:0">Valor atualizado com multa e juros até hoje.</p></div>` : ''}
       ${aberta ? `<h2 class="t-title-sm">Formas de pagamento</h2>
@@ -498,9 +511,9 @@ def([...RES, 'proprietario'], 'cobranca', 'Detalhe da cobrança', 'Cobranças (1
   };
 });
 def([...RES, 'proprietario'], 'cobranca-paga', 'Pagamento confirmado', 'Cobranças (13.1)', ctx => {
-  const c = S.cobrancas.find(x => x.id === ctx.arg) || S.cobrancas[0], p = ctx.p;
+  const L = S.cobrancas.concat(S.cobrancasProp), c = L.find(x => x.id === ctx.arg) || L[0], p = ctx.p;
   return {
-    tab: 'menu', noTabs: p === 'proprietario', top: { title: 'Pagamento', back: p + '/cobrancas' },
+    tab: p === 'proprietario' ? 'cobrancas' : 'menu', top: { title: 'Pagamento', back: p + '/cobrancas' },
     body: `<div class="empty" style="color:var(--text-primary)"><span class="onb-ico" style="background:var(--success-container);color:var(--success-fg)">${ic('circle-check')}</span><h2 class="t-title-md">Pagamento confirmado</h2><p class="t-body muted" style="margin:0">${c.ref} · ${money(c.valor)}</p>${st(c.estado)}</div>`,
     footer: `${btn('Baixar comprovante', { block: true, icon: 'file-check', on: () => toast('Comprovante baixado.') })}${btn('Ver cobranças', { v: 'text', block: true, on: p + '/cobrancas' })}`,
   };
@@ -521,35 +534,46 @@ def(RES, 'votacoes', 'Reuniões e votações', 'Reuniões e votações (11)', ct
   tab: 'menu', top: { title: 'Reuniões e votações', back: ctx.p + '/menu' },
   body: `<div class="stack">${S.reunioes.map(g => card({ icon: g.eleicao ? 'vote' : 'calendar-days', title: g.titulo, sub: g.data + ' · ' + g.local, badge: st(g.estado), on: ctx.p + (g.eleicao ? '/eleicao/' : '/reuniao/') + g.id })).join('')}</div>`,
 }));
-def(RES, 'reuniao', 'Reunião e pautas', 'Reuniões e votações (11)', ctx => {
+def('proprietario', 'assembleias', 'Assembleias', 'Assembleias (11.1)', () => ({
+  tab: 'assembleias', top: { title: 'Assembleias' },
+  body: `<div class="stack">${banner('info', 'vote', 'Você é a proprietária: quem vota pelo Bloco B · Apto 302 é você ou o procurador que indicar, inclusive a inquilina.', { inline: true })}
+    ${S.reunioes.map(g => card({ icon: g.eleicao ? 'vote' : 'calendar-days', title: g.titulo, sub: g.data + ' · ' + g.local, badge: st(g.estado), on: 'proprietario' + (g.eleicao ? '/eleicao/' : '/reuniao/') + g.id })).join('')}</div>`,
+}));
+def([...RES, 'proprietario'], 'reuniao', 'Reunião e pautas', 'Reuniões e votações (11)', ctx => {
   const g = S.reunioes.find(x => x.id === ctx.arg) || S.reunioes[0], p = ctx.p;
   const enc = g.estado === 'Encerrada';
+  const isProp = p === 'proprietario', inq = isInq(p), vk = isProp ? 'votoProp' : 'voto';
   const pautas = g.pautas.map(pt => {
     if (pt.tipo === 'informativa') return card({ icon: 'file-text', title: pt.q, sub: 'Pauta informativa', body: 'Sem votação. O documento fica disponível depois da reunião.' });
-    let inner;
+    let inner; const fk = 'voto-' + vk + '-' + pt.id;
     if (enc || pt.encerrada) inner = `<div class="bars">${pt.opcoes.map((o, i) => `<div class="bar-row"><span>${o}</span><span class="bar-track"><span class="bar-fill" style="display:block;width:${pt.res[i] / pt.res.reduce((a, b) => a + b) * 100}%"></span></span><b class="num">${pt.res[i]}</b></div>`).join('')}</div><p class="help" style="margin:0">Resultado publicado com a contagem por unidade.</p>`;
-    else if (S.atraso) inner = banner('warning', 'triangle-alert', 'Sua unidade tem cobrança em atraso e não pode votar (Código Civil, art. 1.335, III). Pague para votar nas próximas pautas.', { inline: true, action: btn('Ver cobranças', { v: 'secondary', size: 'sm', on: p + '/cobrancas' }) });
-    else if (pt.voto) inner = `${badge('Seu voto foi registrado', 'success', 'circle-check')}<p class="help" style="margin:0">O resultado aparece quando a reunião for encerrada.</p>`;
-    else inner = `<div class="stack-2">${pt.opcoes.map(o => choice('voto-' + pt.id, o, o, { big: true })).join('')}</div>
-      ${btn('Votar', { block: true, disabled: !FORM['voto-' + pt.id], on: () => dialog({ title: 'Confirmar seu voto?', text: `Você escolheu “${FORM['voto-' + pt.id]}”. O voto é secreto e não pode ser mudado.`, actions: [{ label: 'Confirmar voto', on: () => { pt.voto = FORM['voto-' + pt.id]; rerender(); toast('Voto registrado.'); } }, { label: 'Revisar', v: 'secondary' }] }) })}
-      ${btn('Indicar procurador', { v: 'text', on: () => sheet(`<h2 class="t-title-md">Indicar procurador</h2><p class="t-body-sm muted">A pessoa indicada vota por sua unidade. Cada procurador representa uma unidade só.</p>${field('Nome do procurador', input('proc', { ph: 'Ex.: Rafael Costa' }))}${btn('Indicar', { block: true, on: () => { if (/rafael/i.test(FORM.proc || '')) { closeLayer(); dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Indicação recusada', text: 'Rafael Costa já representa outra unidade. Escolha outra pessoa.', actions: [{ label: 'Escolher outra pessoa' }] }); } else { closeLayer(); toast('Procurador indicado.'); } } })}`) })}`;
-    return `<div class="card"><div class="card-head"><h3 class="t-title-sm">${pt.q}</h3></div><div class="t-body-sm muted">Quórum: ${pt.quorum}</div>${inner}</div>`;
+    else if (inq && pt.extra) inner = banner('info', 'info', 'Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.', { inline: true });
+    else if (S.atraso && !isProp) inner = banner('warning', 'triangle-alert', 'Sua unidade tem cobrança em atraso e não pode votar (Código Civil, art. 1.335, III). Pague para votar nas próximas pautas.', { inline: true, action: btn('Ver cobranças', { v: 'secondary', size: 'sm', on: p + '/cobrancas' }) });
+    else if (pt[vk] && inq && pt.subst) inner = `${badge('Substituído pelo voto do proprietário', 'neutral', 'circle-minus')}<p class="help" style="margin:0">O proprietário votou até o encerramento, e o voto dele vale pela unidade.</p>`;
+    else if (pt[vk]) inner = `${badge('Seu voto foi registrado', 'success', 'circle-check')}<p class="help" style="margin:0">O resultado aparece quando a reunião for encerrada.</p>
+      ${inq ? btn('Simular: o proprietário votou depois', { v: 'text', size: 'sm', on: () => { pt.subst = true; rerender(); toast('O proprietário votou nesta pauta, e o voto dele substituiu o seu.'); } }) : ''}`;
+    else inner = `${inq ? banner('info', 'info', 'Você pode votar nesta pauta. Se o proprietário votar até o encerramento, o voto dele vale no lugar do seu.', { inline: true }) : ''}
+      <div class="stack-2">${pt.opcoes.map(o => choice(fk, o, o, { big: true })).join('')}</div>
+      ${btn('Votar', { block: true, disabled: !FORM[fk], on: () => dialog({ title: 'Confirmar seu voto?', text: `Você escolheu “${FORM[fk]}”. O voto é secreto e não pode ser mudado.`, actions: [{ label: 'Confirmar voto', on: () => { pt[vk] = FORM[fk]; rerender(); toast('Voto registrado.'); } }, { label: 'Revisar', v: 'secondary' }] }) })}
+      ${inq ? '' : btn('Indicar procurador', { v: 'text', on: () => sheet(`<h2 class="t-title-md">Indicar procurador</h2><p class="t-body-sm muted">A pessoa indicada vota por sua unidade${isProp ? ', e pode ser a inquilina, Marina Souza' : ''}. Cada procurador representa uma unidade além das suas.</p>${field('Nome do procurador', input('proc', { ph: 'Ex.: Rafael Costa' }))}${btn('Indicar', { block: true, on: () => { if (/rafael/i.test(FORM.proc || '')) { closeLayer(); dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Indicação recusada', text: 'Rafael Costa já representa outra unidade. Escolha outra pessoa.', actions: [{ label: 'Escolher outra pessoa' }] }); } else { closeLayer(); toast('Procurador indicado.'); } } })}`) })}`;
+    return `<div class="card"><div class="card-head"><h3 class="t-title-sm">${pt.q}</h3></div><div class="t-body-sm muted">Quórum: ${pt.quorum}${pt.extra ? ' · Envolve despesa extraordinária' : ''}</div>${inner}</div>`;
   }).join('');
   return {
-    tab: 'menu', top: { title: 'Reunião', back: p + '/votacoes' },
+    tab: isProp ? 'assembleias' : 'menu', top: { title: 'Reunião', back: p + (isProp ? '/assembleias' : '/votacoes') },
     body: `<div class="stack">${card({ icon: 'calendar-days', title: g.titulo, sub: g.data + ' · ' + g.local, badge: st(g.estado) })}
       ${!enc ? `<p class="t-body-sm c-warning row" style="margin:0">${ic('clock')}Votação até o fim da reunião, 20/11 às 21h.</p>` : row({ icon: 'file-text', title: 'Ata e lista de presença', sub: 'PDF', on: () => toast('Ata baixada.') })}
       ${pautas}</div>`,
   };
 });
-def(RES, 'eleicao', 'Eleição e candidatura', 'Reuniões e votações (11)', ctx => {
-  const p = ctx.p;
+def([...RES, 'proprietario'], 'eleicao', 'Eleição e candidatura', 'Reuniões e votações (11)', ctx => {
+  const p = ctx.p, isProp = p === 'proprietario';
   return {
-    tab: 'menu', top: { title: 'Eleição', back: p + '/votacoes' },
+    tab: isProp ? 'assembleias' : 'menu', top: { title: 'Eleição', back: p + (isProp ? '/assembleias' : '/votacoes') },
     body: `<div class="stack">${card({ icon: 'vote', title: 'Eleição de síndico e subsíndico 2027–2028', sub: 'Candidaturas até 15/11 · votação em 20/11', badge: st('Candidaturas abertas') })}
       <h3 class="t-title-sm">Candidatos</h3><div class="list list-full">${[['Pedro Alves', 'Síndico · Bloco B · Apto 101 · reeleição'], ['Marta Gouveia', 'Síndica · Bloco C · Apto 201'], ['Carla Mendes', 'Subsíndica · Bloco B · Apto 202']].map(([n, s]) => row({ avatar: n, title: n, sub: s })).concat(A.cand ? [row({ avatar: 'Ana Lima', title: 'Ana Lima', sub: A.cand + ' · Bloco A · Apto 101', right: badge('Candidatura aceita', 'success') })] : []).join('')}</div>
-      ${banner('info', 'info', 'Síndico e subsíndico precisam ser de unidades diferentes. Em empate, há segundo turno em até 7 dias.', { inline: true })}</div>`,
-    footer: A.cand ? '' : btn('Candidatar-se', { block: true, size: 'lg', on: () => sheet(() => `<h2 class="t-title-md">Candidatar-se a</h2>${choice('cargo', 'Síndica', 'Síndica', { def: 'Síndica' })}${choice('cargo', 'Subsíndica', 'Subsíndica', { def: 'Síndica' })}
+      ${banner('info', 'info', 'Síndico e subsíndico precisam ser de unidades diferentes. Em empate, há segundo turno em até 7 dias.', { inline: true })}
+      ${isProp ? banner('info', 'vote', 'Na eleição de 20/11, quem vota pelo Bloco B · Apto 302 é você ou o seu procurador.', { inline: true }) : isInq(p) ? banner('info', 'vote', 'Na eleição, quem vota pela unidade é o proprietário ou o procurador dele. Você pode se candidatar.', { inline: true }) : ''}</div>`,
+    footer: A.cand || isProp ? '' : btn('Candidatar-se', { block: true, size: 'lg', on: () => sheet(() => `<h2 class="t-title-md">Candidatar-se a</h2>${choice('cargo', 'Síndica', 'Síndica', { def: 'Síndica' })}${choice('cargo', 'Subsíndica', 'Subsíndica', { def: 'Síndica' })}
       <p class="help">Carla Mendes (Bloco B · Apto 202) já concorre a subsíndica. Isso não impede sua candidatura.</p>${btn('Confirmar candidatura', { block: true, on: () => { A.cand = FORM.cargo || 'Síndica'; closeLayer(); rerender(); toast('Candidatura enviada.'); } })}`) }),
   };
 });
@@ -574,17 +598,29 @@ def(RES, 'pesquisa', 'Pesquisa do mês', 'Pesquisa mensal (12.1)', ctx => {
 });
 
 /* ---------------- Comunicados (10.1) ---------------- */
-def([...RES, 'portaria', 'limpeza', 'manutencao'], 'comunicados', 'Comunicados', 'Comunicados (10.1)', ctx => ({
-  tab: 'menu', top: { title: 'Comunicados', back: ctx.p === 'sindico' ? 'sindico/gestao' : ctx.p + '/menu' }, flush: true,
-  body: `<div class="list">${S.comunicados.map(c => row({ icon: c.individual ? 'message-circle' : 'megaphone', title: c.titulo + (c.novo ? ' ' + badge('Novo', 'accent') : ''), sub: (c.individual ? 'Para você · ' : '') + c.data, on: ctx.p + '/comunicado/' + c.id })).join('')}</div>`,
-  fab: ctx.p === 'sindico' ? { icon: 'plus', label: 'Novo', aria: 'Novo comunicado', on: () => { resetForm({ ktipo: 'geral', kpub: 'Moradores' }); go('sindico/comunicado-novo'); } } : null,
+def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicados', 'Comunicados', 'Comunicados (10.1)', ctx => ({
+  tab: GES.includes(ctx.p) ? 'gestao' : 'menu', top: { title: 'Comunicados', back: ctx.p + (GES.includes(ctx.p) ? '/gestao' : '/menu') }, flush: true,
+  body: `${sugestoes(ctx.p)}<div class="list">${S.comunicados.filter(c => ctx.p !== 'proprietario' || (!c.individual && c.publico !== 'Funcionários')).map(c => row({ icon: c.individual ? 'message-circle' : 'megaphone', title: c.titulo + (c.novo ? ' ' + badge('Novo', 'accent') : ''), sub: (c.individual ? 'Para você · ' : '') + c.data, on: ctx.p + '/comunicado/' + c.id })).join('')}</div>`,
+  fab: GES.includes(ctx.p) ? { icon: plena() ? 'plus' : 'pencil-line', label: plena() ? 'Novo' : 'Sugerir', aria: plena() ? 'Novo comunicado' : 'Sugerir comunicado', on: () => { resetForm({ ktipo: 'geral', kpub: 'Moradores' }); go(ctx.p + '/comunicado-novo'); } } : null,
 }));
-def([...RES, 'portaria', 'limpeza', 'manutencao'], 'comunicado', 'Ler comunicado', 'Comunicados (10.1)', ctx => {
+/* Sugestões de comunicado da subsíndica (RN-CO-05): ela vê as próprias; o síndico revisa, edita e envia, ou descarta */
+function sugestoes(p) {
+  const st2 = e => badge(e, e === 'Aguardando o síndico' ? 'warning' : e === 'Descartada' ? 'neutral' : 'success');
+  if (p === 'subsindico' && !S.substituicao) return S.rascunhos.length ? `<h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">Suas sugestões</h2><div class="list">${S.rascunhos.map(r => row({ icon: 'pencil-line', title: r.titulo, sub: r.publico + ' · ' + r.data + (r.motivo ? ' · ' + r.motivo : ''), right: st2(r.estado) })).join('')}</div><h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">Enviados</h2>` : '';
+  if (!GES.includes(p)) return '';   // síndico, ou a subsíndica na substituição, revisa as pendentes
+  const pend = S.rascunhos.filter(r => r.estado === 'Aguardando o síndico');
+  if (!pend.length) return '';
+  const revisar = r => sheet(`<h2 class="t-title-md">${esc(r.titulo)}</h2><div class="t-caption muted">Sugestão da subsíndica Carla Mendes · ${r.data} · ${r.publico}</div><p class="t-body">${esc(r.txt)}</p>
+    ${btn('Revisar e enviar', { block: true, icon: 'send', on: () => { closeLayer(); resetForm({ ktipo: r.publico === 'Individual' ? 'individual' : 'geral', kpub: r.publico === 'Individual' ? 'Moradores' : r.publico, ktit: r.titulo, ktxt: r.txt, krasc: r.id }); go(p + '/comunicado-novo'); } })}
+    ${btn('Descartar', { v: 'secondary', block: true, on: () => { r.estado = 'Descartada'; closeLayer(); rerender(); toast('Sugestão descartada. A subsíndica foi avisada.'); } })}`);
+  return `<h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">${p === 'sindico' ? 'Sugestões da subsíndica' : 'Suas sugestões pendentes'}</h2><div class="list">${pend.map(r => row({ icon: 'pencil-line', title: r.titulo, sub: r.publico + ' · ' + r.data, right: st2(r.estado), on: () => revisar(r) })).join('')}</div><h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">Enviados</h2>`;
+}
+def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicado', 'Ler comunicado', 'Comunicados (10.1)', ctx => {
   const c = S.comunicados.find(x => x.id === ctx.arg) || S.comunicados[0]; c.novo = false;
   return {
     tab: 'menu', top: { title: 'Comunicado', back: ctx.p + '/comunicados', actions: [{ icon: 'ellipsis', label: 'Mais ações', on: () => sheet(`${row({ icon: 'flag', title: 'Denunciar conteúdo', sub: 'Vai para quem julgaria uma reclamação contra o autor', on: () => { closeLayer(); toast('Denúncia enviada.'); } })}`) }] },
     body: `<div class="stack"><h1 class="t-title-md">${c.titulo}</h1><div class="t-caption muted">Síndico Pedro Alves · ${c.data} · ${c.publico}</div><p class="t-body" style="margin:0">${c.txt}</p>
-      ${ctx.p === 'sindico' && !c.individual ? `<div class="card"><div class="row-between"><span>Confirmações de leitura</span><b class="num">${c.lidos} de ${c.total}</b></div></div>` : ''}
+      ${(ctx.p === 'sindico' || (ctx.p === 'subsindico' && S.substituicao)) && !c.individual ? `<div class="card"><div class="row-between"><span>Confirmações de leitura</span><b class="num">${c.lidos} de ${c.total}</b></div></div>` : ''}
       ${c.individual ? `<h2 class="t-title-sm">Conversa</h2><div class="stack-2"><div class="msg">${c.txt}</div>${c.resposta ? `<div class="msg me">${esc(c.resposta)}</div>` : ''}</div>` : ''}</div>`,
     footer: c.individual && !c.resposta && ctx.p !== 'sindico' ? `${field('', textarea('kres', { ph: 'Escreva sua resposta' }))}${btn('Responder', { block: true, icon: 'send', on: () => { if (!(FORM.kres || '').trim()) return; c.resposta = FORM.kres; FORM.kres = ''; rerender(); toast('Resposta enviada ao síndico.'); } })}` : '',
   };
@@ -592,40 +628,107 @@ def([...RES, 'portaria', 'limpeza', 'manutencao'], 'comunicado', 'Ler comunicado
 
 /* ---------------- Configurações (12, 14.1) ---------------- */
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'aparencia', 'Aparência', 'Configurações (14.1)', ctx => ({
-  tab: 'menu', noTabs: ctx.p === 'proprietario', top: { title: 'Aparência', back: ctx.p + '/menu' },
+  tab: 'menu', top: { title: 'Aparência', back: ctx.p + '/menu' },
   body: `<div class="stack-2">${[['system', 'Igual ao aparelho', 'Padrão'], ['light', 'Claro'], ['dark', 'Escuro']].map(([k, l, s]) => `<label class="choice ${S.theme === k ? 'is-selected' : ''}"><input type="radio" name="tema" ${S.theme === k ? 'checked' : ''} ${cb(() => { S.theme = k; applyTheme(); rerender(); })}><span class="grow">${l}${s ? `<span class="help" style="display:block">${s}</span>` : ''}</span></label>`).join('')}</div>`,
 }));
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'notif-config', 'Notificações', 'Configurações (14.1)', ctx => {
   const N = S.notif, lab = { reservas: 'Reservas', visitantes: 'Entrada de visitantes', encomendas: 'Encomendas', chamados: 'Andamento de chamados', comunicados: 'Comunicados', votacoes: 'Reuniões e votações', cobrancas: 'Lembretes de cobrança', pesquisa: 'Pesquisa do mês' };
   return {
-    tab: 'menu', noTabs: ctx.p === 'proprietario', top: { title: 'Notificações', back: ctx.p + '/menu' },
+    tab: 'menu', top: { title: 'Notificações', back: ctx.p + '/menu' },
     body: `<div>${sw('Decisão de reclamação contra você', true, null, { disabled: true, sub: 'Obrigatória: você precisa saber para poder recorrer.' })}
       ${ctx.p === 'portaria' ? sw('Divergência ao sincronizar', true, null, { disabled: true, sub: 'Obrigatória: exige confirmar com o morador.' }) : ''}
       ${Object.keys(lab).map(k => sw(lab[k], N[k], () => { N[k] = !N[k]; toast('Preferência salva.'); })).join('')}</div>`,
   };
 });
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'privacidade', 'Privacidade e dados', 'Configurações (14.1)', ctx => ({
-  tab: 'menu', noTabs: ctx.p === 'proprietario', top: { title: 'Privacidade e dados', back: ctx.p + '/menu' }, flush: true,
+  tab: 'menu', top: { title: 'Privacidade e dados', back: ctx.p + '/menu' }, flush: true,
   body: `<div class="list">${row({ icon: 'file-text', title: 'Política de privacidade', on: () => sheet('<h2 class="t-title-md">Política de privacidade</h2><p class="t-body">Texto de exemplo da política de privacidade do condomínio.</p>') })}
     ${row({ icon: 'download', title: 'Pedir cópia dos meus dados', sub: 'Arquivo por e-mail em até 15 dias', on: () => dialog({ title: 'Pedir cópia dos seus dados?', text: 'Vamos enviar um arquivo para ana.lima@email.com em até 15 dias.', actions: [{ label: 'Pedir cópia', on: () => toast('Pedido registrado. O arquivo chega em até 15 dias.') }, { label: 'Agora não', v: 'secondary' }] }) })}
-    ${row({ icon: 'trash-2', title: 'Excluir minha conta', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir sua conta?', text: 'Seu histórico fica anônimo. Votos e reclamações continuam, sem identificação. Você é o morador habilitado: a administradora será avisada para definir o substituto, e até lá a unidade não vota.',
+    ${row({ icon: 'trash-2', title: 'Excluir minha conta', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir sua conta?', text: 'Seu histórico fica anônimo. Votos e reclamações continuam, sem identificação. ' + (ctx.p === 'proprietario' ? 'Você é a proprietária: a administradora será avisada para definir o substituto, e até lá a unidade não vota.' : 'Você é o morador habilitado: a administradora será avisada para definir o substituto, e até lá ninguém reserva nem cadastra visitantes pela unidade.'),
       body: field('Confirme com sua senha', `<input class="input" type="password" autocomplete="current-password">`), actions: [{ label: 'Excluir conta', v: 'danger', on: () => go('acesso/boas-vindas') }, { label: 'Manter conta', v: 'secondary' }] }) })}</div>`,
 }));
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-funciona', 'Como funciona', 'Configurações (14.1)', ctx => ({
-  tab: 'menu', noTabs: ctx.p === 'proprietario', top: { title: 'Como funciona', back: ctx.p + '/menu' },
+  tab: 'menu', top: { title: 'Como funciona', back: ctx.p + '/menu' },
   body: `<div class="stack" style="max-width:640px">${[
     ['gauge', 'Score', 'Todo morador e funcionário começa com 100 pontos. Reclamações validadas tiram 5, 10 ou 20 pontos; boa convivência e boas notas na pesquisa devolvem pontos a cada trimestre. Com 60 ou menos, as reservas gratuitas ficam pausadas.'],
     ['message-square-warning', 'Reclamações', 'O julgador conversa com quem foi indicado antes de decidir. Quem foi indicado nunca sabe quem reclamou. Reclamações falsas ou desproporcionais tiram pontos de quem reclamou.'],
     ['undo-2', 'Recurso', 'Quem perdeu pontos pode recorrer uma vez, em até 7 dias.'],
     ['calendar-days', 'Reservas', 'De 24h a 60 dias antes, até 2 por mês em cada área. Áreas pagas: cancelamento com reembolso até 12h antes.'],
+    ['key-round', 'Unidade alugada', 'O inquilino é o morador habilitado e usa todas as funções de morador. Quem vota é o proprietário; o inquilino vota como procurador dele ou nas pautas sem despesa extraordinária. O inquilino paga as despesas ordinárias e o proprietário, as extraordinárias.'],
   ].map(([i, t, d]) => card({ icon: i, title: t, body: d })).join('')}</div>`,
 }));
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-usar', 'Como usar o app', 'Configurações (14.1)', ctx => { A.onbRole = ONB[ctx.p] ? ctx.p : 'morador'; setTimeout(() => go('acesso/onboarding/1'), 0); return { body: '' }; });
 
 /* ---------------- Proprietário não residente (RN-CD-19) ---------------- */
 def('proprietario', 'menu', 'Menu', 'Menu', () => ({
-  noTabs: true, top: { title: 'Menu', back: 'proprietario/cobrancas' }, flush: true,
+  tab: 'menu', top: { title: 'Menu' }, flush: true,
   body: `<div class="pad"><div class="t-title-sm">Helena Duarte</div><div class="t-body-sm muted">Proprietária não residente · Bloco B · Apto 302</div></div>
-    <div class="list">${[['receipt', 'Cobranças', 'cobrancas'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']].map(([i, l, r]) => row({ icon: i, title: l, on: 'proprietario/' + r })).join('')}
+    <div class="list">${[['megaphone', 'Comunicados', 'comunicados'], ['inbox', 'Solicitações', 'solicitacoes'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']].map(([i, l, r]) => row({ icon: i, title: l, on: 'proprietario/' + r })).join('')}
     ${row({ icon: 'log-out', title: 'Sair', on: 'acesso/boas-vindas' })}</div>`,
 }));
+
+/* Unidade do proprietário não residente (DS 11.10; RN-CD-19 a RN-CD-26, RN-RC-16, RN-VI-10) */
+const dbr = s => s ? s.split('-').reverse().join('/') : '—';
+function pedirLocacao(tipo) {
+  const P = S.prop, novo = tipo === 'Cadastro de inquilino';
+  sheet(() => `<h2 class="t-title-md">Pedir ${tipo.toLowerCase()}</h2>
+    <p class="t-body-sm muted">O pedido vai para a administradora, que atende ou recusa com motivo. Você é avisada do resultado.</p>
+    ${tipo === 'Renovação do contrato' ? field('Nova data de fim', input('pnf', { type: 'date', value: FORM.pnf ?? '2028-01-31' })) : ''}
+    ${tipo === 'Encerramento do contrato' ? field('Data de saída da inquilina', input('pns', { type: 'date', value: FORM.pns ?? '2027-01-31' })) : ''}
+    ${novo ? field('Nome do inquilino', input('pni', { ph: 'Ex.: Diego Ramos' })) + field('E-mail', input('pne', { type: 'email' })) + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${field('Início do contrato', input('pnini', { type: 'date', value: FORM.pnini ?? '2026-12-01' }))}${field('Fim do contrato', input('pnfim', { type: 'date', value: FORM.pnfim ?? '2027-11-30' }), { help: 'Em branco: prazo indeterminado.' })}</div>` : ''}
+    ${field('Observação (opcional)', textarea('pnobs'))}
+    ${btn('Enviar pedido', { block: true, on: () => {
+      if (novo && !(FORM.pni || '').trim()) { toast('Informe o nome do inquilino.'); return; }
+      const ini = FORM.pnini ?? '2026-12-01', fim = FORM.pnfim ?? '2027-11-30';
+      if (novo && fim && fim <= ini) { toast('A data de fim precisa ser depois do início do contrato.'); return; }
+      const det = tipo === 'Renovação do contrato' ? `${P.inq.nome} · até ${dbr(FORM.pnf ?? '2028-01-31')}` : tipo === 'Encerramento do contrato' ? `${P.inq.nome} · saída em ${dbr(FORM.pns ?? '2027-01-31')}` : `${FORM.pni} · contrato de ${dbr(ini)} a ${fim ? dbr(fim) : 'prazo indeterminado'}`;
+      P.pedidos.unshift({ id: 'q' + uid(), tipo, det, estado: 'Pendente', data: '05/11' });
+      S.solicitacoes.unshift({ id: 's' + uid(), tipo: tipo === 'Cadastro de inquilino' ? 'Cadastrar inquilino' : tipo, det: P.un + ' · ' + det, estado: 'Pendente', data: '05/11', por: 'Proprietária Helena Duarte' });
+      closeLayer(); go('proprietario/solicitacoes'); setTimeout(() => toast('Pedido enviado à administradora.'), 50);
+    } })}`);
+}
+def('proprietario', 'unidade', 'Minha unidade', 'Unidade (11.10)', () => {
+  const P = S.prop, des = P.desocupada, dias = P.venceLogo ? 20 : P.inq.dias;
+  const estado = des ? badge('Desocupada', 'neutral') : dias <= 30 ? badge(`Contrato vence em ${dias} dias`, 'warning') : badge('Alugada', 'info');
+  const cob = S.cobrancasProp.find(c => (des || !c.inq) && ['Emitida', 'Em atraso'].includes(c.estado));
+  return {
+    tab: 'unidade', top: { title: P.un, actions: [{ icon: 'bell', label: 'Notificações', on: 'proprietario/notificacoes', dot: true }] },
+    body: `<div class="stack">
+      <h1 class="t-title-lg">Olá, Helena</h1>
+      ${des ? card({ icon: 'house', title: 'Unidade desocupada', sub: 'Ninguém mora na unidade agora.', badge: estado, body: 'Você vota e responde pelas cobranças ordinárias e extraordinárias. Ninguém reserva, cadastra visitantes nem abre chamados pela unidade.' })
+        : card({ icon: 'key-round', title: 'Alugada para ' + P.inq.nome, sub: `Contrato de ${P.inq.ini} a ${P.inq.fim} · ${P.inq.dependentes.length} dependente`, badge: estado,
+          body: dias <= 30 ? `Faltam ${dias} dias para o fim. Sem renovação, o acesso da inquilina é desativado 7 dias depois do fim, e a unidade fica desocupada.` : 'A inquilina é a moradora habilitada: reserva, cadastra visitantes, abre chamados e responde pela unidade no dia a dia.',
+          foot: btn('Pedir renovação', { v: 'secondary', size: 'sm', on: () => pedirLocacao('Renovação do contrato') }) + btn('Pedir encerramento', { v: 'text', size: 'sm', on: () => pedirLocacao('Encerramento do contrato') }) })}
+      ${des ? btn('Pedir cadastro de inquilino', { block: true, icon: 'user-plus', on: () => pedirLocacao('Cadastro de inquilino') }) : ''}
+      ${des && P.temporada ? card({ icon: 'luggage', title: 'Hóspedes de temporada', sub: P.hospedes.length ? P.hospedes.map(h => `${esc(h.nome)} · ${h.ent} a ${h.sai}`).join('<br>') : 'Nenhum hóspede cadastrado.', foot: btn('Cadastrar hóspede', { size: 'sm', icon: 'plus', on: 'proprietario/hospede-novo' }) }) : ''}
+      <h2 class="t-title-sm section-title" style="margin-bottom:0">Para você</h2>
+      ${cob ? card({ icon: 'receipt', title: 'Cobrança em aberto', sub: `${cob.ref} · vence em ${cob.venc}`, badge: st(cob.estado), body: `<span class="t-title-sm num">${money(cob.valor)}</span>`, on: 'proprietario/cobranca/' + cob.id }) : ''}
+      ${card({ icon: 'vote', title: 'Votação aberta', sub: 'Assembleia geral ordinária · até 20/11 às 21h', badge: st('Votação aberta'), on: 'proprietario/reuniao/g1' })}
+      <h2 class="t-title-sm section-title" style="margin-bottom:0">Ocorrências da unidade</h2>
+      <div class="list list-full">${P.ocorrencias.map(o => row({ icon: 'message-square-warning', title: o.cat, sub: o.decisao + ' · ' + o.data, right: o.multa ? `<span class="num t-label-sm">${money(o.multa)}</span>` : '' })).join('')}</div>
+      <p class="help" style="margin:0">Você vê só a categoria, a data, a decisão e a multa. A conversa e quem reclamou ficam com o julgador, e você não perde pontos.</p>
+      ${banner('info', 'shield', 'Visitantes, reservas, chamados, encomendas e o score da inquilina não aparecem para você.', { inline: true })}
+    </div>`,
+  };
+});
+def('proprietario', 'solicitacoes', 'Solicitações', 'Unidade (11.10)', () => ({
+  tab: 'menu', top: { title: 'Solicitações', back: 'proprietario/menu' }, flush: true,
+  body: `<div class="list">${S.prop.pedidos.map(q => row({ icon: 'inbox', title: q.tipo, sub: q.det, sub2: 'Enviada em ' + q.data + (q.motivo ? ' · Motivo: ' + q.motivo : ''), right: st(q.estado) })).join('')}</div>
+    <div class="pad">${btn('Simular: a administradora atendeu', { v: 'text', size: 'sm', on: () => { const q = S.prop.pedidos.find(x => x.estado === 'Pendente'); if (!q) { toast('Nenhum pedido pendente.'); return; } q.estado = 'Concluída'; rerender(); toast('A administradora atendeu o seu pedido.'); } })}</div>`,
+}));
+def('proprietario', 'hospede-novo', 'Cadastrar hóspede de temporada', 'Unidade (11.10)', () => {
+  const P = S.prop, back = { title: 'Hóspede de temporada', back: 'proprietario/unidade' };
+  if (!P.desocupada || !P.temporada) return { tab: 'unidade', top: back, body: empty('luggage', 'O cadastro de hóspedes só aparece em unidade desocupada, quando o condomínio permite aluguel por temporada. Use o painel “Simular”.') };
+  return {
+    tab: 'unidade', top: back,
+    body: `<div class="stack-5">${field('Nome do hóspede', input('hn'))}${field('Documento (opcional)', input('hd'))}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${field('Entrada', input('he', { type: 'date', value: FORM.he ?? '2026-11-20' }))}${field('Saída', input('hs', { type: 'date', value: FORM.hs ?? '2026-11-23' }))}</div>
+      ${banner('info', 'info', 'A portaria vê o hóspede marcado como “hóspede de temporada” entre a entrada e a saída. Reclamações sobre a estadia são feitas contra a unidade.', { inline: true })}</div>`,
+    footer: btn('Cadastrar hóspede', { block: true, size: 'lg', on: () => {
+      const e = FORM.he ?? '2026-11-20', s = FORM.hs ?? '2026-11-23';
+      if (!(FORM.hn || '').trim()) { toast('Informe o nome do hóspede.'); return; }
+      if (s <= e) { toast('A saída precisa ser depois da entrada.'); return; }
+      P.hospedes.push({ nome: FORM.hn, ent: dbr(e), sai: dbr(s) }); resetForm(); go('proprietario/unidade'); setTimeout(() => toast('Hóspede cadastrado. A portaria já pode ver.'), 50);
+    } }),
+  };
+});

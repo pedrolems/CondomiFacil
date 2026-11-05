@@ -77,7 +77,8 @@ def('admin', 'unidades', 'Unidades e moradores', 'Cadastros (4.3)', () => {
     const mandato = /Síndico|Subsíndica/.test(m.papel);
     if (mandato) return dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Mandato ativo', text: 'Esta pessoa tem mandato ativo. Encerre o mandato antes.', actions: [{ label: 'Ir para mandatos', on: () => go('admin/reunioes') }, { label: 'Voltar', v: 'secondary' }] });
     sheet(() => `<h2 class="t-title-md">Registrar mudança de ${m.nome}</h2>
-      ${hab ? `${banner('warning', 'user-x', 'Escolha quem passa a responder pela unidade.', { inline: true })}${choice('novoHab', 'Lucas Lima', 'Lucas Lima')}${choice('novoHab', 'Novo morador (convite)', 'Novo morador (enviar convite)')}` : ''}
+      ${hab ? `${banner('warning', 'user-x', 'Escolha quem passa a responder pela unidade.', { inline: true })}${choice('novoHab', 'Lucas Lima', 'Lucas Lima')}${choice('novoHab', 'Novo morador (convite)', 'Novo morador (enviar convite)')}${choice('novoHab', 'desocupada', 'Marcar a unidade como desocupada')}` : ''}
+      ${/^Inquilin/.test(m.papel) ? banner('info', 'key-round', 'Quem sai é o inquilino: a mudança encerra o contrato de locação na data de hoje.', { inline: true }) : ''}
       ${m.papel.includes('financeiro') ? `<div class="field"><span class="field-label">Defina o novo responsável financeiro</span><select class="select"><option>${FORM.novoHab || 'Novo morador habilitado'} (padrão)</option><option>Helena Duarte · proprietária</option></select></div>` : ''}
       <div class="card t-body-sm"><b>O que acontece</b><ul style="margin:4px 0 0;padding-left:18px"><li>O acesso é desativado na hora; o histórico fica.</li><li>Reservas futuras são canceladas com reembolso integral.</li><li>Visitas recorrentes são encerradas.</li></ul></div>
       ${btn('Confirmar mudança', { v: 'danger', block: true, disabled: hab && !FORM.novoHab, on: () => { m.ativo = false; closeLayer(); rerender(); toast('Mudança registrada.'); } })}`);
@@ -85,9 +86,62 @@ def('admin', 'unidades', 'Unidades e moradores', 'Cadastros (4.3)', () => {
   return {
     nav: 'unidades',
     body: `${head('Unidades e moradores', '120 unidades · 3 blocos', btn('Importar planilha', { v: 'secondary', icon: 'upload', on: 'admin/implantacao/3' }) + btn('Novo morador', { icon: 'plus', on: () => sheet(`<h2 class="t-title-md">Pré-cadastrar morador</h2>${field('Nome', input('nm'))}${field('E-mail', input('ne', { type: 'email' }))}${field('Unidade', input('nu', { ph: 'Bloco A · Apto 101' }))}${btn('Salvar e enviar convite', { block: true, on: () => { if ((FORM.nm || '').trim()) S.moradores.push({ nome: FORM.nm, un: FORM.nu || '—', papel: 'Morador', email: FORM.ne || '', ativo: true }); closeLayer(); rerender(); toast('Convite de primeiro acesso enviado.'); } })}`) }))}
-      <div class="row wrap" style="margin-bottom:16px"><div style="width:360px;max-width:100%">${input('uq', { icon: 'search', ph: 'Buscar por nome, unidade ou e-mail', attr: 'aria-label="Buscar"' })}</div>${chip('Todos', true)}${chip('Sem habilitado', false, () => toast('1 unidade sem morador habilitado: Bloco C · Apto 102.'))}</div>
-      ${table([{ t: 'Nome' }, { t: 'Unidade' }, { t: 'Papel' }, { t: 'E-mail' }, { t: 'Situação' }, { t: '', r: true }], L.map(m => `<tr><td><b>${m.nome}</b></td><td>${m.un}</td><td>${m.papel}</td><td>${m.email}</td><td>${m.ativo ? badge('Ativo', 'success') : badge('Desativado', 'neutral')}</td>${menuCell([['pencil', 'Editar dados', () => toast('Dados salvos.')], ['user-check', 'Definir como morador habilitado', () => toast(m.nome + ' agora é o morador habilitado da unidade.')], ['truck', 'Registrar mudança', () => mudanca(m)]])}</tr>`))}`,
+      <div class="row wrap" style="margin-bottom:16px"><div style="width:360px;max-width:100%">${input('uq', { icon: 'search', ph: 'Buscar por nome, unidade ou e-mail', attr: 'aria-label="Buscar"' })}</div>${chip('Todos', true)}${chip('Sem habilitado', false, () => toast('Nenhuma unidade ocupada está sem morador habilitado. Bloco C · Apto 102 está desocupada.'))}${chip('Alugadas', false, () => go('admin/unidade/' + encodeURIComponent(S.prop.un)))}${chip('Desocupadas', false, () => go('admin/unidade/' + encodeURIComponent('Bloco C · Apto 102')))}</div>
+      ${table([{ t: 'Nome' }, { t: 'Unidade' }, { t: 'Papel' }, { t: 'E-mail' }, { t: 'Situação' }, { t: '', r: true }], L.map(m => `<tr><td><b>${m.nome}</b></td><td>${m.un}</td><td>${m.papel}</td><td>${m.email}</td><td>${m.ativo ? badge('Ativo', 'success') : badge('Desativado', 'neutral')}</td>${menuCell([['house', 'Ver unidade e locação', () => go('admin/unidade/' + encodeURIComponent(m.un))], ['pencil', 'Editar dados', () => toast('Dados salvos.')], ['user-check', 'Definir como morador habilitado', () => toast(m.nome + ' agora é o morador habilitado da unidade.')], ['truck', 'Registrar mudança', () => mudanca(m)]])}</tr>`))}`,
     after: () => { const el = $('#f-uq'); el && el.addEventListener('input', () => { clearTimeout(window._uq); window._uq = setTimeout(() => { rerender(); const n = $('#f-uq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); }); },
+  };
+});
+
+/* ---- Unidade: locação e unidade desocupada (fluxo 4.5; RN-CD-20 a RN-CD-26, RN-FI-03) ---- */
+const UNI = {};
+function uniState(un) {
+  if (UNI[un]) return UNI[un];
+  if (un === S.prop.un) return { prop: S.prop.nome, inq: S.prop.desocupada ? null : S.prop.inq, des: S.prop.desocupada, P: S.prop };
+  UNI[un] = un === 'Bloco C · Apto 102' ? { prop: 'Sílvia Nunes', inq: null, des: true } : { prop: (S.moradores.find(m => m.un === un && /habilitad/.test(m.papel)) || {}).nome || 'Proprietário', inq: null, des: false };
+  return UNI[un];
+}
+def('admin', 'unidade', 'Detalhe da unidade', 'Cadastros (4.5)', ctx => {
+  const un = ctx.arg || S.prop.un, u = uniState(un), inq = u.inq;
+  const estado = u.des ? 'Desocupada' : inq ? 'Alugada' : 'Ocupada pelo proprietário';
+  const sel = opts => `<select class="select">${opts.map(o => `<option>${esc(o)}</option>`).join('')}</select>`;
+  const ord = inq ? [inq.nome + ' · inquilino (padrão)', u.prop + ' · proprietário'] : [u.prop + (u.des ? ' · proprietário (padrão)' : ' · morador habilitado (padrão)')];
+  const ext = inq ? [u.prop + ' · proprietário (padrão)', inq.nome + ' · inquilino'] : ord;
+  const setInq = v => { if (u.P) { if (v) u.P.inq = v; u.P.desocupada = !v; } else { u.inq = v; u.des = !v; } };
+  const novoInq = () => sheet(() => `<h2 class="t-title-md">Cadastrar inquilino</h2>${field('Nome', input('in'))}${field('E-mail', input('ie', { type: 'email' }))}
+    <div class="grid-2">${field('Início do contrato', input('iini', { type: 'date', value: FORM.iini ?? '2026-12-01' }))}${field('Fim do contrato', input('ifim', { type: 'date', value: FORM.ifim ?? '2027-11-30' }), { help: 'Em branco: prazo indeterminado.' })}</div>
+    ${field('Dependentes (opcional)', input('idep', { ph: 'Nomes separados por vírgula' }))}
+    <div class="card t-body-sm"><b>O que acontece</b><ul style="margin:4px 0 0;padding-left:18px"><li>O inquilino passa a ser o morador habilitado e recebe o convite de primeiro acesso.</li><li>${esc(u.prop)} passa a proprietário não residente e continua votando.</li><li>Responsáveis sugeridos: inquilino nas ordinárias, proprietário nas extraordinárias.</li></ul></div>
+    ${btn('Salvar e enviar convite', { block: true, on: () => {
+      const ini = FORM.iini ?? '2026-12-01', fim = FORM.ifim ?? '2027-11-30';
+      if (!(FORM.in || '').trim()) { toast('Informe o nome do inquilino.'); return; }
+      if (fim && fim <= ini) { toast('A data de fim precisa ser depois do início do contrato.'); return; }
+      setInq({ nome: FORM.in, ini: dbr(ini), fim: fim ? dbr(fim) : 'prazo indeterminado', dias: 390, dependentes: (FORM.idep || '').split(',').map(x => x.trim()).filter(Boolean) });
+      S.moradores.push({ nome: FORM.in, un, papel: 'Inquilino · Morador habilitado · Responsável pelas ordinárias', email: FORM.ie || '', ativo: true });
+      closeLayer(); resetForm(); rerender(); toast('Inquilino cadastrado. Convite de primeiro acesso enviado.');
+    } })}`);
+  const renovar = () => sheet(() => `<h2 class="t-title-md">Renovar contrato de ${esc(inq.nome)}</h2>${field('Nova data de fim', input('rnf', { type: 'date', value: FORM.rnf ?? '2028-01-31' }))}
+    ${btn('Renovar contrato', { block: true, on: () => { inq.fim = dbr(FORM.rnf ?? '2028-01-31'); inq.dias = 450; closeLayer(); rerender(); toast('Contrato renovado até ' + inq.fim + '. O inquilino e o proprietário foram avisados.'); } })}`);
+  const encerrar = () => dialog({ tone: 'warning', icon: 'triangle-alert', title: `Encerrar o contrato de ${inq.nome}?`, text: 'O acesso do inquilino e dos dependentes é desativado, como numa mudança: reservas futuras são canceladas com reembolso e visitas recorrentes são encerradas. Cobranças já emitidas continuam no nome dele. A unidade fica desocupada.',
+    actions: [{ label: 'Encerrar contrato', v: 'danger', on: () => { S.moradores.filter(m => m.nome === inq.nome || inq.dependentes.includes(m.nome)).forEach(m => m.ativo = false); setInq(null); rerender(); toast('Contrato encerrado. A unidade está desocupada.'); } }, { label: 'Voltar', v: 'secondary' }] });
+  const marcarDes = () => dialog({ title: 'Marcar a unidade como desocupada?', text: `Ninguém mora na unidade. ${u.prop} passa a proprietário não residente: vota e responde por todas as cobranças. Ninguém reserva, cadastra visitantes nem abre chamados pela unidade.`,
+    actions: [{ label: 'Marcar como desocupada', on: () => { u.des = true; if (u.P) u.P.desocupada = true; rerender(); toast('Unidade marcada como desocupada.'); } }, { label: 'Voltar', v: 'secondary' }] });
+  const volta = () => dialog({ title: `${u.prop} volta a morar na unidade?`, text: 'O vínculo muda para morador: passa a ser o morador habilitado e ganha score, começando em 100.',
+    actions: [{ label: 'Confirmar', on: () => { UNI[un] = { prop: u.prop, inq: null, des: false }; rerender(); toast(u.prop + ' agora é o morador habilitado da unidade.'); } }, { label: 'Voltar', v: 'secondary' }] });
+  return {
+    nav: 'unidades',
+    body: `${head(esc(un), 'Residencial Jardim Azul · locação e unidade desocupada (fluxo 4.5)', btn('Voltar à lista', { v: 'secondary', icon: 'arrow-left', on: 'admin/unidades' }))}
+    <div class="form stack-5" style="max-width:720px">
+      <div class="row">${badge(estado, inq ? 'info' : 'neutral')}</div>
+      ${card({ icon: 'user', title: 'Proprietário: ' + esc(u.prop), sub: inq || u.des ? 'Não residente · vota pela unidade' : 'Mora na unidade · morador habilitado · vota pela unidade' })}
+      ${inq ? card({ icon: 'key-round', title: 'Inquilino: ' + esc(inq.nome), sub: `Contrato de ${inq.ini} a ${inq.fim}` + (inq.dependentes.length ? ' · dependentes: ' + inq.dependentes.map(esc).join(', ') : ''), body: 'Morador habilitado da unidade. Aviso automático 30 dias antes do fim; sem renovação, o acesso é desativado 7 dias depois do fim.', foot: btn('Renovar contrato', { v: 'secondary', size: 'sm', on: renovar }) + btn('Encerrar contrato', { v: 'text', size: 'sm', on: encerrar }) }) : ''}
+      ${u.des ? banner('info', 'house', 'Unidade desocupada: sem morador habilitado. O proprietário vota e responde pelas cobranças ordinárias e extraordinárias.', { inline: true }) : ''}
+      <h2 class="t-title-sm">Responsáveis financeiros</h2>
+      <div class="grid-2">${field('Despesas ordinárias', sel(ord))}${field('Despesas extraordinárias', sel(ext))}</div>
+      <p class="help" style="margin:0">Taxa mensal e multa por infração são ordinárias; fundo de reserva e obras, extraordinárias. Mude se o contrato de locação disser outra coisa.</p>
+      <div>${btn('Salvar responsáveis', { on: () => toast('Responsáveis financeiros salvos.') })}</div>
+      <hr class="hr">
+      <div class="row wrap">${!inq ? btn('Cadastrar inquilino', { icon: 'user-plus', on: novoInq }) : ''}${!inq && !u.des ? btn('Marcar como desocupada', { v: 'secondary', icon: 'house', on: marcarDes }) : ''}${u.des ? btn('Proprietário volta a morar', { v: 'secondary', icon: 'log-in', on: volta }) : ''}</div>
+    </div>`,
   };
 });
 
@@ -139,9 +193,9 @@ def('admin', 'cobranca', 'Cobrança', 'Cobrança (13.2)', () => {
       ${btn('Salvar configuração', { disabled: !!mErr || !formas.length, on: () => { C.multa = parseFloat(String(multa).replace(',', '.')); C.cartao = formas.includes('cartao'); toast('Configuração de cobrança salva.'); } })}
       <p class="help" style="margin:0">Dica do protótipo: digite 3 na multa e saia do campo.</p></div>`;
   } else if (t === 'cobrancas') {
-    body = table([{ t: 'Unidade' }, { t: 'Referência' }, { t: 'Vencimento' }, { t: 'Valor', r: true }, { t: 'Estado' }, { t: '', r: true }], [
-      ['Bloco A · Apto 101', 'Novembro de 2026', '10/11', 620, 'Emitida'], ['Bloco A · Apto 204', 'Outubro de 2026', '10/10', 620, 'Paga'], ['Bloco C · Apto 504', 'Outubro de 2026', '10/10', 632.4, 'Em atraso'], ['Bloco B · Apto 302', 'Outubro de 2026', '10/10', 620, 'Paga com atraso'],
-    ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="r">${money(r[3])}</td><td>${st(r[4])}</td>${menuCell([['file-check', 'Registrar pagamento fora do app', () => sheet(`<h2 class="t-title-md">Pagamento fora do app</h2>${field('Data do pagamento', input('pfd', { type: 'date' }))}<div class="field"><span class="field-label">Comprovante</span>${photoPicker('pfc')}</div>${btn('Registrar pagamento', { block: true, on: () => { closeLayer(); toast('Cobrança marcada como paga.'); } })}`)],
+    body = table([{ t: 'Unidade' }, { t: 'Referência' }, { t: 'Tipo' }, { t: 'Emitida para' }, { t: 'Vencimento' }, { t: 'Valor', r: true }, { t: 'Estado' }, { t: '', r: true }], [
+      ['Bloco A · Apto 101', 'Novembro de 2026', '10/11', 620, 'Emitida', 'Ordinária', 'Ana Lima'], ['Bloco A · Apto 204', 'Outubro de 2026', '10/10', 620, 'Paga', 'Ordinária', 'Paulo Lima'], ['Bloco C · Apto 504', 'Outubro de 2026', '10/10', 632.4, 'Em atraso', 'Ordinária', 'Rafael Costa'], ['Bloco B · Apto 302', 'Novembro de 2026', '10/11', 620, 'Emitida', 'Ordinária', 'Marina Souza · inquilina'], ['Bloco B · Apto 302', 'Fundo de obras · parcela 2 de 3', '10/12', 180, 'Emitida', 'Extraordinária', 'Helena Duarte · proprietária'],
+    ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[5]}</td><td>${r[6]}</td><td class="num">${r[2]}</td><td class="r">${money(r[3])}</td><td>${st(r[4])}</td>${menuCell([['file-check', 'Registrar pagamento fora do app', () => sheet(`<h2 class="t-title-md">Pagamento fora do app</h2>${field('Data do pagamento', input('pfd', { type: 'date' }))}<div class="field"><span class="field-label">Comprovante</span>${photoPicker('pfc')}</div>${btn('Registrar pagamento', { block: true, on: () => { closeLayer(); toast('Cobrança marcada como paga.'); } })}`)],
       ['circle-x', 'Cancelar cobrança', () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Cancelar esta cobrança?', text: 'O motivo fica registrado na auditoria.', body: field('Motivo', textarea('cmot')), actions: [{ label: 'Cancelar cobrança', v: 'danger', on: () => toast('Cobrança cancelada. Motivo registrado.') }, { label: 'Manter cobrança', v: 'secondary' }] })]])}</tr>`));
   } else if (t === 'inad') {
     body = `<div class="row" style="margin-bottom:16px">${btn('Exportar CSV', { v: 'secondary', icon: 'download', on: () => toast('inadimplencia.csv baixado para a contabilidade.') })}</div>
@@ -149,9 +203,10 @@ def('admin', 'cobranca', 'Cobrança', 'Cobrança (13.2)', () => {
   } else {
     body = `<div class="form stack-5">${banner('info', 'inbox', 'Pedido do síndico: Fundo de obras · R$ 180,00 por unidade.', { inline: true })}
       ${field('Descrição', input('exd', { value: FORM.exd ?? 'Fundo de obras' }))}${field('Valor por unidade', input('exv', { value: FORM.exv ?? 'R$ 180,00', inputmode: 'decimal' }))}
+      <div class="field"><span class="field-label">Tipo</span>${choice('ext', 'Extraordinária', 'Extraordinária', { def: 'Extraordinária', sub: 'Fundo de reserva, obras e benfeitorias. Na unidade alugada, vai ao proprietário.' })}${choice('ext', 'Ordinária', 'Ordinária', { def: 'Extraordinária', sub: 'Despesas da rotina e multa por infração. Na unidade alugada, vai ao inquilino.' })}</div>
       <div class="field"><span class="field-label">Unidades</span>${choice('exu', 'todas', 'Todas as unidades', { def: 'todas' })}${choice('exu', 'algumas', 'Escolher unidades', { def: 'todas' })}</div>
       ${field('Vencimento', input('exven', { type: 'date', value: '2026-12-10' }))}
-      ${btn('Lançar cobrança extra', { on: () => toast('Cobrança extra emitida para 120 unidades.') })}</div>`;
+      ${btn('Lançar cobrança extra', { on: () => toast(`Cobrança extra emitida para 120 unidades. Nas alugadas, foi para ${(FORM.ext || 'Extraordinária') === 'Extraordinária' ? 'o proprietário' : 'o inquilino'}.`) })}</div>`;
   }
   return { nav: 'cobranca', body: head('Cobrança', 'Taxa condominial, cobranças extras e inadimplência. Só administradora e síndico veem esta área.') + tabs + body,
     after: () => { const el = $('#f-multa'); el && el.addEventListener('blur', () => rerender()); } };
@@ -178,8 +233,8 @@ def('admin', 'reunioes', 'Reuniões e mandatos', 'Mandatos (4.4)', () => ({
 /* ---- Solicitações (4.2) ---- */
 def('admin', 'solicitacoes', 'Solicitações', 'Solicitações (4.2)', () => ({
   nav: 'solicitacoes',
-  body: `${head('Solicitações do síndico', `Franquia do plano Gestão + Suporte: ${S.franquia.usadas} de ${S.franquia.total} usadas este mês. Recusadas não contam.`)}
-    ${table([{ t: 'Data' }, { t: 'Tipo' }, { t: 'Detalhe' }, { t: 'Estado' }, { t: '', r: true }], S.solicitacoes.map(s => `<tr><td class="num">${s.data}</td><td><b>${s.tipo}</b></td><td>${s.det}${s.motivo ? `<div class="t-caption muted">Motivo: ${s.motivo}</div>` : ''}</td><td>${st(s.estado)}</td><td class="r">${s.estado === 'Pendente' ? `<span class="row" style="justify-content:flex-end">${btn('Recusar', { v: 'secondary', size: 'sm', on: () => dialog({ title: 'Recusar a solicitação?', text: 'O síndico recebe o motivo. A recusa não conta na franquia.', body: field('Motivo', textarea('smot')), actions: [{ label: 'Recusar', v: 'danger', on: () => { s.estado = 'Recusada'; s.motivo = FORM.smot || 'Dados incompletos.'; S.franquia.usadas = Math.max(0, S.franquia.usadas - 1); rerender(); toast('Solicitação recusada. O síndico foi avisado.'); } }, { label: 'Voltar', v: 'secondary' }] }) })}${btn('Atender', { size: 'sm', on: () => { s.estado = 'Concluída'; rerender(); toast('Solicitação concluída. O síndico foi avisado.'); } })}</span>` : ''}</td></tr>`))}`,
+  body: `${head('Solicitações do síndico e dos proprietários', `Franquia do plano Gestão + Suporte: ${S.franquia.usadas} de ${S.franquia.total} usadas este mês. Recusadas não contam.`)}
+    ${table([{ t: 'Data' }, { t: 'Tipo' }, { t: 'Pedido por' }, { t: 'Detalhe' }, { t: 'Estado' }, { t: '', r: true }], S.solicitacoes.map(s => `<tr><td class="num">${s.data}</td><td><b>${s.tipo}</b></td><td>${s.por}</td><td>${s.det}${s.motivo ? `<div class="t-caption muted">Motivo: ${s.motivo}</div>` : ''}</td><td>${st(s.estado)}</td><td class="r">${s.estado === 'Pendente' ? `<span class="row" style="justify-content:flex-end">${btn('Recusar', { v: 'secondary', size: 'sm', on: () => dialog({ title: 'Recusar a solicitação?', text: 'O síndico recebe o motivo. A recusa não conta na franquia.', body: field('Motivo', textarea('smot')), actions: [{ label: 'Recusar', v: 'danger', on: () => { s.estado = 'Recusada'; s.motivo = FORM.smot || 'Dados incompletos.'; S.franquia.usadas = Math.max(0, S.franquia.usadas - 1); rerender(); toast('Solicitação recusada. Quem pediu foi avisado.'); } }, { label: 'Voltar', v: 'secondary' }] }) })}${btn('Atender', { size: 'sm', on: () => { s.estado = 'Concluída'; rerender(); toast('Solicitação concluída. Quem pediu foi avisado.'); } })}</span>` : ''}</td></tr>`))}`,
 }));
 
 /* ---- Lista de bloqueio ---- */

@@ -23,7 +23,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | Arquivo | Conteúdo | IDs que define |
 | --- | --- | --- |
 | `01-visao-de-produto.md` | Problema, personas, proposta de valor, mercado, modelo de negócio, riscos, roadmap | — |
-| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (147), `RNF-*` (21), `SEG-*` (19) |
+| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (138), `RNF-*` (18), `SEG-*` (18) |
 | `03-regras-de-negocio.md` | Regras detalhadas por módulo, glossário, catálogo de parâmetros configuráveis, rotinas automáticas | `RN-XX-nn` (CA, CD, CH, CO, EN, FI, GE, OF, PE, PG, PL, RC, RE, SC, VI, VO) |
 | `04-historias-de-usuario.md` | 13 épicos, 71 histórias com critérios de aceite; tabela de cobertura RF -> US | `US-XX-nn` |
 
@@ -64,6 +64,15 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 - Docs em Markdown, tabelas para regras e matrizes, diagramas em Mermaid. Datas no formato dd/mm/aaaa nos docs.
 - Git: branch de trabalho `docs/design-system-e-user-flows`; também existem `develop`, `staging` e `main`. **Nenhum commit vai para uma branch sem validação do Pedro.** Antes de commitar ou enviar ao `origin`, mostre o que será incluído e peça aprovação; o Pedro diz para qual ou quais branches o commit deve ir. Sem essa indicação, não commite, não faça merge ou fast-forward entre branches e não dê push. Aprovação para uma branch ou para um commit não vale para os próximos. Commits em português, descrevendo o conjunto da mudança.
 - `graphify-out/` é gerado pela skill graphify e não vai para o git.
+
+## Delegação a subagentes
+
+- **Toda tarefa é executada por um subagente, um subagente por tarefa.** Se o Pedro pedir várias tarefas, cada uma vai para um subagente próprio.
+- O modelo da sessão não executa as tarefas. Ele orquestra os subagentes: passa o contexto, acompanha o andamento e revisa tudo o que eles alterarem ou criarem antes de reportar ao Pedro.
+- Ficam fora desse padrão, e o modelo da sessão faz diretamente:
+  - alterações simples, quando o Pedro pede só uma alteração pontual;
+  - commit, push ou PR, quando o pedido é só isso (a regra de git acima continua valendo);
+  - consultas ao projeto, como perguntas sobre os docs ou o protótipo, sem alteração de arquivos.
 
 ## O que já está pronto
 

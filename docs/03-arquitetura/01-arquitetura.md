@@ -970,26 +970,28 @@ flowchart LR
 
 ## 9. Decisões em aberto e riscos
 
-**Resumo:** a maior parte do que falta decidir é escolha de fornecedor, parecer jurídico e política operacional; sugiro registrar cada decisão como ADR em `docs/03-arquitetura/adr/` (não criados neste documento).
+**Resumo:** a maior parte do que falta decidir é escolha de fornecedor, parecer jurídico e política operacional; cada decisão está registrada como ADR em [`docs/03-arquitetura/adr/`](adr/README.md).
 
 ### 9.1 Decisões a registrar como ADR (Proposta)
 
+Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda sem validação do Pedro (estado Proposto ou Em aberto).
+
 | ADR sugerido | Decisão | Estado | Depende de |
 | --- | --- | --- | --- |
-| ADR-001 | Multi-tenant: banco compartilhado, `condominio_id` + RLS, contexto por transação | Proposta nesta arquitetura, alinhada a PRD 10 e SEG-05 | Prova de conceito de RLS com carga |
-| ADR-002 | Gateway de pagamento (Asaas, Mercado Pago, Pagar.me) | **Em aberto (UF 17)**; candidato inicial Asaas, não decidido | Prova de conceito; marco 2 do roadmap |
-| ADR-003 | Banco local do aparelho e sincronização offline (SQLite + SQLCipher x WatermelonDB) | Proposta, a decidir | Prova de conceito de criptografia e fila |
-| ADR-004 | Provedor de nuvem, região e residência de dados | Em aberto | Estimativa de custo (Visão de Produto), exigências LGPD |
-| ADR-005 | E-mail transacional (Resend x SES) | Em aberto | ADR-004 |
-| ADR-006 | Fila e agendador (pg-boss x BullMQ/Redis) e distribuição de eventos | Proposta, a decidir | Carga esperada |
-| ADR-007 | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | Proposta | Revisão de segurança |
-| ADR-008 | ORM / query builder e migrações | Proposta (Kysely ou Drizzle) | Necessidade de controle de transação |
-| ADR-009 | Votação: separação de registro e conteúdo, e limite de sigilo aceito | Proposta | Parecer jurídico (SEG-16) |
-| ADR-010 | Anonimato: identidade em tabelas separadas, HMAC para unicidade, limites mínimos | Proposta | Parecer jurídico |
-| ADR-011 | Ambientes, branches e fluxo de promoção (`develop` → `staging` → `main`), EAS e OTA | Proposta | Equipe |
-| ADR-012 | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
-| ADR-013 | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
-| ADR-014 | Estratégia de sincronização: "primeira conclusão" por relógio do aparelho x chegada | Proposta | Produto |
+| [ADR-001](adr/001-multi-tenant-rls.md) | Multi-tenant: banco compartilhado, `condominio_id` + RLS, contexto por transação | Proposta nesta arquitetura, alinhada a PRD 10 e SEG-05 | Prova de conceito de RLS com carga |
+| [ADR-002](adr/002-gateway-de-pagamento.md) | Gateway de pagamento (Asaas, Mercado Pago, Pagar.me) | **Em aberto (UF 17)**; candidato inicial Asaas, não decidido | Prova de conceito; marco 2 do roadmap |
+| [ADR-003](adr/003-banco-local-e-sync-offline.md) | Banco local do aparelho e sincronização offline (SQLite + SQLCipher x WatermelonDB) | Proposta, a decidir | Prova de conceito de criptografia e fila |
+| [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) | Provedor de nuvem, região e residência de dados | Em aberto | Estimativa de custo (Visão de Produto), exigências LGPD |
+| [ADR-005](adr/005-email-transacional.md) | E-mail transacional (Resend x SES) | Em aberto | [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) |
+| [ADR-006](adr/006-fila-agendador-eventos.md) | Fila e agendador (pg-boss x BullMQ/Redis) e distribuição de eventos | Proposta, a decidir | Carga esperada |
+| [ADR-007](adr/007-autorizacao-jwt-sem-papeis.md) | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | Proposta | Revisão de segurança |
+| [ADR-008](adr/008-orm-query-builder-migracoes.md) | ORM / query builder e migrações | Proposta (Kysely ou Drizzle) | Necessidade de controle de transação |
+| [ADR-009](adr/009-votacao-sigilo.md) | Votação: separação de registro e conteúdo, e limite de sigilo aceito | Proposta | Parecer jurídico (SEG-16) |
+| [ADR-010](adr/010-anonimato-identidade-separada.md) | Anonimato: identidade em tabelas separadas, HMAC para unicidade, limites mínimos | Proposta | Parecer jurídico |
+| [ADR-011](adr/011-ambientes-branches-eas-ota.md) | Ambientes, branches e fluxo de promoção (`develop` → `staging` → `main`), EAS e OTA | Proposta | Equipe |
+| [ADR-012](adr/012-fuso-horario-por-condominio.md) | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
+| [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
+| [ADR-014](adr/014-primeira-conclusao-sync.md) | Estratégia de sincronização: "primeira conclusão" por relógio do aparelho x chegada | Proposta | Produto |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, CLAUDE.md)
 

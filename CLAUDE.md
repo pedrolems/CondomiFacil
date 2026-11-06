@@ -12,8 +12,9 @@ Autor e dono do produto: Pedro Lemos.
 docs/
   01-produto/       Fonte da verdade do negócio (ver abaixo)
   02-design/        Design System e User Flows
-  03-arquitetura/ ... 09-infra/   Vazias (.gitkeep): arquitetura, banco, backend,
-                                  frontend, segurança, qualidade, infra
+  03-arquitetura/   Documento de arquitetura e ADRs (ver abaixo)
+  04-banco-de-dados/ ... 09-infra/   Vazias (.gitkeep): banco, backend, frontend,
+                                     segurança, qualidade, infra
 prototipo/          Wireframes navegáveis em HTML/CSS/JS puro (sem build)
 graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 ```
@@ -33,6 +34,13 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | --- | --- |
 | `01-design-system.md` | Marca, cores (azul + coral), tipografia (Inter), ícones (Lucide), tokens, 25+ componentes, padrões de tela 11.x, navegação por perfil, escrita, acessibilidade (WCAG AA, toque mín. 48 dp, 56 na portaria), privacidade na UI. Seção 18 registra decisões e correções; seção 19 é a rastreabilidade |
 | `02-user-flows.md` | Fluxos numerados por módulo (3.x acesso ... 13.x cobrança), mensagens de erro transversais, decisões da revisão (16) e **pendências (17)** |
+
+### Documentos de arquitetura (`docs/03-arquitetura/`)
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `01-arquitetura.md` | Componentes (mobile, web, API, tempo real, jobs, pagamentos, notificações, arquivos, auditoria, votações, finanças), estratégia multi-tenant (RLS por `condominio_id`), stacks com justificativas, ambientes (dev, staging, produção), segurança/LGPD, RNF, decisões em aberto e riscos (9), rastreabilidade |
+| `adr/` | 14 ADRs (001 a 014) e índice em `adr/README.md`. Todos em estado Proposto ou Em aberto (002 gateway, 004 nuvem, 005 e-mail): nenhum foi aceito pelo Pedro ainda |
 
 ## Decisões de produto que não se deduzem do código
 
@@ -91,7 +99,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
    - Cobrança em atraso como notificação obrigatória (proposta, ainda fora das RN e do US-NO-01).
 2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso.
 3. **Decidir o perfil Manutenção:** incluir no PRD ou descartar do protótipo.
-4. **Preencher as pastas vazias de `docs/`** na ordem natural: 03-arquitetura (decisões/ADRs a partir da stack do PRD), 04-banco-de-dados (modelo com RLS por condomínio e por unidade), 05-backend (API, jobs da seção 14 das RN, webhooks de pagamento), 06-frontend (estrutura Expo, offline, tokens do Design System), 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra.
+4. **Validar os ADRs de `docs/03-arquitetura/adr/`** (aceitar, rejeitar ou ajustar cada um; os em aberto dependem de PoC, custo ou parecer) e **preencher as pastas vazias de `docs/`** na ordem natural: 04-banco-de-dados (modelo com RLS por condomínio e por unidade), 05-backend (API, jobs da seção 14 das RN, webhooks de pagamento), 06-frontend (estrutura Expo, offline, tokens do Design System), 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra.
 5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 

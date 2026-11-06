@@ -28,6 +28,7 @@ Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
 | `js/telas/sindico.js` | Aba Gestão do síndico e do subsíndico (permissões por estado da substituição) |
 | `js/telas/funcionarios.js` | Portaria, limpeza e manutenção |
 | `js/telas/admin.js` | Painel web da administradora |
+| `js/telas/financas.js` | Finanças do condomínio: painel web da administradora (edita) e leitura do síndico e do conselho fiscal |
 
 ## Perfis
 
@@ -37,7 +38,11 @@ Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
 - **Subsíndico:** as mesmas abas do síndico. Fora da substituição, a Gestão é enxuta: reclamações contra o síndico, manutenção só para acompanhar, sugestões de comunicado, votos presenciais e encomendas vencidas. "Substituição ativa" no painel lateral libera todas as funções de síndico.
 - **Administradora:** painel web com navegação lateral.
 - **Portaria:** Visitantes · Encomendas · Áreas · Menu (sem internet, divergência e modo treinamento).
-- **Limpeza:** Chamados · Áreas · Menu.
+- **Limpeza:** Chamados · Áreas · Menu. Conclui com fotos opcionais; Menu > Minhas avaliações mostra a média e os comentários sem identificar o morador (com menos de 3 avaliações, só o aviso).
+- **Avaliação do atendimento (fluxos 8.4 e 8.5):** no Morador > Chamados, o chamado concluído mostra as fotos do serviço (se houver) e "Avaliar o serviço" (exemplos: Salão de festas com fotos, Corredor do Bloco A sem fotos, Churrasqueira já avaliada, Portão já avaliado com nota baixa). O síndico vê Gestão > Avaliações do atendimento; a administradora vê a coluna Atendimento em Funcionários.
+- **Lista de visitantes (fluxo 6.5):** no Morador > Visitantes, o botão "Novo" abre "Montar lista de visitantes" (rota `lista-visitantes-nova`; com origem de reserva, `lista-visitantes-nova/reserva:r2`; função `abrirListaVisitantes(perfil, reservaId)`). Adiciona e remove linhas, cola vários nomes, usa recentes, frequentes e lista salva, e envia. Exemplo pronto: "Aniversário do Theo" (18 pessoas, 5 chegaram), que a Portaria vê agrupada em Visitantes, com entrada pessoa a pessoa.
+- **Entregas esperadas (fluxo 7.2):** no Morador > Menu > Encomendas, "Avisar entrega" (rota `entrega-nova`; editar e reagendar em `entrega-nova/x4`) e toque na linha para editar ou cancelar. Exemplos do morador (Apto 101): duas esperadas hoje (Amazon 12h às 19h; outra sem faixa nem origem), uma futura (08/11) e uma que não chegou (reagendável). Na Portaria > Encomendas, "Esperadas hoje" por faixa (inclui um aviso de iFood/entregador, sem registro) e, em "Registrar encomenda", o vínculo sugerido pela unidade e pela origem (ex.: Bloco A · Apto 101 + Amazon).
+- **Finanças do condomínio (fluxos 13.3 e 13.4):** na Administradora, "Finanças" (resumo do mês com comparação, despesas por categoria em barras e tabela, receitas por origem, evolução de 6 ou 12 meses em SVG com tabela, lançamentos com filtros, novo lançamento com validações, editar e excluir em mês aberto, estornar em mês fechado, fechar o mês, exportação CSV e PDF simulada). Outubro está aberto (fecha em 10/11) e setembro fechado, com um estorno de exemplo. Receitas de cobrança e reservas são automáticas e agregadas, sem unidade. No Síndico, Gestão > Finanças (só leitura, com comentário e exportação); o subsíndico só vê na substituição; no Morador, "Sou do conselho fiscal" no painel lateral liga Menu > Finanças do condomínio. Comentário de exemplo do conselho na reforma da garagem (outubro). Dados em `S.fin` (`data.js`).
 - **Manutenção:** *proposta*; o PRD não tem esse perfil (hoje o síndico acompanha empresas cadastradas).
 - **Proprietário não residente:** Unidade · Cobranças · Assembleias · Menu. Acompanha o contrato de locação e as ocorrências, paga as despesas extraordinárias e vota.
 - **Locação no painel da administradora:** Unidades e moradores > "Alugadas" ou "Desocupadas" abre o detalhe da unidade (cadastrar, renovar e encerrar contrato, responsáveis financeiros por tipo).

@@ -56,10 +56,14 @@ Um parâmetro é resolvido do nível mais geral para o mais específico; o níve
 | Sugestão de comunicado | Comunicado escrito pelo subsíndico fora da substituição, que o síndico revisa, edita e envia, ou descarta (RN-CO-05) |
 | Síndico profissional | Síndico contratado, sem unidade no condomínio |
 | Solicitação de suporte | Pedido de cadastro, alteração ou configuração atendido pela equipe da plataforma no plano Gestão + Suporte |
+| Avaliação do atendimento | Nota de 1 a 5 estrelas, com comentário opcional, que quem abriu o chamado dá ao serviço concluído; diferente da pesquisa mensal e sem efeito no score (RN-CH-15 a RN-CH-21) |
 | Sincronização | Envio ao servidor do que a portaria ou a limpeza registrou sem internet |
 | Taxa condominial | Valor mensal que cada unidade paga ao condomínio |
 | Responsável financeiro | Quem recebe e paga as cobranças da unidade. Há um para as despesas ordinárias e outro para as extraordinárias (RN-FI-03); por padrão, os dois são o morador habilitado |
 | Em atraso | Unidade com cobrança vencida e não paga; aparece no painel de inadimplência |
+| Lançamento | Registro de uma receita ou despesa do condomínio, automático (vindo de cobrança ou reserva paga) ou avulso (lançado pela administradora) |
+| Mês fechado | Mês financeiro que não aceita mais edição nem exclusão de lançamentos; a correção é feita por estorno (RN-FI-28) |
+| Estorno | Lançamento de valor oposto, com motivo, que anula um lançamento de mês fechado sem apagá-lo |
 
 ## 3. Cadastros, unidades e papéis
 
@@ -178,6 +182,9 @@ Toda reclamação é identificada, tem um único alvo do mesmo condomínio e só
 | RN-RC-14 | Quem é parte da reclamação nunca julga o recurso dela. Nesse caso, o recurso vai à administradora e, sem ela, ao conselho fiscal; sem nenhum dos dois, fica pendente, e a administradora ou o suporte recebe alerta para cadastrar o conselho fiscal |
 | RN-RC-15 | Reclamação decidida sem recurso em 7 dias é encerrada automaticamente |
 | RN-RC-16 | Quando uma reclamação contra unidade alugada ou desocupada é validada, o proprietário não residente é avisado com a categoria, a data, a decisão e a multa, se houver; ele não vê a conversa nem quem reclamou |
+| RN-RC-17 | Toda reclamação aguardando decisão (estados Aberta e Em conversa com o alvo) mostra um semáforo do prazo de decisão de RN-RC-06, contado da abertura (ou de quando sai de Pendente, RN-RC-19) e vencendo no fim do dia do vencimento. **Verde, "no prazo":** resta mais que o limiar de RN-RC-18. **Amarelo, "prazo se esgotando":** restam o limiar ou menos, até o dia do vencimento inclusive. **Vermelho, "prazo esgotado":** o prazo passou. O semáforo aparece, com texto e ícone além da cor, na lista e no detalhe, para quem reclamou (nas reclamações dele) e para o julgador: síndico, subsíndico (nas reclamações contra o síndico e, na substituição, em todas), administradora e conselho fiscal |
+| RN-RC-18 | O limiar do amarelo é 25% do prazo de decisão, arredondado para cima e com mínimo de 1 dia: com 15 dias, os últimos 4; com 3 dias, o último; com 60 dias, os últimos 15. Não é configurável: acompanha o prazo de `reclamacao.prazo_decisao_dias`. Um limiar proporcional avisa cedo nos prazos longos e não deixa os curtos amarelos desde o começo, o que um limite fixo de 24 horas faria |
+| RN-RC-19 | O semáforo é só informação: não bloqueia a decisão, não muda o estado da reclamação e não altera os lembretes de RN-RC-06. Não aparece em reclamação Pendente (o prazo passa a contar quando há julgador) nem depois da decisão (Validada, Negada, Em recurso, Recurso aceito e Encerrada), quando só vale o prazo de recurso de RN-RC-07. O alvo não vê o semáforo, e nada nele revela quem reclamou |
 
 ### 5.3 Recursos
 
@@ -253,6 +260,7 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | RN-RE-09 | Após o uso, a portaria ou a limpeza registra a vistoria da área com checklist e fotos; dano gera reclamação (RN-RC-12) |
 | RN-RE-10 | Se o morador não usar uma reserva gratuita, a portaria ou a limpeza registra o não comparecimento; a cada duas faltas no mesmo trimestre, quem reservou perde 5 pontos, aplicados pela rotina diária |
 | RN-RE-11 | Se o condomínio ligar o bloqueio por atraso (RN-FI-12), a unidade em atraso não faz novas reservas até quitar; reservas já confirmadas são mantidas |
+| RN-RE-12 | Quando a reserva fica confirmada (na hora ou com a aprovação do pagamento), o app sugere montar a lista de visitantes vinculada a ela (RN-VI-14). A sugestão aparece na confirmação e no detalhe só se a reserva está **confirmada**, tem data depois de hoje e ainda não tem lista vinculada; "Agora não" a esconde para aquela reserva, sem voltar a insistir. Não aparece para reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje, porque a lista seria cancelada junto se a reserva caísse. As regras não distinguem áreas, então a sugestão vale para todas; a capacidade da área só avisa (RN-VI-14). Com lista vinculada, o detalhe mostra "Lista: N pessoas", com link para a lista |
 
 ### 7.2 Cancelamento e reembolso
 
@@ -311,6 +319,13 @@ O cadastro de visitantes agiliza a portaria, mas não é a única forma de autor
 | RN-VI-08 | Quando o morador muda de unidade ou sai do condomínio, as visitas recorrentes dele são encerradas |
 | RN-VI-09 | Visitante avulso sem entrada até o fim do dia da visita fica com status "não compareceu" |
 | RN-VI-10 | Se o condomínio permitir aluguel por temporada (configurável, desligado por padrão; só deve ser ligado se o regimento permitir), o proprietário de unidade desocupada cadastra hóspedes de temporada como visitas com data de entrada e de saída. O hóspede não tem login nem score, e a portaria o vê marcado como "hóspede de temporada". Reclamações sobre a estadia são feitas contra a unidade (RN-CD-24) |
+| RN-VI-11 | O morador pode montar uma **lista de visitantes**: várias pessoas autorizadas de uma vez, com nome da lista, data, faixa de horário (opcional) e local ou motivo (opcional) preenchidos uma só vez. Cada pessoa vira um visitante avulso e segue as regras de visitante avulso (RN-VI-01, RN-VI-02, RN-VI-05, RN-VI-06 e RN-VI-09): nome obrigatório, documento opcional, alerta de bloqueio na entrada, notificação ao morador e "não compareceu" no fim do dia. A lista não vale para visita recorrente (RN-VI-03) nem para hóspede de temporada (RN-VI-10). Quem pode cadastrar visitante pode montar lista |
+| RN-VI-12 | A lista tem no máximo `visitante.lista_max_pessoas` pessoas (padrão 100). Acima disso, o envio é recusado com a mensagem do limite e de quantas pessoas sobram. Linhas em branco são ignoradas ao enviar. Nome repetido na mesma lista gera aviso, sem bloquear, porque pode ser outra pessoa com o mesmo nome |
+| RN-VI-13 | A data da lista não pode ser anterior a hoje. A portaria só vê a lista no dia da data. Se houver faixa de horário, ela é só informativa: não gera o alerta "Fora do horário cadastrado" |
+| RN-VI-14 | A lista pode ter uma **origem** opcional. Quando vem de uma reserva, data, horário e local vêm da reserva e não são editáveis, e a lista fica vinculada a ela. Se o número de pessoas passar da capacidade da área reservada, o app mostra um aviso, sem bloquear: a capacidade vale para quem está na área ao mesmo tempo, e o morador decide. Se a reserva for cancelada, a lista é cancelada junto e o morador é avisado. A sugestão de montar a lista logo após a reserva segue RN-RE-12 |
+| RN-VI-15 | Até o fim do dia da lista, o morador adiciona pessoas, remove quem ainda não chegou (a visita dela fica "cancelada" e sai da portaria) ou cancela a lista inteira (quem já entrou continua registrado). Remover uma linha ao montar a lista pode ser desfeito na hora. Cada pessoa continua com o próprio estado (8.3) |
+| RN-VI-16 | O app oferece, com um toque, os visitantes **recentes** (cadastrados nos últimos 90 dias) e **frequentes** (3 ou mais visitas) da unidade, dentro do prazo de retenção (8.4). O morador pode **salvar a lista** para usar de novo: o modelo guarda nome da lista, nomes e documentos, é visível só para a unidade e é apagado quando o morador muda de unidade ou sai (como em RN-VI-08) |
+| RN-VI-17 | Na portaria, as pessoas da lista aparecem **agrupadas**, com o nome da lista, a unidade e o contador "N pessoas, M chegaram". A entrada e a saída são registradas pessoa a pessoa (1 toque, com Desfazer). O morador recebe o aviso da primeira chegada e, depois, um resumo agrupado a cada 15 minutos (ex.: "Aniversário do Theo: 12 de 18 chegaram"), para não receber dezenas de notificações |
 
 ### 8.2 Portaria sem internet
 
@@ -361,6 +376,26 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | Retirada | — |
 | Devolvida | — |
 
+**Entregas esperadas.** O morador avisa a portaria de uma entrega que vai chegar, para ela identificar o pacote e a unidade. O aviso é só informativo: não autoriza nada e não é exigido para receber.
+
+| ID | Regra |
+| --- | --- |
+| RN-EN-07 | Qualquer morador da unidade, inclusive o síndico morador e o subsíndico, registra uma entrega esperada com **data esperada** (obrigatória, de hoje a 30 dias). São opcionais: **descrição** (até 60 caracteres), **faixa de horário** (de e até, sempre as duas, com o fim depois do início) e **origem** (Amazon, Correios, Mercado Livre, Shopee, iFood/entregador ou Outra, com texto livre de até 30 caracteres). Proprietário não residente não registra (RN-CD-19) |
+| RN-EN-08 | Cada unidade tem no máximo 10 entregas esperadas ativas (parâmetro `entrega_esperada.limite_por_unidade`); "ativa" é a que está "Esperada". Qualquer morador da unidade vê, edita e cancela as da unidade |
+| RN-EN-09 | Enquanto "Esperada" ou "Não chegou", a entrega pode ser editada (qualquer campo) ou cancelada. Editar a data de uma "Não chegou" para hoje ou depois é **reagendar**: ela volta a "Esperada" e conta no limite. Depois de "Chegou", não se edita nem se cancela. A portaria vê a edição na hora, sem push |
+| RN-EN-10 | No dia da data esperada, a portaria vê a entrega em "Esperadas hoje", ordenada pelo início da faixa (sem faixa por último), com unidade, origem, faixa e descrição. Entregas de outras datas não aparecem. A entrega esperada **não autoriza**: a portaria recebe a encomenda de qualquer unidade sem aviso prévio (RN-EN-01), chegar fora da faixa não gera alerta, e o aviso não libera a entrada de entregador nem a retirada (visitantes seguem RN-VI) |
+| RN-EN-11 | Ao registrar a encomenda, a portaria vê as entregas esperadas da unidade escolhida (de hoje, futuras e "Não chegou" dentro da tolerância) e pode vincular uma. A sugestão é automática: a única candidata ou, havendo várias, a de origem igual ao remetente; a portaria confirma ou escolhe "Não vincular". Uma encomenda vincula uma entrega. Vinculada, a entrega passa a "Chegou", o remetente vem da origem se estiver em branco, e o morador recebe o push normal da encomenda (RN-EN-01), sem aviso duplicado. Se a unidade da encomenda for corrigida (RN-EN-06), o vínculo se desfaz e a entrega volta a "Esperada" ou "Não chegou", conforme a data |
+| RN-EN-12 | A origem iFood/entregador é só um aviso à portaria de que um entregador vai chegar; a RN-EN-05 continua valendo. Essa entrega aparece na portaria com o selo "Só aviso", sem ação de registro, nunca é vinculada a uma encomenda e, passada a data, fica "Encerrada" (não "Não chegou") |
+| RN-EN-13 | À meia-noite, a entrega "Esperada" com data anterior a hoje passa a "Não chegou". O morador vê o selo e a ação "Reagendar", sem push. Ela some de "Esperadas hoje" nessa hora, mas continua vinculável pela portaria por 3 dias (`entrega_esperada.tolerancia_vinculo_dias`). Entregas "Chegou", "Não chegou", "Cancelada" e "Encerrada" ficam na lista do morador por 30 dias após a data |
+
+| Estado da entrega esperada | Próximos estados |
+| --- | --- |
+| Esperada | Chegou, Não chegou, Cancelada, Encerrada (só iFood/entregador) |
+| Não chegou | Esperada (reagendada), Chegou, Cancelada |
+| Chegou | — |
+| Cancelada | — |
+| Encerrada | — |
+
 ### 9.2 Chamados
 
 | ID | Regra |
@@ -371,8 +406,21 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-CH-04 | A equipe de limpeza atende os chamados do setor, também sem internet; se duas pessoas concluírem o mesmo chamado offline, vale a primeira conclusão |
 | RN-CH-05 | Manutenção é feita por empresas terceirizadas; o síndico registra a empresa, atualiza o status e conclui. O subsíndico acompanha os chamados sem alterá-los, exceto na substituição (RN-CD-27) |
 | RN-CH-06 | Prazos: limpeza concluída em 24h; manutenção com primeira atualização em 48h (configuráveis). Chamados fora do prazo aparecem em destaque para o síndico |
-| RN-CH-07 | Quem abriu é avisado da conclusão e pode reabrir em até 48h |
+| RN-CH-07 | Quem abriu é avisado da conclusão e pode reabrir em até 48h; o aviso também convida a avaliar o atendimento (RN-CH-15) |
 | RN-CH-08 | Chamados de um funcionário desligado voltam para a fila do setor |
+| RN-CH-09 | Quem abre o chamado classifica a urgência em um de três níveis, sem valor pré-selecionado: **alta** (risco para pessoas ou dano que cresce rápido; ex.: hall com líquido no chão, risco de queda), **média** (atrapalha o uso, sem risco imediato; ex.: lâmpada queimada) e **leve** (pode esperar alguns dias). O formulário mostra esses exemplos e orienta escolher o nível mais alto em caso de dúvida. Sem urgência, o chamado não é enviado |
+| RN-CH-10 | A urgência aparece, com texto e cor, em toda lista e no detalhe do chamado, para quem abriu, síndico, subsíndico e funcionários: alta em vermelho, média em amarelo e leve em verde. O chamado guarda a urgência e a data e hora de abertura |
+| RN-CH-11 | Só o síndico, ou o subsíndico na substituição (RN-CD-27), ajusta a urgência de um chamado aberto. Cada ajuste registra quem, quando e o valor anterior e o novo, aparece no detalhe e avisa quem abriu. Funcionários e portaria veem a urgência, mas não a alteram |
+| RN-CH-12 | A urgência não altera os prazos de RN-CH-06 nem o estado do chamado |
+| RN-CH-13 | As listas de chamados (morador, síndico, limpeza e manutenção) mostram primeiro os abertos e depois os concluídos. Dentro de cada grupo, a ordem é por urgência: alta, média e leve. Se a urgência empatar, o chamado mais antigo (data e hora de abertura, RN-CH-10) aparece primeiro. A ordem só muda a exibição: não altera os dados nem os prazos (RN-CH-06, RN-CH-12) |
+| RN-CH-14 | Ao concluir um chamado, anexar fotos do serviço feito é opcional, até 5 fotos: a equipe de limpeza anexa na própria conclusão, e o síndico (ou o subsíndico na substituição) anexa ao concluir a manutenção. Sem foto, a conclusão segue igual. As fotos aparecem no detalhe do chamado para quem abriu, o síndico e o subsíndico; sem internet, ficam na fila de sincronização junto com a conclusão (RN-CH-04) |
+| RN-CH-15 | Concluído o chamado, quem abriu pode avaliar o atendimento. Avaliam o morador, o síndico morador e o subsíndico que abriram o chamado; síndico profissional, portaria e funcionários não avaliam (igual à RN-PE-02). A avaliação vale para quem atendeu: o funcionário que teve a conclusão registrada (na conclusão offline duplicada, o da primeira, RN-CH-04) nos chamados de limpeza, e a empresa registrada (RN-CH-05) nos de manutenção |
+| RN-CH-16 | A avaliação tem de 1 a 5 estrelas (obrigatória) e comentário opcional de até 500 caracteres. Antes de enviar, quem avalia diz em que se baseia, de forma explícita: "Vi as fotos do serviço" (só aparece se há fotos) ou "Conferi pessoalmente". Sem fotos, "Conferi pessoalmente" é a única base e precisa ser marcada, senão a avaliação não é enviada. A base fica registrada e aparece no detalhe do chamado para o síndico e o subsíndico; o morador pode não avaliar, e não avaliar não tem consequência |
+| RN-CH-17 | A avaliação pode ser feita até 7 dias depois da conclusão (`chamado.janela_avaliacao_dias`, RN 13). Cada conclusão recebe uma única avaliação, definitiva: não se edita nem se apaga. Passada a janela, a ação some do chamado. Se o chamado ainda não foi avaliado 24h depois da conclusão, quem abriu recebe um único lembrete. Reabrir o chamado sem ter avaliado encerra a avaliação daquela conclusão; a nova conclusão abre nova janela, e a avaliação já feita continua valendo para a conclusão anterior |
+| RN-CH-18 | Avaliação com 1 ou 2 estrelas é "avaliação baixa". Ela não reabre o chamado sozinha: logo depois de enviar, o app oferece "Reabrir chamado" se ainda estão dentro das 48h de RN-CH-07, ou "Abrir novo chamado" se passaram; a decisão é de quem avaliou. Toda avaliação baixa também avisa o síndico, com o comentário, e entra na lista de avaliações da Gestão. O aviso nunca vai ao funcionário nem à empresa |
+| RN-CH-19 | O síndico (e o subsíndico na substituição) vê as avaliações agregadas por funcionário de limpeza e por empresa de manutenção: média, número de avaliações e distribuição por estrelas. Na avaliação de um chamado, o síndico e o subsíndico veem a nota, o comentário e a base no detalhe do chamado, onde já veem quem o abriu (RN-CH-10). A administradora vê só o agregado por funcionário e por empresa, sem comentários, sem chamados e sem identificar quem avaliou. Nenhum desses perfis vê a avaliação de um morador por outra tela |
+| RN-CH-20 | O funcionário vê as avaliações que recebeu em "Minhas avaliações": média, número de avaliações, distribuição por estrelas e comentários, sem unidade, sem morador, sem chamado nem local, e com o mês no lugar da data. A média e os comentários só aparecem quando ele tem 3 ou mais avaliações; antes disso, o app mostra só "Poucas avaliações para mostrar a média." Ao ser desligado, as avaliações dele saem das listas por funcionário e continuam no agregado do setor |
+| RN-CH-21 | A avaliação do atendimento não altera o score de ninguém, não abre reclamação e não entra na pesquisa mensal. O score do funcionário muda pela pesquisa mensal (RN-PE-05) e por reclamações; quem quiser reclamar de um atendimento usa a reclamação (RN 5) |
 
 | Estado do chamado | Limpeza | Manutenção |
 | --- | --- | --- |
@@ -382,6 +430,8 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | Agendado | — | Sim |
 | Concluído | Sim | Sim |
 | Reaberto (até 48h após a conclusão) | Sim | Sim |
+
+A avaliação do atendimento (RN-CH-15 a RN-CH-17) não é um estado: um chamado concluído fica "Avaliação pendente" ou "Avaliado" como marcação extra, sem mudar o estado.
 
 ## 10. Comunicação, reuniões, votações e mandatos
 
@@ -489,9 +539,45 @@ Quando o módulo está ativo, cada unidade recebe a cobrança mensal da taxa con
 | Em acordo | Débito parcelado (versão 2) | Paga com atraso, Em atraso |
 | Cancelada | Cancelada pela administradora, com motivo | — |
 
+### 12.3 Controle de receitas e despesas
+
+O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho fiscal para onde vai o dinheiro do condomínio, e serve de base para a contabilidade. Não substitui balancete, prestação de contas oficial nem a aprovação das contas em assembleia, que ficam fora do app. Vale em condomínios com ou sem o módulo de cobrança.
+
+| ID | Regra |
+| --- | --- |
+| RN-FI-21 | O painel mostra, para um mês ou para 3, 6 ou 12 meses, as receitas, as despesas e o saldo (receitas menos despesas), pelo regime de caixa: vale a data do pagamento ou do recebimento, não a do vencimento. Para um mês, compara com o mês anterior; para vários meses, só mostra a evolução. As cobranças extraordinárias (fundo de reserva e obras) aparecem discriminadas para o saldo não parecer sobra da rotina. Todo gráfico tem tabela com os mesmos valores |
+| RN-FI-22 | Com o módulo de cobrança ativo, toda cobrança paga (RN-FI-13) e toda reserva paga viram receita sozinhas, na data da confirmação do pagamento, nas categorias do item 12.4. O lançamento automático não se edita nem se exclui: a correção é feita na origem (cancelamento de cobrança, baixa manual, devolução) e o painel acompanha |
+| RN-FI-23 | A receita entra pelo valor pago; a taxa do gateway (RN-FI-17) entra sozinha como despesa de "Administração". Devolução de pagamento em duplicidade (RN-FI-19) e reembolso de reserva (RN-CA-02) geram, sozinhos, um lançamento de estorno na mesma categoria da receita, com a data da devolução |
+| RN-FI-24 | A administradora lança despesas e receitas avulsas com data, categoria, valor maior que zero e fornecedor (despesa) ou origem (receita); descrição e comprovante (foto ou PDF de até 10 MB) são opcionais, e o app destaca as despesas sem comprovante. Receita avulsa só na categoria "Outras receitas" (aluguel de antena, rendimento de aplicação, indenização de seguro etc.), porque as demais vêm das cobranças e reservas; com o módulo de cobrança desligado, valem também "Taxa condominial" e "Fundo de reserva" avulsas, já que o app não vê esses pagamentos. A folha de funcionários é lançada pelo total do mês, sem nome nem salário individual |
+| RN-FI-25 | A data de um lançamento não pode ser futura nem cair em mês fechado. Despesa lançada sem fornecedor é recusada |
+| RN-FI-26 | Um lançamento pode ser marcado como recorrente mensal, com valor fixo (honorários, seguro, aluguel de antena): o sistema cria o lançamento do mês no dia escolhido (nos meses curtos, no último dia). Contas variáveis, como energia e água, são digitadas todo mês. Cada lançamento criado é comum; encerrar a recorrência vale dali em diante e não muda meses anteriores |
+| RN-FI-27 | Enquanto o mês está aberto, só a administradora edita ou exclui lançamentos avulsos, e cada alteração fica na auditoria, com autor, data, valor antigo e valor novo |
+| RN-FI-28 | O mês fecha sozinho no dia 10 do mês seguinte (configurável), ou antes, quando a administradora o fecha depois do último dia do mês. Lançamento de mês fechado não se edita nem se exclui, e o mês não reabre: a correção é um **estorno**, que a administradora faz com motivo obrigatório. O estorno é um novo lançamento de valor oposto, na mesma categoria, ligado ao original e com a data do estorno (mês corrente); o original passa a "Estornado", e um estorno não se estorna (para refazer, lança-se o valor correto). Pagamentos confirmados depois do fechamento entram no mês do pagamento |
+| RN-FI-29 | A administradora (ou o suporte, no plano Gestão + Suporte) lança, fecha e estorna. O síndico (ou o subsíndico em substituição) e o conselho fiscal veem tudo em modo leitura. Moradores, proprietários não residentes e funcionários não veem as finanças |
+| RN-FI-30 | Telas e exportações mostram receitas de cobrança agregadas por categoria e quantidade de cobranças pagas, sem unidade nem responsável financeiro (SEG-17). O CSV de cobranças por unidade (RF-FI-15) continua só da administradora. A exportação em CSV e PDF respeita o filtro aplicado e não inclui dados pessoais além do nome do fornecedor |
+| RN-FI-31 | Síndico, subsíndico em substituição e conselho fiscal podem comentar um lançamento ou o mês, inclusive depois do fechamento. O comentário mostra autor e data, não se edita, avisa a administradora e não altera valores nem equivale à aprovação das contas |
+| RN-FI-32 | Categorias fixas de despesa: Energia, Água e esgoto, Gás, Serviços terceirizados (com o serviço: portaria, limpeza, elevador, jardinagem ou outro), Folha de funcionários, Manutenção e obras, Seguros, Administração (honorários e tarifas) e Outros. Receitas: Taxa condominial, Cobranças extras (fundo de reserva, obras e rateios), Multas e juros por atraso, Multas por infração, Aluguel de áreas (reservas pagas) e Outras receitas |
+
+### 12.4 Estados do lançamento e origem das receitas
+
+| Estado | Significado | Próximos estados |
+| --- | --- | --- |
+| Lançado | Lançamento válido; em mês aberto, o avulso ainda se edita ou se exclui | Estornado (só em mês fechado) |
+| Estornado | Anulado por um estorno; continua visível, com o link para o estorno | — |
+| Estorno | Lançamento de valor oposto que anula outro, com o motivo | — |
+
+| Categoria de receita | Origem | Lançamento |
+| --- | --- | --- |
+| Taxa condominial | Cobranças ordinárias pagas (RN-FI-13) | Automático |
+| Cobranças extras | Cobranças extraordinárias pagas: fundo de reserva, obras, rateios (RN-FI-20) | Automático |
+| Multas e juros por atraso | Multa e juros de cobranças pagas com atraso (RN-FI-06) | Automático |
+| Multas por infração | Cobranças de multa por infração pagas (RN-FI-14) | Automático |
+| Aluguel de áreas | Reservas pagas (RN 7.3) | Automático |
+| Outras receitas | Antena, rendimento de aplicação, indenização de seguro etc. | Avulso, pela administradora |
+
 ## 13. Catálogo de parâmetros configuráveis
 
-São 30 parâmetros; todos são alterados pela administradora (ou pelo suporte, no plano Gestão + Suporte), e o padrão de plataforma pelo admin da plataforma.
+São 35 parâmetros; todos são alterados pela administradora (ou pelo suporte, no plano Gestão + Suporte), e o padrão de plataforma pelo admin da plataforma.
 
 | Parâmetro | Regra | Padrão | Faixa permitida | Nível mais específico |
 | --- | --- | --- | --- | --- |
@@ -512,8 +598,12 @@ São 30 parâmetros; todos são alterados pela administradora (ou pelo suporte, 
 | `reserva.limite_mensal_por_unidade` | RN-RE-07 | 2 | 1 a 31 | Área |
 | `chamado.prazo_limpeza_horas` | RN-CH-06 | 24 | 1 a 168 | Condomínio |
 | `chamado.prazo_manutencao_resposta_horas` | RN-CH-06 | 48 | 4 a 168 | Condomínio |
+| `chamado.janela_avaliacao_dias` | RN-CH-17 | 7 | 1 a 30 | Condomínio |
 | `encomenda.prazo_guarda_dias` | RN-EN-04 | 30 | 7 a 90 | Condomínio |
+| `entrega_esperada.limite_por_unidade` | RN-EN-08 | 10 | 1 a 30 | Condomínio |
+| `entrega_esperada.tolerancia_vinculo_dias` | RN-EN-13 | 3 | 0 a 7 | Condomínio |
 | `visitante.retencao_meses` | 8.4 | 6 | 1 a 12 | Condomínio |
+| `visitante.lista_max_pessoas` | RN-VI-12 | 100 | 10 a 300 | Condomínio |
 | `mandato.reeleicao_permitida` | RN-VO-05 | Sim | Sim ou não | Condomínio |
 | `cobranca.formas_pagamento` | RN-FI-02 | Boleto, Pix e cartão | Ao menos uma das três | Condomínio |
 | `cobranca.dia_vencimento` | RN-FI-04 | 10 | 1 a 28 | Condomínio |
@@ -522,6 +612,7 @@ São 30 parâmetros; todos são alterados pela administradora (ou pelo suporte, 
 | `cobranca.juros_mes_pct` | RN-FI-06 | 1% | 0% a 1% | Condomínio |
 | `cobranca.desconto_pontualidade_pct` | RN-FI-07 | 0% | 0% a 10% | Condomínio |
 | `cobranca.bloqueia_reserva_em_atraso` | RN-FI-12 | Não | Sim ou não | Condomínio |
+| `financeiro.dia_fechamento_mes` | RN-FI-28 | 10 | 1 a 28 | Condomínio |
 | `locacao.aviso_fim_contrato_dias` | RN-CD-21 | 30 | 7 a 90 | Condomínio |
 | `locacao.carencia_fim_contrato_dias` | RN-CD-21 | 7 | 0 a 30 | Condomínio |
 | `locacao.temporada_permitida` | RN-VI-10 | Não | Sim ou não | Condomínio |
@@ -530,7 +621,7 @@ Valores fora da faixa são recusados no cadastro, com a faixa permitida na mensa
 
 ## 14. Rotinas automáticas
 
-O sistema executa 16 rotinas sem ação de ninguém; cada execução é registrada em log.
+O sistema executa 20 rotinas sem ação de ninguém; cada execução é registrada em log.
 
 | Rotina | Frequência | O que faz | Regra |
 | --- | --- | --- | --- |
@@ -542,11 +633,15 @@ O sistema executa 16 rotinas sem ação de ninguém; cada execução é registra
 | Fechamento da pesquisa | Último dia do mês, 23h59 | Calcula médias, ajusta scores dos funcionários e publica notas dos setores | RN-PE-05 a RN-PE-08 |
 | Faltas em reservas | Diária | Aplica −5 a cada 2 faltas em reservas gratuitas no trimestre | RN-RE-10 |
 | Lembretes de encomenda | Diária | Envia lembretes de 3 e 7 dias e avisa o síndico ao fim do prazo de guarda | RN-EN-03, RN-EN-04 |
+| Entregas esperadas que não chegaram | Diária, à meia-noite | Passa a "Não chegou" a entrega esperada com data anterior (iFood/entregador vira "Encerrada") | RN-EN-12, RN-EN-13 |
 | Prazos de reclamação e chamado | Diária | Libera a decisão quando o alvo não responde no prazo, lembra o julgador e destaca chamados fora do prazo | RN-RC-04, RN-RC-06, RN-CH-06 |
+| Lembrete de avaliação de chamado | Diária | Envia um único lembrete a quem abriu o chamado concluído há 24h e ainda não avaliou; encerra a avaliação ao fim da janela | RN-CH-17 |
 | Encerrar reclamações sem recurso | Diária | Encerra reclamações decididas há mais de 7 dias sem recurso | RN-RC-15 |
 | Limpeza de dados offline | Diária, à meia-noite | Manda os aparelhos da portaria e da limpeza apagarem a cópia do dia | RN-OF-06 |
 | Anonimização de visitantes | Diária | Anonimiza visitas mais antigas que o prazo de retenção | 8.4 |
 | Gerar cobranças mensais | Diária | Gera a cobrança de cada unidade 15 dias antes do vencimento | RN-FI-05 |
 | Marcar cobranças em atraso | Diária | Muda para "em atraso" as cobranças vencidas sem pagamento e atualiza multa e juros | RN-FI-06, RN-FI-09 |
 | Lembretes de cobrança | Diária | Envia lembretes 5 dias antes, no dia, 1 e 7 dias depois do vencimento | RN-FI-16 |
+| Lançamentos recorrentes | Diária | Cria os lançamentos recorrentes do mês no dia escolhido (no último dia, nos meses curtos) | RN-FI-26 |
+| Fechar o mês financeiro | Diária | No dia configurado do mês seguinte, fecha o mês financeiro anterior se a administradora ainda não o fechou | RN-FI-28 |
 | Fim de contrato de locação | Diária | Avisa 30 dias antes do fim do contrato; sem renovação, desativa o inquilino e os dependentes após a carência e marca a unidade como desocupada | RN-CD-21 |

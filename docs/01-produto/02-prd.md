@@ -54,9 +54,10 @@ O MVP inclui todos os módulos abaixo, exceto relatórios e acordos de parcelame
 | Painel da plataforma (condomínios, planos, suporte) | MVP |
 | Relatórios e exportações | Versão 2 |
 | Cobrança condominial: boleto, Pix, cartão, vencimentos e inadimplência | MVP |
+| Controle de receitas e despesas do condomínio: lançamentos, categorias, evolução mensal, fechamento do mês e exportação | MVP |
 | Acordos de parcelamento de débitos | Versão 2 |
 
-**Fora de escopo:** contabilidade e prestação de contas do condomínio (balancete), integração com catracas e interfones, entregas de comida por aplicativo.
+**Fora de escopo:** contabilidade formal e prestação de contas oficial do condomínio (balancete assinado, parecer do conselho fiscal, ata), integração com catracas e interfones, entregas de comida por aplicativo.
 
 **Planos**
 
@@ -77,12 +78,12 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Síndico (morador) | Morador eleito; mantém todas as funções de morador |
 | Síndico profissional | Contratado, sem unidade e sem funções de morador; contratação e desligamento registrados pela administradora |
 | Subsíndico | Morador eleito, de unidade diferente da do síndico. No dia a dia, tem uma gestão limitada: julga reclamações contra o síndico, acompanha a manutenção, sugere comunicados, registra votos presenciais e vê encomendas com prazo vencido (RN-CD-27). Assume todas as funções de síndico quando a substituição é ativada |
-| Funcionário de limpeza | Recebe e conclui chamados de limpeza |
+| Funcionário de limpeza | Recebe e conclui chamados de limpeza, e vê as avaliações que recebe sem saber de quem |
 | Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados |
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
 | Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores |
 | Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
-| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; obrigatório em condomínio sem subsíndico. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14 |
+| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; obrigatório em condomínio sem subsíndico. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14. Acompanham as finanças do condomínio em modo leitura e podem comentar (RF-FI-17, RF-FI-24) |
 | Proprietário não residente | Dono da unidade que não mora nela, com a unidade alugada ou desocupada. Vota nas assembleias, vê e paga as cobranças de que é responsável e acompanha a unidade: contrato de locação, multas e reclamações validadas contra ela (RN-CD-19) |
 
 **Unidade alugada.** O inquilino é cadastrado com as datas do contrato e passa a ser o morador habilitado, com todas as funções de morador. O proprietário continua votando, responde pelas despesas extraordinárias e é avisado do que acontece com a unidade, sem ver a rotina do inquilino. No fim do contrato, a administradora renova ou encerra o vínculo; sem renovação, a unidade fica desocupada (RN-CD-20 a RN-CD-24).
@@ -99,6 +100,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 - Cadastra áreas comuns, regras de reserva, cancelamento e reembolso.
 - Cadastra a conta bancária que recebe os pagamentos de reservas e da taxa condominial. Configura a cobrança (valores, vencimento, formas de pagamento), lança cobranças extras e acompanha a inadimplência.
 - Registra mandatos de síndico e subsíndico, e contratação ou desligamento de síndico profissional.
+- Controla as receitas e despesas do condomínio: lança despesas e receitas avulsas por categoria, acompanha o resumo e a evolução mensal, fecha o mês, estorna lançamentos de meses fechados e exporta para a contabilidade. As receitas de cobrança e de reservas entram sozinhas.
 - Configura as regras de reeleição do condomínio.
 - Ativa ou desativa a substituição do síndico pelo subsíndico.
 - Consulta todas as reclamações, inclusive contra síndico e subsíndico, com a identidade e o score do reclamante e do alvo, e julga os casos previstos em RN-RC-03 e RN-RC-07. Consulta também o score dos funcionários.
@@ -113,11 +115,16 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Cadastrar visitantes avulsos e recorrentes | Sim | Sim | — | Sim | — | — | — |
 | Ver lista de visitantes e registrar entrada e saída (também offline) | — | — | — | — | — | Sim | — |
 | Registrar encomendas e retiradas | — | — | — | — | — | Sim | — |
+| Avisar, editar e cancelar entregas esperadas da unidade | Sim | Sim | — | Sim | — | — | — |
+| Ver as entregas esperadas do dia e vinculá-las à encomenda | — | — | — | — | — | Sim | — |
 | Registrar vistoria de área após o uso | — | — | — | — | Sim | Sim | — |
 | Abrir chamados de limpeza e manutenção | Sim | Sim | Sim | Sim | — | Sim | — |
 | Atender e concluir chamados de limpeza (também offline) | — | — | — | — | Sim | — | — |
 | Acompanhar chamados de manutenção | — | Sim | Sim | Sim | — | — | — |
 | Indicar empresa, mudar status e concluir chamados de manutenção | — | Sim | Sim | Em substituição | — | — | — |
+| Avaliar o atendimento dos chamados que abriu | Sim | Sim | — | Sim | — | — | — |
+| Consultar avaliações de atendimento por funcionário e empresa | — | Sim | Sim | Em substituição | — | — | Só o agregado |
+| Ver as próprias avaliações de atendimento, sem identificar quem avaliou | — | — | — | — | Sim | — | — |
 | Ver encomendas com prazo de guarda vencido | — | Sim | Sim | Sim | — | Sim | — |
 | Registrar reclamação contra funcionário ou unidade | Sim | Sim | — | Sim | — | — | — |
 | Julgar reclamações | — | Sim, exceto contra si | Sim, exceto contra si | Contra o síndico; todas em substituição, exceto contra si | — | — | Nos casos de RN-RC-03 e RN-RC-07 |
@@ -143,18 +150,22 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Ver e pagar cobranças da própria unidade | Responsável financeiro | Responsável financeiro | — | Responsável financeiro | — | — | — |
 | Ver painel de inadimplência | — | Sim | Sim | Em substituição | — | — | Sim |
 | Solicitar cobrança extra | — | Sim | Sim | Em substituição | — | — | — |
+| Lançar receitas e despesas, fechar o mês e estornar lançamentos | — | — | — | — | — | — | Sim |
+| Ver as finanças do condomínio (resumo, categorias, evolução e lançamentos) | — | Sim | Sim | Em substituição | — | — | Sim |
+| Comentar lançamentos e meses das finanças | — | Sim | Sim | Em substituição | — | — | — |
+| Exportar as finanças (CSV e PDF) | — | Sim | Sim | Em substituição | — | — | Sim |
 
 **Perfis fora da matriz**
 
 - **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações e ver scores.
-- **Conselho fiscal:** julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador.
+- **Conselho fiscal:** julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
 - **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
 - **Proprietário não residente:** "Votar ou indicar procurador" e "Ver e pagar cobranças da própria unidade" (as de que é responsável financeiro). Também lê comunicados gerais, acompanha o contrato de locação e as multas e reclamações validadas contra a unidade e pede o cadastro, a renovação ou o encerramento do inquilino. Não reserva, não abre chamados, não reclama, não avalia funcionários e não vê a rotina do inquilino (RN-CD-19).
 - **Julgador de reclamação:** quem julga, seja quem for, pode iniciar a conversa com o alvo (RN-CO-04), mesmo sem permissão para enviar comunicados.
 
 ## 4. Requisitos funcionais
 
-São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
+São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
 
 ### 4.1 Acesso e conta
 
@@ -200,7 +211,7 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
 | RF-RE-01 | Ver disponibilidade das áreas em calendário | Morador | Horário reservado aparece como "ocupado", sem nome ou unidade; cada estado identificado por texto, não só por cor |
-| RF-RE-02 | Fazer reserva gratuita | Morador | Confirmação imediata se as regras forem cumpridas |
+| RF-RE-02 | Fazer reserva gratuita | Morador | Confirmação imediata se as regras forem cumpridas; na confirmação, sugere montar a lista de visitantes quando a reserva é futura e ainda não tem lista, inclusive na paga depois da aprovação do pagamento (RN-RE-12) |
 | RF-RE-03 | Fazer reserva paga | Morador | Horário bloqueado até o fim do prazo de pagamento |
 | RF-RE-04 | Cancelar com reembolso até 12h antes do início | Morador | Prazo configurável por condomínio e área |
 | RF-RE-05 | Cancelar sem reembolso depois do prazo | Morador | Libera a área para outros moradores |
@@ -235,6 +246,8 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-VI-11 | Avisar o porteiro de divergência ao sincronizar e exigir confirmação por interfone com o morador que cadastrou o visitante | Sistema, Portaria | Ex.: entrada registrada offline de visitante cancelado pelo morador; o aviso só fecha após a confirmação |
 | RF-VI-12 | Modo de treinamento da portaria, com visitantes e encomendas fictícios | Portaria | Não afeta dados reais; usado no treinamento da implantação e de novos porteiros |
 | RF-VI-13 | Cadastrar hóspede de temporada em unidade desocupada | Proprietário não residente | Só se o condomínio permitir (desligado por padrão); data de entrada e de saída; marcado na portaria como "hóspede de temporada" (RN-VI-10) |
+| RF-VI-14 | Montar lista de visitantes | Morador | Pessoas adicionadas e removidas na mesma tela, com data, horário e local preenchidos uma vez; colar vários nomes; recentes e frequentes com um toque; salvar a lista para reutilizar; limite de pessoas por lista e aviso de capacidade da área; origem opcional (ex.: reserva, com data e local pré-preenchidos); cada pessoa vira visitante avulso (RN-VI-11 a RN-VI-16) |
+| RF-VI-15 | Ver as pessoas de uma lista agrupadas e dar entrada individual | Portaria | Nome da lista, unidade e contador "N pessoas, M chegaram"; entrada e saída por pessoa; o morador recebe o aviso agrupado (RN-VI-17) |
 
 ### 4.6 Encomendas
 
@@ -245,16 +258,25 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-EN-03 | Registrar retirada e quem retirou | Portaria | — |
 | RF-EN-04 | Lembrar o morador de retirar | Sistema | Lembretes em 3 e 7 dias; prazo final de guarda de 30 dias (configurável) |
 | RF-EN-05 | Listar encomendas com prazo de guarda vencido e marcar a devolução | Síndico, Subsíndico | O subsíndico só vê, exceto na substituição (RN-EN-04) |
+| RF-EN-06 | Avisar uma entrega esperada | Morador, Síndico morador, Subsíndico | Data esperada obrigatória; descrição, faixa de horário e origem opcionais; limite por unidade; iFood/entregador é só aviso à portaria, sem registro de encomenda (RN-EN-07, RN-EN-08, RN-EN-12) |
+| RF-EN-07 | Ver as entregas esperadas do dia e vinculá-las ao registrar a encomenda | Portaria | "Esperadas hoje" por faixa de horário; sugestão automática do vínculo por unidade e origem; o morador recebe o push normal da encomenda; a entrega esperada não autoriza nem é exigida (RN-EN-10, RN-EN-11) |
+| RF-EN-08 | Editar, cancelar e reagendar entregas esperadas; marcar "Não chegou" | Morador, Síndico morador, Subsíndico, Sistema | Rotina diária à meia-noite; reagendar volta a "Esperada" (RN-EN-09, RN-EN-13) |
 
 ### 4.7 Chamados
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
 | RF-CH-01 | Abrir chamado de limpeza ou manutenção, com foto | Morador, Síndico, Portaria | Categorias por tipo (ex.: piscina, jardim, ar-condicionado) |
-| RF-CH-02 | Ver e concluir chamados de limpeza | Limpeza | Foto opcional do serviço feito |
+| RF-CH-02 | Ver e concluir chamados de limpeza | Limpeza | Fotos opcionais do serviço feito, até 5 (RN-CH-14) |
 | RF-CH-03 | Consultar e concluir chamados de limpeza sem internet | Limpeza | Conclusões sincronizam ao voltar a conexão |
-| RF-CH-04 | Acompanhar chamados de manutenção, indicar a empresa e concluir | Síndico; Subsíndico só acompanha, exceto na substituição | Status: aberto, orçamento, agendado, concluído |
-| RF-CH-05 | Acompanhar o status e reabrir em até 48h | Quem abriu | Notificação na conclusão |
+| RF-CH-04 | Acompanhar chamados de manutenção, indicar a empresa e concluir | Síndico; Subsíndico só acompanha, exceto na substituição | Status: aberto, orçamento, agendado, concluído; fotos opcionais do serviço na conclusão (RN-CH-14) |
+| RF-CH-05 | Acompanhar o status, ver as fotos do serviço concluído e reabrir em até 48h | Quem abriu | Notificação na conclusão, que convida a avaliar o atendimento (RF-CH-08) |
+| RF-CH-06 | Classificar a urgência ao abrir o chamado (alta, média ou leve), ver a urgência em cores nas listas e no detalhe, e ver as listas em ordem de urgência (abertos antes dos concluídos; empate, o mais antigo primeiro) | Quem abre; todos os que veem o chamado | Obrigatória; textos de ajuda com exemplos no formulário; alta em vermelho, média em amarelo e leve em verde, sempre com texto; ordem na exibição (RN-CH-13) |
+| RF-CH-07 | Ajustar a urgência de um chamado já aberto | Síndico; Subsíndico só na substituição | Fica registrado (quem, quando, de/para) e quem abriu é avisado |
+| RF-CH-08 | Avaliar o atendimento de um chamado concluído, com 1 a 5 estrelas e comentário opcional, informando se viu as fotos ou conferiu pessoalmente | Quem abriu (morador, síndico morador, subsíndico) | Até 7 dias após a conclusão, uma avaliação por conclusão, sem edição; lembrete único em 24h (RN-CH-15 a RN-CH-17) |
+| RF-CH-09 | Oferecer reabrir o chamado após avaliação baixa (1 ou 2 estrelas) e avisar o síndico | Sistema | Não reabre sozinho; reabrir segue as 48h de RN-CH-07; o aviso nunca vai ao funcionário (RN-CH-18) |
+| RF-CH-10 | Consultar as avaliações do atendimento, agregadas por funcionário de limpeza e por empresa de manutenção | Síndico (Subsíndico na substituição); Administradora só o agregado | Média, quantidade e distribuição por estrelas; comentário só no detalhe do chamado, para o síndico (RN-CH-19) |
+| RF-CH-11 | Ver as próprias avaliações recebidas, com média, distribuição e comentários anônimos | Funcionário | Só com 3 ou mais avaliações; sem unidade, morador, chamado nem local; sem efeito no score (RN-CH-20, RN-CH-21) |
 
 ### 4.8 Reclamações e score
 
@@ -275,6 +297,7 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RS-13 | Consultar todas as reclamações, com identidade e score do reclamante e do alvo | Administradora | Inclusive contra síndico e subsíndico |
 | RF-RS-14 | Filtrar palavras ofensivas e denunciar conteúdo | Todos | Denúncia vai ao síndico |
 | RF-RS-15 | Avisar o proprietário não residente de reclamação validada contra a unidade | Sistema | Categoria, data, decisão e multa; sem a conversa e sem quem reclamou (RN-RC-16) |
+| RF-RS-16 | Mostrar o semáforo do prazo de decisão nas reclamações aguardando decisão | Quem reclamou; julgador | Verde (no prazo), amarelo (últimos 25% do prazo) e vermelho (esgotado), sempre com texto; na lista e no detalhe; sem semáforo em reclamação pendente ou já decidida (RN-RC-17 a RN-RC-19) |
 
 ### 4.9 Comunicação
 
@@ -318,7 +341,7 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-LG-01 | Pedir cópia dos próprios dados | Todos | Envio por e-mail em até 15 dias |
 | RF-LG-02 | Pedir exclusão da conta | Todos | Histórico anonimizado; votos e reclamações mantidos sem identificação |
 
-### 4.13 Cobrança condominial
+### 4.13 Cobrança condominial e finanças do condomínio
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
@@ -338,6 +361,14 @@ São 118 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-FI-14 | Negociar débitos em parcelas (acordo) | Administradora, Suporte | Entrega na versão 2 |
 | RF-FI-15 | Exportar cobranças e pagamentos | Administradora | CSV para a contabilidade |
 | RF-FI-16 | Classificar cada cobrança como ordinária ou extraordinária | Administradora, Suporte, Sistema | Taxa mensal é ordinária; fundo de reserva e obras vêm como extraordinárias; multa por infração vai a quem paga as ordinárias, com aviso ao proprietário (RN-FI-20) |
+| RF-FI-17 | Painel financeiro do condomínio: resumo do mês (receitas, despesas, saldo e comparação com o mês anterior), despesas por categoria e evolução de 6 ou 12 meses | Administradora, Suporte, Síndico, Conselho fiscal | Síndico, conselho fiscal e subsíndico em substituição só leem; gráficos sempre com tabela equivalente (RN-FI-21, RN-FI-29) |
+| RF-FI-18 | Lançar como receita, sozinho, o que o condomínio recebe pelo app: cobranças pagas (taxa, fundo de reserva, extras, multas e juros) e reservas pagas | Sistema | Pela data do pagamento confirmado; nunca digitado de novo; taxas do gateway entram como despesa (RN-FI-22, RN-FI-23) |
+| RF-FI-19 | Registrar despesa ou receita avulsa com data, categoria, valor, fornecedor ou origem, descrição e comprovante opcional | Administradora, Suporte | Categorias de despesa fixas; receita avulsa só como "Outras receitas"; valor maior que zero; data até hoje e em mês aberto (RN-FI-24, RN-FI-25) |
+| RF-FI-20 | Repetir todo mês um lançamento marcado como recorrente | Sistema | Valor fixo (honorários, seguro, aluguel de antena); contas variáveis são digitadas todo mês (RN-FI-26) |
+| RF-FI-21 | Filtrar os lançamentos por período, categoria, tipo e texto | Administradora, Suporte, Síndico, Conselho fiscal | Período: um mês, 3, 6 ou 12 meses; os totais acompanham o filtro |
+| RF-FI-22 | Exportar o resumo e os lançamentos filtrados em CSV e PDF | Administradora, Suporte, Síndico, Conselho fiscal | CSV para a contabilidade; PDF com resumo, categorias e lançamentos; sem dados de unidade (RN-FI-30) |
+| RF-FI-23 | Fechar o mês e estornar lançamentos de mês fechado | Administradora, Suporte, Sistema | Fechamento no dia configurado do mês seguinte ou antes, pela administradora; mês fechado não edita, só estorna, com motivo e registro (RN-FI-27, RN-FI-28) |
+| RF-FI-24 | Comentar um lançamento ou o mês, inclusive depois do fechamento | Síndico, Subsíndico em substituição, Conselho fiscal | A administradora é avisada; o comentário não altera valores nem aprova o mês (RN-FI-31) |
 
 ## 5. Regras de negócio
 
@@ -349,11 +380,12 @@ As regras completas, com IDs, valores padrão e parâmetros configuráveis, est�
 | Reclamações | Identificadas, mas o alvo não vê quem reclamou; um alvo do mesmo condomínio; julgador definido pelo alvo; conversa obrigatória antes de decidir; um recurso em até 7 dias | 5 |
 | Pesquisa mensal | 1 a 5 estrelas por funcionário; média abaixo de 3 tira 5 pontos, 4,5 ou mais dá 5; nota do setor publicada com 2 ou mais funcionários avaliados | 6 |
 | Reservas e pagamentos | Pagas ou gratuitas; confirmação automática; pagamento em até 24h; cancelamento com reembolso até 12h antes e sem reembolso depois; dinheiro direto na conta do condomínio | 7 |
-| Visitantes e portaria | Cadastro a qualquer momento antes da chegada; visitas recorrentes; autorização por interfone continua valendo; consulta e registro offline; "saída não registrada" após 24h | 8 |
+| Visitantes e portaria | Cadastro a qualquer momento antes da chegada; lista de visitantes para festas e eventos; visitas recorrentes; autorização por interfone continua valendo; consulta e registro offline; "saída não registrada" após 24h | 8 |
 | Encomendas e chamados | Lembretes em 3 e 7 dias e guarda de 30 dias; limpeza em 24h; manutenção com primeira atualização em 48h | 9 |
 | Votações e mandatos | Um voto por unidade, do proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária; voto secreto; reeleição configurável, permitida por padrão; conselho fiscal obrigatório sem subsíndico | 10 |
 | Planos | Preço por faixa de unidades; franquia de 10, 25 ou 50 solicitações no Gestão + Suporte; R$ 15 por solicitação extra | 11 |
 | Cobrança condominial | Módulo opcional; formas de pagamento escolhidas pela administradora; vencimento padrão dia 10; multa de até 2% e juros de 1% ao mês; inadimplência visível só a quem administra; unidade em atraso não vota; na unidade alugada, o inquilino paga as despesas ordinárias e o proprietário as extraordinárias | 12 |
+| Finanças do condomínio | Receitas de cobrança e de reservas entram sozinhas, pela data do pagamento; despesas por categoria lançadas pela administradora; mês fechado só aceita estorno, com motivo e registro; síndico, subsíndico em substituição e conselho fiscal veem e comentam; moradores não veem | 12.3 |
 
 ## 6. Fluxo da reclamação
 
@@ -401,7 +433,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-05 | Isolamento entre condomínios | Row Level Security no PostgreSQL |
 | SEG-06 | Sigilo do voto | Registro de que a unidade votou separado do conteúdo do voto |
 | SEG-07 | Sigilo do score e do reclamante | A API devolve o score só ao dono, exceto nos casos de RN-SC-02; a identidade do reclamante nunca é enviada ao alvo |
-| SEG-08 | Auditoria | Registro de julgamentos, recursos, alterações de score, regras, mandatos, substituições e conta bancária |
+| SEG-08 | Auditoria | Registro de julgamentos, recursos, alterações de score, regras, mandatos, substituições, conta bancária, lançamentos financeiros (criação, edição, exclusão, estorno) e fechamentos de mês |
 | SEG-09 | Dados offline no aparelho | Cópia criptografada, apagada ao fim do dia e ao sair da conta |
 | SEG-10 | Retenção de dados de visitantes | Anonimização após 6 meses |
 | SEG-11 | Direitos do titular | Pedidos de acesso e exclusão pelo app (RF-LG-01 e RF-LG-02) |
@@ -411,6 +443,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-15 | Termos para conta bancária de pessoa física | Termo de responsabilidade pelo valor recebido, com texto revisado por advogado, aceito pelo titular no cadastro da conta |
 | SEG-16 | Parecer jurídico antes do lançamento | Advogado avalia score, reclamações, penalidades, eleições e termos; o lançamento só acontece com o parecer aprovado |
 | SEG-17 | Dados financeiros e inadimplência | Situação financeira de uma unidade visível só ao responsável financeiro, à administradora e ao síndico; nunca exposta a outros moradores. Webhooks do gateway validados por assinatura e conciliação diária entre cobranças e pagamentos |
+| SEG-18 | Finanças do condomínio | Receitas e despesas visíveis só à administradora, ao síndico (ou subsíndico em substituição) e ao conselho fiscal; receitas de cobrança sempre agregadas, sem unidade nem responsável; folha de pagamento só pelo total; mês fechado imutável, com estornos e comentários auditados |
 
 ## 9. Design e identidade visual
 
@@ -458,7 +491,7 @@ App em React Native com TypeScript, publicado para Android, iOS e web (React Nat
 | Autenticação | E-mail + código + senha, com tokens JWT no armazenamento seguro do aparelho |
 | Pagamentos | Gateway brasileiro com subconta ou split (ex.: Asaas, Mercado Pago, Pagar.me): boleto registrado com QR Code Pix, Pix e cartão, com confirmação por webhook |
 | Notificações | Expo Push / Firebase Cloud Messaging |
-| Rotinas agendadas | Jobs no backend: recuperação de score, saída não registrada, prazos de pagamento, fechamento da pesquisa, lembretes de encomenda |
+| Rotinas agendadas | Jobs no backend: recuperação de score, saída não registrada, prazos de pagamento, fechamento da pesquisa, lembretes de encomenda, entregas esperadas que não chegaram, lançamentos recorrentes e fechamento do mês financeiro |
 | Arquivos (fotos, atas) | Armazenamento de objetos (S3 ou equivalente), com fotos comprimidas no aparelho |
 | E-mail transacional | Resend ou Amazon SES |
 | Monitoramento | Sentry + logs |

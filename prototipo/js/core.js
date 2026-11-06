@@ -56,6 +56,101 @@ function rerender() { render(true); }
 
 /* ---------- Componentes ---------- */
 function badge(text, tone = 'neutral', icon) { return `<span class="badge tone-${tone}" aria-label="Estado: ${esc(text)}">${icon ? ic(icon) : ''}${esc(text)}</span>`; }
+/* Urgência do chamado (RN-CH-09 a RN-CH-11): alta = danger, média = warning, leve = success; texto e ícone sempre junto da cor */
+const URG = {
+  alta:  { label: 'Alta',  tone: 'danger',  icon: 'chevrons-up',   ex: 'Risco para pessoas ou dano que cresce rápido. Ex.: líquido no chão do hall (risco de queda), vazamento, portão que não fecha.' },
+  media: { label: 'Média', tone: 'warning', icon: 'equal',         ex: 'Atrapalha o uso, mas sem risco imediato. Ex.: lâmpada queimada, torneira pingando, lixo acumulado.' },
+  leve:  { label: 'Leve',  tone: 'success', icon: 'chevron-down',  ex: 'Pode esperar alguns dias. Ex.: folhas na piscina, parafuso frouxo, pintura desgastada.' },
+};
+function urgBadge(u) { const d = URG[u]; return d ? `<span class="badge tone-${d.tone}" aria-label="Urgência: ${d.label}">${ic(d.icon)}Urgência ${d.label.toLowerCase()}</span>` : ''; }
+const urgLogLine = c => (c.urgLog || []).length ? c.urgLog.map(l => `<p class="help">${ic('history')} Urgência alterada de ${URG[l.de].label.toLowerCase()} para ${URG[l.para].label.toLowerCase()} por ${esc(l.por)} · ${esc(l.quando)}</p>`).join('') : '';
+/* Ordem das listas de chamados (RN-CH-13): abertos antes de concluídos; dentro de cada grupo, urgência alta > média > leve; empate: mais antigo (abertoEm) primeiro. Ordena na renderização, sem mudar o array */
+const URG_ORDEM = { alta: 0, media: 1, leve: 2 };
+const ordenarChamados = lista => [...lista].sort((a, b) =>
+  (a.estado === 'Concluído') - (b.estado === 'Concluído') ||
+  (URG_ORDEM[a.urg] ?? 9) - (URG_ORDEM[b.urg] ?? 9) ||
+  String(a.abertoEm || '').localeCompare(String(b.abertoEm || '')));
+/* Semáforo de prazo da reclamação (RN-RC-17 a RN-RC-19). "Hoje" é fixo para o protótipo ficar determinístico (mesmo dia dos chamados de exemplo).
+   Limiar do amarelo = 25% do prazo, arredondado para cima, mínimo 1 dia (RN-RC-18). O dia do vencimento ainda é amarelo; vermelho só depois. */
+const HOJE_PROTO = '2026-11-05';
+const PRAZO_DECISAO_DIAS = 15;   // reclamacao.prazo_decisao_dias (RN-RC-06)
+const PRAZO_TOM = {
+  ok:      { tone: 'success', icon: 'circle-check', label: 'No prazo' },
+  alerta:  { tone: 'warning', icon: 'clock',        label: 'Prazo se esgotando' },
+  vencido: { tone: 'danger',  icon: 'circle-x',     label: 'Prazo esgotado' },
+};
+const RECL_AGUARDANDO = ['Aberta', 'Em conversa com o alvo'];
+const _dia = iso => { const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const _fmtDia = iso => { const [y, m, d] = String(iso).slice(0, 10).split('-'); return d + '/' + m; };
+const _nDias = n => n + (n === 1 ? ' dia' : ' dias');
+function prazoEstado(inicioISO, prazoDias = PRAZO_DECISAO_DIAS, hojeISO = HOJE_PROTO) {
+  if (!inicioISO) return null;
+  const venc = _dia(inicioISO) + prazoDias * 864e5;
+  const dias = Math.round((venc - _dia(hojeISO)) / 864e5);   // dias que restam (negativo = esgotado)
+  const limiar = Math.max(1, Math.ceil(prazoDias * 0.25));
+  const estado = dias < 0 ? 'vencido' : dias <= limiar ? 'alerta' : 'ok';
+  const texto = estado === 'vencido' ? `Prazo esgotado há ${_nDias(-dias)}`
+    : estado === 'ok' ? `No prazo · ${_nDias(dias)}`
+    : dias === 0 ? 'Vence hoje' : dias === 1 ? 'Vence amanhã' : `Prazo se esgotando · ${_nDias(dias)}`;
+  const vencISO = new Date(venc).toISOString();
+  return { estado, dias, limiar, texto, ...PRAZO_TOM[estado], venceEm: _fmtDia(vencISO), prazoDias };
+}
+/* Selo de prazo (10.8.2): só para reclamação aguardando decisão e com data de abertura; senão, vazio */
+function prazoBadge(r) {
+  if (!r || !RECL_AGUARDANDO.includes(r.estado)) return '';
+  const p = prazoEstado(r.abertaEm); if (!p) return '';
+  return `<span class="badge tone-${p.tone}" aria-label="Prazo de decisão: ${p.texto.toLowerCase()}">${ic(p.icon)}${esc(p.texto)}</span>`;
+}
+const prazoLinha = r => { const p = RECL_AGUARDANDO.includes(r.estado) && prazoEstado(r.abertaEm); return p ? `<p class="help">${ic('calendar-clock')} Prazo de decisão até ${p.venceEm} · ${p.prazoDias} dias desde a abertura</p>` : ''; };
+/* Avaliação do atendimento do chamado (RN-CH-14 a RN-CH-21). "Agora" é fixo, como em HOJE_PROTO, para os chamados de exemplo ficarem determinísticos. */
+const AGORA_PROTO = '2026-11-05T14:20';
+const JANELA_AVAL_DIAS = 7;   // chamado.janela_avaliacao_dias (RN-CH-17)
+const REABRIR_HORAS = 48;     // RN-CH-07
+const MIN_AVAL_FUNC = 3;      // RN-CH-20: média e comentários ao funcionário só com 3 ou mais avaliações
+const NOTA_AVAL = ['', 'Muito ruim', 'Ruim', 'Regular', 'Boa', 'Excelente'];
+const BASE_AVAL = { fotos: 'Viu as fotos do serviço', pessoal: 'Conferiu pessoalmente' };
+const horasDesde = iso => (new Date(AGORA_PROTO) - new Date(iso)) / 36e5;
+const mediaTxt = n => n.toFixed(1).replace('.', ',');
+/* null (não concluído), 'avaliado', 'pendente' (dentro da janela) ou 'encerrada' (passou a janela) */
+function avalEstado(c) {
+  if (c.estado !== 'Concluído') return null;
+  if (c.aval) return 'avaliado';
+  return c.concluidoEm && horasDesde(c.concluidoEm) <= JANELA_AVAL_DIAS * 24 ? 'pendente' : 'encerrada';
+}
+const dentroReabrir = c => !!c.concluidoEm && horasDesde(c.concluidoEm) <= REABRIR_HORAS;
+/* Marcações extras do chamado concluído (DS 4.5): não são estados */
+function avalBadge(c, dono) {
+  const e = avalEstado(c);
+  if (e === 'avaliado') return badge('Avaliado', 'neutral');
+  if (e === 'pendente' && dono) return badge('Avaliação pendente', 'warning', 'triangle-alert');
+  return '';
+}
+/* Todas as avaliações recebidas: histórico anônimo (S.avaliacoes) + as dos chamados do protótipo (inclusive de conclusões anteriores a uma reabertura) */
+function avalTodas() {
+  const dosChamados = [];
+  S.chamados.forEach(c => [...(c.avalHist || []), ...(c.aval ? [c.aval] : [])].forEach(a => dosChamados.push({ quem: c.tipo === 'limpeza' ? (a.quem || c.concluidoPor) : c.empresa, tipo: c.tipo, nota: a.nota, coment: a.coment, mes: 'novembro de 2026', dias: a.dias != null ? a.dias : 1 })));
+  return [...S.avaliacoes, ...dosChamados].filter(a => a.quem);
+}
+function avalResumo(quem) {
+  const L = avalTodas().filter(a => a.quem === quem);
+  const dist = [5, 4, 3, 2, 1].map(n => L.filter(a => a.nota === n).length);
+  return { n: L.length, media: L.length ? L.reduce((s, a) => s + a.nota, 0) / L.length : 0, dist, baixas: L.filter(a => a.nota <= 2 && a.dias <= 30).length, comentarios: L.filter(a => a.coment) };
+}
+const avalDist = r => `<div class="stack-2" aria-label="Distribuição das avaliações">${r.dist.map((q, i) => `<div class="bar-row" style="grid-template-columns:64px 1fr 32px"><span>${5 - i} ${5 - i === 1 ? 'estrela' : 'estrelas'}</span><span class="bar-track"><span class="bar-fill" style="width:${r.n ? Math.round(q / r.n * 100) : 0}%"></span></span><span class="num">${q}</span></div>`).join('')}</div>`;
+const avalLinha = r => `<span class="row wrap" style="gap:8px">${starsRead(r.media)}<span class="t-label-sm">${mediaTxt(r.media)} de 5 · ${r.n} ${r.n === 1 ? 'avaliação' : 'avaliações'}</span></span>`;
+/* Fotos do serviço, só leitura; toque abre a foto (DS 10.20) */
+function fotosServico(c) {
+  if (!c.fotos) return '';
+  const abrir = i => sheet(() => `<h2 class="t-title-md">Foto ${i + 1} de ${c.fotos}</h2><div class="thumb" style="width:100%;height:220px" role="img" aria-label="Foto ${i + 1} de ${c.fotos} do serviço">${ic('image')}</div>
+    <div class="row" style="justify-content:space-between">${btn('Anterior', { v: 'secondary', disabled: i === 0, on: () => abrir(i - 1) })}${btn('Próxima', { v: 'secondary', disabled: i === c.fotos - 1, on: () => abrir(i + 1) })}</div>`);
+  return `<h3 class="t-title-sm">Fotos do serviço</h3><div class="thumbs">${Array.from({ length: c.fotos }, (_, i) => `<button type="button" class="thumb" style="border:0;cursor:pointer" aria-label="Abrir foto ${i + 1} de ${c.fotos}" ${cb(() => abrir(i))}>${ic('image')}</button>`).join('')}</div>`;
+}
+/* Cartão com a avaliação enviada (leitura), para o morador, o síndico e o subsíndico */
+const avalCartao = (c, titulo) => `<div class="card"><h3 class="t-title-sm">${titulo}</h3>
+  <span class="row wrap" style="gap:8px">${starsRead(c.aval.nota)}<span class="t-label-sm">${c.aval.nota} de 5 · ${NOTA_AVAL[c.aval.nota]}</span></span>
+  ${c.aval.coment ? `<div class="msg">${esc(c.aval.coment)}</div>` : ''}
+  <p class="help">${ic('eye')} ${BASE_AVAL[c.aval.base]} · ${esc(c.aval.em)}</p></div>`;
+const badgeStack = (...b) => `<span class="stack-2" style="align-items:flex-end">${b.filter(Boolean).join('')}</span>`;
 const TONE_ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', danger: 'circle-x', neutral: 'circle-minus', accent: 'sparkles' };
 
 function btn(label, o = {}) {
@@ -265,6 +360,7 @@ function renderSide(ctx) {
     sim.push(`<button class="${S.atraso ? 'on' : ''}" ${cb(() => { S.atraso = !S.atraso; rerender(); })}>Unidade em atraso</button>`);
     sim.push(`<button class="${S.termsPending ? 'on' : ''}" ${cb(() => { S.termsPending = !S.termsPending; rerender(); })}>Termos novos</button>`);
     if (ctx.p !== 'morador') sim.push(`<button class="${S.substituicao ? 'on' : ''}" ${cb(() => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa: Carla Mendes tem as funções de síndico.' : 'Substituição desativada.'); })}>Substituição ativa</button>`);
+    if (ctx.p === 'morador') sim.push(`<button class="${S.conselho ? 'on' : ''}" ${cb(() => { S.conselho = !S.conselho; rerender(); toast(S.conselho ? 'Ana agora é do conselho fiscal: Menu > Finanças do condomínio.' : 'Ana voltou a ser só moradora.'); })}>Sou do conselho fiscal</button>`);
     if (ctx.p === 'morador') sim.push(`<button class="${S.inquilino ? 'on' : ''}" ${cb(() => { S.inquilino = !S.inquilino; rerender(); toast(S.inquilino ? 'Ana agora é inquilina: a unidade é alugada.' : 'Ana voltou a ser proprietária moradora.'); })}>Morador é inquilino</button>`);
   }
   if (ctx.p === 'proprietario') {

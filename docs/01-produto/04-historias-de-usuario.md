@@ -4,7 +4,7 @@ Nov 4, 2026 · @Pedro Lemos
 
 ## Como ler
 
-São 60 histórias em 13 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
+São 71 histórias em 13 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
 
 - **Formato:** "Como \[perfil\], quero \[ação\], para \[objetivo\]".
 - **IDs:** `US-<módulo>-<número>`. Cada história cita os requisitos (RF, RNF, SEG) do PRD — CondomiFacil e as regras (RN) das Regras de Negócio — CondomiFacil que ela implementa.
@@ -232,11 +232,14 @@ Requisitos: RF-RE-01 · RN-RE-04, RN-RE-05
 
 Como morador, quero reservar uma área gratuita, para usar sem depender de ninguém aprovar.
 
-Requisitos: RF-RE-02 · RN-RE-02, RN-RE-07
+Requisitos: RF-RE-02 · RN-RE-02, RN-RE-07, RN-RE-12, RN-VI-14
 
 - [ ] Dado um horário livre e as regras cumpridas, quando confirmo, então a reserva fica "confirmada" na hora, sem aprovação do síndico.
 - [ ] Dado que minha unidade já fez 2 reservas na área neste mês, quando tento a terceira, então o app bloqueia e mostra o limite.
 - [ ] Dado uma reserva cancelada, quando conto o limite do mês, então ela não entra na conta.
+- [ ] Dado uma reserva confirmada com data depois de hoje e sem lista, quando vejo a confirmação ou o detalhe, então aparece "Vai receber convidados? Monte a lista de visitantes." com "Montar lista" (abre a lista com data, horário e local da reserva) e "Agora não" (esconde a sugestão para aquela reserva).
+- [ ] Dado uma reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje, quando abro a confirmação ou o detalhe, então não aparece sugestão de lista.
+- [ ] Dado uma reserva com lista vinculada, quando abro o detalhe, então vejo "Lista: N pessoas" e, ao tocar, abro o detalhe da lista; e, ao cancelar a reserva, a lista vinculada é cancelada junto e eu sou avisado.
 
 ### US-RE-03 — Fazer e pagar reserva paga
 
@@ -350,6 +353,34 @@ Requisitos: RF-VI-12 · RNF-15
 - [ ] Dado o modo de treinamento, quando está ativo, então uma faixa visível indica "treinamento".
 - [ ] Dado que saio do modo, quando volto à lista, então vejo só os dados reais.
 
+
+### US-VI-07 — Montar lista de visitantes
+
+Como morador, quero montar de uma vez a lista de pessoas de uma festa ou evento, para não cadastrar um visitante por vez.
+
+Requisitos: RF-VI-14 · RN-VI-11 a RN-VI-16, RN-VI-02
+
+- [ ] Dado a tela da lista, quando toco em "Adicionar pessoa", então surge uma nova linha com o cursor no nome, e quando removo uma linha, então ela some com um toque e posso desfazer.
+- [ ] Dado vários nomes colados, um por linha, quando confirmo, então cada nome vira uma linha, sem repetir quem já está na lista.
+- [ ] Dado o nome, a data e o local da lista, quando preencho uma vez, então valem para todas as pessoas; a data vem com hoje e não aceita datas passadas.
+- [ ] Dado visitantes recentes e frequentes, quando toco em um nome, então ele entra na lista; e dado uma lista salva, quando a escolho, então os nomes dela entram.
+- [ ] Dado o botão "Salvar esta lista para usar de novo" ligado, quando envio, então a lista fica salva para a minha unidade.
+- [ ] Dado mais pessoas que o limite da lista, quando envio, então o app recusa e diz quantas sobram; dado nomes iguais, então vejo um aviso, sem bloqueio.
+- [ ] Dado a lista enviada, quando a portaria abre os esperados do dia, então cada pessoa está como visitante esperado, com documento só se informei.
+- [ ] Dado a lista criada a partir de uma reserva, quando abro a tela, então data, horário e local vêm da reserva e, se passo da capacidade da área, vejo um aviso sem bloqueio.
+- [ ] Dado a lista com data futura, quando o dia chega, então a portaria passa a vê-la; dado a lista cancelada, então quem ainda não chegou sai da portaria.
+
+### US-VI-08 — Receber convidados em lista na portaria
+
+Como porteiro, quero ver as pessoas de uma lista agrupadas e dar entrada uma a uma, para atender uma festa sem procurar cada nome entre os demais visitantes.
+
+Requisitos: RF-VI-15, RF-VI-06, RF-VI-09 · RN-VI-17, RN-VI-05, RN-VI-06
+
+- [ ] Dado uma lista do dia, quando abro a portaria, então vejo "Lista: [nome]", a unidade e "N pessoas, M chegaram".
+- [ ] Dado a lista, quando a abro, então vejo as pessoas e registro a entrada de cada uma com 1 toque e Desfazer.
+- [ ] Dado a busca por um nome, quando a pessoa é de uma lista, então a encontro mesmo com a lista fechada.
+- [ ] Dado uma pessoa da lista na lista de bloqueio, quando registro a entrada, então vejo o alerta com o motivo.
+- [ ] Dado as chegadas, quando registro, então o morador recebe o aviso da primeira e, depois, um resumo agrupado a cada 15 minutos.
 ## Épico 5 — Encomendas
 
 ### US-EN-01 — Registrar encomenda
@@ -371,39 +402,102 @@ Requisitos: RF-EN-03, RF-EN-04 · RN-EN-02 a RN-EN-04
 - [ ] Dado uma encomenda não retirada, quando completa 3 e 7 dias, então o morador recebe lembretes.
 - [ ] Dado 30 dias sem retirada, quando o prazo vence, então a encomenda fica "prazo vencido" e o síndico é avisado.
 
+### US-EN-03 — Avisar uma entrega esperada
+
+Como morador, quero avisar a portaria de uma entrega que vai chegar, para ela identificar o pacote e a minha unidade quando ele chegar.
+
+Requisitos: RF-EN-06, RF-EN-08 · RN-EN-07 a RN-EN-09, RN-EN-12, RN-EN-13
+
+- [ ] Dado a tela de encomendas, quando aviso uma entrega com a data esperada, então ela entra na lista com o selo "Esperada"; descrição, faixa de horário e origem são opcionais.
+- [ ] Dado uma faixa com o fim antes do início, quando salvo, então vejo o erro e nada é gravado.
+- [ ] Dado 10 entregas esperadas ativas na unidade, quando tento avisar outra, então vejo o limite e a opção de cancelar uma existente.
+- [ ] Dado uma entrega "Esperada" ou "Não chegou", quando edito ou cancelo, então a portaria vê a mudança na hora.
+- [ ] Dado a data que passou sem chegada, quando a rotina da meia-noite roda, então a entrega fica "Não chegou" e posso reagendar, o que a devolve a "Esperada".
+- [ ] Dado a origem iFood/entregador, quando salvo, então a portaria recebe só um aviso, sem registro de encomenda.
+
+### US-EN-04 — Ver as esperadas do dia e vincular à encomenda
+
+Como porteiro, quero ver as entregas esperadas do dia e vinculá-las ao registrar a encomenda, para identificar o pacote e a unidade sem ligar para o morador.
+
+Requisitos: RF-EN-07, RF-EN-02 · RN-EN-10 a RN-EN-12
+
+- [ ] Dado entregas esperadas para hoje, quando abro Encomendas, então vejo "Esperadas hoje" ordenadas pela faixa de horário, com as sem faixa por último; entregas de outras datas não aparecem.
+- [ ] Dado uma encomenda de unidade com entrega esperada, quando registro, então a entrega é sugerida pela unidade e pela origem, e eu confirmo ou escolho "Não vincular".
+- [ ] Dado a encomenda vinculada, quando registro, então a entrega fica "Chegou" e o morador recebe um único push da encomenda.
+- [ ] Dado uma encomenda de unidade sem entrega esperada, quando registro, então o registro segue normal, sem bloqueio nem alerta.
+- [ ] Dado uma entrega esperada de iFood/entregador, quando vejo "Esperadas hoje", então ela tem o selo "Só aviso" e não há ação de registrar encomenda.
+
 ## Épico 6 — Chamados
 
 ### US-CH-01 — Abrir chamado
 
 Como morador, síndico ou porteiro, quero abrir um chamado de limpeza ou manutenção com foto, para o problema ser resolvido por quem cuida dele.
 
-Requisitos: RF-CH-01 · RN-CH-01 a RN-CH-03
+Requisitos: RF-CH-01, RF-CH-06 · RN-CH-01 a RN-CH-03, RN-CH-09, RN-CH-10
 
 - [ ] Dado um problema, quando abro o chamado, então escolho limpeza ou manutenção, a categoria e posso anexar foto.
 - [ ] Dado que sou porteiro, quando abro o app, então posso abrir chamados, mas não vejo fila para atender.
 - [ ] Dado um chamado aberto, quando é criado, então vai para a fila da limpeza ou para o síndico, conforme o tipo.
+- [ ] Dado o formulário, quando escolho a urgência, então vejo alta, média e leve, cada uma com um exemplo, e nenhuma vem pré-selecionada.
+- [ ] Dado que não escolhi a urgência, quando toco em Enviar, então vejo "Escolha a urgência do chamado." e o chamado não é enviado.
+- [ ] Dado um chamado criado, quando o vejo na lista ou no detalhe (morador, síndico, subsíndico ou funcionário), então vejo a urgência com texto e cor: alta em vermelho, média em amarelo, leve em verde.
 
 ### US-CH-02 — Atender chamado de limpeza
 
 Como funcionário de limpeza, quero ver e concluir os chamados do meu setor, inclusive sem internet, para organizar meu trabalho.
 
-Requisitos: RF-CH-02, RF-CH-03 · RN-CH-04, RN-CH-06, RN-CH-08
+Requisitos: RF-CH-02, RF-CH-03, RF-CH-06 · RN-CH-04, RN-CH-06, RN-CH-08, RN-CH-13, RN-CH-14
 
 - [ ] Dado chamados de limpeza abertos, quando abro o app, então vejo a fila com o prazo de cada um (padrão 24h).
+- [ ] Dado chamados de limpeza abertos e concluídos, quando abro a fila, então os abertos vêm primeiro, da urgência alta para a leve; com urgência igual, o mais antigo vem antes; os concluídos ficam no fim (RN-CH-13).
 - [ ] Dado a internet fora, quando concluo um chamado, então a conclusão fica na fila e sincroniza ao voltar a conexão.
 - [ ] Dado duas conclusões offline do mesmo chamado, quando sincronizam, então vale a primeira.
 - [ ] Dado um chamado fora do prazo, quando o síndico abre o painel, então ele aparece em destaque.
+- [ ] Dado que vou concluir um chamado, quando abro a conclusão, então posso anexar até 5 fotos do serviço, mas não preciso: sem foto, "Concluir chamado" funciona igual.
+- [ ] Dado a internet fora, quando concluo um chamado com fotos, então as fotos ficam na fila e são enviadas com a conclusão.
 
 ### US-CH-03 — Acompanhar manutenção
 
 Como síndico, quero registrar a empresa contratada e o andamento dos chamados de manutenção, para os moradores saberem o que está sendo feito.
 
-Requisitos: RF-CH-04, RF-CH-05 · RN-CH-05 a RN-CH-07
+Requisitos: RF-CH-04, RF-CH-05, RF-CH-07 · RN-CH-05 a RN-CH-07, RN-CH-11, RN-CH-12, RN-CH-14
 
 - [ ] Dado um chamado de manutenção, quando o atualizo, então escolho a empresa cadastrada e o status (aberto, orçamento, agendado, concluído).
 - [ ] Dado 48h sem primeira atualização, quando o prazo vence, então o chamado aparece em destaque no meu painel.
-- [ ] Dado a conclusão, quando registro, então quem abriu é avisado e pode reabrir em até 48h.
+- [ ] Dado a conclusão, quando registro, então posso anexar fotos do serviço (opcional); quem abriu é avisado, pode ver as fotos, reabrir em até 48h e avaliar o atendimento.
 - [ ] Dado que sou subsíndico sem a substituição ativa, quando abro um chamado de manutenção, então só acompanho o andamento.
+- [ ] Dado um chamado aberto, quando mudo a urgência, então o detalhe registra quem mudou, quando e de qual nível para qual, e quem abriu é avisado.
+- [ ] Dado que sou funcionário ou porteiro, quando abro um chamado, então vejo a urgência, mas não consigo alterá-la.
+
+### US-CH-04 — Avaliar o atendimento do chamado
+
+Como morador, quero avaliar o serviço de um chamado concluído, para dizer se foi bem feito e ajudar o síndico a cobrar a qualidade.
+
+Requisitos: RF-CH-05, RF-CH-08, RF-CH-09 · RN-CH-14 a RN-CH-18, RN-CH-21
+
+- [ ] Dado um chamado concluído que abri, quando abro o detalhe, então vejo as fotos do serviço, se houver, e o botão "Avaliar o serviço".
+- [ ] Dado um chamado concluído com fotos, quando avalio, então escolho entre "Vi as fotos do serviço" e "Conferi pessoalmente" e dou de 1 a 5 estrelas, com comentário opcional.
+- [ ] Dado um chamado concluído sem fotos, quando avalio, então só posso enviar depois de marcar "Conferi pessoalmente", e o botão explica o motivo enquanto está desabilitado.
+- [ ] Dado que dei 1 ou 2 estrelas dentro das 48h da conclusão, quando envio, então o app oferece "Reabrir chamado"; o chamado só reabre se eu aceitar, e o síndico é avisado da avaliação baixa.
+- [ ] Dado que dei 1 ou 2 estrelas depois das 48h, quando envio, então o app oferece "Abrir novo chamado" em vez de reabrir.
+- [ ] Dado que já avaliei a conclusão, quando abro o chamado, então vejo minha avaliação sem poder editá-la.
+- [ ] Dado que passaram 7 dias da conclusão sem avaliação, quando abro o chamado, então o botão de avaliar não aparece; 24h depois da conclusão, sem avaliação, recebo um único lembrete.
+- [ ] Dado que reabri o chamado sem avaliar, quando ele é concluído de novo, então abre-se uma nova janela de avaliação.
+- [ ] Dado que sou síndico profissional, porteiro ou funcionário, quando vejo um chamado concluído, então não aparece a ação de avaliar.
+
+### US-CH-05 — Acompanhar as avaliações de atendimento
+
+Como síndico, administradora ou funcionário, quero ver como o atendimento está sendo avaliado, para cobrar e reconhecer a qualidade do serviço sem expor quem avaliou.
+
+Requisitos: RF-CH-10, RF-CH-11 · RN-CH-18 a RN-CH-21
+
+- [ ] Dado avaliações de chamados, quando o síndico abre "Avaliações do atendimento", então vê média, número de avaliações e distribuição por estrela de cada funcionário de limpeza e de cada empresa de manutenção.
+- [ ] Dado uma avaliação baixa, quando o síndico abre o chamado, então vê a nota, o comentário e a base ("vi as fotos" ou "conferi pessoalmente").
+- [ ] Dado que sou subsíndico sem a substituição ativa, quando abro a Gestão, então não vejo as avaliações por funcionário; na substituição, vejo como o síndico.
+- [ ] Dado que sou administradora, quando abro a lista de funcionários, então vejo a média e o número de avaliações de cada um, sem comentários, chamados nem moradores.
+- [ ] Dado que sou funcionário de limpeza com 3 ou mais avaliações, quando abro "Minhas avaliações", então vejo média, distribuição e comentários, sem unidade, morador, chamado nem local, com o mês no lugar da data.
+- [ ] Dado que sou funcionário com menos de 3 avaliações, quando abro "Minhas avaliações", então vejo "Poucas avaliações para mostrar a média.", sem média nem comentários.
+- [ ] Dado uma avaliação de chamado, quando o fechamento da pesquisa mensal roda, então o score do funcionário não muda por causa dela.
 
 ## Épico 7 — Reclamações e score
 
@@ -487,6 +581,20 @@ Requisitos: RF-RS-12 a RF-RS-14 · RN-SC-02, RN-RC-08, RN-RC-13
 - [ ] Dado a tela "Transparência", quando a abro, então vejo o score do síndico e a nota de cada setor, e nenhum score individual de outros moradores ou funcionários.
 - [ ] Dado que sou administradora, quando abro as reclamações, então vejo todas, com identidade e score do reclamante e do alvo, inclusive contra síndico e subsíndico.
 - [ ] Dado um texto ofensivo, quando é enviado, então o filtro o bloqueia; e quando alguém denuncia um conteúdo, a denúncia vai ao síndico.
+
+### US-RS-08 — Acompanhar o prazo da reclamação
+
+Como morador que reclamou ou como julgador, quero ver num relance se o prazo de decisão da reclamação está no prazo, se esgotando ou esgotado, para saber o que acompanhar ou decidir primeiro.
+
+Requisitos: RF-RS-16 · RN-RC-06, RN-RC-17 a RN-RC-19
+
+- [ ] Dado uma reclamação minha aguardando decisão, quando abro a lista ou o detalhe, então vejo um selo com texto e ícone: verde "No prazo · 9 dias", amarelo "Vence amanhã" ou "Vence hoje", ou vermelho "Prazo esgotado há 2 dias".
+- [ ] Dado o prazo de 15 dias, quando restam 4 dias ou menos, então o selo fica amarelo; com 3 dias de prazo, fica amarelo no último dia.
+- [ ] Dado o dia do vencimento, quando abro a reclamação, então o selo está amarelo ("Vence hoje") e só fica vermelho no dia seguinte.
+- [ ] Dado que sou síndico, subsíndico, administradora ou conselho fiscal julgando, quando abro o painel, então vejo o selo em cada reclamação que aguarda minha decisão, inclusive as contra o síndico no caso do subsíndico.
+- [ ] Dado uma reclamação pendente, validada, negada, em recurso, com recurso aceito ou encerrada, quando abro a lista, então não há semáforo, só o selo de estado.
+- [ ] Dado um prazo esgotado, quando o julgador abre a reclamação, então os botões de validar e negar continuam regidos só pela conversa com o alvo (RN-RC-04).
+- [ ] Dado que sou o alvo, quando abro a reclamação, então não vejo o semáforo.
 
 ## Épico 8 — Pesquisa mensal
 
@@ -631,7 +739,7 @@ Requisitos: RF-LG-01, RF-LG-02 · SEG-11
 - [ ] Dado um pedido de exclusão, quando é concluído, então perco o acesso e meu histórico é anonimizado.
 - [ ] Dado meus votos e reclamações, quando a conta é excluída, então eles continuam contando, sem me identificar.
 
-## Épico 13 — Cobrança condominial
+## Épico 13 — Cobrança e finanças do condomínio
 
 ### US-FI-01 — Configurar a cobrança
 
@@ -700,22 +808,80 @@ Requisitos: RF-FI-14 · RN-FI-18
 - [ ] Dado uma unidade em atraso, quando registro um acordo, então defino o número e o vencimento das parcelas e as cobranças antigas ficam "em acordo".
 - [ ] Dado uma parcela do acordo vencida sem pagamento, quando a rotina roda, então a cobrança volta a ficar "em atraso".
 
+### US-FI-07 — Acompanhar as finanças do condomínio
+
+Como administradora, síndico ou membro do conselho fiscal, quero ver receitas, despesas e saldo do condomínio por mês e por categoria, para saber para onde vai o dinheiro.
+
+Requisitos: RF-FI-17, RF-FI-18, RF-FI-21, RF-FI-22 · RN-FI-21 a RN-FI-23, RN-FI-29, RN-FI-30, SEG-18
+
+- [ ] Dado um mês, quando abro as finanças, então vejo receitas, despesas e saldo, com a comparação com o mês anterior em texto (aumento ou queda, em reais e em %).
+- [ ] Dado receitas de cobranças extraordinárias no mês, quando vejo o resumo, então elas aparecem discriminadas, para o saldo não parecer sobra da rotina.
+- [ ] Dado as despesas do mês, quando vejo as categorias, então há um gráfico de barras e a tabela com valor, percentual e variação sobre o mês anterior.
+- [ ] Dado a evolução, quando escolho 6 ou 12 meses, então vejo receitas e despesas de cada mês no gráfico e na tabela equivalente.
+- [ ] Dado uma cobrança ou reserva paga, quando o pagamento é confirmado, então ela entra como receita na data do pagamento, sem ninguém digitar, e não pode ser editada nem excluída nas finanças.
+- [ ] Dado uma cobrança paga, quando vejo a receita, então ela aparece agregada ("117 cobranças pagas"), sem unidade nem responsável financeiro.
+- [ ] Dado a taxa do gateway de um pagamento, quando ele é confirmado, então a taxa entra sozinha como despesa de Administração.
+- [ ] Dado os filtros de período, categoria, tipo e texto, quando os aplico, então a lista e os totais mostram só o filtrado.
+- [ ] Dado que exporto, quando escolho CSV ou PDF, então o arquivo respeita o filtro, traz o resumo, as categorias e os lançamentos, e não contém unidade nem responsável financeiro.
+- [ ] Dado que sou síndico, subsíndico em substituição ou conselho fiscal, quando abro as finanças, então só leio, comento e exporto; não vejo botões de lançar, editar, fechar nem estornar.
+- [ ] Dado que sou morador, proprietário não residente ou funcionário, quando uso o app, então não encontro as finanças do condomínio em lugar nenhum.
+
+### US-FI-08 — Lançar despesas e receitas
+
+Como administradora, quero registrar as despesas do condomínio e as receitas que não vêm de cobrança, para manter o controle completo.
+
+Requisitos: RF-FI-19, RF-FI-20 · RN-FI-24 a RN-FI-26, RN-FI-32
+
+- [ ] Dado uma despesa, quando a lanço, então informo data, categoria, valor, fornecedor e, se quiser, descrição e comprovante; em Serviços terceirizados, escolho também o serviço (portaria, limpeza, elevador, jardinagem ou outro).
+- [ ] Dado um lançamento sem fornecedor, com valor zero ou com data futura, quando tento salvar, então o app recusa e mostra o motivo ao lado do campo.
+- [ ] Dado uma data em mês fechado, quando tento salvar, então o app recusa e orienta a usar uma data de mês aberto ou estornar um lançamento.
+- [ ] Dado uma despesa sem comprovante, quando vejo a lista, então ela aparece com "Não anexado", sem impedir o lançamento.
+- [ ] Dado uma receita avulsa, quando a lanço, então só posso escolher "Outras receitas"; com o módulo de cobrança desligado, posso escolher também "Taxa condominial" e "Fundo de reserva".
+- [ ] Dado a folha de funcionários, quando a lanço, então informo só o total do mês, sem nome nem salário individual.
+- [ ] Dado um lançamento marcado como recorrente com o dia 31, quando o mês tem 30 dias, então o sistema o cria no dia 30.
+- [ ] Dado um lançamento recorrente, quando encerro a recorrência, então os meses anteriores não mudam.
+
+### US-FI-09 — Fechar o mês e estornar lançamentos
+
+Como administradora, quero fechar o mês e corrigir lançamentos de meses fechados sem apagar o histórico, para o controle ser confiável para o síndico e o conselho fiscal.
+
+Requisitos: RF-FI-23 · RN-FI-27, RN-FI-28
+
+- [ ] Dado um mês aberto, quando edito ou excluo um lançamento avulso, então a alteração fica na auditoria com autor, data, valor antigo e valor novo.
+- [ ] Dado um mês que acabou, quando o fecho, então o app avisa quantas despesas estão sem comprovante e pede confirmação de que depois só haverá estorno.
+- [ ] Dado o dia 10 do mês seguinte e o mês ainda aberto, quando a rotina roda, então o mês é fechado.
+- [ ] Dado um lançamento de mês fechado, quando tento editá-lo ou excluí-lo, então não há essas opções; só "Estornar".
+- [ ] Dado um estorno, quando o faço, então informo o motivo, o sistema cria um lançamento de valor oposto na mesma categoria, com a data de hoje, e o original passa a "Estornado", com o link para o estorno.
+- [ ] Dado um lançamento já estornado ou um estorno, quando abro as ações, então não há "Estornar".
+- [ ] Dado um lançamento automático de cobrança ou reserva, quando abro as ações, então não há "Estornar"; a correção é feita na cobrança ou na reserva.
+- [ ] Dado um pagamento confirmado depois do fechamento do mês, quando ele entra, então vai para o mês do pagamento e o mês fechado não muda.
+
+### US-FI-10 — Comentar as finanças
+
+Como síndico ou membro do conselho fiscal, quero comentar um lançamento ou o mês, para tirar dúvidas e registrar a conferência.
+
+Requisitos: RF-FI-24 · RN-FI-29, RN-FI-31
+
+- [ ] Dado um lançamento ou um mês, quando comento, então o comentário mostra meu nome e a data, não pode ser editado e a administradora recebe um aviso.
+- [ ] Dado um mês fechado, quando comento, então o comentário é aceito e os valores não mudam.
+- [ ] Dado um comentário, quando a administradora o lê, então ele não altera valores nem marca o mês como aprovado.
+
 ## Cobertura
 
-As 60 histórias cobrem os 118 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 71 histórias cobrem os 138 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
 | 1. Acesso e conta | US-AC-01 a US-AC-06 | RF-AC-01 a RF-AC-08 |
 | 2. Administração | US-AD-01 a US-AD-12 | RF-AD-01 a RF-AD-15, RF-AD-17 a RF-AD-21 |
 | 3. Reservas e pagamentos | US-RE-01 a US-RE-06 | RF-RE-01 a RF-RE-09, RF-PG-01 a RF-PG-04 |
-| 4. Visitantes e portaria | US-VI-01 a US-VI-06, US-AD-11 | RF-VI-01 a RF-VI-13 |
-| 5. Encomendas | US-EN-01, US-EN-02, US-AD-12 | RF-EN-01 a RF-EN-05 |
-| 6. Chamados | US-CH-01 a US-CH-03 | RF-CH-01 a RF-CH-05 |
-| 7. Reclamações e score | US-RS-01 a US-RS-07, US-AD-11 | RF-RS-01 a RF-RS-15 |
+| 4. Visitantes e portaria | US-VI-01 a US-VI-08, US-AD-11 | RF-VI-01 a RF-VI-15 |
+| 5. Encomendas | US-EN-01 a US-EN-04, US-AD-12 | RF-EN-01 a RF-EN-08 |
+| 6. Chamados | US-CH-01 a US-CH-05 | RF-CH-01 a RF-CH-11 |
+| 7. Reclamações e score | US-RS-01 a US-RS-08, US-AD-11 | RF-RS-01 a RF-RS-16 |
 | 8. Pesquisa mensal | US-PE-01, US-PE-02 | RF-PE-01 a RF-PE-04 |
 | 9. Comunicação | US-CO-01 a US-CO-03 | RF-CO-01 a RF-CO-04 |
 | 10. Reuniões, votações e eleições | US-VO-01 a US-VO-03 | RF-VO-01 a RF-VO-11 |
 | 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
 | 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 |
-| 13. Cobrança condominial | US-FI-01 a US-FI-06 | RF-FI-01 a RF-FI-16 |
+| 13. Cobrança e finanças do condomínio | US-FI-01 a US-FI-10 | RF-FI-01 a RF-FI-24 |

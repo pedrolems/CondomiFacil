@@ -145,10 +145,15 @@ def('admin', 'unidade', 'Detalhe da unidade', 'Cadastros (4.5)', ctx => {
   };
 });
 
+/* Atendimento (RN-CH-19): só média e quantidade; desligado e portaria ficam de fora */
+const avalCelula = f => { if (!f.ativo) return '—'; const r = avalResumo(f.nome); return r.n ? `<span class="row wrap" style="gap:8px">${starsRead(r.media)}<span>${mediaTxt(r.media)} · ${r.n} ${r.n === 1 ? 'avaliação' : 'avaliações'}</span></span>` : '—'; };
 def('admin', 'funcionarios', 'Funcionários', 'Cadastros (4.3)', () => ({
   nav: 'funcionarios',
   body: `${head('Funcionários', 'Score visível só para a administradora.', btn('Novo funcionário', { icon: 'plus', on: () => toast('Formulário de pré-cadastro de funcionário.') }))}
-    ${table([{ t: 'Nome' }, { t: 'Setor' }, { t: 'Portaria' }, { t: 'Score', r: true }, { t: 'Situação' }, { t: '', r: true }], S.funcionarios.map(f => `<tr><td><b>${f.nome}</b></td><td>${f.setor}</td><td>${f.portaria || '—'}</td><td class="r">${f.score}</td><td>${f.ativo ? badge('Ativo', 'success') : badge('Desligado', 'neutral')}</td>${menuCell([['pencil', 'Editar', () => toast('Dados salvos.')], ['user-x', 'Registrar desligamento', () => dialog({ title: `Desligar ${f.nome}?`, text: 'O acesso é desativado na hora. Os chamados abertos voltam para a fila do setor, e as notas da pesquisa ficam no histórico.', actions: [{ label: 'Desligar funcionário', v: 'danger', on: () => { f.ativo = false; rerender(); toast(f.nome + ' desligado. Chamados devolvidos à fila.'); } }, { label: 'Cancelar', v: 'secondary' }] })]])}</tr>`))}`,
+    ${table([{ t: 'Nome' }, { t: 'Setor' }, { t: 'Portaria' }, { t: 'Score', r: true }, { t: 'Atendimento' }, { t: 'Situação' }, { t: '', r: true }], S.funcionarios.map(f => `<tr><td><b>${f.nome}</b></td><td>${f.setor}</td><td>${f.portaria || '—'}</td><td class="r">${f.score}</td><td>${avalCelula(f)}</td><td>${f.ativo ? badge('Ativo', 'success') : badge('Desligado', 'neutral')}</td>${menuCell([['pencil', 'Editar', () => toast('Dados salvos.')], ['user-x', 'Registrar desligamento', () => dialog({ title: `Desligar ${f.nome}?`, text: 'O acesso é desativado na hora. Os chamados abertos voltam para a fila do setor, e as notas da pesquisa ficam no histórico.', actions: [{ label: 'Desligar funcionário', v: 'danger', on: () => { f.ativo = false; rerender(); toast(f.nome + ' desligado. Chamados devolvidos à fila.'); } }, { label: 'Cancelar', v: 'secondary' }] })]])}</tr>`))}
+    <h2 class="t-title-sm section-title">Atendimento das empresas de manutenção</h2>
+    ${table([{ t: 'Empresa' }, { t: 'Serviço' }, { t: 'Atendimento' }], S.empresas.map(e => `<tr><td><b>${e.nome}</b></td><td>${e.serv}</td><td>${avalCelula({ nome: e.nome, ativo: true })}</td></tr>`))}
+    <p class="help">Média e número de avaliações dos chamados concluídos. Comentários, chamados e moradores não aparecem aqui, e a avaliação não muda o score.</p>`,
 }));
 
 /* ---- Áreas e regras ---- */
@@ -163,16 +168,16 @@ def('admin', 'areas', 'Áreas e regras', 'Cadastros (4.1)', () => ({
 
 /* ---- Reclamações (consulta e julgamento nos casos de RN-RC-03/07) ---- */
 const RC_ADM = [
-  { id: 'a1', alvo: 'Pedro Alves (síndico)', recl: 'Rafael Costa', cat: 'Atendimento', estado: 'Aberta', julgador: 'Administradora', motivo: 'Alvo é o síndico e a subsíndica está em substituição' },
-  { id: 'a2', alvo: 'Bloco C · Apto 504', recl: 'Ana Lima', cat: 'Barulho', estado: 'Aberta', julgador: 'Síndico' },
-  { id: 'a3', alvo: 'Bloco A · Apto 303', recl: 'Pedro Alves', cat: 'Animal sem coleira', estado: 'Em conversa com o alvo', julgador: 'Síndico' },
+  { id: 'a1', alvo: 'Pedro Alves (síndico)', recl: 'Rafael Costa', cat: 'Atendimento', abertaEm: '2026-11-01', estado: 'Aberta', julgador: 'Administradora', motivo: 'Alvo é o síndico e a subsíndica está em substituição' },
+  { id: 'a2', alvo: 'Bloco C · Apto 504', recl: 'Ana Lima', cat: 'Barulho', abertaEm: '2026-10-14', estado: 'Aberta', julgador: 'Síndico' },
+  { id: 'a3', alvo: 'Bloco A · Apto 303', recl: 'Pedro Alves', cat: 'Animal sem coleira', abertaEm: '2026-10-21', estado: 'Em conversa com o alvo', julgador: 'Síndico' },
   { id: 'a4', alvo: 'Carla Mendes (subsíndica)', recl: 'Luiza Prado', cat: 'Uso indevido de vaga', estado: 'Validada', julgador: 'Síndico' },
 ];
 def('admin', 'reclamacoes', 'Reclamações', 'Reclamações (9.2)', () => ({
   nav: 'reclamacoes',
   body: `${head('Reclamações', 'Todas as reclamações, inclusive contra síndico e subsíndico, com identidade e score das partes.')}
     <div class="chips" style="margin-bottom:16px">${chip('Todas', true)}${chip('Para você julgar', false, () => toast('1 reclamação aguarda a administradora.'))}</div>
-    ${table([{ t: 'Alvo' }, { t: 'Reclamante' }, { t: 'Categoria' }, { t: 'Julgador' }, { t: 'Estado' }, { t: '', r: true }], RC_ADM.map(r => `<tr><td><b>${r.alvo}</b></td><td>${r.recl}</td><td>${r.cat}</td><td>${r.julgador}</td><td>${st(r.estado, ['Validada', 'Negada'].includes(r.estado) ? 'neutral' : undefined)}</td><td class="r">${r.julgador === 'Administradora' && r.estado === 'Aberta' ? btn('Julgar', { size: 'sm', on: () => dialog({ title: 'Reclamação contra o síndico', text: `${r.motivo}. Converse com o alvo antes de decidir. A decisão da administradora não tem recurso no app.`, actions: [{ label: 'Conversar com o alvo', icon: 'message-circle', on: () => { r.estado = 'Em conversa com o alvo'; rerender(); toast('Mensagem enviada ao síndico.'); } }, { label: 'Fechar', v: 'secondary' }] }) }) : btn('Ver', { v: 'text', size: 'sm', on: () => toast('Detalhe da reclamação (somente leitura).') })}</td></tr>`))}`,
+    ${table([{ t: 'Alvo' }, { t: 'Reclamante' }, { t: 'Categoria' }, { t: 'Julgador' }, { t: 'Estado e prazo' }, { t: '', r: true }], RC_ADM.map(r => `<tr><td><b>${r.alvo}</b></td><td>${r.recl}</td><td>${r.cat}</td><td>${r.julgador}</td><td>${badgeStack(st(r.estado, ['Validada', 'Negada'].includes(r.estado) ? 'neutral' : undefined), prazoBadge(r))}</td><td class="r">${r.julgador === 'Administradora' && r.estado === 'Aberta' ? btn('Julgar', { size: 'sm', on: () => dialog({ title: 'Reclamação contra o síndico', text: `${r.motivo}. Converse com o alvo antes de decidir. A decisão da administradora não tem recurso no app.`, actions: [{ label: 'Conversar com o alvo', icon: 'message-circle', on: () => { r.estado = 'Em conversa com o alvo'; rerender(); toast('Mensagem enviada ao síndico.'); } }, { label: 'Fechar', v: 'secondary' }] }) }) : btn('Ver', { v: 'text', size: 'sm', on: () => toast('Detalhe da reclamação (somente leitura).') })}</td></tr>`))}`,
 }));
 
 /* ---- Cobrança (13.2) ---- */

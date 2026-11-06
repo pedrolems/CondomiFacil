@@ -184,6 +184,17 @@ Todo estado aparece num selo (componente 10.8) com o texto exato da tabela e o t
 | Retirada | `success` |
 | Devolvida | `neutral` |
 
+**Entregas esperadas (RN 9.1)**
+
+| Estado | Tom |
+| --- | --- |
+| Esperada | `info` |
+| Chegou | `success` |
+| Não chegou | `warning` |
+| Cancelada | `neutral` |
+| Encerrada | `neutral` |
+| Só aviso (marcação de origem iFood/entregador, não estado) | `neutral`, ícone `info` |
+
 **Chamados (RN 9.2)**
 
 | Estado | Tom |
@@ -195,6 +206,30 @@ Todo estado aparece num selo (componente 10.8) com o texto exato da tabela e o t
 | Concluído | `success` |
 | Reaberto | `warning` |
 | Fora do prazo (marcação extra, para o síndico) | `danger` |
+| Avaliação pendente (marcação extra, em chamado concluído, para quem abriu) | `warning`, ícone `triangle-alert` |
+| Avaliado (marcação extra, em chamado concluído) | `neutral` |
+
+Avaliação pendente e Avaliado não são estados do chamado (RN 9.2): são marcações extras de um chamado concluído, empilhadas sob o selo "Concluído".
+
+**Urgência do chamado (RN-CH-09 a RN-CH-11)**
+
+Não é estado do chamado: é um selo à parte (10.8.1), que vem junto do selo de estado. Usa os tons já existentes, sem token novo: alta em `danger` (vermelho), média em `warning` (amarelo) e leve em `success` (verde). O texto é sempre "Urgência alta", "Urgência média" ou "Urgência leve", e cada nível tem ícone próprio para não depender só da cor.
+
+| Urgência | Tom | Ícone (Lucide) |
+| --- | --- | --- |
+| Alta | `danger` | `chevrons-up` |
+| Média | `warning` | `equal` |
+| Leve | `success` | `chevron-down` |
+
+**Prazo da reclamação (RN-RC-17 a RN-RC-19)**
+
+Não é estado da reclamação: é um selo à parte (10.8.2), junto do selo de estado. Usa os tons existentes, sem token novo, e cada nível tem ícone e texto próprios para não depender só da cor.
+
+| Situação do prazo | Tom | Ícone (Lucide) | Texto |
+| --- | --- | --- | --- |
+| No prazo | `success` | `circle-check` | "No prazo · 9 dias" |
+| Se esgotando (limiar ou menos, até o vencimento) | `warning` | `clock` | "Prazo se esgotando · 3 dias", "Vence amanhã" ou "Vence hoje" |
+| Esgotado | `danger` | `circle-x` | "Prazo esgotado há 2 dias" |
 
 **Cobranças (RN 12.2)**
 
@@ -246,6 +281,17 @@ Negada sem penalidade aparece como "Encerrada" (RN 5.5).
 | Contrato vencido | `danger` (durante os 7 dias de carência) |
 | Desocupada | `neutral` |
 
+**Finanças do condomínio (RN 12.4)**
+
+| Estado | Tom |
+| --- | --- |
+| Mês aberto | `info` |
+| Fecha em N dias (mês terminado, a partir de 3 dias do fechamento automático) | `warning` |
+| Mês fechado | `neutral`, com ícone `lock` |
+| Estornado | `warning`, com ícone `undo-2` |
+| Estorno | `neutral` |
+| Automático, Recorrente (marcações, não estados) | `neutral`, com ícones `zap` e `repeat` |
+
 O tipo da cobrança ("Ordinária" ou "Extraordinária") não é um estado: aparece como texto `type.label.sm` em `color.text.secondary` ao lado do vencimento, nunca como selo.
 
 Os estados de reserva (RN 7.4) e de reclamação (RN 5.5) estão nas Regras de Negócio, com os mesmos nomes desta seção; os fluxos entre eles estão no User Flows — CondomiFacil (`02-user-flows.md`). Para qualquer estado novo, vale a regra geral: em andamento → `info`; exige ação → `warning`; erro, bloqueio ou perda → `danger`; concluído com sucesso → `success`; finalizado sem julgamento → `neutral`.
@@ -269,6 +315,7 @@ Quando o score bloqueia as áreas gratuitas, um aviso `warning` fixo no topo do 
 - No máximo duas séries coloridas por gráfico. Outras séries usam `gray.400` e `gray.700`.
 - Todo gráfico tem título, legenda em texto e os valores principais escritos. Para leitores de tela, o gráfico tem um resumo em texto (ex.: "Nota do setor de limpeza: 3,7 de 5").
 - Notas de 1 a 5 estrelas e score usam os componentes próprios (10.17 e 10.18), não gráficos.
+- **Finanças (11.15):** barras horizontais de categorias usam só a série principal, da maior para a menor; a evolução mensal usa barras agrupadas, receitas na série principal e despesas na de comparação. Toda variação sobre o período anterior vem em texto com ícone (`trending-up`, `trending-down`, `minus`), sem verde nem vermelho, porque receita ou despesa maior não é boa nem ruim em si. Todo gráfico de finanças tem o resumo em texto e o botão "Ver como tabela" com os mesmos valores.
 
 ## 5. Tipografia
 
@@ -411,6 +458,11 @@ O produto usa os ícones **Lucide** (`lucide-react-native`), de código aberto, 
 | Boleto | `barcode` |
 | Cartão de crédito | `credit-card` |
 | Comprovante | `file-check` |
+| Finanças do condomínio | `wallet` |
+| Lançamento recorrente | `repeat` |
+| Receita automática | `zap` |
+| Estorno | `undo-2` |
+| Exportar | `download` |
 | Notificações | `bell` |
 | Menu | `menu` |
 | Perfil | `circle-user` |
@@ -525,11 +577,34 @@ Usado no primeiro acesso e na recuperação de senha (RF-AC-01, RF-AC-03).
 - Fundo `container` e texto `onContainer` do tom (4.4). O texto é sempre o nome exato do estado (4.5).
 - Para leitores de tela: "Estado: aguardando pagamento".
 
+### 10.8.1 Selo de urgência
+
+- Mesma anatomia do selo de estado (10.8), nos tons da tabela de urgência em 4.5. O texto é "Urgência alta", "Urgência média" ou "Urgência leve", com o ícone do nível.
+- Aparece em todo cartão, linha de lista e detalhe de chamado, empilhado sob o selo de estado e antes do selo "Fora do prazo", para morador, síndico, subsíndico e funcionários.
+- No formulário de abertura, os três níveis são uma seleção de opção única (10.5), sem valor pré-selecionado; cada opção mostra o selo e um texto de ajuda com exemplo:
+  - Alta: "Risco para pessoas ou dano que cresce rápido. Ex.: líquido no chão do hall (risco de queda), vazamento, portão que não fecha."
+  - Média: "Atrapalha o uso, mas sem risco imediato. Ex.: lâmpada queimada, torneira pingando, lixo acumulado."
+  - Leve: "Pode esperar alguns dias. Ex.: folhas na piscina, parafuso frouxo, pintura desgastada."
+  - Texto de apoio acima das opções: "Quão grave é o problema? Isso ajuda a equipe a decidir o que atender primeiro. Se tiver dúvida, escolha a mais alta."
+  - Erro: "Escolha a urgência do chamado."
+- Ajuste pelo síndico: no detalhe, a linha "Urgência: [nível]" abre uma folha (10.12) com os três níveis; a mudança aparece como "Urgência alterada de média para alta por [nome] · [quando]" (RN-CH-11). Para os demais perfis, o selo não é tocável.
+- Para leitores de tela: "Urgência: alta".
+
+### 10.8.2 Selo de prazo
+
+- Mesma anatomia do selo de estado (10.8), nos tons da tabela "Prazo da reclamação" em 4.5. O texto traz o tempo: "No prazo · 9 dias", "Prazo se esgotando · 3 dias", "Vence amanhã", "Vence hoje" ou "Prazo esgotado há 2 dias" (singular com 1 dia).
+- Calculado pelo prazo de decisão (RN-RC-06) e pelo limiar de 25% do prazo, arredondado para cima, mínimo de 1 dia (RN-RC-18). O dia do vencimento é amarelo ("Vence hoje"); vermelho só no dia seguinte.
+- Aparece em linha de lista e no detalhe das reclamações aguardando decisão (Aberta e Em conversa com o alvo), empilhado sob o selo de estado, para quem reclamou (em "Minhas reclamações"), síndico, subsíndico, administradora e conselho fiscal (painel do julgador). Não aparece em reclamação pendente nem decidida, nem para o alvo (RN-RC-19).
+- No detalhe, uma linha de apoio dá a data: "Prazo de decisão até 20/11 · 15 dias desde a abertura".
+- Não é tocável. Para leitores de tela: "Prazo de decisão: vence amanhã".
+- Ordenação das listas de reclamação: sem mudança; o semáforo não reordena.
+
 ### 10.9 Linha de lista
 
 - Altura mínima de 64 (72 com duas linhas de apoio), padding horizontal 16.
 - Ícone ou avatar à esquerda (40 dp), título e até duas linhas de apoio no meio, selo ou ação à direita.
 - Divisória `color.border.divider` entre linhas, começando depois do ícone.
+- **Ordem em listas de chamados (RN-CH-13):** abertos antes dos concluídos; dentro de cada grupo, urgência alta, média e leve; empate na urgência, o chamado mais antigo primeiro. Vale para cartões e linhas de morador, síndico, limpeza e manutenção. É ordem de exibição: o dado não muda. Chips de "Na fila" e "Concluídos" continuam separando os grupos onde existirem.
 
 ### 10.10 Faixa de aviso
 
@@ -590,11 +665,12 @@ Para quem tem mais de uma unidade (RF-AC-04, RN-CD-05).
 
 ### 10.17 Avaliação por estrelas
 
-Usada na pesquisa mensal (RF-PE-01).
+Usada na pesquisa mensal (RF-PE-01) e na avaliação do atendimento do chamado (RF-CH-08).
 
 - Cinco estrelas de 32 dp, cada uma com área de toque de 48. Vazia: contorno `color.border.control`. Preenchida: `coral.500` com contorno `coral.700` no claro; `coral.500` no escuro.
 - Texto ao lado diz a nota em palavras: 1 "Muito ruim", 2 "Ruim", 3 "Regular", 4 "Boa", 5 "Excelente".
-- Botão de texto "Não conheço" ao lado, para pular (RN-PE-03).
+- Botão de texto "Não conheço" ao lado, para pular (RN-PE-03); na avaliação do atendimento não há "Não conheço": quem não quer avaliar simplesmente não toca em "Avaliar o serviço".
+- Leitura (média e avaliação já enviada): cinco estrelas só de exibição, com a média escrita ao lado ("4,3 de 5") e `aria-label` com o mesmo texto; a nota nunca depende só do preenchimento da estrela.
 - Para leitores de tela, o componente é um ajustável (`accessibilityRole="adjustable"`): "Avaliação de João, 4 de 5 estrelas, boa".
 
 ### 10.18 Score
@@ -620,6 +696,7 @@ Usado em chamados, vistorias, encomendas e reclamações.
 - Botão secundário com ícone `camera` ("Adicionar foto") que oferece câmera ou galeria.
 - A foto é comprimida no aparelho antes do envio (lado maior de 1600 px, JPEG com qualidade 0,7), conforme a seção 10 do PRD.
 - Miniaturas de 72 × 72 com botão "Remover" de 48 dp. Envio sem internet fica na fila, com o ícone `cloud-upload`.
+- **Fotos do serviço (conclusão de chamado, RN-CH-14):** o rótulo é "Fotos do serviço (opcional)", até 5 fotos, e a ausência de foto nunca desabilita "Concluir chamado". No detalhe do chamado concluído, as miniaturas ficam sob o título "Fotos do serviço"; tocar numa abre a foto em tela cheia com "Fechar" e contador ("2 de 3"). Sem fotos, o detalhe não mostra a seção.
 
 ### 10.21 Estados vazios, carregando e erro
 
@@ -636,6 +713,7 @@ Usada nos painéis da administradora, do suporte e do síndico (RF-AC-06), na fa
 - Busca, filtros em chips e ordenação por coluna no topo. Paginação de 25, 50 ou 100 linhas no rodapé.
 - Ações da linha num menu `ellipsis` de 48 dp no fim da linha; ações em massa aparecem numa barra quando há linhas marcadas.
 - Na faixa compacta, cada linha vira um cartão.
+- Linha anulada (ex.: lançamento "Estornado") mantém o valor riscado e ganha o selo de estado; a informação nunca depende só do risco. Totais ficam numa linha de rodapé em `type.label.md`.
 
 ### 10.23 Indicador de sincronização
 
@@ -656,6 +734,18 @@ Usado no primeiro acesso (RF-AC-08, US-AC-03).
 - Indicador de etapa ("2 de 4") em texto, botões "Continuar" (primário) e "Pular" (texto), sempre visíveis.
 - Pode ser revisto em Menu > Como usar o app.
 
+### 10.25 Lista editável de pessoas
+
+Usada na lista de visitantes (11.13). Cada pessoa ocupa um cartão (10.7) de linha única, dentro de um grupo com `role="list"`.
+
+- **Linha:** campo de nome (10.3) com rótulo acessível "Nome da pessoa N" e botão de ícone "Remover [nome]" (`trash-2`, 48 dp) à direita. O documento fica atrás de "Adicionar documento" (botão de texto), para a linha não crescer.
+- **Adicionar:** botão secundário de largura total "Adicionar pessoa", com ícone `plus`, abaixo da última linha. Ao tocar, a nova linha surge com o foco no nome; Enter no nome também cria a próxima linha.
+- **Remover:** um toque, sem diálogo. A mensagem rápida (10.11) diz "[nome] removida" e traz "Desfazer" por 10 s, que devolve a linha na mesma posição.
+- **Contador:** "N de 100 pessoas", acima das linhas, com `aria-live="polite"`.
+- **Aviso por linha:** nome repetido em `type.caption`, cor `color.warning.fg` e ícone `copy` (texto sempre junto da cor, WCAG 1.4.1). Erro de linha em `color.danger.fg` com `circle-x`.
+- **Atalhos:** botões de texto "Colar vários nomes" (folha com campo de várias linhas, um nome por linha) e "Usar lista salva" (folha com linhas de lista 10.9). Recentes e frequentes aparecem como chips de seleção (10.5), com o grupo nomeado em texto, e o chip ligado mostra `check`; tocar de novo remove a pessoa.
+- Rolagem: o foco rola a nova linha para a vista; o botão "Enviar lista" fica fixo no rodapé com o número de pessoas no texto.
+
 ## 11. Padrões de tela
 
 ### 11.1 Portaria
@@ -665,6 +755,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 - **Tela inicial = lista "Esperados hoje"**, já aberta, com a busca fixa no topo (nome, unidade ou bloco) e chips de bloco quando a portaria atende mais de um.
 - Cada linha mostra nome em `type.body.lg`, unidade, selo de estado e um **botão grande "Entrada"** (ou "Saída", para quem já entrou) à direita.
 - **Toque 1:** "Entrada". **Toque 2 (opcional):** "Desfazer", na mensagem rápida. Não há diálogo de confirmação: o desfazer de 10 s substitui a confirmação e mantém os 2 toques.
+- **Lista de visitantes (RN-VI-17):** as pessoas de uma lista aparecem agrupadas sob "Listas de visitantes", com o contador "N pessoas, M chegaram"; a entrada continua pessoa a pessoa (11.13).
 - **Visitante sem cadastro:** botão flutuante "Entrada sem cadastro" → nome, unidade e marcação "Autorizado por interfone".
 - **Lista de bloqueio (RN-VI-05):** ao buscar ou tocar em "Entrada" para alguém da lista, abre um diálogo bloqueante em tom `danger` com ícone `ban`, o motivo do bloqueio e duas ações: "Não liberar" (primário) e "Liberar mesmo assim" (secundário, pede o motivo). A decisão fica registrada.
 - **Divergência ao sincronizar (RN-OF-04):** diálogo bloqueante em tom `warning`: "Carlos Souza entrou às 14h10, mas a visita tinha sido cancelada pelo morador. Ligue para Bloco A · Apto 101 pelo interfone." Ação única: "Confirmei com o morador". O diálogo não tem botão de fechar.
@@ -673,10 +764,12 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 ### 11.2 Limpeza
 
-- **Tela inicial = fila de chamados do setor** em cartões, ordenados por prazo, com o prazo restante ("vence em 3h") e selo `danger` "Fora do prazo" quando vencido.
+- **Tela inicial = fila de chamados do setor** em cartões, ordenados por urgência e, empatando, pelo mais antigo (10.9, RN-CH-13), com o selo de urgência (10.8.1) e o prazo restante ("vence em 3h") e selo `danger` "Fora do prazo" quando vencido.
 - Botão "Concluir" visível no cartão, sem abrir o chamado (PRD, seção 9). Concluir abre uma folha curta com foto opcional e o botão "Concluir chamado".
 - No detalhe do chamado, o botão secundário "Iniciar atendimento" passa o chamado para "Em atendimento". Ele é opcional: "Concluir" no cartão leva de "Aberto" direto para "Concluído".
 - Mesmo comportamento offline da portaria.
+- Concluir: o rótulo é "Fotos do serviço (opcional)" (10.20), e as fotos seguem a conclusão na fila sem internet (RN-CH-14).
+- Menu > "Minhas avaliações" (11.12): média e comentários do atendimento, sem identificar o morador (RN-CH-20).
 
 ### 11.3 Início do morador
 
@@ -695,10 +788,13 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 Ao cancelar depois do prazo de reembolso, o diálogo avisa antes de confirmar (RN-CA-03).
 
+**Sugestão de lista de visitantes (RN-RE-12).** Na confirmação e no detalhe de uma reserva confirmada, com data depois de hoje e sem lista vinculada, aparece uma faixa `info` (10.10) com ícone `list-checks`: "Vai receber convidados? Monte a lista de visitantes.", o botão secundário "Montar lista" (abre a 11.13 com data, horário e local da reserva) e o botão de texto "Agora não" (esconde a sugestão para aquela reserva). Não aparece em reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje. Com lista vinculada, o detalhe mostra uma linha (10.9) "Lista: N pessoas", com o nome da lista e "M chegaram", que abre o detalhe da lista. Na confirmação, a faixa fica abaixo do status; no detalhe, abaixo do cartão da reserva.
+
 ### 11.5 Reclamações
 
 - **Registro:** formulário em etapas curtas: alvo (só um, só do condomínio), categoria (com a gravidade padrão mostrada), descrição, data e foto opcional. Antes de enviar, um aviso `info`: "Quem você indicou não vai saber que foi você. Reclamações falsas podem custar pontos a quem reclama." com link para "Como funciona".
-- **Painel do julgador:** lista com filtros por estado e ordenação por data ou score (RF-RS-03). O detalhe mostra o reclamante e o alvo com seus scores, a conversa vinculada e os botões "Validar" e "Negar", desabilitados com explicação até a conversa ser registrada (US-RS-02).
+- **Painel do julgador:** lista com filtros por estado e ordenação por data ou score (RF-RS-03). O detalhe mostra o reclamante e o alvo com seus scores, a conversa vinculada e os botões "Validar" e "Negar", desabilitados com explicação até a conversa ser registrada (US-RS-02). Cada linha e o detalhe mostram o selo de prazo (10.8.2) quando a reclamação aguarda decisão; o prazo esgotado não libera nem bloqueia os botões.
+- **Acompanhamento do morador:** em "Minhas reclamações", as feitas por ele aguardando decisão mostram o selo de prazo (10.8.2) sob o selo de estado, na lista e no detalhe. As que são contra ele não mostram semáforo.
 - **Negar:** opções de motivo com os pontos escritos ("Falsa ou de má-fé · −15 pontos para quem reclamou"); motivos com penalidade abrem o campo de justificativa obrigatório.
 - **Visão do alvo:** nunca mostra quem reclamou, em nenhuma tela, notificação ou histórico (SEG-07). Mostra a decisão, os pontos e, quando cabe, o botão "Recorrer" com o prazo ("Você pode recorrer até 17/03").
 
@@ -729,7 +825,7 @@ Cartões com o score do síndico (componente 10.18 em versão compacta) e a nota
 
 Para administradora, suporte e síndico (RF-AC-06), na faixa expandida.
 
-- Navegação lateral com: Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Comunicados, Reuniões, Solicitações, Configurações.
+- Navegação lateral com: Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Finanças, Comunicados, Reuniões, Solicitações, Configurações.
 - Telas de lista usam tabela (10.22); telas de cadastro usam formulário de uma coluna com largura máxima de 640.
 - Configurações mostram, em cada parâmetro, o padrão da plataforma, o valor do condomínio, a faixa permitida e de onde vem o valor ("Herdado do condomínio").
 - No plano Gestão + Suporte, o síndico vê o contador de solicitações antes de enviar ("7 de 10 solicitações usadas este mês. As próximas custam R$ 15,00 cada.") (RN-PL-05).
@@ -764,6 +860,106 @@ O subsíndico usa as telas do síndico. O que muda depende da substituição (RN
 - No Início, o cartão "Para julgar" diz "reclamações contra o síndico" fora da substituição; na substituição, aparece também o cartão "Substituição ativa".
 - Para o síndico, Comunicados ganha a seção "Sugestões da subsíndica" acima dos enviados, e o item Comunicados da Gestão mostra um selo `accent` com o número de sugestões pendentes. Revisar abre o formulário de novo comunicado preenchido, com a faixa "Sugestão da subsíndica [nome], de [data]. Revise antes de enviar."
 
+### 11.12 Avaliação do atendimento
+
+Telas de RF-CH-08 a RF-CH-11. Tudo com texto junto da estrela ou da cor (WCAG 1.4.1).
+
+**Morador (e síndico morador e subsíndico) no detalhe do chamado concluído**
+
+- Seção "Fotos do serviço" com miniaturas (10.20), só se a conclusão teve fotos.
+- Com avaliação aberta (até 7 dias da conclusão): faixa `info` "O serviço foi concluído. Conte como ficou." e botão "Avaliar o serviço". O chamado mostra o selo `warning` "Avaliação pendente" (4.5). O botão "Reabrir chamado" continua disponível até 48h (RN-CH-07).
+- "Avaliar o serviço" abre uma folha (10.12) com, nesta ordem: avaliação por estrelas (10.17) com o texto da nota ("Muito ruim" a "Excelente"); seleção de opção única (10.5) "Em que você se baseia?", sem valor pré-selecionado, com "Vi as fotos do serviço" (só se há fotos) e "Conferi pessoalmente"; comentário opcional (10.3), até 500 caracteres; botão "Enviar avaliação".
+- Enquanto faltar a nota ou a base, "Enviar avaliação" fica desabilitado e a razão aparece escrita abaixo (padrão do protótipo `disabled-reason`): "Escolha de 1 a 5 estrelas." ou "Diga se viu as fotos ou conferiu pessoalmente."
+- Depois de enviar, com 1 ou 2 estrelas: dentro das 48h, diálogo (10.13) "Quer reabrir o chamado?" com "Reabrir chamado" e "Agora não"; depois das 48h, "Abrir novo chamado" e "Agora não". Com 3 ou mais: snackbar "Avaliação enviada. Obrigado!".
+- Avaliado: selo `neutral` "Avaliado" e cartão "Sua avaliação" com estrelas de leitura, texto da nota, comentário e a base, sem botão de editar. Passados 7 dias sem avaliar, o botão some e o texto diz "O prazo para avaliar terminou."
+- Portaria, síndico profissional e funcionários não veem a seção de avaliar.
+
+**Síndico e subsíndico no detalhe do chamado**
+
+- Cartão "Avaliação do atendimento" com estrelas de leitura, texto da nota, comentário e a base ("Viu as fotos" ou "Conferiu pessoalmente"); ou "Ainda não avaliado" com o prazo, quando for o caso.
+
+**Síndico: Gestão > Avaliações do atendimento**
+
+- Duas seções: "Limpeza" (um item por funcionário) e "Manutenção" (um item por empresa). Cada linha de lista (10.9) mostra o nome, as estrelas de leitura com a média escrita ("4,3 de 5"), o número de avaliações e, abaixo, a distribuição de 5 a 1 estrela em barras com o número escrito. Selo `warning` "Avaliações baixas" na linha de quem recebeu 1 ou 2 estrelas nos últimos 30 dias.
+- Sem avaliações: estado vazio (10.21) "Ainda não há avaliações de atendimento."
+- Subsíndico fora da substituição: item ausente; por link, estado vazio com cadeado, como em 11.11.
+
+**Administradora (web)**
+
+- Na tabela de Funcionários (10.22), coluna "Atendimento" com a média escrita e o número de avaliações ("4,3 · 12 avaliações"), sem comentários, sem chamados e sem identificar quem avaliou.
+
+**Funcionário: Menu > Minhas avaliações**
+
+- Com 3 ou mais avaliações: média e número em destaque, distribuição por estrelas e a lista de comentários, cada um com o mês ("outubro de 2026") e sem unidade, morador, chamado nem local.
+- Com menos de 3: estado vazio com o texto "Poucas avaliações para mostrar a média." e a faixa `info` "A avaliação do atendimento não muda o seu score." (RN-CH-21).
+
+### 11.13 Lista de visitantes
+
+Telas de RF-VI-14 e RF-VI-15 (fluxo 6.5).
+
+**Morador (e síndico morador e subsíndico)**
+
+- Em Visitantes, o botão flutuante "Novo" abre uma folha (10.12) com duas linhas: "Um visitante" e "Montar lista de visitantes". A tela de novo visitante também traz uma faixa `info` com o botão "Montar lista".
+- Seção "Listas" no topo da aba Esperados: uma linha de lista (10.9) por lista, com ícone `list-checks`, o nome, "N pessoas, M chegaram" e a data. Listas canceladas ficam no Histórico, com selo de estado.
+- **Montar lista:** faixa de origem (`info`, ícone `calendar-days`) quando vem de uma reserva; seção "Sobre a lista" (nome, data, das/até opcionais, local ou motivo opcional); seção "Pessoas" com a lista editável (10.25), "Frequentes" e "Recentes", o interruptor (10.6) "Salvar esta lista para usar de novo" e o botão "Enviar lista (N pessoas)" no rodapé.
+- Com origem de reserva, data e horário ficam desabilitados com a ajuda "Vem da reserva.". Passou da capacidade da área: faixa `warning` com ícone `triangle-alert`, sem bloquear o envio (RN-VI-14).
+- **Detalhe da lista:** cartão (10.7) com nome, data, local e selo "M de N chegaram"; linhas de pessoas com selo de estado (4.5) e botão de ícone "Remover [nome] da lista" só para quem ainda não chegou; rodapé com "Adicionar pessoa" e "Cancelar lista" (diálogo 10.13 com o que acontece com quem já entrou).
+
+**Portaria**
+
+- Na lista "Esperados hoje" (11.1), as pessoas de uma lista não se misturam com os visitantes avulsos: aparecem sob o título "Listas de visitantes", um grupo por lista.
+- Cabeçalho do grupo: ícone `list-checks`, "Lista: [nome]", unidade, local e horário, e o selo com o contador escrito "N pessoas, M chegaram" (`info` enquanto faltam pessoas, `success` quando todas chegaram). É uma linha tocável (`aria-expanded`) que abre e fecha o grupo; o chevron mostra o estado.
+- Dentro do grupo, as pessoas ficam recuadas, com quem ainda não chegou primeiro. Cada uma tem o mesmo botão grande "Entrada" ou "Saída" da 11.1, 1 toque com "Desfazer"; o alerta de bloqueio e o resto do fluxo 6.2 valem para cada pessoa. Não há "dar entrada em todos".
+- A busca encontra o nome da pessoa e o nome da lista, e abre o grupo que tiver resultado.
+- Listas com data futura não aparecem na portaria até o dia.
+
+### 11.14 Entregas esperadas
+
+Telas de RF-EN-06 a RF-EN-08 (fluxo 7.2). Só linha de lista (10.9), selos (4.5), faixa (10.10), folha (10.12) e campos; sem componente nem token novo.
+
+**Morador (e síndico morador e subsíndico)**
+
+- Em Menu > Encomendas, a seção "Entregas esperadas" fica acima das encomendas, com o botão "Avisar entrega" ao lado do título. Cada entrega é uma linha (10.9) com ícone `package-open`, título "[origem ou 'Entrega'] · [data]" ("hoje", "08/11"), apoio com a faixa ("entre 12h e 19h") e a descrição, e o selo de estado (4.5). Ordem: "Esperada" por data, depois "Não chegou", depois o histórico.
+- Tocar na linha abre uma folha (10.12) com os dados e as ações "Editar" e "Cancelar entrega"; em "Não chegou", a ação primária é "Reagendar" (abre a edição com a data em branco). Cancelar usa diálogo (10.13) curto, e "Chegou" não tem ações.
+- **Formulário:** "Data esperada" (obrigatória, mínimo hoje, máximo 30 dias); "Descrição (opcional)", com contador de 60; "Das" e "Até" (opcionais, as duas juntas); "Origem (opcional)" em chips (Amazon, Correios, Mercado Livre, Shopee, iFood/entregador, Outra), e "Outra" abre um campo de texto de até 30 caracteres. Ajuda: "A portaria vê a descrição." Faixa `info` ao escolher iFood/entregador: "A portaria recebe só um aviso. Comida por aplicativo não é registrada como encomenda."
+- Erros ao lado do campo, com texto e ícone: faixa invertida, data passada, limite de 10 por unidade.
+- Sem entregas: estado vazio com "Nenhuma entrega esperada." e a ação "Avisar entrega".
+
+**Portaria**
+
+- Na aba Encomendas, a seção "Esperadas hoje" fica no topo, antes dos chips de "Aguardando retirada". Cada linha tem a unidade em `type.body.lg`, "origem · faixa" e a descrição no apoio; quem não tem faixa vem por último.
+- Botão "Registrar" na linha abre o registro com a unidade, o remetente e o vínculo já preenchidos (1 toque a mais, nenhum diálogo). Entrega de iFood/entregador mostra só o selo "Só aviso" e o texto "Libere pelo interfone. Não é encomenda.", sem botão.
+- **Vínculo no registro:** depois da unidade, aparece a seção "Entregas esperadas desta unidade" com opções de escolha (uma por entrega, a sugerida já marcada e com o selo "Sugerida") e a última opção "Não vincular". Sem entregas esperadas, a seção não aparece. Não há diálogo extra; o toque em "Registrar encomenda" confirma, e a mensagem rápida diz "Encomenda registrada e vinculada. O morador foi avisado."
+- "Esperadas hoje" vazia: "Nenhuma entrega esperada hoje." Entregas "Não chegou" não aparecem na seção, só como opção no vínculo.
+
+### 11.15 Finanças do condomínio
+
+Telas de RF-FI-17 a RF-FI-24 (fluxos 13.3 e 13.4). Só cartão (10.7), tabela (10.22), chips, selo (10.8), faixa (10.10), folha (10.12), diálogo (10.13), campos e os gráficos de 4.7; sem token novo. A tela mostra valores do condomínio, nunca de uma unidade (15).
+
+**Administradora e suporte (web)**
+
+- "Finanças" fica na navegação lateral, logo depois de "Cobrança" (ícone `wallet`). A página é única e vai de cima para baixo: período, resumo, despesas por categoria, receitas por origem, evolução e lançamentos.
+- **Cabeçalho:** título, apoio "Controle gerencial de receitas e despesas. Não substitui a contabilidade." e, à direita, "Exportar CSV" e "Exportar PDF" (secundários, ícone `download`) e "Novo lançamento" (primário, `plus`).
+- **Período:** chips em linha rolável com os meses (mais recente primeiro) e "3 meses", "6 meses" e "12 meses". Ao lado, o selo do mês (4.5): "Aberto", "Fecha em N dias" ou "Fechado". Mês aberto e já terminado ganha a faixa `info` "Outubro terminou. Fecha sozinho em 10/11." com o botão "Fechar outubro agora"; mês fechado ganha a faixa neutra "Mês fechado em 10/11. Alterações só por estorno." com ícone `lock`.
+- **Resumo:** três cartões (Receitas, Despesas e Saldo) com o valor em `type.title.lg`, algarismos tabulares. Abaixo do valor, a comparação com o mês anterior escrita ("3,2% a mais que setembro", "R$ 1.204,00 a menos que setembro") com ícone `trending-up`, `trending-down` ou `minus` em `color.text.secondary`: alta ou queda de receita ou despesa não é boa nem ruim em si, então não usa verde nem vermelho. Em período de vários meses, a comparação some. O saldo negativo ganha o ícone `triangle-alert` e a palavra "Déficit". Uma linha de apoio diz quanto da receita veio de cobranças extraordinárias ("Inclui R$ 20.700,00 de fundo de obras").
+- **Despesas por categoria:** barras horizontais em `chart-1`, da maior para a menor, com o rótulo à esquerda e o valor e o percentual à direita; ao lado (ou abaixo, em tela estreita), a tabela com categoria, valor, percentual e variação sobre o mês anterior, e total no rodapé. Serviços terceirizados mostra o detalhe por serviço (portaria, limpeza, elevador, jardinagem) numa linha expansível. Resumo em texto para leitor de tela: "Maior despesa: Serviços terceirizados, R$ 26.050,00, 31% do total".
+- **Receitas por origem:** tabela curta com categoria, valor, origem ("Automático" com `zap` ou "Avulso") e, nas automáticas, "N cobranças pagas" ou "N reservas pagas", sem unidade.
+- **Evolução:** gráfico de barras agrupadas por mês (receitas em `chart-1`, despesas em `chart-2` com contorno `coral.700`), eixo em meses abreviados, valores em milhares escritos acima das barras na visão de 6 meses; chips "6 meses" e "12 meses"; legenda em texto e, logo abaixo, o botão de texto "Ver como tabela", que abre mês, receitas, despesas e saldo.
+- **Lançamentos:** busca por descrição ou fornecedor, seletor de categoria e chips "Todos", "Receitas" e "Despesas", acima da tabela (10.22), que tem as colunas data, descrição (com ícone `arrow-down-to-line` para receita e `arrow-up-from-line` para despesa), categoria, fornecedor ou origem, comprovante ("Anexado" com `paperclip` ou "Não anexado"), situação e valor (com "+" ou "−"). Marcações em selos neutros: "Automático" (`zap`) e "Recorrente" (`repeat`); "Estornado" em `warning` com ícone `undo-2` e valor riscado; "Estorno" em `neutral` com o link "Ver original". Sem resultado: estado vazio "Nenhum lançamento neste filtro." com "Limpar filtros".
+- **Menu da linha (`ellipsis`):** "Ver detalhe" e "Comentários" em todas; "Editar" e "Excluir" só em lançamento avulso de mês aberto; "Estornar" só em lançamento avulso de mês fechado ainda não estornado. Em lançamento automático, o detalhe mostra a faixa `info` "Vem de cobranças pagas. Para corrigir, altere a cobrança ou a reserva."
+- **Novo lançamento (folha, 10.12):** "Tipo" em opção única (Despesa, Receita), "Data" (máximo hoje), "Categoria" (lista de RN-FI-32; para receita avulsa, só "Outras receitas", e com a cobrança desligada também "Taxa condominial" e "Fundo de reserva"), "Serviço" em chips só em Serviços terceirizados, "Valor", "Fornecedor" (despesa) ou "Origem" (receita), "Descrição (opcional)", "Comprovante (opcional)" com foto ou PDF (10.20) e o interruptor "Repetir todo mês", que abre "Dia do mês". Faixas: `info` "Taxas, multas, fundo de reserva e aluguel de áreas entram sozinhos das cobranças e reservas pagas." ao escolher receita; `info` "Informe só o total da folha do mês, sem nomes nem salários." em Folha de funcionários. Erros ao lado do campo, com texto e ícone: valor zerado, fornecedor vazio, data futura ou em mês fechado.
+- **Detalhe do lançamento (folha):** dados, comprovante, origem, histórico de alterações (valor antigo e novo, autor e data) e comentários do síndico e do conselho.
+- **Estorno (diálogo, 10.13, tom `warning`):** "Estornar este lançamento?", texto "Cria um lançamento de valor oposto com a data de hoje. O original continua visível, como Estornado.", campo "Motivo" obrigatório e botões "Estornar" e "Manter lançamento". Depois, mensagem rápida "Estorno lançado em 05/11."
+- **Fechar o mês (diálogo, tom `warning`):** conta as despesas sem comprovante ("3 despesas estão sem comprovante. Depois de fechar, o mês só aceita estorno.") e tem os botões "Fechar mesmo assim" e "Voltar".
+- **Comentários:** em cada lançamento e no mês, lista com nome, papel, data e texto; selo `accent` "Novo comentário" para a administradora até ela abrir.
+
+**Síndico e conselho fiscal (app)**
+
+- O síndico abre Gestão > "Finanças" (`wallet`); o membro do conselho fiscal, Menu > "Finanças do condomínio". O subsíndico fora da substituição vê o estado vazio "Esta função é do síndico..." (11.11). Mesma regra do painel de inadimplência: só leitura, sem botão de lançar, editar, fechar ou estornar.
+- Uma coluna: chips de período rolável; cartões de Receitas, Despesas e Saldo com a comparação em texto; "Despesas por categoria" como linhas de lista (10.9) com a barra `chart-1` embaixo do valor; "Evolução" com o gráfico de 6 meses e "Ver como tabela"; "Lançamentos" em linhas de lista (descrição, categoria e data no apoio, valor à direita) com chips "Todos", "Receitas" e "Despesas" e busca. Tocar na linha abre a folha de detalhe, com comprovante e comentários, e o botão "Comentar".
+- No fim da tela: "Comentar o mês", "Exportar CSV" e "Exportar PDF". O arquivo respeita o filtro.
+- Na versão web (RF-AC-06), o síndico vê a mesma página da administradora, sem os botões de escrita.
+
 ## 12. Navegação por perfil
 
 As abas foram escolhidas para que as tarefas mais frequentes de cada perfil fiquem a um toque.
@@ -776,13 +972,13 @@ As abas foram escolhidas para que as tarefas mais frequentes de cada perfil fiqu
 | Portaria | Visitantes · Encomendas · Áreas · Menu |
 | Limpeza | Chamados · Áreas · Menu |
 | Administradora, suporte e admin da plataforma | Web, navegação lateral (11.9) |
-| Conselho fiscal | As abas do morador. Reclamações e recursos para julgar aparecem num cartão "Para julgar" no Início e em Menu > Reclamações |
+| Conselho fiscal | As abas do morador. Reclamações e recursos para julgar aparecem num cartão "Para julgar" no Início e em Menu > Reclamações; Menu > Finanças do condomínio abre as finanças em modo leitura (11.15) |
 | Proprietário não residente | Unidade · Cobranças · Assembleias · Menu. Menu com Comunicados, Solicitações, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair |
 
-- **Gestão** reúne o que é do síndico: reclamações para julgar, chamados de manutenção, comunicados, reuniões, solicitações de cadastro, inadimplência e substituição. Para o subsíndico fora da substituição, só os itens de 11.11.
+- **Gestão** reúne o que é do síndico: reclamações para julgar, chamados de manutenção, avaliações do atendimento, comunicados, reuniões, solicitações de cadastro, inadimplência, finanças e substituição. Para o subsíndico fora da substituição, só os itens de 11.11.
 - **Meus chamados** fica no Menu do síndico e do subsíndico, porque a aba Chamados dá lugar à Gestão.
 - **Áreas** (portaria e limpeza) reúne vistorias e registro de não comparecimento (RF-RE-08, RF-RE-09).
-- **Menu** reúne, para quem tem: Meu score, Reclamações, Cobranças, Encomendas, Reuniões e votações, Pesquisa do mês, Transparência, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair. Na portaria, o Menu também tem "Abrir chamado" e "Modo treinamento".
+- **Menu** reúne, para quem tem: Meu score, Reclamações, Cobranças, Finanças do condomínio (só conselho fiscal), Encomendas, Reuniões e votações, Pesquisa do mês, Transparência, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair. Na portaria, o Menu também tem "Abrir chamado" e "Modo treinamento".
 - **Aparência** tem três opções: "Igual ao aparelho" (padrão), "Claro" e "Escuro". A escolha fica salva (RF-AC-05, US-AC-06).
 
 ## 13. Escrita na interface
@@ -821,6 +1017,8 @@ Use sempre o mesmo termo para a mesma coisa, igual ao glossário das Regras de N
 | Desocupada | Vazia, sem morador |
 | Unidade | Apartamento (quando puder ser casa ou sala) |
 | Chamado | Ticket, ordem de serviço, pedido |
+| Avaliação do atendimento (estrelas do chamado) | Nota, feedback, review |
+| Urgência (alta, média, leve) | Prioridade, gravidade, severidade |
 | Reclamação | Denúncia, queixa, ocorrência |
 | Denunciar (conteúdo ofensivo) | Reportar |
 | Comunicado | Aviso, mensagem, post |
@@ -899,10 +1097,14 @@ Estas regras traduzem RN-SC-02, SEG-07 e SEG-17 em decisões de tela. Valem em l
 | Score do síndico | Todos | — |
 | Quem reclamou | Julgador e administradora | Qualquer tela, notificação ou histórico do alvo |
 | Situação financeira da unidade | Proprietário, administradora, síndico (ou subsíndico em substituição); cada responsável financeiro vê as cobranças emitidas para ele | Votações (o motivo do bloqueio só aparece a quem vota e aos responsáveis financeiros), listas de unidades vistas por moradores, notificações na tela bloqueada |
+| Receitas, despesas e lançamentos do condomínio | Administradora, síndico (ou subsíndico em substituição) e conselho fiscal | Qualquer tela de morador, proprietário não residente ou funcionário |
+| Receitas de cobrança nas finanças | Totais por categoria e quantidade de cobranças pagas | Unidade, responsável financeiro e situação de pagamento de cada unidade, em telas e exportações (RN-FI-30) |
+| Folha de funcionários nas finanças | Só o total do mês | Nome e salário de cada funcionário |
 | Rotina do inquilino (visitantes, reservas, chamados, encomendas, score) | O próprio inquilino e os perfis que já veem esses dados (portaria, síndico, julgador) | Qualquer tela do proprietário não residente |
 | Reclamação contra unidade alugada ou desocupada | Proprietário: só categoria, data, decisão e multa, depois da validação | Conversa com o alvo e identidade do reclamante, para o proprietário |
 | Quem reservou | Ninguém no calendário (só "Ocupado") | Calendário e lista de horários |
 | Notas individuais da pesquisa | O próprio funcionário, sem saber quem avaliou | Transparência e qualquer tela de morador |
+| Avaliação do atendimento de um chamado | Quem avaliou; síndico e subsíndico, no detalhe do chamado (nota, comentário e base); funcionário, só como média e comentários anônimos com 3 ou mais avaliações; administradora, só média e quantidade | Qualquer tela do funcionário com unidade, morador, chamado ou local; notificações ao funcionário; Transparência |
 | Documento do visitante | Portaria e o morador que cadastrou | Notificações |
 
 Regra geral: quando a interface precisa mostrar que existe uma restrição sem revelar o motivo a terceiros, ela mostra só "Indisponível".
@@ -996,6 +1198,14 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | 05/11/2026 | Votações com textos para o inquilino e para pautas com despesa extraordinária (11.7); cobranças do inquilino visíveis ao proprietário sem botão de pagar (11.8) | RN-VO-18, RN-FI-10 |
 | 05/11/2026 | Termos "Proprietário", "Inquilino", "Despesa extraordinária" e "Desocupada" (13.3) | Evitar sinônimos jurídicos na tela, como locador e locatário |
 | 05/11/2026 | Subsíndico com as abas do síndico e Gestão enxuta fora da substituição (11.11, 12); sugestões de comunicado | O subsíndico passou a ter funções de gestão no dia a dia (RN-CD-27, RN-CO-05) |
+| 05/11/2026 | Lista de visitantes: componente 10.25 (lista editável de pessoas) e padrão de tela 11.13, com grupo recolhível na portaria e chips de recentes e frequentes; sem token novo | Montar festas e eventos sem cadastrar um visitante por vez (RF-VI-14, RF-VI-15, RN-VI-11 a RN-VI-17); contador escrito e texto junto da cor (WCAG 1.4.1); remover com um toque e desfazer em vez de diálogo, como na portaria; capacidade da área só avisa |
+| 05/11/2026 | Sugestão de lista de visitantes depois da reserva: faixa `info` (10.10) na confirmação e no detalhe, linha "Lista: N pessoas" (10.9) quando há lista vinculada, em 11.4; sem token novo | Levar o morador à lista de festas logo após reservar, sem insistir (RN-RE-12, RN-VI-14); só para reserva confirmada com data futura, porque a reserva pode expirar e levar a lista junto; áreas não são separadas porque as regras não as separam |
+| 05/11/2026 | Avaliação do atendimento do chamado: seção 11.12, marcações "Avaliação pendente" (`warning`) e "Avaliado" (`neutral`) em 4.5, estrelas de leitura com média escrita (10.17), fotos do serviço (10.20), linha de privacidade (15); sem token novo | Morador avalia o serviço concluído, com fotos opcionais e base explícita; síndico, administradora e funcionário veem a avaliação em níveis diferentes (RN-CH-14 a RN-CH-21); texto junto das estrelas e da cor (WCAG 1.4.1) |
+| 05/11/2026 | Ordem das listas de chamados por urgência e, empatando, pelo mais antigo, com concluídos no fim (10.9, 11.2) | Ordem de atendimento; RN-CH-13 |
+| 05/11/2026 | Selo de prazo da reclamação (10.8.2) em `success`, `warning` e `danger`, com texto e ícone; limiar de 25% do prazo; sem token novo | Semáforo de prazo para quem reclamou e para o julgador (RN-RC-17 a RN-RC-19); limiar proporcional porque o prazo é configurável de 3 a 60 dias; texto e ícone evitam depender só da cor (WCAG 1.4.1) |
+| 05/11/2026 | Selo de urgência do chamado (10.8.1) em `danger`, `warning` e `success`, com texto e ícone; sem token novo | Urgência alta, média e leve em vermelho, amarelo e verde (RN-CH-09 a RN-CH-11); texto e ícone evitam depender só da cor (WCAG 1.4.1) |
+| 05/11/2026 | Entregas esperadas: estados em 4.5 (Esperada, Chegou, Não chegou, Cancelada, Encerrada, marcação "Só aviso") e padrão de tela 11.14, com a seção "Esperadas hoje" na portaria e o vínculo no registro da encomenda; sem componente nem token novo | O morador avisa uma entrega a caminho e a portaria identifica pacote e unidade (RF-EN-06 a RF-EN-08, RN-EN-07 a RN-EN-13); "Não chegou" em `warning` com texto e ícone (WCAG 1.4.1); iFood/entregador é só aviso porque a RN-EN-05 não permite registrar comida por aplicativo; vínculo sugerido sem diálogo, para não passar de 2 toques o registro |
+| 05/11/2026 | Finanças do condomínio: padrão de tela 11.15 (web da administradora, app do síndico e do conselho fiscal), estados do mês e do lançamento (4.5), regras de gráfico de finanças (4.7), linha anulada na tabela (10.22), item "Finanças" na navegação web e "Finanças do condomínio" no Menu do conselho fiscal (11.9, 12), ícones (8.3) e linhas de privacidade (15); sem componente nem token novo | Controle de receitas e despesas (RF-FI-17 a RF-FI-24, RN-FI-21 a RN-FI-32); variação em texto e ícone neutro porque receita ou despesa maior não é boa nem ruim, e valores só do condomínio por causa de SEG-17 e SEG-18 |
 | 04/11/2026 | Diagramas perdidos na conversão para Markdown refeitos: roadmap em Mermaid na Visão de Produto; fluxo e estados da reclamação e estados da reserva em tabelas nas Regras de Negócio e em Mermaid no User Flows — CondomiFacil | Pendência resolvida; saiu da lista de pendências |
 
 **Pendência fora deste documento:** o logotipo definitivo depende de um trabalho de identidade visual.
@@ -1006,7 +1216,7 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | --- | --- |
 | 2. Princípios | Princípios da Visão de Produto, RNF-15 |
 | 4. Cores | PRD seção 9, RNF-12, RF-AC-05 |
-| 4.5 Estados | RN 5.5, 7.4, 8.3, 9.1, 9.2, 12.2, RN-CD-20 a RN-CD-24, RN-FI-20 |
+| 4.5 Estados | RN 5.5, 7.4, 8.3, 9.1 (inclui entregas esperadas), 9.2, 12.2, RN-CD-20 a RN-CD-24, RN-FI-20 |
 | 4.6 Calendário | RF-RE-01, RF-RE-06, RN-RE-05, RN-RE-06, RN-RE-08, RN-SC-09, RN-SC-10, RN-FI-12, US-RE-01, US-RE-05 |
 | 5. Tipografia | RNF-02, RNF-04, RNF-12, RNF-14 |
 | 6.2 Áreas de toque | RNF-12 |
@@ -1014,23 +1224,32 @@ Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para fica
 | 10.4 Código de verificação | RF-AC-01, RF-AC-03, RN-CD-02, US-AC-01 |
 | 10.10 Faixa de aviso | RF-VI-05, RF-VI-12, RN-CD-03, RNF-06, US-VI-04, US-VI-06 |
 | 10.16 Seletor de unidade | RF-AC-04, RN-CD-05, US-AC-05 |
-| 10.17 Estrelas | RF-PE-01, RN-PE-03, RN-PE-04, US-PE-01 |
+| 10.17 Estrelas | RF-PE-01, RF-CH-08, RN-PE-03, RN-PE-04, RN-CH-16, US-PE-01, US-CH-04 |
+| 10.20 Envio de foto (fotos do serviço) | RF-CH-02, RF-CH-04, RF-CH-05, RN-CH-14, US-CH-02, US-CH-03 |
 | 10.18 Score | RF-RS-10 a RF-RS-12, RN-SC-01, RN-SC-08, RN-SC-09, US-RS-06 |
-| 10.22 Tabela | RF-AC-06, US-AC-06 |
+| 10.22 Tabela | RF-AC-06, RF-FI-23, US-AC-06 |
 | 10.23 Sincronização | RNF-06 a RNF-08, RN-OF-02, RN-OF-03 |
 | 10.24 Onboarding | RF-AC-08, US-AC-03 |
 | 11.1 Portaria | RF-VI-04 a RF-VI-12, RN-VI-04, RN-VI-05, RN-OF-01 a RN-OF-04, US-VI-03 a US-VI-06 |
-| 11.2 Limpeza | RF-CH-02, RF-CH-03, RN-CH-04, RN-CH-06, US-CH-02 |
-| 11.4 Reservas | RF-RE-01 a RF-RE-05, RF-PG-01, RN-RE-03, RN-CA-02, RN-CA-03, US-RE-02 a US-RE-04 |
-| 11.5 Reclamações | RF-RS-01 a RF-RS-09, RN-RC-01 a RN-RC-07, SEG-07, US-RS-01 a US-RS-05 |
+| 10.25 Lista editável de pessoas | RF-VI-14, RN-VI-11, RN-VI-12, RN-VI-16, US-VI-07 |
+| 11.13 Lista de visitantes | RF-VI-14, RF-VI-15, RN-VI-11 a RN-VI-17, US-VI-07, US-VI-08 |
+| 11.14 Entregas esperadas | RF-EN-06 a RF-EN-08, RF-EN-02, RN-EN-07 a RN-EN-13, US-EN-03, US-EN-04 |
+| 10.8.1 Selo de urgência | RF-CH-06, RF-CH-07, RN-CH-09 a RN-CH-12, US-CH-01, US-CH-03 |
+| 10.8.2 Selo de prazo | RF-RS-16, RN-RC-06, RN-RC-17 a RN-RC-19, US-RS-08 |
+| 10.9 Linha de lista (ordem de chamados) | RF-CH-06, RN-CH-13, US-CH-02 |
+| 11.2 Limpeza | RF-CH-02, RF-CH-03, RF-CH-06, RN-CH-04, RN-CH-06, RN-CH-10, RN-CH-14, US-CH-02 |
+| 11.12 Avaliação do atendimento | RF-CH-05, RF-CH-08 a RF-CH-11, RN-CH-14 a RN-CH-21, US-CH-04, US-CH-05 |
+| 11.4 Reservas | RF-RE-01 a RF-RE-05, RF-PG-01, RN-RE-03, RN-CA-02, RN-CA-03, RN-RE-12, RN-VI-14, US-RE-02 a US-RE-04 |
+| 11.5 Reclamações | RF-RS-01 a RF-RS-09, RF-RS-16, RN-RC-01 a RN-RC-07, RN-RC-17 a RN-RC-19, SEG-07, US-RS-01 a US-RS-05, US-RS-08 |
 | 11.6 Transparência | RF-RS-12, RF-PE-04, RN-PE-08, US-RS-07 |
 | 11.7 Votações | RF-VO-02, RF-VO-07, RF-VO-11, RN-VO-01, RN-VO-03, RN-VO-16, RN-VO-18, RN-FI-11, US-VO-02 |
 | 11.8 Cobranças | RF-FI-04, RF-FI-07 a RF-FI-13, RF-FI-16, RN-FI-03, RN-FI-08, RN-FI-10, RN-FI-20, SEG-17, US-FI-03, US-FI-05 |
 | 11.9 Painel web | RF-AC-06, RF-AD-01, RF-AD-16, RF-AD-18, RF-AD-21, RN-PL-05, Regras de Negócio seção 13, US-AD-10 |
+| 11.15 Finanças do condomínio | RF-FI-17 a RF-FI-24, RN-FI-21 a RN-FI-32, SEG-18, US-FI-07 a US-FI-10 |
 | 11.10 Unidade do proprietário | RF-AD-19, RF-RS-15, RF-VI-13, RN-CD-19, RN-CD-23, RN-RC-16, RN-VI-10, US-AD-11 |
 | 11.11 Gestão do subsíndico | RF-CH-04, RF-CO-04, RF-EN-05, RF-VO-04, RN-CD-27, RN-CD-28, RN-CO-05, RN-EN-04, RN-VO-11, US-AD-12, US-CO-03 |
 | 12. Navegação | RF-AC-05, RF-AC-07, RF-RE-08, RF-RE-09, RNF-15, RN-CD-19, RN-VO-01 |
 | 13. Escrita | RNF-14, glossário das Regras de Negócio |
 | 14. Acessibilidade | RNF-12 |
-| 15. Privacidade | RN-SC-02, RN-RC-01, RN-RC-16, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-CD-19, SEG-07, SEG-17 |
+| 15. Privacidade | RN-SC-02, RN-RC-01, RN-RC-16, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-FI-29, RN-FI-30, RN-CD-19, SEG-07, SEG-17, SEG-18 |
 | 16. Desempenho | RNF-02, RNF-04 |

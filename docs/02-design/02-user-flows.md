@@ -51,12 +51,16 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 6.2 | Registrar entrada e saída | Portaria | Visitante na portaria | US-VI-03, US-VI-05 |
 | 6.3 | Portaria sem internet e sincronização | Portaria | Queda de conexão | US-VI-04 |
 | 6.4 | Modo de treinamento | Portaria | Novo porteiro | US-VI-06 |
+| 6.5 | Montar lista de visitantes | Morador, Portaria | Festa ou evento com vários convidados | US-VI-07, US-VI-08 |
 | 7.1 | Encomendas | Portaria, Morador | Entrega na portaria | US-EN-01, US-EN-02 |
-| 8.1 | Abrir chamado | Morador, Síndico, Portaria | Problema no condomínio | US-CH-01 |
+| 7.2 | Entregas esperadas | Morador, Portaria | Pacote a caminho | US-EN-03, US-EN-04 |
+| 8.1 | Abrir chamado (com urgência) | Morador, Síndico, Portaria | Problema no condomínio | US-CH-01 |
 | 8.2 | Atender chamado de limpeza | Limpeza | Chamado na fila | US-CH-02 |
 | 8.3 | Acompanhar manutenção | Síndico, Subsíndico | Chamado de manutenção | US-CH-03, US-AD-12 |
-| 9.1 | Registrar reclamação | Morador | Problema de convivência | US-RS-01, US-RS-04 |
-| 9.2 | Julgar reclamação | Julgador | Reclamação aberta | US-RS-02, US-RS-03 |
+| 8.4 | Avaliar o atendimento do chamado | Morador, Síndico morador, Subsíndico | Chamado concluído | US-CH-04 |
+| 8.5 | Acompanhar as avaliações de atendimento | Síndico, Administradora, Funcionário | Avaliações recebidas | US-CH-05 |
+| 9.1 | Registrar reclamação | Morador | Problema de convivência | US-RS-01, US-RS-04, US-RS-08 |
+| 9.2 | Julgar reclamação | Julgador | Reclamação aberta | US-RS-02, US-RS-03, US-RS-08 |
 | 9.3 | Recorrer | Quem perdeu pontos | Decisão com perda de pontos | US-RS-05 |
 | 9.4 | Acompanhar score e transparência | Todos | Consulta | US-RS-06, US-RS-07 |
 | 10.1 | Comunicados | Síndico, Subsíndico | Aviso ao condomínio | US-CO-01 a US-CO-03 |
@@ -65,6 +69,8 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 12.1 | Pesquisa mensal | Morador | Mês aberto | US-PE-01, US-PE-02 |
 | 13.1 | Pagar a taxa condominial | Responsável financeiro | Cobrança emitida | US-FI-02, US-FI-03 |
 | 13.2 | Configurar cobrança, extras e inadimplência | Administradora, Síndico | Implantação ou atraso | US-FI-01, US-FI-04, US-FI-05 |
+| 13.3 | Controlar receitas e despesas | Administradora, Suporte | Pagamento recebido ou conta a lançar | US-FI-07 a US-FI-09 |
+| 13.4 | Acompanhar as finanças do condomínio | Síndico, Subsíndico, Conselho fiscal | Conferência do mês | US-FI-07, US-FI-10 |
 | 14.1 | Notificações e direitos do titular (LGPD) | Todos | Preferência ou pedido | US-NO-01, US-LG-01 |
 
 ## 3. Acesso e conta
@@ -380,12 +386,17 @@ flowchart TD
     O -->|"Não"| M
     O -->|"Sim"| S1["Rotina expira a reserva e libera o horário"]
     S1 --> E7(["Expirada"])
+    Z1 --> V{"Data depois de hoje, sem lista vinculada e não dispensada com Agora não?"}
+    Z2 --> V
+    V -->|"Sim"| V1["Faixa: Vai receber convidados? Montar lista ou Agora não"]
+    V -->|"Não"| V2(["Sem sugestão"])
+    V1 -->|"Montar lista"| V3["Fluxo 6.5, com data, horário e local da reserva"]
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
     classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
     class Z1,Z2 ok
     class E1,E2,E3,E4,E5,E6,E7 erro
-    class S1 sis
+    class S1,V1,V3 sis
 ```
 
 | Situação | O que o usuário vê | Como sai | Regra |
@@ -398,6 +409,10 @@ flowchart TD
 | Pagamento recusado | "O pagamento não foi aprovado. Seu horário fica guardado até [hora]." | Tenta de novo ou troca o meio | RN-RE-03 |
 | Prazo de pagamento vencido | Push: "Sua reserva expirou porque o pagamento não foi concluído." | Faz nova reserva, se o horário seguir livre | RN-RE-03 |
 | Gateway fora do ar | "O pagamento está indisponível agora. Seu horário fica guardado até [hora]." | Tenta de novo depois | RN-RE-03 |
+| Reserva confirmada com data futura e sem lista | Faixa `info` na confirmação e no detalhe: "Vai receber convidados? Monte a lista de visitantes." | "Montar lista" abre o fluxo 6.5 com data, horário e local da reserva; "Agora não" esconde para esta reserva | RN-RE-12, RN-VI-14 |
+| Reserva com lista vinculada | No detalhe, linha "Lista: N pessoas", com o nome da lista e "M chegaram" | Abre o detalhe da lista | RN-RE-12 |
+| Reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje | Nenhuma sugestão | — | RN-RE-12 |
+| Reserva cancelada com lista vinculada | Lista cancelada junto, com mensagem rápida: "Reserva cancelada. A lista vinculada também foi cancelada." | Monta outra lista, se quiser | RN-VI-14 |
 
 ### 5.2 Cancelar reserva
 
@@ -584,6 +599,68 @@ flowchart TD
 
 O porteiro liga o modo pelo menu. Com o modo ativo, a faixa "MODO TREINAMENTO · Nada aqui é real" fica sempre visível (DS 10.10), a lista mostra visitantes e encomendas fictícios, e nada é gravado nos dados reais nem notifica moradores (RF-VI-12). Ao sair, a lista real volta. Se um visitante real chegar durante o treinamento, o botão "Sair do treinamento" fica fixo na faixa, a um toque.
 
+### 6.5 Montar lista de visitantes
+
+Para festas e eventos com muita gente. O morador monta a lista numa tela só, e a portaria recebe as pessoas agrupadas (RF-VI-14, RF-VI-15).
+
+- **Perfil:** morador, síndico morador e subsíndico (monta); portaria (recebe).
+- **Toques:** Visitantes → Novo → Montar lista de visitantes → Enviar lista (4), mais um toque em "Adicionar pessoa" por linha criada à mão. Colar nomes e tocar em recentes ou em uma lista salva adiciona várias pessoas de uma vez. Digitar não conta.
+- **Origem opcional:** a tela também abre a partir de outro fluxo (ex.: sugestão depois de uma reserva), com data, horário e local da reserva já preenchidos e travados (RN-VI-14). Entrada de código: `abrirListaVisitantes(perfil, reservaId)`.
+
+```mermaid
+flowchart TD
+    A(["Toca em Visitantes, Novo e Montar lista de visitantes"]) --> O{"Veio de uma reserva?"}
+    O -->|"Sim"| O1["Data, horário e local da reserva; campos travados"]
+    O -->|"Não"| O2["Data de hoje por padrão; horário e local opcionais"]
+    O1 --> B
+    O2 --> B["Dá nome à lista"]
+    B --> C["Adiciona pessoas"]
+    C --> C1["Adicionar pessoa: nova linha com foco"]
+    C --> C2["Colar vários nomes, um por linha"]
+    C --> C3["Recentes, frequentes ou lista salva: 1 toque"]
+    C --> C4["Remover linha, com Desfazer"]
+    C1 --> D{"Enviar lista"}
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    D --> E{"Nome da lista, data e pelo menos 1 pessoa?"}
+    E -->|"Não"| E1["Mensagem ao lado do campo"]
+    E1 --> C
+    E -->|"Sim"| F{"Mais pessoas que o limite?"}
+    F -->|"Sim"| E2["Recusa e diz quantas sobram"]
+    E2 --> C
+    F -->|"Não"| G{"Sem internet?"}
+    G -->|"Sim"| E3["Não envia; orienta avisar a portaria pelo interfone"]
+    G -->|"Não"| S1["Cada pessoa vira visitante avulso esperado"]
+    S1 --> S2["Portaria vê a lista agrupada no dia"]
+    S2 --> H["Porteiro abre a lista e dá entrada pessoa a pessoa"]
+    H --> S3["Contador N pessoas, M chegaram; morador recebe aviso da primeira chegada e resumos agrupados"]
+    S3 --> Z(["Esperado"])
+    Z --> K{"Morador edita ou cancela até o fim do dia?"}
+    K -->|"Sim"| S4["Portaria atualizada na hora"]
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class Z ok
+    class E1,E2,E3 erro
+    class S1,S2,S3,S4 sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Lista sem nome ou sem pessoa | "Dê um nome à lista, como “Aniversário do Theo”." ou "Adicione pelo menos uma pessoa." | Preenche | RN-VI-11 |
+| Documento sem nome | "Informe o nome." na linha | Preenche o nome | RN-VI-02 |
+| Nome repetido | Aviso na linha, sem bloquear | Confere e envia | RN-VI-12 |
+| Mais pessoas que o limite | "A lista aceita até 100 pessoas e esta tem 112. Remova 12 ou crie outra lista." | Remove ou cria outra lista | RN-VI-12 |
+| Passou da capacidade da área (lista de reserva) | Faixa `warning`: "Você listou 85 pessoas e salão de festas comporta até 80. Pode enviar, mas confira se todos vão estar lá ao mesmo tempo." | Envia ou ajusta | RN-VI-14 |
+| Data no passado | Datas anteriores a hoje desabilitadas | Escolhe outra data | RN-VI-13 |
+| Linha removida sem querer | Mensagem rápida "Maria removida", com "Desfazer" por 10 s | Toca em "Desfazer" | RN-VI-15 |
+| Morador sem internet | "Sem internet, a lista não é enviada. Seus visitantes ainda podem entrar: a portaria confirma com você pelo interfone." | Tenta de novo ou autoriza pelo interfone | RN-VI-04 |
+| Lista com data futura | Faixa `info`: "A portaria passa a ver a lista no dia 22/11." | — | RN-VI-13 |
+| Reserva cancelada | A lista vinculada é cancelada e o morador é avisado | Monta outra lista, se quiser | RN-VI-14 |
+| Pessoa da lista na lista de bloqueio | Mesmo diálogo bloqueante do fluxo 6.2 | Porteiro decide | RN-VI-05 |
+| Quase todos chegaram | Selo `success` no contador quando todos chegam; `info` enquanto faltam | — | RN-VI-17 |
+
 ## 7. Encomendas
 
 ### 7.1 Registrar e retirar encomenda
@@ -620,24 +697,75 @@ flowchart TD
 | Unidade errada no registro | Porteiro corrige antes da retirada; a unidade antiga recebe "O aviso de encomenda foi enviado por engano." | Corrige | RN-EN-06 |
 | Quem retira não mora na unidade | A lista de quem pode retirar mostra só os moradores da unidade | Morador autoriza pelo interfone, e a portaria registra o nome de quem retirou | RN-EN-02 |
 | Prazo de guarda vencido | Síndico recebe alerta | Combina retirada ou devolução | RN-EN-04 |
+| Unidade com entrega esperada | A tela de registro sugere a entrega esperada (fluxo 7.2) | Confirma o vínculo ou escolhe "Não vincular" | RN-EN-11 |
+
+### 7.2 Entregas esperadas
+
+- **Perfil:** morador, síndico morador e subsíndico (avisam); portaria (vê e vincula).
+- **Gatilho:** o morador sabe que um pacote chega, por exemplo "hoje, entre 12h e 19h".
+- **Onde:** Menu > Encomendas, seção "Entregas esperadas" e botão "Avisar entrega"; na portaria, aba Encomendas, seção "Esperadas hoje".
+
+```mermaid
+flowchart TD
+    A(["Morador avisa a entrega: data, e opcionais descrição, faixa e origem"]) --> B{"Unidade com 10 ativas?"}
+    B -->|"Sim"| E1(["Limite: cancele uma para avisar outra"])
+    B -->|"Não"| C["Esperada"]
+    C --> D{"Origem iFood/entregador?"}
+    D -->|"Sim"| P1["Portaria vê com o selo Só aviso, sem registro"]
+    P1 --> Z3(["Encerrada, passada a data"])
+    D -->|"Não"| P2["No dia: aparece em Esperadas hoje, por faixa"]
+    P2 --> F{"Encomenda chegou e a portaria vinculou?"}
+    F -->|"Sim"| S1["Push normal da encomenda ao morador"]
+    S1 --> Z1(["Chegou"])
+    F -->|"Não"| G{"Data passou?"}
+    G -->|"Não"| P2
+    G -->|"Sim"| Z2["Não chegou; some de Esperadas hoje"]
+    Z2 --> H{"Morador reagenda?"}
+    H -->|"Sim"| C
+    H -->|"Não"| I{"Chegou em até 3 dias e a portaria vinculou?"}
+    I -->|"Sim"| S1
+    C --> X["Morador edita ou cancela"]
+    X --> Z4(["Cancelada"])
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class Z1 ok
+    class E1 erro
+    class S1,Z2 sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Limite de 10 entregas esperadas ativas | Erro no botão "Avisar entrega": "A unidade já tem 10 entregas esperadas. Cancele uma para avisar outra." | Cancela uma | RN-EN-08 |
+| Faixa com o fim antes do início | Erro no campo: "O horário final precisa ser depois do inicial." | Corrige | RN-EN-07 |
+| Data passada | Campo de data com mínimo em hoje; erro "A data não pode ser anterior a hoje." | Escolhe outra data | RN-EN-07 |
+| Data passou sem chegada | Selo `warning` "Não chegou" e o botão "Reagendar", sem push | Reagenda, edita ou cancela | RN-EN-13 |
+| Edição ou cancelamento | A portaria vê a mudança na hora; sem push | — | RN-EN-09 |
+| Origem iFood/entregador | Faixa `info`: "A portaria recebe só um aviso. Comida por aplicativo não é registrada como encomenda." | Salva o aviso | RN-EN-12 |
+| Encomenda chega fora da faixa ou sem entrega esperada | Nada muda para a portaria: registra normalmente | — | RN-EN-10 |
+| Vínculo sugerido está errado | Na tela de registro, "Não vincular" ou outra entrega da lista | Escolhe | RN-EN-11 |
+| Unidade da encomenda corrigida | O vínculo se desfaz e a entrega volta a "Esperada" ou "Não chegou" | — | RN-EN-06, RN-EN-11 |
 
 ## 8. Chamados
+
+**Ordem nas listas (RN-CH-13).** Morador, síndico, limpeza e manutenção veem os chamados abertos antes dos concluídos. Dentro de cada grupo, a ordem é da urgência alta para a leve; se a urgência empatar, o mais antigo vem primeiro. A ordem vale para todas as listas de chamados e não muda o chamado nem os prazos.
 
 ### 8.1 Abrir chamado
 
 - **Perfil:** morador, síndico, subsíndico e portaria.
-- **Toques:** Chamados → Novo → Enviar (3) (escolher o tipo e a categoria e digitar não contam).
+- **Toques:** Chamados → Novo → Enviar (3) (escolher o tipo, a categoria e a urgência e digitar não contam).
 
 ```mermaid
 flowchart TD
     A(["Toca em Chamados e Novo"]) --> B["Escolhe limpeza ou manutenção e a categoria"]
-    B --> C["Descreve; foto opcional"]
-    C --> D{"Descrição preenchida?"}
-    D -->|"Não"| E1["Descrição é obrigatória"]
+    B --> U["Escolhe a urgência: alta, média ou leve (com exemplos)"]
+    U --> C["Descreve; foto opcional"]
+    C --> D{"Urgência e descrição preenchidas?"}
+    D -->|"Não"| E1["Urgência e descrição são obrigatórias"]
     E1 --> C
     D -->|"Sim"| F{"Tipo"}
-    F -->|"Limpeza"| G(["Vai para a fila da limpeza; prazo 24h"])
-    F -->|"Manutenção"| H(["Vai para o síndico; primeira atualização em 48h"])
+    F -->|"Limpeza"| G(["Vai para a fila da limpeza com a urgência; prazo 24h"])
+    F -->|"Manutenção"| H(["Vai para o síndico com a urgência; primeira atualização em 48h"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
     class G,H ok
@@ -646,6 +774,8 @@ flowchart TD
 
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
+| Urgência não escolhida | "Escolha a urgência do chamado." no campo; o chamado não é enviado | Escolhe um nível e envia | RN-CH-09 |
+| Síndico ajusta a urgência no detalhe | Folha com os três níveis e os exemplos; depois, linha "Urgência alterada de média para alta por [nome]" no detalhe; quem abriu é avisado | Pode ajustar de novo; cada ajuste fica registrado | RN-CH-11 |
 | Foto grande demais ou formato inválido | "Não foi possível anexar a foto. Tente outra." (fotos são comprimidas no aparelho) | Troca a foto ou envia sem | RN-CH-03 |
 | Sem internet (morador ou portaria) | "Sem internet. Seu chamado não foi enviado." O texto fica salvo como rascunho | Envia quando voltar | RNF-07 |
 
@@ -656,13 +786,13 @@ flowchart TD
     A(["Funcionário abre a fila do setor"]) --> B["Cartões com prazo e botão Concluir visível"]
     B -->|"Opcional, pelo detalhe"| B1["Iniciar atendimento: estado Em atendimento"]
     B1 --> C
-    B --> C["Toca em Concluir; foto opcional"]
+    B --> C["Toca em Concluir; fotos do serviço opcionais"]
     C --> D{"Online?"}
     D -->|"Não"| E["Conclusão vai para a fila de sincronização"]
     E --> F{"Outra pessoa concluiu o mesmo chamado offline?"}
     F -->|"Sim, antes"| E1(["Vale a primeira conclusão; aviso ao segundo"])
     F -->|"Não"| Z1
-    D -->|"Sim"| Z1(["Concluído; quem abriu é avisado"])
+    D -->|"Sim"| Z1(["Concluído; quem abriu é avisado e convidado a avaliar"])
     Z1 --> G{"Quem abriu reabre em até 48h?"}
     G -->|"Sim"| H["Chamado reaberto volta à fila"]
     H --> B
@@ -680,10 +810,75 @@ flowchart TD
 | --- | --- | --- | --- |
 | Conclusão duplicada offline | "Este chamado já tinha sido concluído por [colega]." | Nenhuma ação | RN-CH-04 |
 | Reabrir depois de 48h | Botão "Reabrir" some; aparece "Abrir novo chamado" | Abre um chamado novo | RN-CH-07 |
+| Conclusão sem foto | Conclui normalmente; a folha diz "Fotos do serviço (opcional)" | Nenhuma ação | RN-CH-14 |
+| Fotos com a conclusão sem internet | "Será enviado quando a conexão voltar." As fotos seguem a conclusão na fila | Nenhuma ação | RN-CH-14, RN-CH-04 |
 
 ### 8.3 Acompanhar manutenção
 
-O síndico (ou o subsíndico em substituição) escolhe a empresa cadastrada e avança o status: aberto → orçamento → agendado → concluído (RN-CH-05). Sem primeira atualização em 48h, o chamado fica em destaque no painel. Se a empresa não estiver cadastrada, o síndico a cadastra ali mesmo, com nome, serviço e telefone (RF-AD-14). Quem abriu é avisado na conclusão e pode reabrir em até 48h. Fora da substituição, o subsíndico vê a mesma tela sem a escolha de empresa nem o botão de avançar, com a faixa "Você acompanha o andamento. Quem define a empresa e avança o status é o síndico." (RN-CH-05).
+O síndico (ou o subsíndico em substituição) também pode ajustar a urgência do chamado, com registro (RN-CH-11); funcionários e portaria só veem a urgência. Ele escolhe a empresa cadastrada e avança o status: aberto → orçamento → agendado → concluído (RN-CH-05). Sem primeira atualização em 48h, o chamado fica em destaque no painel. Se a empresa não estiver cadastrada, o síndico a cadastra ali mesmo, com nome, serviço e telefone (RF-AD-14). Quem abriu é avisado na conclusão e pode reabrir em até 48h. Fora da substituição, o subsíndico vê a mesma tela sem a escolha de empresa nem o botão de avançar, com a faixa "Você acompanha o andamento. Quem define a empresa e avança o status é o síndico." (RN-CH-05).
+
+Ao concluir, o síndico (ou o subsíndico em substituição) pode anexar fotos do serviço, sem obrigação (RN-CH-14). Concluir exige uma empresa registrada, porque a avaliação do atendimento vale para ela (RN-CH-15).
+
+### 8.4 Avaliar o atendimento do chamado
+
+- **Perfil:** quem abriu o chamado: morador, síndico morador e subsíndico. Síndico profissional, portaria e funcionários não veem a ação (RN-CH-15).
+- **Toques:** Chamados → chamado concluído → Avaliar o serviço → Enviar (3; estrelas, base e comentário não contam).
+
+```mermaid
+flowchart TD
+    A(["Chamado concluído; quem abriu recebe o aviso"]) --> B["Abre o detalhe: fotos do serviço, se houver, e Avaliar o serviço"]
+    B --> J{"Dentro de 7 dias da conclusão?"}
+    J -->|"Não"| E0(["Ação some; fica só o histórico"])
+    J -->|"Sim"| C{"O chamado tem fotos?"}
+    C -->|"Sim"| D["Vê as fotos e escolhe a base: Vi as fotos do serviço ou Conferi pessoalmente"]
+    C -->|"Não"| D2["Marca Conferi pessoalmente (única base)"]
+    D --> F["Dá de 1 a 5 estrelas; comentário opcional"]
+    D2 --> F
+    F --> G{"Base marcada e estrelas escolhidas?"}
+    G -->|"Não"| E1["Enviar desabilitado, com o motivo escrito"]
+    E1 --> F
+    G -->|"Sim"| H["Envia a avaliação (definitiva)"]
+    H --> I{"1 ou 2 estrelas?"}
+    I -->|"Não"| Z1(["Avaliado; agradecimento"])
+    I -->|"Sim"| K{"Dentro de 48h da conclusão?"}
+    K -->|"Sim"| L["Oferece Reabrir chamado; o morador decide"]
+    K -->|"Não"| M["Oferece Abrir novo chamado"]
+    L --> Z2(["Avaliado; síndico avisado da avaliação baixa"])
+    M --> Z2
+    S1["24h sem avaliar: um lembrete; 7 dias: janela encerrada"]
+    A -.-> S1
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class Z1,Z2 ok
+    class E1,E0 erro
+    class S1 sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Chamado sem fotos | Só a opção "Conferi pessoalmente", desmarcada; "Enviar avaliação" desabilitado até marcá-la | Marca a base e envia | RN-CH-16 |
+| Estrelas não escolhidas | Botão desabilitado com "Escolha de 1 a 5 estrelas." | Escolhe a nota | RN-CH-16 |
+| Já avaliado | A avaliação enviada, sem edição: "Sua avaliação" com a data | Nenhuma ação | RN-CH-17 |
+| Janela encerrada (7 dias) | Sem botão; "O prazo para avaliar terminou." | Se o problema continua, abre um novo chamado | RN-CH-17 |
+| Avaliação baixa dentro de 48h | Diálogo "Quer reabrir o chamado?" com "Reabrir chamado" e "Agora não" | Reabre ou segue sem reabrir | RN-CH-18 |
+| Avaliação baixa depois de 48h | Diálogo com "Abrir novo chamado" e "Agora não" | Abre um novo chamado ou segue | RN-CH-07, RN-CH-18 |
+| Reabre sem avaliar | O chamado volta à fila; a avaliação daquela conclusão deixa de ser possível | A nova conclusão abre nova avaliação | RN-CH-17 |
+| Sem internet | "Sem internet. Sua avaliação não foi enviada." O comentário fica como rascunho | Envia quando voltar | RNF-07 |
+
+### 8.5 Acompanhar as avaliações de atendimento
+
+- **Síndico (e subsíndico em substituição):** Gestão → Avaliações do atendimento. Lista cada funcionário de limpeza e cada empresa de manutenção com média, número de avaliações e distribuição por estrelas. Um selo `warning` "Avaliações baixas" marca quem tem avaliação de 1 ou 2 estrelas nos últimos 30 dias. A avaliação de um chamado, com comentário e base, está no detalhe do chamado (RN-CH-19). O subsíndico fora da substituição não vê a lista: "Esta função é do síndico. Você passa a ter acesso quando a substituição pelo subsíndico estiver ativa."
+- **Administradora (web):** Funcionários → coluna "Atendimento" com média e número de avaliações; sem comentários, sem chamados e sem identificar quem avaliou (RN-CH-19).
+- **Funcionário de limpeza:** Menu → Minhas avaliações. Com 3 ou mais avaliações: média, distribuição e comentários, só com o mês. Com menos: "Poucas avaliações para mostrar a média." (RN-CH-20).
+- **Sem efeito no score:** a avaliação do atendimento não muda o score de ninguém (RN-CH-21).
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Funcionário com menos de 3 avaliações | "Poucas avaliações para mostrar a média." | Aguarda mais avaliações | RN-CH-20 |
+| Funcionário desligado | Some da lista por funcionário; segue no agregado do setor | — | RN-CH-20 |
+| Subsíndico fora da substituição | Item "Avaliações do atendimento" não aparece; por link, estado vazio com cadeado | Aguarda a substituição | RN-CH-19 |
+| Avaliação baixa | Aviso ao síndico: "Avaliação baixa no chamado [categoria · local]"; nada vai ao funcionário | Síndico abre o chamado | RN-CH-18 |
 
 ## 9. Reclamações e score
 
@@ -727,7 +922,8 @@ flowchart TD
 | Tentar dois alvos | O seletor aceita um só; aviso: "Para reclamar de outra pessoa, abra outra reclamação." | Abre outra | RN-RC-02 |
 | Alvo de outro condomínio | Não aparece na busca | — | RN-RC-02 |
 | Texto ofensivo | "Reescreva o trecho destacado. Reclamações com ofensas não são enviadas." | Reescreve | RN-RC-13 |
-| Reclamação pendente sem julgador | "Sua reclamação aguarda um julgador disponível." | Automático quando houver julgador | Tabela 5.1 |
+| Reclamação pendente sem julgador | "Sua reclamação aguarda um julgador disponível." Sem semáforo de prazo | Automático quando houver julgador; o prazo passa a contar | Tabela 5.1, RN-RC-19 |
+| Acompanhar a reclamação que abri | Em "Minhas reclamações" e no detalhe, selo de prazo ao lado do estado enquanto aguarda decisão: verde "No prazo · 12 dias", amarelo "Vence amanhã" ou vermelho "Prazo esgotado há 3 dias" | Recebe a decisão por notificação; decidida, o semáforo some | RN-RC-17 a RN-RC-19 |
 
 ### 9.2 Julgar reclamação
 
@@ -755,7 +951,7 @@ flowchart TD
     S1 --> N["Partes notificadas; alvo sem a identidade do reclamante"]
     S2 --> N
     N --> Z(["Validada ou Negada; abre o prazo de recurso de 7 dias"])
-    S3["Lembrete ao julgador em 15 dias e a cada 5 dias depois"]
+    S3["Lembrete ao julgador em 15 dias e a cada 5 dias depois; semáforo verde, amarelo e vermelho até a decisão"]
     A -.-> S3
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
@@ -770,7 +966,9 @@ flowchart TD
 | Tentar decidir antes de ouvir o alvo | Botões bloqueados: "Converse com o alvo antes de decidir. Liberado em [data] se não houver resposta." | Envia a conversa ou espera o prazo | RN-RC-04 |
 | Negar com penalidade sem justificativa | "Explique por que esta reclamação foi considerada [desproporcional/falsa]." | Escreve | RN-RC-05 |
 | Mudar a gravidade sem justificativa | "Explique por que a gravidade mudou." | Escreve | RN-RC-09 |
-| Prazo de decisão vencido | Lembrete ao julgador; destaque no painel | Decide | RN-RC-06 |
+| Prazo de decisão se esgotando | Selo amarelo no painel e no detalhe: "Prazo se esgotando · 3 dias", "Vence amanhã" ou "Vence hoje" (últimos 25% do prazo, mínimo 1 dia) | Decide | RN-RC-17, RN-RC-18 |
+| Prazo de decisão vencido | Lembrete ao julgador; selo vermelho "Prazo esgotado há 2 dias" no painel e no detalhe. Os botões seguem regidos só pela conversa com o alvo | Decide | RN-RC-06, RN-RC-17, RN-RC-19 |
+| Reclamação decidida, em recurso ou encerrada | Sem semáforo; só o selo de estado | — | RN-RC-19 |
 | Reclamação de vistoria negada | Sem penalidade, porque o reclamante é o condomínio | — | RN-RC-12 |
 | Reclamação contra uma unidade cujo morador habilitado mudou | Os pontos vão para o habilitado na data da decisão | — | RN-SC-04 |
 | Alvo é uma unidade desocupada | A conversa é com o proprietário; validada, ninguém perde pontos | — | RN-RC-04, RN-CD-24 |
@@ -1042,6 +1240,86 @@ flowchart TD
 | Multa por infração em unidade alugada | Vai ao inquilino; o proprietário é avisado. Vencida, a administradora pode reemiti-la ao proprietário | Reemite ou aguarda | RN-FI-20 |
 | Morador comum procura a situação de outra unidade | Nenhuma tela mostra esse dado | — | RN-FI-10 |
 
+### 13.3 Controlar receitas e despesas
+
+- **Perfil:** administradora (e suporte, no plano Gestão + Suporte). A tela é Finanças, no painel web (Design System, 11.15).
+- **Pré-condição:** nenhuma; sem o módulo de cobrança, só não há receitas automáticas de cobrança (RN-FI-24).
+
+```mermaid
+flowchart TD
+    S0["Cobrança ou reserva paga: receita lançada sozinha, na data do pagamento"] --> A
+    A(["Administradora abre Finanças"]) --> B["Escolhe o período e vê resumo, categorias, evolução e lançamentos"]
+    B --> C["Novo lançamento: despesa ou receita avulsa"]
+    C --> D{"Dados válidos? Valor maior que zero, data até hoje e em mês aberto, fornecedor na despesa"}
+    D -->|"Não"| E1["Mostra o erro ao lado do campo"]
+    E1 --> C
+    D -->|"Sim"| F{"Recorrente?"}
+    F -->|"Sim"| S1["Sistema cria o lançamento todo mês, no dia escolhido"]
+    F -->|"Não"| G["Lançado"]
+    S1 --> G
+    G --> H{"Mês aberto?"}
+    H -->|"Sim"| I["Edita ou exclui o lançamento avulso; fica na auditoria"]
+    H -->|"Não"| J["Estornar: informa o motivo"]
+    J --> K["Novo lançamento de valor oposto, com a data de hoje; o original fica Estornado"]
+    L["Dia 10 do mês seguinte: mês fechado sozinho"] -.-> M
+    N["Administradora fecha o mês antes, depois do último dia"] --> M(["Mês fechado"])
+    I --> N
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class M,K ok
+    class E1 erro
+    class S0,S1,L sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Valor zero ou vazio | "Informe um valor maior que zero." | Corrige | RN-FI-24 |
+| Despesa sem fornecedor | "Informe o fornecedor." | Preenche | RN-FI-25 |
+| Data futura | "A data não pode ser futura." | Corrige | RN-FI-25 |
+| Data em mês fechado | "Este mês está fechado. Use a data de um mês aberto ou estorne um lançamento." | Muda a data ou estorna | RN-FI-25, RN-FI-28 |
+| Receita avulsa de taxa ou multa | A categoria não aparece; faixa: "Taxas, multas, fundo de reserva e aluguel de áreas entram sozinhos das cobranças e reservas pagas." (com cobrança desligada, "Taxa condominial" e "Fundo de reserva" aparecem) | Escolhe "Outras receitas" | RN-FI-22, RN-FI-24 |
+| Despesa sem comprovante | Lançamento aceito, com "Não anexado" na lista e aviso ao fechar o mês | Anexa depois, enquanto o mês está aberto | RN-FI-24 |
+| Folha de funcionários | Faixa: "Informe só o total da folha do mês, sem nomes nem salários." | Lança o total | RN-FI-24 |
+| Editar ou excluir lançamento automático | As ações não existem; a faixa aponta para a cobrança ou reserva de origem | Corrige na origem | RN-FI-22 |
+| Editar ou excluir em mês fechado | Só "Estornar" | Estorna | RN-FI-28 |
+| Estorno sem motivo | "Informe o motivo do estorno." | Preenche | RN-FI-28 |
+| Estornar lançamento já estornado ou um estorno | A ação não existe | Lança o valor correto como novo | RN-FI-28 |
+| Fechar o mês com despesas sem comprovante | Diálogo: "N despesas estão sem comprovante. Depois de fechar, o mês só aceita estorno. Fechar mesmo assim?" | Fecha ou volta para anexar | RN-FI-28 |
+| Fechar antes de o mês acabar | O botão "Fechar mês" não aparece | Espera o último dia | RN-FI-28 |
+| Pagamento confirmado depois do fechamento | Entra no mês do pagamento; o mês fechado não muda | Automático | RN-FI-28 |
+| Comentário do síndico ou do conselho | Selo "Novo comentário" no lançamento e no mês | Lê; responde fora do app ou comentando | RN-FI-31 |
+
+### 13.4 Acompanhar as finanças do condomínio
+
+- **Perfil:** síndico, subsíndico em substituição e membro do conselho fiscal. O síndico acessa por Gestão > Finanças; o conselho fiscal, por Menu > Finanças do condomínio. Só leitura, comentário e exportação.
+
+```mermaid
+flowchart TD
+    A(["Abre Finanças"]) --> B{"Tem permissão?"}
+    B -->|"Subsíndico fora da substituição"| E1["Mostra que a função é do síndico"]
+    B -->|"Sim"| C["Resumo do mês, categorias e evolução"]
+    C --> D["Filtra por período, categoria, tipo e texto"]
+    D --> E["Abre um lançamento: dados, comprovante e comentários"]
+    E --> F["Comenta o lançamento ou o mês"]
+    F --> G["Administradora recebe aviso"]
+    D --> H["Exporta CSV ou PDF do filtro"]
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class E1 erro
+    class G sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Subsíndico fora da substituição | "Esta função é do síndico. Você passa a ter acesso quando a substituição estiver ativa." | Espera | RN-FI-29 |
+| Morador, proprietário ou funcionário | Nenhuma tela mostra as finanças | — | RN-FI-29 |
+| Receita de cobrança | Linha agregada: "Taxa condominial · 117 cobranças pagas", sem unidade | — | RN-FI-30 |
+| Filtro sem resultado | "Nenhum lançamento neste filtro." com a ação "Limpar filtros" | Limpa | RN-FI-21 |
+| Período de vários meses | A comparação com o mês anterior some; fica a evolução | — | RN-FI-21 |
+| Exportar | "financeiro-2026-10.csv baixado." ou "financeiro-2026-10.pdf baixado."; o arquivo respeita o filtro | — | RN-FI-30 |
+| Mês fechado | Faixa "Mês fechado em 10/11. Alterações só por estorno."; os comentários continuam liberados | Comenta | RN-FI-28, RN-FI-31 |
+
 ## 14. Notificações e LGPD
 
 ### 14.1 Preferências e direitos do titular
@@ -1119,7 +1397,13 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-27 | O proprietário não residente só tinha login quando era responsável financeiro e não acompanhava a unidade | Login para todo proprietário não residente, com assembleias, comunicados, contrato e ocorrências, sem a rotina do inquilino | RN-CD-19, RN-RC-16, RN-SC-13, RF-RS-15, RF-AD-19, US-AD-11, DS 12 e 15 |
 | D-29 | Fora da substituição, o subsíndico tinha as abas do morador e só julgava reclamações contra o síndico | Mesmas abas do síndico, com a Gestão enxuta: acompanha a manutenção, sugere comunicados, registra votos presenciais e vê encomendas com prazo vencido | RN-CD-27, RN-CD-28, RN-CH-05, RN-EN-04, RN-VO-11, RF-CH-04, RF-EN-05, RF-VO-04, US-AD-12, DS 11.11 e 12 |
 | D-30 | O subsíndico não tinha como contribuir com comunicados sem a substituição | Sugestão de comunicado, que o síndico revisa e envia ou descarta | RN-CO-01, RN-CO-05, RF-CO-04, US-CO-03 |
+| D-31 | O prazo de decisão de 15 dias existia só como lembrete ao julgador; quem reclamou e o julgador não viam o quanto faltava | Semáforo do prazo de decisão (verde, amarelo, vermelho), com limiar de 25% do prazo (mín. 1 dia); sem semáforo em reclamação pendente ou decidida e para o alvo (novas RN-RC-17 a RN-RC-19) | RN 5.2, RF-RS-16, US-RS-08, DS 4.5, 10.8.2 e 11.5, fluxos 9.1 e 9.2 |
+| D-32 | O chamado concluído terminava ali: sem forma de o morador dizer se o serviço ficou bom, sem fotos do que foi feito e sem como o síndico cobrar a qualidade de cada funcionário e empresa | Fotos opcionais na conclusão; avaliação de 1 a 5 estrelas por quem abriu, com base explícita ("Vi as fotos" ou "Conferi pessoalmente"), janela de 7 dias e uma por conclusão; avaliação baixa oferece reabrir (decisão do morador) e avisa o síndico; síndico e administradora veem o agregado, o funcionário vê média e comentários anônimos com 3 ou mais avaliações; sem efeito no score, para não duplicar a pesquisa mensal nem criar pressão sobre o funcionário | RN-CH-14 a RN-CH-21, RN 13 e 14, RF-CH-02, RF-CH-04, RF-CH-05, RF-CH-08 a RF-CH-11, US-CH-02 a US-CH-05, DS 10.8.1, 10.17, 10.20, 11.2, 11.12 e 15, fluxos 8.2 a 8.5 |
+| D-33 | Cadastrar visitante era um por um, o que não serve para festas: o morador repetia data e local dezenas de vezes e a portaria buscava cada convidado entre os demais visitantes | "Lista de visitantes": linhas que se adicionam e removem na mesma tela (com Desfazer), colar vários nomes, recentes, frequentes e listas salvas, dados comuns preenchidos uma vez; cada pessoa vira visitante avulso, com as regras que já existiam; portaria vê a lista agrupada, com contador, e dá entrada pessoa a pessoa; limite configurável de 100 pessoas; capacidade da área só avisa, não bloqueia; origem opcional (reserva) pré-preenche data, horário e local; aviso ao morador agrupado, para não gerar dezenas de notificações | RN-VI-11 a RN-VI-17, RN 13, RF-VI-14, RF-VI-15, US-VI-07, US-VI-08, DS 10.25 e 11.13, fluxo 6.5 |
 | D-28 | Unidade entre dois contratos ficaria sem morador habilitado, o que RN-CD-04 proíbe | Novo estado "Desocupada"; aluguel por temporada entra como hóspede, desligado por padrão | RN-CD-04, RN-CD-18, RN-CD-24, RN-CD-25, RN-VI-10, RF-AD-21, RF-VI-13 |
+| D-34 | Depois de reservar, nada levava o morador para a lista de visitantes, e não estava definido quando a sugestão aparece: reserva ainda não paga, área sem convidados, reserva já passada | Sugestão só para reserva confirmada, com data depois de hoje e sem lista; "Agora não" esconde para aquela reserva. A lista não é oferecida com origem antes da aprovação, porque a reserva pode expirar (RN-RE-03) e levaria a lista junto (a lista ainda pode ser montada sem origem, em Visitantes). As regras não separam áreas, então a sugestão vale para todas | RN-RE-12, RN-VI-14, RF-RE-02, US-RE-02, fluxo 5.1, DS 11.4 e 18 |
+| D-35 | A portaria só sabia de um pacote quando ele já estava na mão; o morador não tinha como avisar que uma entrega estava a caminho | "Entrega esperada": data obrigatória e descrição, faixa de horário e origem opcionais; limite de 10 ativas por unidade; "Esperadas hoje" na portaria por faixa; vínculo sugerido ao registrar a encomenda, com o push normal e sem aviso duplicado; passada a data vira "Não chegou" (some da portaria, vinculável por 3 dias, reagendável pelo morador). O aviso é só informativo: não autoriza nem é exigido (RN-EN-01 segue), e iFood/entregador é só aviso, sem registro (RN-EN-05 segue), terminando "Encerrada". Parâmetros e rotina novos | RN-EN-07 a RN-EN-13, RN 13 e 14, RF-EN-06 a RF-EN-08, US-EN-03, US-EN-04, DS 4.5, 11.14 e 18, fluxo 7.2 |
+| D-36 | O PRD tinha só a cobrança por unidade: a administradora não tinha onde controlar despesas, o síndico e o conselho fiscal não viam para onde ia o dinheiro, e o balancete estava fora de escopo, sem distinguir contabilidade de controle | Controle **gerencial** de receitas e despesas: receitas de cobrança e reservas pagas entram sozinhas (regime de caixa), despesas por categoria lançadas pela administradora, fechamento do mês com correção só por estorno, leitura e comentário para síndico e conselho fiscal; sem orçamento previsto e sem visão para moradores, que o PRD não prevê (ver pendências) | RN-FI-21 a RN-FI-32, RN 12.3 e 12.4, RN 13 e 14, RF-FI-17 a RF-FI-24, US-FI-07 a US-FI-10, SEG-08, SEG-18, DS 4.7, 10.22, 11.9, 11.15, 12, 15 |
 
 ## 17. Pendências
 
@@ -1132,4 +1416,8 @@ Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma
 | Prazo de 5 dias para resposta do alvo | Valor novo, sem dado de uso; validar no piloto | Produto, após o piloto |
 | Reserva paga não usada | A RN 7.4 não define o estado nem se há vistoria; hoje ela ficaria "Confirmada" para sempre | Produto |
 | Revisão jurídica das regras de locação | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
+| Orçamento anual previsto | O PRD não tem orçamento; sem ele, o painel só compara com o mês anterior, e não com o previsto | Produto |
+| Finanças para moradores (transparência financeira) | O PRD só prevê transparência de score e notas; um resumo público de receitas e despesas pode vir com a prestação de contas | Produto, com parecer jurídico |
+| Saldo separado do fundo de reserva e da conta de obras | Hoje as cobranças extraordinárias aparecem discriminadas na receita, mas não há saldo próprio do fundo | Produto e contabilidade |
+| Plano de contas e categorias da contabilidade | As 9 categorias de despesa podem não casar com o plano da contabilidade de cada administradora | Administradoras parceiras |
 | Cobrança em atraso como notificação obrigatória | Proposta da revisão de fluxos; não está nas RN nem no US-NO-01 | Produto |

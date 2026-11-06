@@ -15,14 +15,17 @@ def(GES, 'gestao', 'Gestão', 'Gestão', () => {
   const manut = S.chamados.filter(c => c.tipo === 'manutencao' && c.estado !== 'Concluído');
   const fora = S.chamados.filter(c => c.fora && c.estado !== 'Concluído');
   const pend = S.rascunhos.filter(r => r.estado === 'Aguardando o síndico').length;   // RN-CO-05
+  const baixas = avalTodas().filter(a => a.nota <= 2 && a.dias <= 30).length;   // RN-CH-18
   const todos = [
     ['scale', isSub() && !S.substituicao ? 'Reclamações contra o síndico' : 'Reclamações para julgar', 'julgar', abertas ? badge(String(abertas), 'warning') : ''],
     ['wrench', 'Chamados de manutenção', 'manutencao', manut.some(c => c.fora) ? badge('Fora do prazo', 'danger') : badge(String(manut.length), 'info')],
     ['spray-can', 'Limpeza: fila do setor', 'limpeza-painel', fora.filter(c => c.tipo === 'limpeza').length ? badge('Fora do prazo', 'danger') : ''],
+    ['star', 'Avaliações do atendimento', 'avaliacoes', baixas ? badge(baixas + (baixas > 1 ? ' avaliações baixas' : ' avaliação baixa'), 'warning') : ''],
     ['megaphone', plena() ? 'Comunicados' : 'Comunicados e sugestões', 'comunicados', !isSub() && pend ? badge(pend + ' sugestão', 'accent') : ''],
     ['vote', 'Reuniões e eleições', 'reunioes', ''],
     ['inbox', 'Solicitações de cadastro', 'solicitacoes', badge(`${S.franquia.usadas} de ${S.franquia.total}`, 'neutral')],
     ['receipt', 'Inadimplência', 'inadimplencia', badge(S.inad.length + ' unidades', 'danger')],
+    ['wallet', 'Finanças', 'financas', ''],
     ['package', 'Encomendas com prazo vencido', 'encomendas-vencidas', badge(String(S.encomendas.filter(e => e.estado === 'Prazo vencido').length), 'warning')],
     ['user-round-cog', 'Substituição pelo subsíndico', 'substituicao', S.substituicao ? badge('Ativa', 'info') : isSub() ? badge('Inativa', 'neutral') : ''],
   ];
@@ -49,7 +52,7 @@ def(GES, 'julgar', 'Reclamações para julgar', 'Reclamações (9.2)', () => {
     tab: 'gestao', top: { title: 'Para julgar', back: R('gestao') }, flush: true,
     body: `${isSub() && !S.substituicao ? `<div class="pad" style="padding-bottom:0">${banner('info', 'scale', 'Você julga as reclamações contra o síndico e os recursos de decisões dele. Na substituição, julga todas, menos as contra você.', { inline: true })}</div>` : ''}<div class="pad stack-2"><div class="chips scroll">${['todas', 'Aberta', 'Em conversa com o alvo', 'Em recurso', 'Validada', 'Negada'].map(x => chip(x === 'todas' ? 'Todas' : x, f === x, () => { FORM.fj = x; rerender(); })).join('')}</div>
         <div class="row t-body-sm muted">${ic('sliders-horizontal')}Ordenar por ${chip('Data', ord === 'data', () => { FORM.oj = 'data'; rerender(); })}${chip('Score do alvo', ord === 'score', () => { FORM.oj = 'score'; rerender(); })}</div></div>
-      <div class="list">${list.length ? list.map(j => row({ icon: 'scale', title: j.cat + ' · ' + j.alvo.un, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, right: st(j.estado, ['Validada', 'Negada'].includes(j.estado) ? 'neutral' : undefined), on: R('julgamento/') + j.id })).join('') : empty('scale', 'Nenhuma reclamação com este filtro.')}</div>`,
+      <div class="list">${list.length ? list.map(j => row({ icon: 'scale', title: j.cat + ' · ' + j.alvo.un, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, right: badgeStack(st(j.estado, ['Validada', 'Negada'].includes(j.estado) ? 'neutral' : undefined), prazoBadge(j)), on: R('julgamento/') + j.id })).join('') : empty('scale', 'Nenhuma reclamação com este filtro.')}</div>`,
   };
 });
 def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
@@ -84,7 +87,8 @@ def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
   });
   return {
     tab: 'gestao', top: { title: 'Reclamação', back: R('julgar') },
-    body: `<div class="stack">${card({ icon: 'message-square-warning', title: j.cat, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, badge: st(j.estado, decidida ? 'neutral' : undefined), body: esc(j.desc) })}
+    body: `<div class="stack">${card({ icon: 'message-square-warning', title: j.cat, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, badge: badgeStack(st(j.estado, decidida ? 'neutral' : undefined), prazoBadge(j)), body: esc(j.desc) })}
+      ${prazoLinha(j)}
       <div class="row" style="align-items:stretch">${pessoa('Reclamante', j.reclamante)}${pessoa('Alvo', j.alvo)}</div>
       <h3 class="t-title-sm">Conversa com o alvo</h3>
       ${j.conversa ? `<div class="stack-2"><div class="msg me">Olá, ${j.alvo.nome.split(' ')[0]}. Recebemos uma reclamação sobre ${j.cat.toLowerCase()}. Pode nos contar o que aconteceu?</div>${j.resposta ? `<div class="msg">${esc(j.resposta)}</div>` : j.semResposta ? `<div class="t-body-sm muted row">${ic('clock')}Registro: alvo não respondeu em 5 dias.</div>` : `<div class="t-body-sm muted row">${ic('clock')}Aguardando resposta até ${j.liberaEm}.</div>`}</div>`
@@ -99,12 +103,25 @@ def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
   };
 });
 
+/* ---- Urgência: o síndico (ou o subsíndico em substituição) pode ajustar, com registro (RN-CH-11) ---- */
+function reclassUrg(c) {
+  if (!plena()) return;
+  sheet(`<h2 class="t-title-md">Urgência do chamado</h2><div class="t-body-sm muted">${esc(c.cat)} · ${esc(c.local)}</div>
+    ${['alta', 'media', 'leve'].map(u => row({ title: urgBadge(u), sub: URG[u].ex, right: c.urg === u ? ic('check') : '', noChev: true, on: () => {
+      closeLayer();
+      if (u === c.urg) return;
+      (c.urgLog = c.urgLog || []).push({ de: c.urg, para: u, por: 'Síndico Pedro Alves', quando: 'agora' });
+      c.urg = u; rerender(); toast('Urgência alterada para ' + URG[u].label.toLowerCase() + '. Quem abriu foi avisado.');
+    } })).join('')}
+    <p class="help">A alteração fica registrada com seu nome e a data. Ela não muda o prazo do chamado.</p>`);
+}
+
 /* ---- Manutenção (8.3) ---- */
 def(GES, 'manutencao', 'Chamados de manutenção', 'Chamados (8.3)', () => {
-  const list = S.chamados.filter(c => c.tipo === 'manutencao');
+  const list = ordenarChamados(S.chamados.filter(c => c.tipo === 'manutencao'));
   return {
     tab: 'gestao', top: { title: 'Manutenção', back: R('gestao') }, flush: true,
-    body: `<div class="list">${list.map(c => row({ icon: 'wrench', title: c.cat + ' · ' + c.local, sub: 'Aberto ' + c.aberto + (c.empresa ? ' · ' + c.empresa : ''), right: `<span class="stack-2" style="align-items:flex-end">${st(c.estado)}${c.fora && c.estado !== 'Concluído' ? badge('Fora do prazo', 'danger') : ''}</span>`, on: R('manutencao-detalhe/') + c.id })).join('')}</div>`,
+    body: `<div class="list">${list.map(c => row({ icon: 'wrench', title: c.cat + ' · ' + c.local, sub: 'Aberto ' + c.aberto + (c.empresa ? ' · ' + c.empresa : ''), right: badgeStack(st(c.estado), urgBadge(c.urg), c.fora && c.estado !== 'Concluído' ? badge('Fora do prazo', 'danger') : ''), on: R('manutencao-detalhe/') + c.id })).join('')}</div>`,
     fab: { icon: 'plus', label: 'Abrir chamado', on: () => { resetForm({ ctipo: 'manutencao' }); go(R('chamado-novo')); } },
   };
 });
@@ -118,15 +135,18 @@ def(GES, 'manutencao-detalhe', 'Acompanhar manutenção', 'Chamados (8.3)', ctx 
       ${btn('Salvar empresa', { block: true, on: () => { if (!(FORM.enome || '').trim()) return; S.empresas.push({ nome: FORM.enome, serv: FORM.eserv || '', tel: FORM.etel || '' }); c.empresa = FORM.enome; closeLayer(); rerender(); toast('Empresa salva.'); } })}`) })}`);
   return {
     tab: 'gestao', top: { title: 'Chamado de manutenção', back: R('manutencao') },
-    body: `<div class="stack">${card({ icon: 'wrench', title: c.cat, sub: c.local + ' · aberto ' + c.aberto + ' por ' + c.autor, badge: st(c.estado), body: esc(c.desc) })}
+    body: `<div class="stack">${card({ icon: 'wrench', title: c.cat, sub: c.local + ' · aberto ' + c.aberto + ' por ' + c.autor, badge: badgeStack(st(c.estado), avalBadge(c), urgBadge(c.urg)), body: esc(c.desc) })}
+      ${plena() ? row({ icon: 'sliders-horizontal', title: 'Urgência: ' + URG[c.urg].label, sub: 'Toque para ajustar. A mudança fica registrada.', on: () => reclassUrg(c) }) : ''}${urgLogLine(c)}
       ${c.fora && c.estado !== 'Concluído' ? banner('danger', 'circle-x', 'Sem atualização há mais de 48h. Defina a empresa ou avance o andamento.', { inline: true }) : ''}
       ${row({ icon: 'building-2', title: c.empresa || 'Nenhuma empresa definida', sub: 'Empresa responsável', on: plena() ? escolherEmpresa : null, noChev: !plena() })}
       ${plena() ? '' : banner('info', 'eye', 'Você acompanha o andamento. Quem define a empresa e avança o status é o síndico, ou você na substituição.', { inline: true })}
       ${c.agenda ? row({ icon: 'calendar-days', title: 'Visita agendada', sub: c.agenda }) : ''}
-      <h3 class="t-title-sm">Andamento</h3>${timeline(steps.map((s, i) => ({ t: s, state: i < idx || (c.estado === 'Concluído' && i === idx) ? 'done' : i === idx ? 'now' : '' })))}</div>`,
+      <h3 class="t-title-sm">Andamento</h3>${timeline(steps.map((s, i) => ({ t: s, state: i < idx || (c.estado === 'Concluído' && i === idx) ? 'done' : i === idx ? 'now' : '' })))}
+      ${c.estado === 'Concluído' ? fotosServico(c) + avalSindico(c) : ''}</div>`,
     footer: nextS && plena() ? btn('Avançar para ' + nextS, { block: true, size: 'lg', on: () => {
-      const doIt = () => { c.estado = nextS; c.fora = false; if (nextS === 'Agendado' && !c.agenda) c.agenda = '10/11 às 14h'; rerender(); toast(nextS === 'Concluído' ? 'Chamado concluído. Quem abriu foi avisado e pode reabrir em até 48h.' : 'Andamento atualizado: ' + nextS + '.'); };
+      const doIt = () => { c.estado = nextS; c.fora = false; if (nextS === 'Concluído') { c.concluidoEm = AGORA_PROTO; c.concluido = 'agora'; c.fotos = Math.min((FORM.sfotos || []).length, 5); FORM.sfotos = []; } if (nextS === 'Agendado' && !c.agenda) c.agenda = '10/11 às 14h'; rerender(); toast(nextS === 'Concluído' ? 'Chamado concluído. Quem abriu foi avisado e pode reabrir em até 48h.' : 'Andamento atualizado: ' + nextS + '.'); };
       if (!c.empresa && nextS !== 'Orçamento') { escolherEmpresa(); return; }
+      if (nextS === 'Concluído') { FORM.sfotos = []; sheet(() => `<h2 class="t-title-md">Concluir chamado</h2><div class="t-body-sm muted">${esc(c.cat)} · ${esc(c.local)} · ${esc(c.empresa)}</div><div class="field"><span class="field-label">Fotos do serviço (opcional)</span>${photoPicker('sfotos')}<span class="help">Até 5 fotos. Quem abriu vê as fotos para avaliar o serviço. Você pode concluir sem foto.</span></div>${btn('Concluir chamado', { block: true, size: 'lg', icon: 'check', on: () => { closeLayer(); doIt(); } })}`); return; }
       if (nextS === 'Agendado') sheet(`<h2 class="t-title-md">Agendar visita</h2>${field('Data', input('adata', { type: 'date', value: '2026-11-10' }))}${field('Horário', input('ahora', { type: 'time', value: '14:00' }))}${btn('Agendar', { block: true, on: () => { closeLayer(); c.agenda = (FORM.adata || '2026-11-10').split('-').reverse().slice(0, 2).join('/') + ' às ' + (FORM.ahora || '14:00').replace(':00', 'h'); doIt(); } })}`);
       else doIt();
     } }) : '',
@@ -134,8 +154,33 @@ def(GES, 'manutencao-detalhe', 'Acompanhar manutenção', 'Chamados (8.3)', ctx 
 });
 def(GES, 'limpeza-painel', 'Painel da limpeza', 'Chamados (8.3)', () => !plena() ? soSindico('Limpeza') : ({
   tab: 'gestao', top: { title: 'Limpeza', back: R('gestao') }, flush: true,
-  body: `<div class="list">${S.chamados.filter(c => c.tipo === 'limpeza').map(c => row({ icon: 'spray-can', title: c.cat + ' · ' + c.local, sub: c.estado === 'Concluído' ? 'Concluído ' + (c.concluido || '') : c.prazo, right: `<span class="stack-2" style="align-items:flex-end">${st(c.estado)}${c.fora && c.estado !== 'Concluído' ? badge('Fora do prazo', 'danger') : ''}</span>` })).join('')}</div>`,
+  body: `<div class="list">${ordenarChamados(S.chamados.filter(c => c.tipo === 'limpeza')).map(c => row({ icon: 'spray-can', title: c.cat + ' · ' + c.local, sub: c.estado === 'Concluído' ? 'Concluído ' + (c.concluido || '') : c.prazo, right: badgeStack(st(c.estado), urgBadge(c.urg), c.fora && c.estado !== 'Concluído' ? badge('Fora do prazo', 'danger') : ''), on: c.estado === 'Concluído' ? R('limpeza-detalhe/') + c.id : () => reclassUrg(c), noChev: c.estado !== 'Concluído' })).join('')}</div>`,
 }));
+def(GES, 'limpeza-detalhe', 'Chamado de limpeza concluído', 'Chamados (8.3)', ctx => {
+  const c = S.chamados.find(x => x.id === ctx.arg) || S.chamados.find(x => x.tipo === 'limpeza' && x.estado === 'Concluído');
+  return !plena() ? soSindico('Limpeza') : {
+    tab: 'gestao', top: { title: 'Chamado de limpeza', back: R('limpeza-painel') },
+    body: `<div class="stack">${card({ icon: 'spray-can', title: c.cat, sub: c.local + ' · aberto ' + c.aberto + ' por ' + c.autor, badge: badgeStack(st(c.estado), avalBadge(c), urgBadge(c.urg)), body: esc(c.desc) })}
+      ${row({ icon: 'user', title: c.concluidoPor || 'Equipe de limpeza', sub: 'Concluído ' + (c.concluido || '') })}
+      ${fotosServico(c)}${avalSindico(c)}</div>`,
+  };
+});
+
+/* ---- Avaliações do atendimento (8.5, RN-CH-19): agregado por funcionário de limpeza e por empresa; comentários só no detalhe do chamado ---- */
+const avalSindico = c => { const e = avalEstado(c);
+  return e === 'avaliado' ? avalCartao(c, 'Avaliação do atendimento')
+    : e === 'pendente' ? `<div class="card"><h3 class="t-title-sm">Avaliação do atendimento</h3><p class="help">${ic('clock')} Ainda não avaliado. Quem abriu pode avaliar até ${JANELA_AVAL_DIAS} dias depois da conclusão.</p></div>`
+    : e === 'encerrada' ? `<div class="card"><h3 class="t-title-sm">Avaliação do atendimento</h3><p class="help">${ic('clock')} Sem avaliação. O prazo terminou.</p></div>` : ''; };
+def(GES, 'avaliacoes', 'Avaliações do atendimento', 'Avaliações do atendimento (8.5)', () => {
+  const grupo = (titulo, icone, nomes) => `<h2 class="t-title-sm section-title">${titulo}</h2>${nomes.map(n => { const r = avalResumo(n);
+    return card({ icon: icone, title: esc(n), sub: avalLinha(r), badge: r.baixas ? badge('Avaliações baixas', 'warning', 'triangle-alert') : '', body: avalDist(r) }); }).join('')}`;
+  const limp = S.funcionarios.filter(f => f.setor === 'Limpeza' && f.ativo).map(f => f.nome);
+  return !plena() ? soSindico('Avaliações do atendimento') : {
+    tab: 'gestao', top: { title: 'Avaliações do atendimento', back: R('gestao') },
+    body: `<div class="stack">${banner('info', 'eye', 'Aqui você vê só a média e a distribuição. Os comentários e quem avaliou aparecem no detalhe de cada chamado. A avaliação não muda o score de ninguém.', { inline: true })}
+      ${grupo('Limpeza', 'spray-can', limp)}${grupo('Manutenção', 'building-2', S.empresas.map(e => e.nome))}</div>`,
+  };
+});
 
 /* ---- Comunicados (10.1) ---- */
 def(GES, 'comunicado-novo', 'Novo comunicado', 'Comunicados (10.1)', () => {

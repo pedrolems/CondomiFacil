@@ -4,6 +4,7 @@ const RES = ['morador', 'sindico', 'subsindico'];
 const TONES = {
   'Esperado': 'info', 'Autorizado por interfone': 'success', 'Entrou': 'success', 'Saiu': 'neutral', 'Saída não registrada': 'warning', 'Cancelado': 'neutral', 'Não compareceu': 'neutral',
   'Recebida': 'info', 'Prazo vencido': 'warning', 'Retirada': 'success', 'Devolvida': 'neutral',
+  'Esperada': 'info', 'Chegou': 'success', 'Não chegou': 'warning',
   'Aberto': 'info', 'Em atendimento': 'info', 'Orçamento': 'info', 'Agendado': 'info', 'Concluído': 'success', 'Reaberto': 'warning', 'Fora do prazo': 'danger',
   'Emitida': 'info', 'Em atraso': 'danger', 'Paga': 'success', 'Paga com atraso': 'success', 'Em acordo': 'warning', 'Cancelada': 'neutral',
   'Aguardando pagamento': 'warning', 'Confirmada': 'success', 'Expirada': 'neutral', 'Cancelada com reembolso': 'neutral', 'Cancelada sem reembolso': 'neutral', 'Cancelada pelo condomínio': 'info', 'Realizada': 'neutral', 'Não comparecimento': 'warning',
@@ -209,13 +210,20 @@ def([...RES, 'proprietario'], 'cartao', 'Pagar com cartão', 'Pagamentos', ctx =
   };
 });
 
+/* Sugestão de lista depois de uma reserva (RN-RE-12): só reserva Confirmada, com data depois de hoje, sem lista vinculada e não dispensada com "Agora não". */
+const dataReserva = r => { const [d, mo] = r.dia.split('/'); return `2026-${mo}-${d}`; };
+const listaDaReserva = r => S.listas.find(l => l.reserva === r.id && l.estado === 'Esperada') || null;
+const sugereLista = r => r.estado === 'Confirmada' && dataReserva(r) > HOJE_PROTO && !S.listas.some(l => l.reserva === r.id) && !(A.listaNao || []).includes(r.id);
+const bannerLista = (r, p) => banner('info', 'list-checks', 'Vai receber convidados? Monte a lista de visitantes.', { inline: true, action: `<span class="row wrap" style="gap:8px">${btn('Montar lista', { v: 'secondary', size: 'sm', on: () => abrirListaVisitantes(p, r.id) })}${btn('Agora não', { v: 'text', size: 'sm', on: () => { A.listaNao = [...(A.listaNao || []), r.id]; rerender(); } })}</span>` });
+
 def(RES, 'reserva-ok', 'Reserva confirmada', 'Reservas (5.1)', ctx => {
   const r = S.reservas.find(x => x.id === ctx.arg) || S.reservas[0], p = ctx.p;
   return {
     tab: 'reservas', top: { title: 'Reserva', back: p + '/reservas' },
     body: `<div class="empty" style="color:var(--text-primary)"><span class="onb-ico" style="background:var(--success-container);color:var(--success-fg)">${ic('circle-check')}</span>
       <h2 class="t-title-md">Reserva confirmada</h2><p class="t-body muted" style="margin:0">${areaOf(r.area).nome} · ${r.dia} · ${r.hora}</p>${st('Confirmada')}
-      ${r.valor ? `<p class="help">O comprovante foi enviado para o seu e-mail.</p>` : ''}</div>`,
+      ${r.valor ? `<p class="help">O comprovante foi enviado para o seu e-mail.</p>` : ''}</div>
+      ${sugereLista(r) ? `<div class="pad">${bannerLista(r, p)}</div>` : ''}`,
     footer: `${btn('Ver minhas reservas', { block: true, on: p + '/minhas-reservas' })}${btn('Voltar ao início', { v: 'text', block: true, on: p + '/inicio' })}`,
   };
 });
@@ -234,8 +242,9 @@ def(RES, 'minhas-reservas', 'Minhas reservas', 'Reservas (5.2)', ctx => {
 def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
   const r = S.reservas.find(x => x.id === ctx.arg) || S.reservas[0], a = areaOf(r.area), p = ctx.p;
   const ativa = ['Confirmada', 'Aguardando pagamento'].includes(r.estado);
+  const lr = listaDaReserva(r), lrQ = lr && resumoLista(lr);
   const cancelar = () => {
-    const end = estado => { r.estado = estado; rerender(); toast('Reserva cancelada.'); };
+    const end = estado => { r.estado = estado; const l = listaDaReserva(r); if (l) { pessoasLista(l.id).filter(v => v.estado === 'Esperado').forEach(v => { v.estado = 'Cancelado'; v.cancelado = true; }); l.estado = 'Cancelada'; } rerender(); toast(l ? 'Reserva cancelada. A lista vinculada também foi cancelada.' : 'Reserva cancelada.'); };
     if (!a.paga || r.estado === 'Aguardando pagamento') return dialog({ title: 'Cancelar a reserva?', text: `${a.nome}, ${r.dia} · ${r.hora}. O horário fica livre para outros moradores.`, actions: [{ label: 'Cancelar reserva', v: 'danger', on: () => end('Cancelada') }, { label: 'Manter reserva', v: 'secondary' }] });
     dialog({ title: 'Quanto tempo falta para a reserva?', text: 'O protótipo simula as duas situações.', actions: [
       { label: 'Mais de 12h (com reembolso)', v: 'secondary', on: () => dialog({ title: 'Cancelar com reembolso?', text: `Você recebe ${money(r.valor)} de volta: Pix em até 2 dias úteis ou estorno no cartão.`, actions: [{ label: 'Cancelar com reembolso', v: 'danger', on: () => end('Cancelada com reembolso') }, { label: 'Manter reserva', v: 'secondary' }] }) },
@@ -246,6 +255,7 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
     tab: 'reservas', top: { title: 'Reserva', back: p + '/minhas-reservas' },
     body: `<div class="stack">
       ${card({ icon: a.ico, title: a.nome, sub: `${r.dia} · ${r.hora}`, badge: st(r.estado) })}
+      ${lr ? row({ icon: 'list-checks', title: `Lista: ${lrQ.total} ${lrQ.total === 1 ? 'pessoa' : 'pessoas'}`, sub: `${esc(lr.titulo)} · ${lrQ.chegaram} chegaram`, on: p + '/lista-visitantes/' + lr.id }) : sugereLista(r) ? bannerLista(r, p) : ''}
       ${r.valor ? `<div class="card"><div class="row-between"><span>Valor</span><b class="num">${money(r.valor)}</b></div>${r.estado === 'Aguardando pagamento' ? `<p class="t-body-sm c-warning row" style="margin:0">${ic('clock')}Pague até ${r.prazo} ou o horário é liberado.</p>` : ''}</div>` : ''}
       ${r.estado === 'Confirmada' && a.paga ? banner('info', 'info', 'Cancelamento com reembolso até 12h antes do início.', { inline: true }) : ''}
       ${r.estado === 'Cancelada pelo condomínio' ? banner('info', 'info', 'O condomínio cancelou esta reserva por manutenção. O valor foi devolvido integralmente.', { inline: true }) : ''}
@@ -259,11 +269,16 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
 def(RES, 'visitantes', 'Meus visitantes', 'Visitantes (6.1)', ctx => {
   const f = FORM.fvis || 'ativos';
   const list = S.visitantes.filter(v => f === 'ativos' ? v.estado === 'Esperado' || v.estado === 'Entrou' : !(v.estado === 'Esperado' || v.estado === 'Entrou'));
+  const listas = S.listas.filter(l => (f === 'ativos') === (l.estado === 'Esperada'));
+  const novoVisitante = () => sheet(`<h2 class="t-title-md">O que você quer cadastrar?</h2>
+    ${row({ icon: 'user-plus', title: 'Um visitante', sub: 'Avulso ou recorrente', on: () => { closeLayer(); resetForm({ vtipo: 'avulso', dias: [] }); go(ctx.p + '/visitante-novo'); } })}
+    ${row({ icon: 'list-checks', title: 'Montar lista de visitantes', sub: 'Várias pessoas de uma vez, como numa festa', on: () => { closeLayer(); abrirListaVisitantes(ctx.p); } })}`);
   return {
     tab: 'visitantes', top: { title: 'Visitantes' }, flush: true,
     body: `<div class="pad chips">${chip('Esperados', f === 'ativos', () => { FORM.fvis = 'ativos'; rerender(); })}${chip('Histórico', f === 'hist', () => { FORM.fvis = 'hist'; rerender(); })}</div>
-      <div class="list">${list.length ? list.map(v => row({ avatar: v.nome, title: v.nome, sub: v.tipo === 'recorrente' ? 'Recorrente · ' + v.quando : v.quando, right: st(v.estado), on: ctx.p + '/visitante/' + v.id })).join('') : empty('users', 'Nenhum visitante esperado hoje.', btn('Cadastrar visitante', { v: 'secondary', on: ctx.p + '/visitante-novo' }))}</div>`,
-    fab: { icon: 'plus', label: 'Novo', aria: 'Cadastrar novo visitante', on: () => { resetForm({ vtipo: 'avulso', dias: [] }); go(ctx.p + '/visitante-novo'); } },
+      ${listas.length ? `<h3 class="t-label-sm muted pad" style="margin:0">Listas</h3><div class="list">${listas.map(l => { const r = resumoLista(l); return row({ icon: 'list-checks', title: esc(l.titulo), sub: `${r.total} pessoas${l.estado === 'Esperada' ? ', ' + r.chegaram + ' chegaram' : ''} · ${quandoLista(l)}`, right: l.estado === 'Esperada' ? '' : st(l.estado), on: ctx.p + '/lista-visitantes/' + l.id }); }).join('')}</div>${list.length ? '<h3 class="t-label-sm muted pad" style="margin:0">Visitantes</h3>' : ''}` : ''}
+      <div class="list">${list.length ? list.map(v => row({ avatar: v.nome, title: v.nome, sub: v.tipo === 'recorrente' ? 'Recorrente · ' + v.quando : v.quando, right: st(v.estado), on: ctx.p + '/visitante/' + v.id })).join('') : listas.length ? '' : empty('users', f === 'ativos' ? 'Nenhum visitante esperado hoje.' : 'Nenhum visitante no histórico.', btn('Cadastrar visitante', { v: 'secondary', on: ctx.p + '/visitante-novo' }))}</div>`,
+    fab: { icon: 'plus', label: 'Novo', aria: 'Cadastrar visitante ou montar lista de visitantes', on: novoVisitante },
   };
 });
 def(RES, 'visitante-novo', 'Cadastrar visitante', 'Visitantes (6.1)', ctx => {
@@ -272,6 +287,7 @@ def(RES, 'visitante-novo', 'Cadastrar visitante', 'Visitantes (6.1)', ctx => {
   return {
     tab: 'visitantes', top: { title: 'Novo visitante', back: ctx.p + '/visitantes' },
     body: `<div class="stack-5">
+      ${banner('info', 'list-checks', 'Vai receber várias pessoas, como numa festa? Monte uma lista de uma vez.', { inline: true, action: btn('Montar lista', { v: 'secondary', size: 'sm', on: () => abrirListaVisitantes(ctx.p) }) })}
       ${field('Nome do visitante', input('vnome', { ph: '', attr: 'autocomplete="off"' }), { error: A.vErr })}
       ${field('Documento (opcional)', input('vdoc', { ph: 'RG ou CPF' }), { help: 'Só a portaria e você veem o documento.' })}
       <div class="field"><span class="field-label">Tipo de visita</span><div class="stack-2">${choice('vtipo', 'avulso', 'Avulsa · um dia', { def: 'avulso' })}${choice('vtipo', 'recorrente', 'Recorrente · diarista, cuidador, professor', { def: 'avulso' })}</div></div>
@@ -305,13 +321,144 @@ def(RES, 'visitante', 'Detalhe do visitante', 'Visitantes (6.1)', ctx => {
   };
 });
 
+/* ---------------- Lista de visitantes (6.5) ---------------- */
+/* Entrada: `abrirListaVisitantes(p, reservaId)`. Sem reservaId, a lista nasce vazia; com ele, data, horário e local vêm da reserva (RN-VI-14).
+   Rota: <perfil>/lista-visitantes-nova[/reserva:<id>]. Detalhe: <perfil>/lista-visitantes/<id>. */
+const chegou = v => ['Entrou', 'Autorizado por interfone', 'Saiu'].includes(v.estado);
+const pessoasLista = id => S.esperados.filter(v => v.lista === id && v.estado !== 'Cancelado');
+const resumoLista = l => { const P = pessoasLista(l.id); return { total: P.length, chegaram: P.filter(chegou).length }; };
+const dmy = iso => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+const hhmm = t => t.replace(':00', 'h').replace(':', 'h');
+const quandoLista = l => (l.data === HOJE_PROTO ? 'hoje' : dmy(l.data)) + (l.ini ? ' · ' + hhmm(l.ini) + (l.fim ? ' às ' + hhmm(l.fim) : '') : '');
+function origemLista(arg) {
+  const m = /^reserva:(.+)$/.exec(arg || ''); const r = m && S.reservas.find(x => x.id === m[1]); if (!r) return null;
+  const a = areaOf(r.area), [d, mo] = r.dia.split('/'), h = r.hora.match(/(\d+)h.*?(\d+)h/);
+  return { reserva: r.id, hora: r.hora, area: a, data: `2026-${mo}-${d}`, ini: h ? h[1].padStart(2, '0') + ':00' : '', fim: h ? h[2].padStart(2, '0') + ':00' : '', local: a.nome, titulo: 'Reserva · ' + a.nome, cap: parseInt(String(a.cap).replace(/\D/g, ''), 10) || null };
+}
+function abrirListaVisitantes(p, reservaId) { resetForm(); go(p + '/lista-visitantes-nova' + (reservaId ? '/reserva:' + reservaId : '')); }
+
+def(RES, 'lista-visitantes-nova', 'Montar lista de visitantes', 'Visitantes (6.5)', ctx => {
+  const key = 'L|' + (ctx.arg || ''), o = origemLista(ctx.arg), max = S.limiteLista;
+  if (FORM.lk !== key) resetForm({ lk: key, ltit: o ? o.titulo : '', ldata: o ? o.data : HOJE_PROTO, lini: o ? o.ini : '', lfim: o ? o.fim : '', lloc: o ? o.local : '', lpess: [{ id: uid() }] });
+  const E = A.lErr || {}, rows = FORM.lpess;
+  const nomeP = p => (FORM['lpn_' + p.id] || '').trim(), docP = p => (FORM['lpd_' + p.id] || '').trim();
+  const nomes = () => rows.filter(nomeP);
+  const tem = n => nomes().some(p => nomeP(p).toLowerCase() === n.toLowerCase());
+  const addNome = (n, d) => {   // preenche a primeira linha em branco ou cria outra
+    let p = rows.find(x => !nomeP(x) && !docP(x));
+    if (!p) { if (rows.length >= max) return false; p = { id: uid() }; rows.push(p); }
+    FORM['lpn_' + p.id] = n; if (d) FORM['lpd_' + p.id] = d; return true;
+  };
+  const novaLinha = () => { if (rows.length >= max) { toast(`O limite é de ${max} pessoas por lista.`); return; } const p = { id: uid() }; rows.push(p); FORM.lfocus = 'lpn_' + p.id; rerender(); };
+  const remover = i => {
+    const [p] = rows.splice(i, 1), nm = nomeP(p); let auto = null;
+    if (!rows.length) { auto = { id: uid() }; rows.push(auto); }
+    rerender();
+    toast(`${esc(nm) || 'Linha em branco'} removida`, { undo: () => { if (auto && rows.length === 1 && rows[0] === auto) rows.splice(0, 1); rows.splice(i, 0, p); rerender(); toast('Linha de volta.'); } });
+  };
+  const colar = () => { FORM.lcolar = ''; sheet(() => `<h2 class="t-title-md">Colar vários nomes</h2>
+    <p class="t-body-sm muted" style="margin:0">Cole ou digite um nome por linha. Números e marcadores no começo da linha são ignorados.</p>
+    ${textarea('lcolar', { ph: 'Ana Souza\nBruno Lima\nCarla Dias' })}
+    ${btn('Adicionar à lista', { block: true, size: 'lg', on: () => {
+      const ns = (FORM.lcolar || '').split(/\r?\n|;/).map(x => x.replace(/^\s*[-•*\d.)]+\s+/, '').trim()).filter(Boolean);
+      const novos = [...new Set(ns.map(x => x.toLowerCase()))].map(k => ns.find(x => x.toLowerCase() === k)).filter(n => !tem(n));
+      let n = 0; for (const x of novos) { if (!addNome(x)) break; n++; }
+      closeLayer(); rerender();
+      toast(n < novos.length ? `Só coube ${n}: o limite é de ${max} pessoas por lista.` : n ? `${n} ${n === 1 ? 'nome adicionado' : 'nomes adicionados'}.` : 'Nenhum nome novo para adicionar.');
+    } })}`); };
+  const modelos = () => sheet(() => `<h2 class="t-title-md">Usar lista salva</h2>
+    ${S.modelos.length ? S.modelos.map(m => row({ icon: 'bookmark', title: esc(m.nome), sub: m.pessoas.length + ' pessoas', on: () => { let n = 0; m.pessoas.forEach(x => { if (!tem(x.nome) && addNome(x.nome, x.doc)) n++; }); closeLayer(); rerender(); toast(`${n} ${n === 1 ? 'pessoa adicionada' : 'pessoas adicionadas'} de "${esc(m.nome)}".`); } })).join('') : empty('bookmark', 'Você ainda não salvou nenhuma lista.')}`);
+  const nm = nomes().length, vistos = new Set(), repetido = {};
+  nomes().forEach(p => { const k = nomeP(p).toLowerCase(); if (vistos.has(k)) repetido[p.id] = true; vistos.add(k); });
+  const chipsR = L => `<div class="chips">${L.map(r => chip(r.nome, tem(r.nome), () => { if (tem(r.nome)) { const i = rows.findIndex(p => nomeP(p).toLowerCase() === r.nome.toLowerCase()); rows.splice(i, 1); if (!rows.length) rows.push({ id: uid() }); } else if (!addNome(r.nome)) toast(`O limite é de ${max} pessoas por lista.`); rerender(); })).join('')}</div>`;
+  const freq = S.recentes.filter(r => r.vezes >= 3), rec = S.recentes.filter(r => r.vezes < 3);
+  return {
+    tab: 'visitantes', top: { title: 'Lista de visitantes', back: ctx.p + '/visitantes' },
+    body: `<div class="stack-5">
+      ${o ? banner('info', 'calendar-days', `Lista da reserva de <b>${esc(o.area.nome)}</b>, ${dmy(o.data)} · ${esc(o.hora)}. Data, horário e local vêm da reserva.`, { inline: true }) : banner('info', 'info', 'Cada pessoa da lista vira um visitante autorizado. Data e local valem para todas.', { inline: true })}
+      <h3 class="t-title-sm">Sobre a lista</h3>
+      ${field('Nome da lista', input('ltit', { ph: 'Ex.: Aniversário do Theo', attr: 'autocomplete="off"' }), { error: E.tit })}
+      ${field('Data', input('ldata', { type: 'date', attr: `min="${HOJE_PROTO}" ${o ? 'disabled' : ''}` }), { error: E.data, help: o ? 'Vem da reserva.' : 'Hoje por padrão. Datas passadas ficam desabilitadas.' })}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${field('Das (opcional)', input('lini', { type: 'time', attr: o ? 'disabled' : '' }))}${field('Até (opcional)', input('lfim', { type: 'time', attr: o ? 'disabled' : '' }))}</div>
+      ${E.hora ? `<span class="error-msg" role="alert">${ic('circle-x')}${E.hora}</span>` : ''}
+      ${field('Local ou motivo (opcional)', input('lloc', { ph: 'Ex.: festa no salão', attr: 'autocomplete="off"' }))}
+      <h3 class="t-title-sm" style="margin-bottom:-8px">Pessoas</h3>
+      <div class="row-between"><span class="t-body-sm" aria-live="polite"><b class="num">${nm}</b> de ${max} pessoas</span></div>
+      ${o && o.cap && nm > o.cap ? banner('warning', 'triangle-alert', `Você listou ${nm} pessoas e ${esc(o.area.nome.toLowerCase())} comporta até ${o.cap}. Pode enviar, mas confira se todos vão estar lá ao mesmo tempo.`, { inline: true }) : ''}
+      ${E.pess ? `<span class="error-msg" role="alert">${ic('circle-x')}${E.pess}</span>` : ''}
+      <div class="stack-2" role="list" aria-label="Pessoas da lista">${rows.map((p, i) => {
+        const n = nomeP(p), docOpen = FORM['lpd_' + p.id] !== undefined || FORM['lpx_' + p.id];
+        return `<div class="card stack-2" role="listitem" style="padding:10px 12px;gap:6px">
+          <div class="row" style="gap:8px;align-items:flex-start"><div class="grow">${input('lpn_' + p.id, { ph: 'Nome da pessoa ' + (i + 1), attr: 'autocomplete="off" data-lrow="1" aria-label="Nome da pessoa ' + (i + 1) + '"' })}</div>${iconBtn('trash-2', `Remover ${n || 'pessoa ' + (i + 1)}`, () => remover(i))}</div>
+          ${E.rows && E.rows[p.id] ? `<span class="error-msg" role="alert">${ic('circle-x')}${E.rows[p.id]}</span>` : ''}
+          ${repetido[p.id] ? `<span class="help c-warning row">${ic('copy')}Nome repetido na lista. Confira se são pessoas diferentes.</span>` : ''}
+          ${docOpen ? input('lpd_' + p.id, { ph: 'RG ou CPF (opcional)', attr: 'aria-label="Documento da pessoa ' + (i + 1) + ' (opcional)"' }) : btn('Adicionar documento', { v: 'text', size: 'sm', icon: 'id-card', on: () => { FORM['lpx_' + p.id] = true; FORM.lfocus = 'lpd_' + p.id; rerender(); } })}
+        </div>`; }).join('')}</div>
+      <div class="stack-2">${btn('Adicionar pessoa', { v: 'secondary', block: true, icon: 'plus', on: novaLinha })}
+        <div class="row wrap" style="gap:8px">${btn('Colar vários nomes', { v: 'text', size: 'sm', icon: 'clipboard-paste', on: colar })}${btn('Usar lista salva', { v: 'text', size: 'sm', icon: 'bookmark', on: modelos })}</div></div>
+      ${freq.length ? `<div class="field"><span class="field-label">Frequentes</span>${chipsR(freq)}</div>` : ''}
+      ${rec.length ? `<div class="field"><span class="field-label">Recentes</span>${chipsR(rec)}</div>` : ''}
+      ${sw('Salvar esta lista para usar de novo', !!FORM.lsalvar, () => { FORM.lsalvar = !FORM.lsalvar; }, { sub: 'Guarda os nomes e documentos para a próxima festa. Só a sua unidade vê.' })}
+    </div>`,
+    footer: btn(nm ? `Enviar lista (${nm} ${nm === 1 ? 'pessoa' : 'pessoas'})` : 'Enviar lista', { block: true, size: 'lg', on: () => {
+      const e = { rows: {} }, tit = (FORM.ltit || '').trim(), d = FORM.ldata || '';
+      if (!tit) e.tit = 'Dê um nome à lista, como "Aniversário do Theo".';
+      if (!d) e.data = 'Escolha a data.'; else if (d < HOJE_PROTO) e.data = 'A data não pode ser anterior a hoje.';
+      if (FORM.lini && FORM.lfim && FORM.lfim <= FORM.lini) e.hora = 'O horário final precisa ser depois do inicial.';
+      rows.filter(p => !nomeP(p) && docP(p)).forEach(p => { e.rows[p.id] = 'Informe o nome.'; });
+      const L = nomes();
+      if (!L.length && !Object.keys(e.rows).length) e.pess = 'Adicione pelo menos uma pessoa.';
+      if (L.length > max) e.pess = `A lista aceita até ${max} pessoas e esta tem ${L.length}. Remova ${L.length - max} ou crie outra lista.`;
+      if (e.tit || e.data || e.hora || e.pess || Object.keys(e.rows).length) { A.lErr = e; rerender(); return; }
+      if (FORM.offline) { dialog({ tone: 'warning', icon: 'wifi-off', title: 'Sem internet', text: 'Sem internet, a lista não é enviada. Seus visitantes ainda podem entrar: a portaria confirma com você pelo interfone.', actions: [{ label: 'Entendi' }] }); return; }
+      A.lErr = {};
+      const un = S.units[S.unit].name, bloco = (un.match(/Bloco (\w)/) || [])[1] || 'A';
+      const l = { id: 'l' + uid(), titulo: tit, un, bloco, data: d, ini: FORM.lini || '', fim: FORM.lfim || '', local: (FORM.lloc || '').trim(), reserva: o ? o.reserva : null, estado: 'Esperada' };
+      S.listas.unshift(l);
+      L.forEach(p => S.esperados.push({ id: 'lp' + uid(), nome: nomeP(p), doc: docP(p), un, bloco, estado: 'Esperado', lista: l.id, data: d }));
+      const salvou = !!FORM.lsalvar;
+      if (salvou) S.modelos.push({ id: 'm' + uid(), nome: tit, pessoas: L.map(p => ({ nome: nomeP(p), doc: docP(p) })) });
+      FORM.fvis = 'ativos'; go(ctx.p + '/lista-visitantes/' + l.id);
+      setTimeout(() => toast(`Lista enviada: ${L.length} ${L.length === 1 ? 'pessoa autorizada' : 'pessoas autorizadas'}.${d === HOJE_PROTO ? ' A portaria já recebeu.' : ' A portaria vê a lista no dia ' + dmy(d) + '.'}${salvou ? ' Lista salva para usar de novo.' : ''}`), 50);
+    } }) + `<label class="row help" style="justify-content:center"><input type="checkbox" class="checkbox" ${FORM.offline ? 'checked' : ''} ${cb(() => { FORM.offline = !FORM.offline; })}>Simular celular sem internet</label>`,
+    after: () => {
+      document.querySelectorAll('[data-lrow]').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); novaLinha(); } }));
+      if (FORM.lfocus) { const el = $('#f-' + FORM.lfocus); FORM.lfocus = null; if (el) el.focus(); }
+    },
+  };
+});
+
+def(RES, 'lista-visitantes', 'Detalhe da lista de visitantes', 'Visitantes (6.5)', ctx => {
+  const l = S.listas.find(x => x.id === ctx.arg) || S.listas[0];
+  const P = pessoasLista(l.id), { total, chegaram } = resumoLista(l), ativa = l.estado === 'Esperada', max = S.limiteLista;
+  const reserva = l.reserva && S.reservas.find(r => r.id === l.reserva);
+  const adicionar = () => { FORM.lan = ''; FORM.lad = ''; A.lanErr = ''; sheet(() => `<h2 class="t-title-md">Adicionar pessoa</h2>
+    ${field('Nome', input('lan', { attr: 'autocomplete="off"' }), { error: A.lanErr })}${field('Documento (opcional)', input('lad', { ph: 'RG ou CPF' }))}
+    ${btn('Adicionar à lista', { block: true, size: 'lg', on: () => {
+      if (!(FORM.lan || '').trim()) { A.lanErr = 'Informe o nome.'; if (CUR_SHEET) sheet(CUR_SHEET[0], CUR_SHEET[1]); return; }
+      A.lanErr = ''; const nome = FORM.lan.trim(); S.esperados.push({ id: 'lp' + uid(), nome, doc: FORM.lad || '', un: l.un, bloco: l.bloco, estado: 'Esperado', lista: l.id, data: l.data });
+      closeLayer(); rerender(); toast(`${esc(nome)} adicionado.${l.data === HOJE_PROTO ? ' A portaria já recebeu.' : ''}`);
+    } })}`); };
+  return {
+    tab: 'visitantes', top: { title: 'Lista de visitantes', back: ctx.p + '/visitantes' },
+    body: `<div class="stack">
+      ${card({ icon: 'list-checks', title: esc(l.titulo), sub: quandoLista(l) + (l.local ? ' · ' + esc(l.local) : ''), badge: ativa ? badge(`${chegaram} de ${total} chegaram`, 'info', 'users') : st(l.estado) })}
+      ${reserva ? banner('info', 'calendar-days', `Vinculada à reserva de ${esc(areaOf(reserva.area).nome)}, ${reserva.dia} · ${reserva.hora}.`, { inline: true }) : ''}
+      ${ativa && l.data > HOJE_PROTO ? banner('info', 'info', `A portaria passa a ver a lista no dia ${dmy(l.data)}.`, { inline: true }) : ''}
+      <p class="t-body-sm muted" style="margin:0">${total} ${total === 1 ? 'pessoa' : 'pessoas'} · limite de ${max} por lista</p>
+      <div class="list">${P.length ? P.map(v => row({ avatar: v.nome, title: esc(v.nome), sub: v.hora ? 'Entrou às ' + v.hora : v.doc ? 'Documento informado' : '', right: st(v.estado) + (ativa && v.estado === 'Esperado' ? iconBtn('x', `Remover ${v.nome} da lista`, () => { v.estado = 'Cancelado'; v.cancelado = true; rerender(); toast(`${esc(v.nome)} removido da lista.`, { undo: () => { v.estado = 'Esperado'; delete v.cancelado; rerender(); toast('Pessoa de volta na lista.'); } }); }) : '') })).join('') : empty('users', 'Nenhuma pessoa na lista.')}</div>
+    </div>`,
+    footer: ativa ? btn('Adicionar pessoa', { block: true, size: 'lg', icon: 'user-plus', on: () => total >= max ? toast(`O limite é de ${max} pessoas por lista.`) : adicionar() }) + btn('Cancelar lista', { v: 'secondary', block: true, on: () => dialog({ title: 'Cancelar a lista?', text: 'Quem ainda não chegou sai da lista da portaria. Quem já entrou continua registrado.', actions: [{ label: 'Cancelar lista', v: 'danger', on: () => { P.filter(v => v.estado === 'Esperado').forEach(v => { v.estado = 'Cancelado'; v.cancelado = true; }); l.estado = 'Cancelada'; rerender(); toast('Lista cancelada.'); } }, { label: 'Manter lista', v: 'secondary' }] }) }) : '',
+  };
+});
+
 /* ---------------- Chamados (8.1) ---------------- */
 const CAT_CH = { limpeza: ['Área comum suja', 'Lixo acumulado', 'Derramamento', 'Outro'], manutencao: ['Elétrica', 'Hidráulica', 'Portão', 'Elevador', 'Estrutura', 'Outro'] };
 def(RES, 'chamados', 'Meus chamados', 'Chamados (8.1)', ctx => {
-  const list = S.chamados.filter(c => c.mine);
+  const list = ordenarChamados(S.chamados.filter(c => c.mine));
   return {
     tab: GES.includes(ctx.p) ? 'menu' : 'chamados', top: { title: 'Chamados', back: GES.includes(ctx.p) ? ctx.p + '/menu' : null }, flush: true,
-    body: `<div class="list">${list.map(c => row({ icon: c.tipo === 'limpeza' ? 'spray-can' : 'wrench', title: c.cat + ' · ' + c.local, sub: (c.tipo === 'limpeza' ? 'Limpeza' : 'Manutenção') + ' · aberto ' + c.aberto, right: st(c.estado), on: ctx.p + '/chamado/' + c.id })).join('')}</div>`,
+    body: `<div class="list">${list.map(c => row({ icon: c.tipo === 'limpeza' ? 'spray-can' : 'wrench', title: c.cat + ' · ' + c.local, sub: (c.tipo === 'limpeza' ? 'Limpeza' : 'Manutenção') + ' · aberto ' + c.aberto, right: badgeStack(st(c.estado), avalBadge(c, true), urgBadge(c.urg)), on: ctx.p + '/chamado/' + c.id })).join('')}</div>`,
     fab: { icon: 'plus', label: 'Abrir chamado', on: () => { resetForm({ ctipo: 'limpeza' }); go(ctx.p + '/chamado-novo'); } },
   };
 });
@@ -323,32 +470,77 @@ def([...RES, 'portaria'], 'chamado-novo', 'Abrir chamado', 'Chamados (8.1)', ctx
     body: `<div class="stack-5">
       <div class="field"><span class="field-label">Tipo</span><div class="stack-2">${choice('ctipo', 'limpeza', 'Limpeza', { def: 'limpeza', icon: 'spray-can', sub: 'Vai para a fila da limpeza · prazo de 24h' })}${choice('ctipo', 'manutencao', 'Manutenção', { def: 'limpeza', icon: 'wrench', sub: 'Vai para o síndico · primeira atualização em 48h' })}</div></div>
       <div class="field"><span class="field-label">Categoria</span><div class="chips">${CAT_CH[t].map(c => chip(c, FORM.ccat === c, () => { FORM.ccat = c; rerender(); })).join('')}</div></div>
+      <div class="field ${A.cErrU ? 'has-error' : ''}"><span class="field-label">Urgência</span><span class="help">Quão grave é o problema? Isso ajuda a equipe a decidir o que atender primeiro. Se tiver dúvida, escolha a mais alta.</span>
+        <div class="stack-2" role="radiogroup" aria-label="Urgência">${['alta', 'media', 'leve'].map(u => choice('curg', u, urgBadge(u), { sub: URG[u].ex })).join('')}</div>
+        ${A.cErrU ? `<span class="error-msg" role="alert">${ic('circle-x')}${A.cErrU}</span>` : ''}</div>
       ${field('Local', input('clocal', { ph: 'Ex.: Hall do Bloco A' }))}
       ${field('Descrição', textarea('cdesc', { ph: 'Conte o que aconteceu' }), { error: A.cErr })}
       <div class="field"><span class="field-label">Foto (opcional)</span>${photoPicker('cfotos')}</div>
     </div>`,
     footer: btn('Enviar', { block: true, size: 'lg', icon: 'send', on: () => {
-      if (!(FORM.cdesc || '').trim()) { A.cErr = 'Descreva o problema para a equipe saber o que fazer.'; rerender(); return; }
+      A.cErr = ''; A.cErrU = '';
+      if (!FORM.curg) A.cErrU = 'Escolha a urgência do chamado.';
+      if (!(FORM.cdesc || '').trim()) A.cErr = 'Descreva o problema para a equipe saber o que fazer.';
+      if (A.cErr || A.cErrU) { rerender(); return; }
       if (ctx.p === 'portaria' && !S.online) { dialog({ tone: 'warning', icon: 'wifi-off', title: 'Sem internet', text: 'Sem internet. Seu chamado não foi enviado. O texto ficou salvo como rascunho.', actions: [{ label: 'Entendi' }] }); return; }
-      A.cErr = '';
-      const c = { id: 'c' + uid(), tipo: t, cat: FORM.ccat || 'Outro', local: FORM.clocal || 'Área comum', desc: FORM.cdesc, estado: 'Aberto', aberto: 'agora', prazo: 'vence em 24h', autor: ctx.p === 'portaria' ? 'Portaria' : S.units[S.unit].name, mine: ctx.p !== 'portaria' };
+      const c = { id: 'c' + uid(), tipo: t, cat: FORM.ccat || 'Outro', local: FORM.clocal || 'Área comum', desc: FORM.cdesc, estado: 'Aberto', urg: FORM.curg, abertoEm: new Date().toISOString().slice(0, 16), aberto: 'agora', prazo: 'vence em 24h', autor: ctx.p === 'portaria' ? 'Portaria' : S.units[S.unit].name, mine: ctx.p !== 'portaria' };
       S.chamados.unshift(c);
       go(ctx.p === 'portaria' ? 'portaria/menu' : ctx.p + '/chamado/' + c.id);
       setTimeout(() => toast(t === 'limpeza' ? 'Chamado enviado para a fila da limpeza.' : 'Chamado enviado ao síndico.'), 50);
     } }),
   };
 });
+function reabrirChamado(c) {
+  if (c.aval) { (c.avalHist = c.avalHist || []).push(c.aval); c.aval = null; }   // a avaliação feita vale para a conclusão anterior (RN-CH-17)
+  c.estado = 'Reaberto'; c.concluidoEm = null; c.concluido = ''; c.fotos = 0; c.prazo = 'vence em 24h'; c.fora = false;
+  closeLayer(); rerender(); toast('Chamado reaberto. Ele voltou para a fila.');
+}
+const resetFormAval = () => { FORM.av_nota = 0; FORM.av_base = null; FORM.av_coment = ''; };
+/* Avaliar o atendimento (RN-CH-15 a RN-CH-18; fluxo 8.4) */
+function avaliarChamado(c, p) {
+  resetFormAval();
+  const quem = c.tipo === 'limpeza' ? 'Equipe de limpeza' : (c.empresa || 'Empresa de manutenção');
+  sheet(() => {
+    const n = FORM.av_nota || 0, base = FORM.av_base, motivo = !n ? 'Escolha de 1 a 5 estrelas.' : !base ? (c.fotos ? 'Diga se viu as fotos ou conferiu pessoalmente.' : 'Marque "Conferi pessoalmente" para avaliar.') : '';
+    return `<h2 class="t-title-md">Avaliar o serviço</h2><div class="t-body-sm muted">${esc(c.cat)} · ${esc(c.local)} · ${esc(quem)}</div>
+      ${c.fotos ? `<div class="thumbs" aria-label="${c.fotos} fotos do serviço">${Array.from({ length: c.fotos }, () => `<div class="thumb">${ic('image')}</div>`).join('')}</div>` : `<p class="help">${ic('info')} O serviço foi concluído sem fotos.</p>`}
+      <div class="field"><span class="field-label">Sua avaliação</span>
+        <div class="row wrap" style="gap:4px"><div class="stars" role="radiogroup" aria-label="Avaliação do serviço">${[1, 2, 3, 4, 5].map(i => `<button type="button" class="star ${n >= i ? 'is-on' : ''}" role="radio" aria-checked="${n === i}" aria-label="${i} de 5, ${NOTA_AVAL[i].toLowerCase()}" ${cb(() => { FORM.av_nota = i; rerender(); })}>${ic('star')}</button>`).join('')}</div>
+        <span class="t-label-sm" style="min-width:80px">${n ? NOTA_AVAL[n] : ''}</span></div></div>
+      <div class="field"><span class="field-label">Em que você se baseia?</span><div class="stack-2" role="radiogroup" aria-label="Base da avaliação">
+        ${c.fotos ? choice('av_base', 'fotos', 'Vi as fotos do serviço') : ''}${choice('av_base', 'pessoal', 'Conferi pessoalmente')}</div></div>
+      ${field('Comentário (opcional)', textarea('av_coment', { ph: 'Conte como ficou o serviço' }), { help: 'Até 500 caracteres. O funcionário vê o comentário sem saber quem o escreveu.' })}
+      ${btn('Enviar avaliação', { block: true, size: 'lg', icon: 'send', disabled: !!motivo, on: () => {
+        const nota = FORM.av_nota, low = nota <= 2;
+        c.aval = { nota, base: FORM.av_base, coment: (FORM.av_coment || '').trim().slice(0, 500), em: '05/11/2026', dias: 0 };
+        closeLayer(); rerender();
+        if (!low) { toast('Avaliação enviada. Obrigado!'); return; }
+        // Avaliação baixa: oferece reabrir, mas a decisão é de quem avaliou; o síndico é avisado (RN-CH-18)
+        if (dentroReabrir(c)) dialog({ tone: 'info', icon: 'undo-2', title: 'Quer reabrir o chamado?', text: `Você deu ${nota} ${nota === 1 ? 'estrela' : 'estrelas'}. O síndico foi avisado da sua avaliação. Se o problema continua, reabra o chamado para ele voltar à fila.`,
+          actions: [{ label: 'Reabrir chamado', icon: 'undo-2', on: () => reabrirChamado(c) }, { label: 'Agora não', v: 'secondary' }] });
+        else dialog({ tone: 'info', icon: 'plus', title: 'O problema continua?', text: `Você deu ${nota} ${nota === 1 ? 'estrela' : 'estrelas'}. O síndico foi avisado da sua avaliação. Como já passaram 48h da conclusão, o chamado não pode ser reaberto, mas você pode abrir um novo.`,
+          actions: [{ label: 'Abrir novo chamado', icon: 'plus', on: () => { resetForm({ ctipo: c.tipo }); go(p + '/chamado-novo'); } }, { label: 'Agora não', v: 'secondary' }] });
+      } })}
+      ${motivo ? `<p class="disabled-reason">${ic('info')}${motivo}</p>` : ''}`;
+  });
+}
 def(RES, 'chamado', 'Detalhe do chamado', 'Chamados (8.1)', ctx => {
   const c = S.chamados.find(x => x.id === ctx.arg) || S.chamados[0];
   const steps = c.tipo === 'limpeza' ? ['Aberto', 'Em atendimento', 'Concluído'] : ['Aberto', 'Orçamento', 'Agendado', 'Concluído'];
   const idx = Math.max(0, steps.indexOf(c.estado === 'Reaberto' ? 'Aberto' : c.estado));
+  const ae = avalEstado(c);
   return {
     tab: ctx.p === 'morador' ? 'chamados' : 'menu', top: { title: 'Chamado', back: ctx.p + '/chamados' },
-    body: `<div class="stack">${card({ icon: c.tipo === 'limpeza' ? 'spray-can' : 'wrench', title: c.cat, sub: c.local + ' · aberto ' + c.aberto, badge: st(c.estado), body: esc(c.desc) })}
+    body: `<div class="stack">${card({ icon: c.tipo === 'limpeza' ? 'spray-can' : 'wrench', title: c.cat, sub: c.local + ' · aberto ' + c.aberto, badge: badgeStack(st(c.estado), avalBadge(c, true), urgBadge(c.urg)), body: esc(c.desc) })}
+      ${urgLogLine(c)}
       ${c.empresa ? row({ icon: 'building-2', title: c.empresa, sub: 'Empresa responsável' + (c.agenda ? ' · visita ' + c.agenda : '') }) : ''}
       <h3 class="t-title-sm">Andamento</h3>${timeline(steps.map((s, i) => ({ t: s, state: i < idx || (c.estado === 'Concluído' && i === idx) ? 'done' : i === idx ? 'now' : '' })))}
-      ${c.estado === 'Concluído' ? `<p class="help">Não ficou resolvido? Você pode reabrir até 48h depois da conclusão.</p>` : ''}</div>`,
-    footer: c.estado === 'Concluído' ? btn('Reabrir chamado', { v: 'secondary', block: true, icon: 'undo-2', on: () => { c.estado = 'Reaberto'; rerender(); toast('Chamado reaberto. Ele voltou para a fila.'); } }) : '',
+      ${c.estado === 'Concluído' ? fotosServico(c) : ''}
+      ${ae === 'pendente' ? banner('info', 'star', 'O serviço foi concluído. Conte como ficou.', { inline: true, action: btn('Avaliar o serviço', { size: 'sm', on: () => avaliarChamado(c, ctx.p) }) }) : ''}
+      ${ae === 'avaliado' ? avalCartao(c, 'Sua avaliação') : ''}
+      ${ae === 'encerrada' ? `<p class="help">${ic('clock')} O prazo para avaliar terminou.</p>` : ''}
+      ${c.estado === 'Concluído' ? `<p class="help">${dentroReabrir(c) ? 'Não ficou resolvido? Você pode reabrir até 48h depois da conclusão.' : 'Já passaram 48h da conclusão. Se o problema continua, abra um novo chamado.'}</p>` : ''}</div>`,
+    footer: c.estado === 'Concluído' ? (dentroReabrir(c) ? btn('Reabrir chamado', { v: 'secondary', block: true, icon: 'undo-2', on: () => reabrirChamado(c) }) : btn('Abrir novo chamado', { v: 'secondary', block: true, icon: 'plus', on: () => { resetForm({ ctipo: c.tipo }); go(ctx.p + '/chamado-novo'); } })) : '',
   };
 });
 
@@ -360,6 +552,7 @@ def(RES, 'menu', 'Menu', 'Menu', ctx => {
     ['package', 'Encomendas', 'encomendas'], ['vote', 'Reuniões e votações', 'votacoes'], ['star', 'Pesquisa do mês', 'pesquisa'],
     ['megaphone', 'Comunicados', 'comunicados'], ['eye', 'Transparência', 'transparencia'],
     ...(GES.includes(p) ? [['wrench', 'Meus chamados', 'chamados']] : []),
+    ...(p === 'morador' && S.conselho ? [['wallet', 'Finanças do condomínio', 'financas']] : []),
   ];
   const conf = [['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']];
   return {
@@ -399,7 +592,7 @@ def(RES, 'reclamacoes', 'Minhas reclamações', 'Score e reclamações (9)', ctx
   body: `<div class="pad t-body-sm muted">Reclamações feitas por você e contra você. Quem reclamou nunca aparece para o alvo.</div>
     <div class="list">${S.minhasRecl.map(r => {
       const tone = r.papel === 'alvo' && r.estado === 'Validada' ? 'danger' : undefined;
-      return row({ icon: r.papel === 'alvo' ? 'shield-alert' : 'message-square-warning', title: r.papel === 'alvo' ? 'Contra você · ' + r.cat : 'Feita por você · ' + r.cat, sub: (r.alvo ? 'Alvo: ' + r.alvo + ' · ' : '') + r.data, right: st(r.estado, tone), on: ctx.p + '/reclamacao/' + r.id });
+      return row({ icon: r.papel === 'alvo' ? 'shield-alert' : 'message-square-warning', title: r.papel === 'alvo' ? 'Contra você · ' + r.cat : 'Feita por você · ' + r.cat, sub: (r.alvo ? 'Alvo: ' + r.alvo + ' · ' : '') + r.data, right: badgeStack(st(r.estado, tone), r.papel === 'reclamante' ? prazoBadge(r) : ''), on: ctx.p + '/reclamacao/' + r.id });
     }).join('')}</div>`,
   fab: { icon: 'plus', label: 'Nova', aria: 'Registrar nova reclamação', on: () => { resetForm(); go(ctx.p + '/reclamacao-nova/1'); } },
 }));
@@ -461,7 +654,8 @@ def(RES, 'reclamacao', 'Detalhe da reclamação', 'Score e reclamações (9)', c
   }
   return {
     tab: 'menu', top: { title: 'Sua reclamação', back: p + '/reclamacoes' },
-    body: `<div class="stack">${card({ icon: 'message-square-warning', title: r.cat, sub: 'Alvo: ' + (r.alvo || '') + ' · ' + r.data, badge: st(r.estado) })}
+    body: `<div class="stack">${card({ icon: 'message-square-warning', title: r.cat, sub: 'Alvo: ' + (r.alvo || '') + ' · ' + r.data, badge: badgeStack(st(r.estado), prazoBadge(r)) })}
+      ${prazoLinha(r)}
       <h3 class="t-title-sm">Andamento</h3>${timeline([{ t: 'Enviada', d: r.data, state: 'done' }, { t: 'Julgador conversa com o alvo', state: r.estado === 'Aberta' ? '' : 'now' }, { t: 'Decisão', d: 'Você será avisado' }, { t: 'Prazo de recurso de 7 dias' }])}
       ${r.estado === 'Pendente' ? banner('warning', 'clock', 'Sua reclamação aguarda um julgador disponível.', { inline: true }) : ''}</div>`,
   };
@@ -520,12 +714,73 @@ def([...RES, 'proprietario'], 'cobranca-paga', 'Pagamento confirmado', 'Cobranç
 });
 
 /* ---------------- Encomendas (7.1) ---------------- */
-def(RES, 'encomendas', 'Encomendas', 'Encomendas (7.1)', ctx => {
+/* Entregas esperadas (7.2, RN-EN-07 a RN-EN-13). Ajudantes também usados pela portaria */
+const ORIGENS_ENTREGA = ['Amazon', 'Correios', 'Mercado Livre', 'Shopee', 'iFood/entregador', 'Outra'];
+const entregaAviso = x => x.origem === 'iFood/entregador';
+const entregaOrigem = x => x.origem === 'Outra' ? (x.origemTxt || 'Outra') : x.origem;
+const entregaFaixa = x => x.ini ? 'entre ' + hhmm(x.ini) + ' e ' + hhmm(x.fim) : '';
+const entregaQuando = x => x.data === HOJE_PROTO ? 'hoje' : dmy(x.data);
+const entregaMais30 = (() => { const d = new Date(Date.UTC(2026, 10, 5) + 30 * 864e5); return d.toISOString().slice(0, 10); })();
+const entregasAtivas = un => S.entregas.filter(x => x.un === un && x.estado === 'Esperada').length;
+const ENTREGA_ORDEM = { 'Esperada': 0, 'Não chegou': 1, 'Chegou': 2, 'Encerrada': 3, 'Cancelada': 4 };
+const entregasOrdenadas = L => [...L].sort((a, b) => (ENTREGA_ORDEM[a.estado] - ENTREGA_ORDEM[b.estado]) || a.data.localeCompare(b.data));
+const unidadeDoMorador = () => S.units[S.unit].name;
+
+def(RES, 'encomendas', 'Encomendas', 'Encomendas (7.1 e 7.2)', ctx => {
   const list = S.encomendas.filter(e => e.un === S.units[S.unit].name || e.un === 'Bloco A · Apto 101');
+  const un = list.length ? 'Bloco A · Apto 101' : S.units[S.unit].name;
+  const ent = entregasOrdenadas(S.entregas.filter(x => x.un === un || x.un === S.units[S.unit].name)), p = ctx.p;
+  const abrir = x => sheet(() => `<h2 class="t-title-md">${esc(entregaOrigem(x) || 'Entrega')} · ${entregaQuando(x)}</h2>
+    <div class="row wrap" style="gap:6px">${st(x.estado)}${entregaAviso(x) ? badge('Só aviso', 'neutral', 'info') : ''}</div>
+    <p class="t-body-sm muted" style="margin:0">${[entregaFaixa(x), x.desc].filter(Boolean).map(esc).join(' · ') || 'Sem faixa de horário nem descrição.'}</p>
+    ${x.estado === 'Não chegou' ? banner('warning', 'triangle-alert', 'Esta entrega não chegou na data. Reagende para a portaria voltar a ver.', { inline: true }) : ''}
+    ${x.estado === 'Chegou' ? banner('success', 'circle-check', 'A portaria recebeu a encomenda e você foi avisado.', { inline: true }) : ''}
+    ${['Esperada', 'Não chegou'].includes(x.estado) ? (x.estado === 'Não chegou' ? btn('Reagendar', { block: true, size: 'lg', icon: 'calendar-clock', on: () => { closeLayer(); go(p + '/entrega-nova/' + x.id); } }) + btn('Editar', { v: 'secondary', block: true, icon: 'pencil', on: () => { closeLayer(); go(p + '/entrega-nova/' + x.id + ':editar'); } })
+        : btn('Editar', { block: true, size: 'lg', icon: 'pencil', on: () => { closeLayer(); go(p + '/entrega-nova/' + x.id); } }))
+      + btn('Cancelar entrega', { v: 'secondary', block: true, icon: 'x', on: () => { closeLayer(); dialog({ title: 'Cancelar esta entrega?', text: 'A portaria deixa de ver o aviso.', actions: [{ label: 'Cancelar entrega', v: 'danger', on: () => { x.estado = 'Cancelada'; rerender(); toast('Entrega cancelada.'); } }, { label: 'Manter', v: 'secondary' }] }); } }) : ''}`);
   return {
     tab: 'menu', top: { title: 'Encomendas', back: ctx.p + '/menu' }, flush: true,
-    body: `<div class="list">${list.map(e => row({ icon: 'package', title: e.rem, sub: 'Chegou ' + e.data, right: st(e.estado) })).join('')}</div>
+    body: `<div class="pad row-between" style="padding-bottom:0"><h2 class="t-title-sm" style="margin:0">Entregas esperadas</h2>${btn('Avisar entrega', { v: 'secondary', size: 'sm', icon: 'plus', on: p + '/entrega-nova' })}</div>
+      <div class="list">${ent.length ? ent.map(x => row({ icon: 'package-open', title: esc(entregaOrigem(x) || 'Entrega') + ' · ' + entregaQuando(x), sub: [entregaFaixa(x), x.desc].filter(Boolean).map(esc).join(' · ') || 'Sem faixa de horário', right: badgeStack(st(x.estado), entregaAviso(x) ? badge('Só aviso', 'neutral', 'info') : ''), on: () => abrir(x) })).join('') : empty('package-open', 'Nenhuma entrega esperada.', btn('Avisar entrega', { v: 'secondary', on: p + '/entrega-nova' }))}</div>
+      <h2 class="t-title-sm pad" style="margin:0;padding-bottom:0">Na portaria</h2>
+      <div class="list">${list.map(e => row({ icon: 'package', title: e.rem, sub: 'Chegou ' + e.data, right: st(e.estado) })).join('')}</div>
       <div class="pad">${banner('info', 'info', 'Retire na portaria com documento. Outra pessoa pode retirar se você autorizar pelo interfone.', { inline: true })}</div>`,
+  };
+});
+
+def(RES, 'entrega-nova', 'Avisar entrega', 'Entregas esperadas (7.2)', ctx => {
+  const [id, modo] = String(ctx.arg || '').split(':'), x = id && S.entregas.find(e => e.id === id), p = ctx.p;
+  const reag = !!x && x.estado === 'Não chegou' && modo !== 'editar';
+  const key = 'X|' + (ctx.arg || '');
+  if (FORM.xk !== key) { resetForm({ xk: key, xdata: x && !reag ? x.data : (x ? '' : HOJE_PROTO), xini: x ? x.ini : '', xfim: x ? x.fim : '', xorig: x ? x.origem : '', xoutra: x ? (x.origemTxt || '') : '', xdesc: x ? x.desc : '' }); A.xErr = {}; }
+  const E = A.xErr || {}, un = x ? x.un : unidadeDoMorador();
+  return {
+    tab: 'menu', top: { title: x ? (reag ? 'Reagendar entrega' : 'Editar entrega') : 'Avisar entrega', back: p + '/encomendas' },
+    body: `<div class="stack-5">
+      ${banner('info', 'info', 'A portaria vê o aviso no dia da entrega para identificar o pacote e a sua unidade. Ele não é obrigatório para receber encomendas.', { inline: true })}
+      ${reag ? banner('warning', 'triangle-alert', 'Escolha a nova data. A entrega volta a "Esperada".', { inline: true }) : ''}
+      ${field('Data esperada', input('xdata', { type: 'date', attr: `min="${HOJE_PROTO}" max="${entregaMais30}"` }), { error: E.data, help: 'De hoje até 30 dias.' })}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${field('Das (opcional)', input('xini', { type: 'time' }))}${field('Até (opcional)', input('xfim', { type: 'time' }))}</div>
+      ${E.hora ? `<span class="error-msg" role="alert">${ic('circle-x')}${E.hora}</span>` : ''}
+      <div class="field"><span class="field-label">Origem (opcional)</span><div class="chips">${ORIGENS_ENTREGA.map(o => chip(o, FORM.xorig === o, () => { FORM.xorig = FORM.xorig === o ? '' : o; rerender(); })).join('')}</div></div>
+      ${FORM.xorig === 'Outra' ? field('Qual origem?', input('xoutra', { attr: 'maxlength="30" autocomplete="off"', ph: 'Ex.: loja do bairro' })) : ''}
+      ${FORM.xorig === 'iFood/entregador' ? banner('info', 'info', 'A portaria recebe só um aviso. Comida por aplicativo não é registrada como encomenda.', { inline: true }) : ''}
+      ${field('Descrição (opcional)', input('xdesc', { attr: 'maxlength="60" autocomplete="off"', ph: 'Ex.: caixa grande, fone de ouvido' }), { help: 'A portaria vê a descrição. Até 60 caracteres.' })}
+      ${E.limite ? banner('danger', 'circle-x', E.limite, { inline: true }) : ''}
+    </div>`,
+    footer: btn(reag ? 'Reagendar entrega' : x ? 'Salvar alterações' : 'Avisar entrega', { block: true, size: 'lg', icon: 'package-open', on: () => {
+      const e = {}, d = FORM.xdata || '', ini = FORM.xini || '', fim = FORM.xfim || '';
+      if (!d) e.data = 'Escolha a data esperada.'; else if (d < HOJE_PROTO) e.data = 'A data não pode ser anterior a hoje.'; else if (d > entregaMais30) e.data = 'A data pode ser até 30 dias a partir de hoje.';
+      if ((ini && !fim) || (!ini && fim)) e.hora = 'Informe o início e o fim da faixa, ou deixe as duas em branco.'; else if (ini && fim && fim <= ini) e.hora = 'O horário final precisa ser depois do inicial.';
+      const vira = !x || x.estado === 'Não chegou';
+      if (!e.data && vira && entregasAtivas(un) >= S.limiteEntregas) e.limite = `A unidade já tem ${S.limiteEntregas} entregas esperadas. Cancele uma para avisar outra.`;
+      if (Object.keys(e).length) { A.xErr = e; rerender(); return; }
+      A.xErr = {};
+      const dados = { data: d, ini, fim, origem: FORM.xorig || '', origemTxt: FORM.xorig === 'Outra' ? (FORM.xoutra || '').trim().slice(0, 30) : '', desc: (FORM.xdesc || '').trim().slice(0, 60) };
+      const msg = x ? (reag ? 'Entrega reagendada. A portaria vê no dia ' + dmy(d) + '.' : 'Entrega atualizada. A portaria já vê a mudança.') : (d === HOJE_PROTO ? 'Entrega avisada. A portaria já vê o aviso.' : 'Entrega avisada. A portaria vê o aviso no dia ' + dmy(d) + '.');
+      if (x) Object.assign(x, dados, { estado: 'Esperada' }); else S.entregas.unshift(Object.assign({ id: 'x' + uid(), un, estado: 'Esperada' }, dados));
+      go(p + '/encomendas'); setTimeout(() => toast(msg), 50);
+    } }),
   };
 });
 

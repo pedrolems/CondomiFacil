@@ -8,7 +8,7 @@
 
 ## Contexto
 
-O repositório já tem as branches `develop`, `staging` e `main`, além da branch de documentação (CLAUDE.md). Ainda não há aplicação para publicar. É preciso decidir quantos ambientes existem, como o código é promovido e como o app é distribuído.
+O repositório já tem as branches `develop`, `staging` e `main`, além da branch de documentação (AGENTS.md). Ainda não há aplicação para publicar. É preciso decidir quantos ambientes existem, como o código é promovido e como o app é distribuído.
 
 Restrições:
 
@@ -88,5 +88,5 @@ Opção **A**, com ambiente de preview por PR só para web e OTA, e API efêmera
 
 - `docs/03-arquitetura/01-arquitetura.md`: seções 5.3, 6.1 a 6.8, 8 (RNF-04, RNF-09, RNF-18).
 - `docs/01-produto/02-prd.md`: seção 10; SEG-02; RNF-04, RNF-09, RNF-16, RNF-17, RNF-18.
-- `CLAUDE.md`: branches e regra de commit.
+- `AGENTS.md`: branches e regra de commit.
 - `docs/02-design/02-user-flows.md`: seção 15 (versão obrigatória).

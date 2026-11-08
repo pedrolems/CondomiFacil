@@ -879,8 +879,8 @@ flowchart LR
     STG --> PRD["merge em main<br/>→ aprovação manual<br/>→ deploy produção<br/>+ build production + EAS Update (production)"]
 ```
 
-- **Mapeamento com as branches existentes:** `develop` → dev; `staging` → staging; `main` → produção. A branch `docs/design-system-e-user-flows` é de **documentação**: não faz deploy; mudanças só de `docs/` e `prototipo/` não acionam pipeline de aplicação (Proposta de filtro por caminho). Hoje as quatro branches existem (CLAUDE.md), mas ainda não há aplicação para publicar.
-- **Regra do projeto:** nenhum commit vai para uma branch sem validação do Pedro (CLAUDE.md); o CI/CD respeita isso com proteção de branch (revisão obrigatória, CI verde) em `develop`, `staging` e `main` (Proposta).
+- **Mapeamento com as branches existentes:** `develop` → dev; `staging` → staging; `main` → produção. A branch `docs/design-system-e-user-flows` é de **documentação**: não faz deploy; mudanças só de `docs/` e `prototipo/` não acionam pipeline de aplicação (Proposta de filtro por caminho). Hoje as quatro branches existem (AGENTS.md), mas ainda não há aplicação para publicar.
+- **Regra do projeto:** nenhum commit vai para uma branch sem validação do Pedro (AGENTS.md); o CI/CD respeita isso com proteção de branch (revisão obrigatória, CI verde) em `develop`, `staging` e `main` (Proposta).
 - Teste de carga (RNF-17) em staging antes do lançamento e a cada versão principal; gating manual.
 - Reverter: *rollback* da API para a imagem anterior (migrações expandir-contrair permitem), e *rollback* de OTA republicando o anterior no canal.
 - **Ambiente de preview por PR (Proposta, opcional):** só para a web e para OTA (canal de preview) no início; ambiente de API efêmero por PR só se o custo (RNF-18) e a necessidade justificarem. Não recomendado no MVP.
@@ -993,7 +993,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda 
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
 | [ADR-014](adr/014-primeira-conclusao-sync.md) | Estratégia de sincronização: "primeira conclusão" por relógio do aparelho x chegada | Proposta | Produto |
 
-### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, CLAUDE.md)
+### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)
 
 | Pendência | Efeito na arquitetura |
 | --- | --- |
@@ -1032,7 +1032,7 @@ Provedor de nuvem e região; CI/CD e IaC; ORM e migrações; fila e agendador co
 
 | Seção deste documento | RF | RN | RNF | SEG | Outras fontes |
 | --- | --- | --- | --- | --- | --- |
-| 1 Objetivo e como ler | — | — | — | — | PRD 10; CLAUDE.md |
+| 1 Objetivo e como ler | — | — | — | — | PRD 10; AGENTS.md |
 | 2 Visão geral (contexto, containers, perfis) | RF-AC-06, RF-AD-14 | RN 3 | RNF-03 | SEG-14 | PRD 3 e 10; DS 12 |
 | 3.1 App mobile | RF-AC-04, RF-AC-05 | RN-CD-05 | RNF-02, RNF-04, RNF-12, RNF-15 | SEG-09 | DS 4 a 9, 12, 14, 16, 17; UF 15 |
 | 3.1.1 Offline | RF-VI-05, RF-VI-06, RF-VI-11, RF-CH-03 | RN-OF-01 a 06, RN-CH-04, RN-CH-14, RN-CH-15 | RNF-06, RNF-07, RNF-08, RNF-16 | SEG-09 | US-NO-01; DS 10.10, 10.23, 11.1; UF 6.3, 15 |
@@ -1048,11 +1048,11 @@ Provedor de nuvem e região; CI/CD e IaC; ORM e migrações; fila e agendador co
 | 3.9.2 Anonimato | RF-PE-04 | RN-RC-01, RN-RC-10, RN-RC-12, RN-RC-16, RN-RC-19, RN-SC-02, RN-SC-12, RN-PE-08, RN-PE-09, RN-CH-19 a 21, RN-RE-05, RN-FI-30 | — | SEG-07, SEG-18 | DS 15 |
 | 3.10 Votações | RF-VO-01 a 11 | RN-VO-01 a 19, RN-FI-11, RN-GE-03 | — | SEG-06 | — |
 | 3.11 Finanças | RF-FI-17 a 24 | RN-FI-21 a 32 (12.3 e 12.4) | — | SEG-08, SEG-18 | UF 13.3, 13.4 |
-| 4 Multi-tenant (4.1 a 4.11) | RF-AD-07, RF-AD-17, RF-AC-04 | RN-CD-05, RN-CD-16, RN-CD-17, RN-PL-06, RN-GE-01 a 03, RN 13 | RNF-01, RNF-10, RNF-11, RNF-17 | SEG-05, SEG-09, SEG-13, SEG-14, SEG-17, SEG-18 | CLAUDE.md (RLS por condomínio e unidade) |
+| 4 Multi-tenant (4.1 a 4.11) | RF-AD-07, RF-AD-17, RF-AC-04 | RN-CD-05, RN-CD-16, RN-CD-17, RN-PL-06, RN-GE-01 a 03, RN 13 | RNF-01, RNF-10, RNF-11, RNF-17 | SEG-05, SEG-09, SEG-13, SEG-14, SEG-17, SEG-18 | AGENTS.md (RLS por condomínio e unidade) |
 | 5 Stacks | RF-AC-06 | — | RNF-02, RNF-04, RNF-16, RNF-18 | SEG-12 | PRD 10; UF 17 |
-| 6 Ambientes | — | — | RNF-09, RNF-13, RNF-16, RNF-17, RNF-18 | SEG-01, SEG-02 | CLAUDE.md (branches, regra de commit); UF 15 |
+| 6 Ambientes | — | — | RNF-09, RNF-13, RNF-16, RNF-17, RNF-18 | SEG-01, SEG-02 | AGENTS.md (branches, regra de commit); UF 15 |
 | 7 Segurança e LGPD | RF-LG-01, RF-LG-02 | RN 8.4, RN-CD-18, RN-OF-06 | — | SEG-01 a SEG-18 | PRD 8 |
 | 8 Requisitos não funcionais | — | — | RNF-01 a RNF-18 | — | PRD 7 |
-| 9 Decisões em aberto e riscos | — | — | — | SEG-16, SEG-15 | UF 17; CLAUDE.md |
+| 9 Decisões em aberto e riscos | — | — | — | SEG-16, SEG-15 | UF 17; AGENTS.md |
 
 Observação: as listas de RF por épico são resumidas aqui; a cobertura completa RF → US está em `docs/01-produto/04-historias-de-usuario.md`. Ao adicionar ou mudar uma regra (RN), atualizar na mesma alteração as linhas desta tabela que citam essa regra, conforme a convenção de rastreabilidade do projeto.

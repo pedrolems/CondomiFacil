@@ -40,6 +40,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | Arquivo | Conteúdo |
 | --- | --- |
 | `01-arquitetura.md` | Componentes (mobile, web, API, tempo real, jobs, pagamentos, notificações, arquivos, auditoria, votações, finanças), estratégia multi-tenant (RLS por `condominio_id`), stacks com justificativas, ambientes (dev, staging, produção), segurança/LGPD, RNF, decisões em aberto e riscos (9), rastreabilidade |
+| `02-diagramas-de-arquitetura.md` | Diagramas C4 em Mermaid (12): nível 1 contexto, nível 2 containers (fluxos offline, pagamento e implantação), nível 3 componentes do backend; decisões do documento (`sync` como módulo, pagamentos por eventos) e rastreabilidade. Proposta, não aceito |
 | `adr/` | 14 ADRs (001 a 014) e índice em `adr/README.md`. Todos em estado Proposto ou Em aberto (002 gateway, 004 nuvem, 005 e-mail): nenhum foi aceito pelo Pedro ainda |
 
 ## Decisões de produto que não se deduzem do código

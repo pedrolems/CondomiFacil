@@ -68,6 +68,9 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 
 ## Convenções de trabalho
 
+- **Perguntar em caso de dúvida ou decisão importante.** Antes de escolher uma interpretação ou tomar uma decisão importante, faça perguntas ao Pedro. Apresente as opções possíveis, explique brevemente suas consequências e recomende qual opção escolher, com o motivo da recomendação.
+- **Respeitar o escopo do pedido.** Não altere nada além do que foi solicitado. Se for necessário mexer em algo que não esteja no comando, explique a necessidade e pergunte antes de alterar, inclusive quando a mudança decorrer da rastreabilidade entre documentos.
+- **Aguardar as respostas antes de continuar.** O desenvolvimento só deve continuar depois que todas as perguntas apresentadas tiverem respostas. Enquanto houver pergunta sem resposta, pause o desenvolvimento e as alterações, inclusive nos subagentes. Silêncio, tempo decorrido e opção pré-selecionada não são respostas nem autorização.
 - **Rastreabilidade é a regra central.** Mudou uma regra? Atualize, na mesma alteração, o que depende dela: RN -> PRD (RF) -> história de usuário -> fluxo -> Design System -> protótipo. Mudanças de design entram na tabela da seção 18 do Design System com data e motivo.
 - Texto de interface: termos fixos do Design System seção 13 (por exemplo "Proprietário", "Inquilino", "Despesa extraordinária", "Desocupada"; nunca "locador" ou "locatário").
 - Estado nunca só por cor: sempre texto e ícone (WCAG 1.4.1). Hex solto no código é erro; use referências à paleta.

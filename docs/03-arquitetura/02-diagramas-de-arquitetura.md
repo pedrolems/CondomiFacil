@@ -298,7 +298,7 @@ flowchart LR
 - Passos 1 a 3 funcionam sem conexão. Passos 4 a 12 rodam quando a conexão volta (o app tenta de novo com recuo exponencial, Proposta).
 - Uma operação recusada não derruba o lote. Reenvio nunca duplica, porque `op_id` é único no servidor.
 - Entrada offline de visitante cancelado pelo morador é **aplicada** e gera divergência (RN-OF-04). A divergência não gera notificação nem tela para o síndico (RN-OF-05).
-- Na limpeza, duas conclusões do mesmo chamado: vale a primeira (RN-CH-04). O critério de "primeira" é Proposta (ADR-014).
+- Na limpeza, duas conclusões do mesmo ciclo: vale o menor horário registrado pelo celular, mesmo recebido depois (RN-CH-04; decisão de Pedro em 08/11/2026). Preservar operações e corrigir a conclusão efetiva com aviso; reenvio não cria novo ciclo. Desempate exato e relógio incorreto continuam propostas técnicas (ADR-014).
 - Fotos de conclusão (até 5, RN-CH-14) sobem antes, com o mesmo `op_id` como chave de idempotência.
 - Online, a lista se atualiza pelo WebSocket. Se o socket cair, o cliente faz `pull` ao reconectar, e há fallback de consulta periódica (Proposta).
 - O banco local é apagado ao sair, ao trocar de condomínio e na primeira abertura de um novo dia (Proposta, complementa a rotina 13).
@@ -857,7 +857,7 @@ Todas são Proposta: valem para os diagramas e esperam validação do Pedro. Nen
 | Banco local (SQLite + SQLCipher ou WatermelonDB) | ADR-003 | Sim: rótulo do banco local e do cliente de sincronização | D2, D3 |
 | Fila e Redis | ADR-006 | Sim: possível container Redis | D2, D12 |
 | WebSocket no mesmo processo | arq. 3.4 | Sim | D2, D5 |
-| Critério de "primeira conclusão" | ADR-014 | Não muda a forma, só a regra do passo 7 de D3 | D3 |
+| Empate exato, relógio incorreto e correção tardia da conclusão | ADR-014; menor horário do celular já definido em RN-CH-04 | Não muda a forma, detalha a regra do passo 7 de D3 | D3 |
 | Fuso horário das rotinas | ADR-012 | Não muda a forma | D12 |
 | Escala horizontal de WebSocket (conexões por instância) | arq. 9.3 | Pode mudar D5 (número de instâncias) | D5 |
 | Vírus em uploads | arq. 3.8, 9.3 | Pode acrescentar um serviço externo | D1, D2, D10 |
@@ -871,7 +871,7 @@ Todas são Proposta: valem para os diagramas e esperam validação do Pedro. Nen
 | --- | --- | --- |
 | Parecer jurídico SEG-16 (marco 2) | Talvez | Pode mudar `convivencia` (reclamações, score) e `governanca` (sigilo do voto, ADR-009). A forma dos diagramas se mantém; regras e prazos já estão em parâmetros |
 | Revisão das regras de locação | Não | Regras dentro de `condominio` e `governanca` |
-| Reserva paga não usada (RN 7.4) | Não | Muda a máquina de estados de `reservas`, não os diagramas |
+| Reserva paga não usada — resolvida por Pedro em 08/11/2026 | Não | RN-RE-09/10/13: reservas do dia e estados Em andamento, Cumprida e Não comparecimento, com autoria das marcações; sem novo componente nem ampliação offline |
 | Prazo de 5 dias de resposta do alvo | Não | Parâmetro de `configuracao` |
 | Finanças: orçamento anual, transparência a moradores, fundo de reserva, plano de contas | Talvez | Transparência a moradores mudaria quem lê `financas` (SEG-18) |
 | Cobrança em atraso como notificação obrigatória | Não | Muda a lista fixa em `notificacoes` |

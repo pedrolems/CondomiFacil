@@ -253,7 +253,8 @@ Não é estado da reclamação: é um selo à parte (10.8.2), junto do selo de e
 | Cancelada com reembolso | `neutral` |
 | Cancelada sem reembolso | `neutral` |
 | Cancelada pelo condomínio | `info` |
-| Realizada | `neutral` |
+| Em andamento | `info` |
+| Cumprida | `neutral` |
 | Não comparecimento | `warning` |
 
 **Reclamações (RN 5.5)**
@@ -677,10 +678,13 @@ Usada na pesquisa mensal (RF-PE-01) e na avaliação do atendimento do chamado (
 
 Usado em "Meu score" (RF-RS-11) e na "Transparência" (RF-RS-12).
 
+- **Contexto visível:** morador vê "Seu score nesta unidade" com o nome da unidade ativa; saldo, histórico e recuperação pertencem ao vínculo pessoa/unidade. Trocar unidade não mistura históricos nem bloqueios. Novo vínculo começa em 100 (RN-SC-13). Funcionário e síndico profissional sem unidade veem "Seu score neste condomínio" (RN-SC-14).
+- **Score público do síndico:** morador usa o vínculo da unidade de referência do mandato, identificado no cartão; profissional sem unidade usa o funcional do condomínio. As demais pontuações da mesma pessoa não são publicadas (RN-SC-02).
+
 - Número em `type.display` com "de 100" ao lado em `type.body` e `color.text.secondary`.
 - Barra horizontal de 0 a 100 abaixo: trilho `color.border.divider`, preenchimento `color.link`, e uma marca vertical no limite das reservas gratuitas (60) com o rótulo "Limite para reservas gratuitas".
 - Com o score acima do limite, o tom é neutro (azul). Com o score no limite ou abaixo, o preenchimento passa para `color.warning.fg` e aparece a frase de bloqueio. O score nunca usa vermelho nem verde: ele é uma referência, não um julgamento da pessoa.
-- Abaixo: "Próxima recuperação: +5 em 10/03/2027" e o histórico (linhas de lista com data, motivo e pontos). No histórico, ganhos usam `color.success.fg` e perdas `color.danger.fg`, sempre com o sinal escrito (`+5`, `−10`); a regra de não usar vermelho nem verde vale para o número e a barra do score.
+- Abaixo: "Próxima recuperação: +5 em 10/03/2027" e o histórico (linhas de lista com data, motivo e pontos). No histórico, ganhos usam `color.success.fg` e perdas `color.danger.fg`, sempre com o sinal escrito (`+5`, `−10`) e ícone de tendência; a regra de não usar vermelho nem verde vale para o número e a barra do score. Movimento de 0 pontos (início de novo vínculo em 100) usa tom neutro com sinal escrito (`0`) e ícone de início.
 - Link fixo "Como o score funciona", para a página "Como funciona" (RF-AC-07).
 
 ### 10.19 Calendário
@@ -761,8 +765,12 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 - **Divergência ao sincronizar (RN-OF-04):** diálogo bloqueante em tom `warning`: "Carlos Souza entrou às 14h10, mas a visita tinha sido cancelada pelo morador. Ligue para Bloco A · Apto 101 pelo interfone." Ação única: "Confirmei com o morador". O diálogo não tem botão de fechar.
 - Faixa "Sem internet" e indicador de sincronização sempre visíveis quando se aplicam (10.10 e 10.23).
 - Texto principal de 18 dp, botões de 56 dp e contraste alto, pensando em turnos longos, pouca familiaridade com tecnologia e telas com reflexo.
+- **Áreas > Reservas de hoje:** lista por horário com área, intervalo, unidade e estado, sem valores, meios de pagamento ou score. Reserva Confirmada a partir do início oferece "Marcar em andamento" (`clock`); após o uso, "Fazer vistoria" permite "Marcar cumprida" (`circle-check`). "Registrar não comparecimento" (`user-x`) só aparece para Confirmada depois do fim previsto, paga ou gratuita, sem uso constatado. Checklist/fotos só quando houve uso; dano segue reclamação. Não exige marcar o início antes de concluir, nem libera antecipadamente o intervalo reservado. Sem internet, ações de envio desabilitadas com explicação, sem adicionar vistoria à fila offline (RN-RE-09, RN-RE-13, RF-RE-08, RF-RE-09).
 
 ### 11.2 Limpeza
+
+- **Conclusões concorrentes sem internet (RN-CH-04):** vale o menor horário registrado pelo celular, mesmo recebido depois. Mostrar "Vale a conclusão de [colega], registrada antes pelo horário do celular." a quem teve seu registro superado e avisar quem teve sua conclusão reconhecida. Preservar as duas operações no histórico; reenvio não abre outro ciclo nem repete avisos. Não apresentar a ordem de chegada como ordem de execução do serviço. Empate exato e relógio incorreto permanecem no ADR-014 como detalhes técnicos propostos.
+- **Correção após avaliação (RN-CH-15, RN-CH-17):** avisar também quem abriu o chamado. Avaliação da conclusão superada fica só no histórico autorizado, sai das médias e não é transferida ao colega. Oferecer "Avaliar o serviço" para a conclusão efetiva pela janela configurada (padrão 7 dias), contada da disponibilização da correção, com lembrete único em 24h; não reiniciar as 48h de reabertura. Nunca mostrar o comentário antigo ao funcionário que passou a ter a conclusão efetiva.
 
 - **Tela inicial = fila de chamados do setor** em cartões, ordenados por urgência e, empatando, pelo mais antigo (10.9, RN-CH-13), com o selo de urgência (10.8.1) e o prazo restante ("vence em 3h") e selo `danger` "Fora do prazo" quando vencido.
 - Botão "Concluir" visível no cartão, sem abrir o chamado (PRD, seção 9). Concluir abre uma folha curta com foto opcional e o botão "Concluir chamado".
@@ -788,7 +796,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 Ao cancelar depois do prazo de reembolso, o diálogo avisa antes de confirmar (RN-CA-03).
 
-**Sugestão de lista de visitantes (RN-RE-12).** Na confirmação e no detalhe de uma reserva confirmada, com data depois de hoje e sem lista vinculada, aparece uma faixa `info` (10.10) com ícone `list-checks`: "Vai receber convidados? Monte a lista de visitantes.", o botão secundário "Montar lista" (abre a 11.13 com data, horário e local da reserva) e o botão de texto "Agora não" (esconde a sugestão para aquela reserva). Não aparece em reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje. Com lista vinculada, o detalhe mostra uma linha (10.9) "Lista: N pessoas", com o nome da lista e "M chegaram", que abre o detalhe da lista. Na confirmação, a faixa fica abaixo do status; no detalhe, abaixo do cartão da reserva.
+**Sugestão de lista de visitantes (RN-RE-12).** Na confirmação e no detalhe de uma reserva confirmada, com data depois de hoje e sem lista vinculada, aparece uma faixa `info` (10.10) com ícone `list-checks`: "Vai receber convidados? Monte a lista de visitantes.", o botão secundário "Montar lista" (abre a 11.13 com data, horário e local da reserva) e o botão de texto "Agora não" (esconde a sugestão para aquela reserva). Não aparece em reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje. Com lista vinculada, o detalhe mostra uma linha (10.9) "Lista: N pessoas", com o nome da lista e "M chegaram", que abre o detalhe da lista. Na confirmação, a faixa fica abaixo do status; no detalhe, abaixo do cartão da reserva.
 
 ### 11.5 Reclamações
 
@@ -977,7 +985,7 @@ As abas foram escolhidas para que as tarefas mais frequentes de cada perfil fiqu
 
 - **Gestão** reúne o que é do síndico: reclamações para julgar, chamados de manutenção, avaliações do atendimento, comunicados, reuniões, solicitações de cadastro, inadimplência, finanças e substituição. Para o subsíndico fora da substituição, só os itens de 11.11.
 - **Meus chamados** fica no Menu do síndico e do subsíndico, porque a aba Chamados dá lugar à Gestão.
-- **Áreas** (portaria e limpeza) reúne vistorias e registro de não comparecimento (RF-RE-08, RF-RE-09).
+- **Áreas**: na portaria, abre Reservas de hoje e permite acompanhar Em andamento, Cumprida e Não comparecimento; na limpeza, mantém vistorias e faltas. Pendências de vistoria de dias anteriores ficam separadas. Estados usam texto e ícone além da cor; a lista da portaria não exibe informações financeiras (RF-RE-08, RF-RE-09, RN-RE-13).
 - **Menu** reúne, para quem tem: Meu score, Reclamações, Cobranças, Finanças do condomínio (só conselho fiscal), Encomendas, Reuniões e votações, Pesquisa do mês, Transparência, Como funciona, Como usar o app, Aparência, Notificações, Privacidade e dados, Sair. Na portaria, o Menu também tem "Abrir chamado" e "Modo treinamento".
 - **Aparência** tem três opções: "Igual ao aparelho" (padrão), "Claro" e "Escuro". A escolha fica salva (RF-AC-05, US-AC-06).
 
@@ -1172,8 +1180,13 @@ export const motion = { fast: 100, base: 200, slow: 300 } as const;
 
 Este documento corrigiu pontos da seção 9 do PRD, que foi atualizada para ficar igual.
 
+Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário registrado pelo celular, mesmo quando enviada depois (RN-CH-04). O critério está nas regras; desempate exato e tratamento de relógio incorreto continuam como propostas técnicas do ADR-014.
+
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 08/11/2026 | Conclusão de limpeza sem internet escolhida pelo menor horário do celular, mesmo enviada depois; aviso de correção, avaliação superada só no histórico e nova avaliação na janela configurada desde a disponibilização | Decisão de Pedro (RN-CH-04, RN-CH-15, RN-CH-17): preservar autoria do serviço e das avaliações, retirar notas superadas das médias e impedir efeitos duplicados; a correção não reinicia as 48h de reabertura |
+| 08/11/2026 | Score do morador por pessoa e vínculo de unidade, com unidade identificada, saldo/histórico/recuperação próprios e início em 100; score funcional por condomínio para funcionários e síndico profissional sem unidade; score público do síndico morador usa unidade do mandato | Decisão de Pedro: não compartilhar pontuação entre moradores nem imóveis, não herdar score de antigo ocupante e manter referência inequívoca para gestão (RN-SC-02, RN-SC-13, RN-SC-14) |
+| 08/11/2026 | Portaria com Reservas de hoje em Áreas e marcações Em andamento, Cumprida e Não comparecimento; Cumprida substitui Realizada; falta paga registrada na vistoria; limpeza mantém vistoria | Decisão de Pedro: acompanhar uso diário e encerrar também reserva paga não usada (RN-RE-09, RN-RE-10, RN-RE-13, RF-RE-08, RF-RE-09, US-RE-06, UF 5.3). Sem nova penalidade/reembolso de falta paga e sem ampliar offline |
 | 04/11/2026 | Cor de alerta do tema claro de #B26A00 para #8F5600 | #B26A00 tem 4,2:1 sobre o branco e não passa no AA para texto; #8F5600 tem 6,0:1 |
 | 04/11/2026 | Cor de erro do tema escuro de #EF5350 para #FF8A8A | #EF5350 tem 4,0:1 sobre a superfície escura; #FF8A8A tem 6,2:1 e fica mais distante do coral |
 | 04/11/2026 | Novo tom `coral.700` (#C8323F) para texto e ícones coral no tema claro | O PRD liberava coral em ícones e selos no claro, mas 2,9:1 também não passa no mínimo de 3:1 para ícones e componentes (WCAG 1.4.11) |

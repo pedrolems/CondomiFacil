@@ -57,4 +57,4 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | 011 | [Ambientes, branches, promoção, EAS e OTA](011-ambientes-branches-eas-ota.md) | Proposto | 06/11/2026 | Equipe |
 | 012 | [Fuso horário por condomínio para rotinas "à meia-noite"](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | Produto |
 | 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | Custo (RNF-18) |
-| 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 06/11/2026 | Produto |
+| 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |

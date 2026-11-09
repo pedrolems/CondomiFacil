@@ -8,6 +8,8 @@
 
 ## Contexto
 
+**Atualização de produto — 08/11/2026:** RN-SC-13/RN-SC-14 definem score de moradia por pessoa e vínculo de unidade, com início em 100 a cada novo vínculo, e score funcional de funcionário/síndico profissional sem unidade por pessoa/condomínio. RN-SC-02 define o score público do síndico morador pela unidade vinculada ao mandato. Isso não aceita os mecanismos técnicos propostos neste ADR; suas políticas devem autorizar o perfil de score correspondente e preservar a separação entre imóveis.
+
 Várias funções exigem que a identidade de quem avalia ou reclama não vaze:
 
 - Reclamações: o alvo não vê o reclamante (RN-RC-01, RN-RC-10); proprietário não residente vê só categoria, data, decisão e multa (RN-RC-16); reclamação gerada por vistoria tem o condomínio como reclamante (RN-RC-12).

@@ -362,7 +362,7 @@ A reserva gratuita é confirmada na hora; a paga segura o horário enquanto espe
 ```mermaid
 flowchart TD
     A(["Toca em Reservas e escolhe a área"]) --> B["Calendário: livre, ocupado e indisponível"]
-    B --> C{"Área gratuita e meu score igual ou menor que 60?"}
+    B --> C{"Área gratuita e meu score nesta unidade igual ou menor que 60?"}
     C -->|"Sim"| E1["Horários indisponíveis, com o motivo e link para o score"]
     C -->|"Não"| D{"Unidade em atraso com bloqueio ligado?"}
     D -->|"Sim"| E2["Novas reservas bloqueadas até quitar"]
@@ -411,7 +411,7 @@ flowchart TD
 | Gateway fora do ar | "O pagamento está indisponível agora. Seu horário fica guardado até [hora]." | Tenta de novo depois | RN-RE-03 |
 | Reserva confirmada com data futura e sem lista | Faixa `info` na confirmação e no detalhe: "Vai receber convidados? Monte a lista de visitantes." | "Montar lista" abre o fluxo 6.5 com data, horário e local da reserva; "Agora não" esconde para esta reserva | RN-RE-12, RN-VI-14 |
 | Reserva com lista vinculada | No detalhe, linha "Lista: N pessoas", com o nome da lista e "M chegaram" | Abre o detalhe da lista | RN-RE-12 |
-| Reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje | Nenhuma sugestão | — | RN-RE-12 |
+| Reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje | Nenhuma sugestão | — | RN-RE-12 |
 | Reserva cancelada com lista vinculada | Lista cancelada junto, com mensagem rápida: "Reserva cancelada. A lista vinculada também foi cancelada." | Monta outra lista, se quiser | RN-VI-14 |
 
 ### 5.2 Cancelar reserva
@@ -452,34 +452,43 @@ flowchart TD
 | Reembolso falhou no gateway | Push: "Seu reembolso está atrasado. Já estamos resolvendo." A administradora recebe alerta | Acompanha no histórico | RN-CA-04, SEG-17 |
 | Reserva já começou | Sem botão de cancelar | — | RN-CA-01 |
 
-### 5.3 Vistoria e não comparecimento
+### 5.3 Reservas do dia, vistoria e não comparecimento
 
 ```mermaid
 flowchart TD
-    A(["Fim da reserva: portaria ou limpeza abre a vistoria"]) --> B{"O morador usou a área?"}
-    B -->|"Não, reserva gratuita"| C["Registra não comparecimento"]
-    B -->|"Não, reserva paga"| P["Registra que a área não foi usada; sem penalidade; estado a definir"]
-    C --> S1["Rotina diária: a cada 2 faltas no trimestre, menos 5 pontos"]
+    A(["Portaria abre Áreas: Reservas de hoje"]) --> H["Vê área, horário, unidade e estado, sem dados financeiros"]
+    H --> I{"Confirmada e início já chegou?"}
+    I -->|"Sim, uso constatado"| J["Pode marcar Em andamento; guarda autor e momento"]
+    I -->|"Ainda não"| K["Consulta sem marcar uso"]
+    J --> V["Ao fim do uso: portaria ou limpeza abre a vistoria"]
+    H --> V
+    V --> B{"O morador usou a área?"}
+    B -->|"Não: Confirmada e horário já terminou"| C["Registra Não comparecimento, paga ou gratuita"]
+    C --> P{"Reserva gratuita?"}
+    P -->|"Sim"| S1["Rotina diária: a cada 2 faltas no trimestre pelo mesmo vínculo de moradia, menos 5 pontos a quem reservou"]
+    P -->|"Não"| Z3(["Não comparecimento, sem perda de pontos nem reembolso automático"])
     B -->|"Sim"| D["Preenche o checklist e tira fotos"]
     D --> E{"Encontrou dano?"}
-    E -->|"Não"| Z1(["Realizada"])
+    E -->|"Não"| Z1(["Cumprida"])
     E -->|"Sim"| F["Sistema abre reclamação contra a unidade em nome do condomínio, com as fotos"]
-    F --> Z2(["Fluxo 9.2: julgamento normal"])
+    F --> Z2(["Cumprida; fluxo 9.2: julgamento normal"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
     classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
-    class Z1,Z2 ok
-    class P erro
+    class Z1,Z2,Z3 ok
     class S1,F sis
 ```
 
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
 | Checklist incompleto | Itens obrigatórios destacados | Completa | RF-RE-08 |
-| Foto não enviada por falta de internet | "A foto será enviada quando a conexão voltar." | Automático | RNF-08 |
+| Sem internet | "Reservas e vistorias precisam de internet. Seu preenchimento foi mantido."; envio desabilitado | Reconecta e envia; sem fila offline de reservas | RN-RE-13; UF 15 |
+| Aguardando pagamento, Expirada ou Cancelada | Estado visível; sem ações de uso | Apenas consulta | RN-RE-13 |
+| Antes do início ou do término | Antes do início, sem marcar Em andamento; antes do fim previsto, sem Não comparecimento. Uso já encerrado permite Cumprida, mantendo intervalo reservado | Aguarda ou faz vistoria após uso | RN-RE-13 |
+| Reserva Confirmada já terminou sem marcação de início | Vistoria disponível normalmente | Marca Cumprida ou Não comparecimento | RN-RE-09, RN-RE-13 |
 | Reclamação de vistoria negada | Nenhuma penalidade a ninguém, porque não há reclamante pessoa | — | RN-RC-12 |
 
-**Estados da reserva:** "Aguardando pagamento" → "Confirmada", "Expirada" ou "Cancelada"; "Confirmada" → "Cancelada", "Cancelada com reembolso", "Cancelada sem reembolso", "Cancelada pelo condomínio", "Realizada" ou "Não comparecimento". Detalhes nas Regras de Negócio, 7.4.
+**Estados de uso:** "Confirmada" pode passar a "Em andamento"; ao fim do uso, "Confirmada" ou "Em andamento" passa a "Cumprida" na vistoria. "Não comparecimento" só parte de "Confirmada" após o fim do horário, sem uso constatado. "Cumprida" substitui o nome anterior "Realizada". As transições de pagamento e cancelamento continuam nas Regras de Negócio, 7.4. Não é necessário registrar o início antes da conclusão; conclusão antecipada não libera o intervalo original antes do fim. A limpeza mantém a vistoria; marcar início é função da portaria.
 
 ## 6. Visitantes e portaria
 
@@ -790,7 +799,7 @@ flowchart TD
     C --> D{"Online?"}
     D -->|"Não"| E["Conclusão vai para a fila de sincronização"]
     E --> F{"Outra pessoa concluiu o mesmo chamado offline?"}
-    F -->|"Sim, antes"| E1(["Vale a primeira conclusão; aviso ao segundo"])
+    F -->|"Sim, menor horário do celular"| E1(["Vale a de menor horário, mesmo enviada depois; aviso aos envolvidos"])
     F -->|"Não"| Z1
     D -->|"Sim"| Z1(["Concluído; quem abriu é avisado e convidado a avaliar"])
     Z1 --> G{"Quem abriu reabre em até 48h?"}
@@ -808,7 +817,10 @@ flowchart TD
 
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
-| Conclusão duplicada offline | "Este chamado já tinha sido concluído por [colega]." | Nenhuma ação | RN-CH-04 |
+| Conclusão de mesmo ciclo com horário posterior | "Vale a conclusão de [colega], registrada antes pelo horário do celular." | Confirma leitura; operação preservada sem efeito | RN-CH-04 |
+| Conclusão com horário anterior enviada depois | "A conclusão de [colega] passa a valer: foi registrada antes pelo horário do celular." Os envolvidos são avisados; não cria outro ciclo | Confirma leitura; histórico preservado | RN-CH-04 |
+| Reenvio da mesma operação | Mantém o resultado já processado, sem duplicar conclusão nem aviso | Nenhuma ação | RN-CH-04 |
+| Correção tardia com avaliação já enviada | "Uma conclusão anterior passou a valer. Sua avaliação anterior ficou no histórico; você pode avaliar este atendimento." A nota antiga não entra nos agregados nem é transferida ao outro funcionário; janela configurada (padrão 7 dias) a partir da disponibilização, lembrete único em 24h | Abre a avaliação da conclusão efetiva; reabertura continua sujeita às 48h da conclusão efetiva | RN-CH-15, RN-CH-17 |
 | Reabrir depois de 48h | Botão "Reabrir" some; aparece "Abrir novo chamado" | Abre um chamado novo | RN-CH-07 |
 | Conclusão sem foto | Conclui normalmente; a folha diz "Fotos do serviço (opcional)" | Nenhuma ação | RN-CH-14 |
 | Fotos com a conclusão sem internet | "Será enviado quando a conexão voltar." As fotos seguem a conclusão na fila | Nenhuma ação | RN-CH-14, RN-CH-04 |
@@ -1011,8 +1023,8 @@ Quem é parte da reclamação (reclamante ou alvo) nunca julga o recurso; sem ne
 
 ### 9.4 Acompanhar score e transparência
 
-- **Meu score:** número grande, histórico de ganhos e perdas com data e motivo, e a data da próxima recuperação. Nenhum item do histórico mostra quem reclamou (RN-SC-12). Com score igual ou menor que 60, um aviso explica o que está pausado e quando o score pode voltar a passar de 60.
-- **Transparência:** score do síndico e nota de cada setor com 2 ou mais funcionários avaliados. Setor com menos avaliados mostra "Nota não publicada este mês: poucas avaliações." (RN-PE-08).
+- **Meu score:** para moradores, identifica a unidade ativa e mostra número, histórico e próxima recuperação apenas daquele vínculo. Trocar a unidade troca esses três dados; penalidade e bloqueio não acompanham a pessoa para seus outros imóveis. Novo vínculo começa em 100 e conserva o histórico encerrado sem herdar score anterior. Funcionário e síndico profissional sem unidade consultam o score funcional por condomínio (RN-SC-13, RN-SC-14). Nenhum item mostra quem reclamou (RN-SC-12). Com score igual ou menor que 60, o aviso explica a suspensão de gratuitas só pela unidade afetada.
+- **Transparência:** score do síndico morador da unidade vinculada ao mandato (com essa referência identificada), ou score funcional do profissional sem unidade; outros imóveis ficam separados (RN-SC-02). Mostra também a nota de cada setor com 2 ou mais funcionários avaliados. Setor com menos avaliados mostra "Nota não publicada este mês: poucas avaliações." (RN-PE-08).
 - **Denunciar conteúdo:** em qualquer texto, o menu "Denunciar" envia a denúncia ao síndico; se o conteúdo for do síndico, vai a quem julgaria uma reclamação contra ele (RN-RC-13).
 
 ## 10. Comunicação
@@ -1409,12 +1421,13 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 
 Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma decisão do negócio ou de terceiros.
 
+**Resolvido por Pedro em 08/11/2026:** reserva paga não utilizada recebe Não comparecimento na vistoria. A portaria vê reservas do dia e marca Em andamento/Cumprida/Não comparecimento nas condições de RN-RE-13; a limpeza mantém vistoria. A decisão está em RN-RE-09/10/13, RF-RE-08/09, US-RE-06, fluxo 5.3 e Design System 18. Não se acrescentam penalidade ou reembolso automático por falta paga.
+
 | Pendência | Por que importa | Quem decide |
 | --- | --- | --- |
 | Parecer jurídico (SEG-16) | Pode mudar os fluxos 9.1 a 9.4, os prazos e os textos das mensagens de reclamação | Advogado |
 | Escolha do gateway de pagamento | Define os prazos reais de confirmação de boleto e Pix e os erros possíveis nos fluxos 5.1 e 13.1 | Produto e engenharia |
 | Prazo de 5 dias para resposta do alvo | Valor novo, sem dado de uso; validar no piloto | Produto, após o piloto |
-| Reserva paga não usada | A RN 7.4 não define o estado nem se há vistoria; hoje ela ficaria "Confirmada" para sempre | Produto |
 | Revisão jurídica das regras de locação | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
 | Orçamento anual previsto | O PRD não tem orçamento; sem ele, o painel só compara com o mês anterior, e não com o previsto | Produto |
 | Finanças para moradores (transparência financeira) | O PRD só prevê transparência de score e notas; um resumo público de receitas e despesas pode vir com a prestação de contas | Produto, com parecer jurídico |

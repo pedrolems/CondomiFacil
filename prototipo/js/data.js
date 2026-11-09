@@ -8,7 +8,19 @@ const S = {
   user: { nome: 'Ana Lima', email: 'ana.lima@email.com' }, conselho: false,
   unit: 0,
   units: [{ cond: 'Residencial Jardim Azul', name: 'Bloco A · Apto 101' }, { cond: 'Residencial Jardim Azul', name: 'Bloco B · Apto 302' }],
-  score: 78, atraso: false,
+  atraso: false,
+  scoresMoradia: [{ valor: 80, base: 80, recuperaEm: '12/12/2026', historico: [
+    { d: '12/10', t: 'Recuperação após 2 meses de regularidade', p: +5 },
+    { d: '12/08', t: 'Reclamação validada: uso indevido de área comum', p: -10 },
+    { d: '01/07', t: 'Reclamação negada como falsa', p: -15 },
+  ] }, { valor: 100, base: 100, recuperaEm: '05/01/2027', historico: [
+    { d: '05/11', t: 'Novo vínculo de moradia nesta unidade: início em 100', p: 0 },
+  ] }],
+  scoresFuncionais: {
+    portaria: { valor: 81, base: 81, recuperaEm: '01/01/2027', historico: [{ d: '01/11', t: 'Recuperação funcional neste condomínio', p: +5 }] },
+    limpeza: { valor: 74, base: 74, recuperaEm: '01/01/2027', historico: [{ d: '31/10', t: 'Pesquisa mensal neste condomínio', p: -5 }] },
+    manutencao: { valor: 79, base: 79, recuperaEm: '01/01/2027', historico: [] },
+  },
   // Locação (RN-CD-20 a RN-CD-26): o morador pode ser simulado como inquilino; a proprietária Helena acompanha o Bloco B · Apto 302
   inquilino: false, contratoFim: '05/12/2026', contratoDias: 30,
   prop: {
@@ -22,12 +34,6 @@ const S = {
     pedidos: [{ id: 'q1', tipo: 'Renovação do contrato', det: 'Marina Souza · até 31/01/2028', estado: 'Concluída', data: '15/01' }],
     hospedes: [],
   },
-  scoreHist: [
-    { d: '01/11', t: 'Pesquisa mensal: boa convivência', p: +5 },
-    { d: '12/10', t: 'Reclamação validada: barulho após as 22h', p: -10 },
-    { d: '01/10', t: 'Recuperação trimestral', p: +5 },
-    { d: '15/08', t: 'Reserva sem comparecimento (2 no trimestre)', p: -5 },
-  ],
   areas: [
     { id: 'salao', nome: 'Salão de festas', paga: true, valor: 150, cap: 'Até 80 pessoas', ico: 'party-popper' },
     { id: 'churrasqueira', nome: 'Churrasqueira', paga: false, valor: 0, cap: 'Até 20 pessoas', ico: 'flame' },
@@ -37,8 +43,9 @@ const S = {
   reservas: [
     { id: 'r1', area: 'churrasqueira', dia: '15/11', hora: '12h às 16h', estado: 'Confirmada', valor: 0 },
     { id: 'r2', area: 'salao', dia: '22/11', hora: '18h às 23h', estado: 'Aguardando pagamento', valor: 150, prazo: '14h30 de amanhã' },
-    { id: 'r3', area: 'quadra', dia: '02/11', hora: '9h às 10h', estado: 'Realizada', valor: 0 },
+    { id: 'r3', area: 'quadra', dia: '02/11', hora: '9h às 10h', estado: 'Cumprida', valor: 0 },
     { id: 'r4', area: 'gourmet', dia: '18/10', hora: '19h às 23h', estado: 'Cancelada com reembolso', valor: 90 },
+    { id: 'r5', area: 'churrasqueira', dia: '05/11', hora: '12h às 16h', estado: 'Confirmada', valor: 0 },
   ],
   visitantes: [
     { id: 'v1', nome: 'Carlos Souza', doc: '', tipo: 'avulso', quando: 'Hoje', estado: 'Esperado' },
@@ -166,9 +173,12 @@ const S = {
     { nome: 'Carlos Souza', vezes: 6 }, { nome: 'Fernando Lopes', vezes: 4 }, { nome: 'Beatriz Santos', vezes: 3 }, { nome: 'João Pereira', vezes: 2 }, { nome: 'Juliana Reis', vezes: 1 },
   ],
   vistorias: [
-    { id: 'w1', area: 'Churrasqueira', un: 'Bloco A · Apto 204', fim: 'Hoje, 16h', estado: 'Pendente', paga: false },
-    { id: 'w2', area: 'Salão de festas', un: 'Bloco C · Apto 504', fim: 'Ontem, 23h', estado: 'Pendente', paga: true },
-    { id: 'w3', area: 'Quadra poliesportiva', un: 'Bloco B · Apto 302', fim: '03/11, 10h', estado: 'Realizada', paga: false },
+    { id: 'w1', reserva: 'r5', area: 'Churrasqueira', un: 'Bloco A · Apto 101', dia: '05/11', horario: '12h às 16h', inicioMin: 720, fimMin: 960, estado: 'Confirmada', paga: false, eventos: [] },
+    { id: 'w2', area: 'Salão de festas', un: 'Bloco C · Apto 504', dia: '05/11', horario: '9h às 11h', inicioMin: 540, fimMin: 660, estado: 'Confirmada', paga: true, eventos: [] },
+    { id: 'w3', area: 'Quadra poliesportiva', un: 'Bloco B · Apto 302', dia: '05/11', horario: '16h às 18h', inicioMin: 960, fimMin: 1080, estado: 'Confirmada', paga: false, eventos: [] },
+    { id: 'w4', area: 'Espaço gourmet', un: 'Bloco A · Apto 204', dia: '05/11', horario: '18h às 23h', inicioMin: 1080, fimMin: 1380, estado: 'Aguardando pagamento', paga: true, eventos: [] },
+    { id: 'w5', area: 'Salão de festas', un: 'Bloco B · Apto 203', dia: '04/11', horario: '18h às 23h', inicioMin: 1080, fimMin: 1380, estado: 'Confirmada', paga: true, eventos: [] },
+    { id: 'w6', area: 'Quadra poliesportiva', un: 'Bloco B · Apto 302', dia: '03/11', horario: '9h às 10h', inicioMin: 540, fimMin: 600, estado: 'Cumprida', paga: false, eventos: [] },
   ],
   // Gestão
   solicitacoes: [
@@ -240,6 +250,14 @@ const S = {
   ],
   implStep: 1,
 };
+
+function scoreContexto() {
+  return S.scoresFuncionais[CUR.p] || S.scoresMoradia[S.unit];
+}
+Object.defineProperties(S, {
+  score: { get: () => scoreContexto().valor, set: valor => { scoreContexto().valor = valor; } },
+  scoreHist: { get: () => scoreContexto().historico },
+});
 
 /* Convidados da lista l1: 18 pessoas, 5 já chegaram */
 ['Ana Beatriz Cruz', 'Bruno Tavares', 'Camila Duarte', 'Daniel Freitas', 'Eduarda Moraes', 'Felipe Araújo', 'Gabriela Neves', 'Henrique Salles', 'Isabela Rocha', 'João Vitor Prado', 'Karina Mello', 'Leonardo Brito', 'Mariana Teixeira', 'Nicolas Ferraz', 'Olívia Campos', 'Pedro Henrique Lins', 'Quitéria Alves', 'Rodrigo Matos']

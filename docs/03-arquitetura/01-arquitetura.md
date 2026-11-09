@@ -221,11 +221,11 @@ sequenceDiagram
 | --- | --- | --- |
 | Entrada registrada offline de visitante que o morador cancelou (ou editou) antes da sincronização | RN-OF-04, RF-VI-11 | O servidor **aplica** o registro (a decisão de deixar entrar foi da portaria e não é bloqueada) e cria uma `divergencia_sincronizacao` ligada à operação. O cliente mostra o diálogo bloqueante sem botão de fechar (DS 11.1), que só fecha quando o porteiro confirma por interfone com o morador que cadastrou. A confirmação é enviada à API e registrada (quem, quando). |
 | Divergência e síndico | RN-OF-05 | Divergência **não** gera notificação nem tela para o síndico. A divergência é notificação obrigatória apenas para o porteiro (US-NO-01). |
-| Duas pessoas da limpeza concluem o mesmo chamado offline | RN-CH-04, RN-CH-15 | Vale a primeira conclusão; a segunda é recusada com aviso. A avaliação do atendimento vale para o funcionário da primeira (RN-CH-15). |
+| Duas pessoas da limpeza concluem o mesmo ciclo offline | RN-CH-04, RN-CH-15 | Vale o menor horário registrado pelo celular, mesmo recebido depois; preservar operações e avisar os envolvidos quando muda a conclusão efetiva. Reenvio não cria outro ciclo. A avaliação pertence à conclusão efetiva; a avaliação da conclusão superada fica só no histórico, fora das médias e sem transferência; a conclusão efetiva recebe nova janela de mesma duração configurada a partir da disponibilização; as 48h de reabertura não reiniciam (RN-CH-15, RN-CH-17). |
 | Saída offline de visita já encerrada pela rotina "saída não registrada" | Proposta | Operação aplicada como no-op com aviso informativo, sem diálogo bloqueante. |
 | Registro offline de visitante inexistente no servidor (removido) | Proposta | Tratado como divergência (mesmo fluxo de RN-OF-04). |
 
-**Lacuna de "primeira conclusão":** a RN-CH-04 não diz se "primeira" é pela hora em que cada pessoa concluiu (relógio do aparelho) ou pela ordem de chegada ao servidor. Proposta: usar `registrado_em` do aparelho, com desempate pela chegada ao servidor, e limitar o desvio de relógio aceito (rejeitar horas no futuro). Decidir com o Pedro (seção 9).
+**Critério de primeira conclusão decidido em 08/11/2026 (RN-CH-04):** menor horário registrado pelo celular, mesmo se a operação chegar depois. `registrado_em` e `recebido_em` são preservados; a seleção é por ciclo e a idempotência é por `op_id`. Desempatar horários exatamente iguais pela chegada ao servidor é proposta técnica; não foi aprovado limite de desvio de relógio. Horário inválido/futuro continua pendente no ADR-014. A correção tardia de avaliação foi definida em RN-CH-15/17: nota superada só no histórico, sem agregados nem transferência, com nova janela de mesma duração configurada desde a disponibilização da conclusão efetiva; as 48h de reabertura não reiniciam.
 
 **Segurança do dado offline (SEG-09, RN-OF-06).**
 
@@ -364,7 +364,7 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 | 4 | Recuperação de score (+5 após 2 meses de regularidade) | Diária | Por condomínio | RN-SC-08 |
 | 5 | Bloqueio de reservas gratuitas | A cada alteração de score | Disparado por evento, não por cron | RN-SC-09 |
 | 6 | Fechamento da pesquisa (médias, ajuste de scores, notas dos setores) | Último dia do mês, 23h59 | Por condomínio (fuso) | RN-PE-05 a 08 |
-| 7 | Faltas em reservas (-5 a cada 2 faltas gratuitas no trimestre) | Diária | Por condomínio | RN-RE-10 |
+| 7 | Faltas em reservas (-5 a cada 2 faltas gratuitas no trimestre, por vínculo de moradia) | Diária | Por condomínio | RN-RE-10 |
 | 8 | Lembretes de encomenda (3 e 7 dias; aviso ao síndico no fim do prazo) | Diária | Por condomínio | RN-EN-03/04 |
 | 9 | Entregas esperadas que não chegaram | Diária, meia-noite | Por condomínio (fuso) | RN-EN-12/13 |
 | 10 | Prazos de reclamação e chamado | Diária | Por condomínio | RN-RC-04, RN-RC-06, RN-CH-06 |
@@ -447,6 +447,8 @@ flowchart LR
 - Exclusão LGPD e anonimização removem ou desvinculam arquivos (seção 7). Retenção de arquivos é lacuna.
 
 ### 3.9 Auditoria e anonimato
+
+**Escopo do score (regra de produto confirmada em 08/11/2026):** moradores possuem perfis por pessoa e episódio de vínculo de unidade, com saldo, movimentos e regularidade independentes; cada novo vínculo começa em 100. Funcionários e síndico profissional sem unidade mantêm perfil funcional por pessoa/condomínio. O score público do síndico morador e as reclamações de gestão usam a unidade de referência do mandato. Leituras, cache, chave de serialização e eventos de bloqueio devem incluir o perfil de score correto, não apenas `usuario_id` ou condomínio (RN-SC-02, RN-SC-13, RN-SC-14). A estrutura física permanece proposta no MER/DER.
 
 #### 3.9.1 Auditoria (SEG-08)
 
@@ -991,7 +993,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda 
 | [ADR-011](adr/011-ambientes-branches-eas-ota.md) | Ambientes, branches e fluxo de promoção (`develop` → `staging` → `main`), EAS e OTA | Proposta | Equipe |
 | [ADR-012](adr/012-fuso-horario-por-condominio.md) | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
-| [ADR-014](adr/014-primeira-conclusao-sync.md) | Estratégia de sincronização: "primeira conclusão" por relógio do aparelho x chegada | Proposta | Produto |
+| [ADR-014](adr/014-primeira-conclusao-sync.md) | Menor horário do celular definido em RN-CH-04; implementação, empate exato e relógio incorreto | Proposta técnica, critério de produto definido em 08/11/2026 | Engenharia e exceções de produto |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)
 
@@ -1000,7 +1002,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda 
 | **Parecer jurídico (SEG-16, marco 2)** sobre score, reclamações, penalidades, eleições e termos | Pode alterar fluxos e prazos de reclamação (UF 9.1 a 9.4); por isso regras e prazos ficam em parâmetros e dados. Pode exigir mais rigor de sigilo do voto (ADR-009) |
 | **Escolha do gateway** | Define prazos reais de confirmação e erros dos fluxos 5.1 e 13.1; webhooks, subconta e conciliação ficam atrás de porta até a decisão |
 | Revisão jurídica das regras de locação (Lei 8.245/1991) | Regras de voto do inquilino e divisão de despesas |
-| Reserva paga não usada (RN 7.4 não define estado nem vistoria) | Hoje fica "Confirmada" para sempre; afeta máquina de estados da reserva |
+| Reserva paga não usada — resolvida por Pedro em 08/11/2026 | Vistoria registra Não comparecimento em paga ou gratuita. Portaria consulta reservas do dia e marca Em andamento/Cumprida/Não comparecimento; registro de autor e momento, sem ampliar offline (RN-RE-09, RN-RE-10, RN-RE-13) |
 | Prazo de 5 dias para resposta do alvo da reclamação | Validar no piloto; parâmetro `reclamacao.prazo_resposta_alvo_dias` |
 | Finanças: orçamento anual, transparência a moradores, fundo de reserva, plano de contas por administradora | Podem alterar o modelo de `lancamento` e visibilidade (SEG-18) |
 | Cobrança em atraso como notificação obrigatória | Lista de notificações obrigatórias é fixa em código (US-NO-01); decidir antes |

@@ -95,14 +95,14 @@ Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pela administrado
 | RN-CD-22 | O inquilino não reserva áreas para depois do fim do contrato, e as visitas recorrentes dele terminam no máximo nessa data; numa renovação, os limites passam a seguir a nova data |
 | RN-CD-23 | O proprietário pode pedir pelo app o cadastro, a renovação ou o encerramento do inquilino; a administradora atende ou recusa com motivo, como em RN-CD-06. No plano Gestão + Suporte, o pedido atendido conta como solicitação (RN-PL-03) |
 | RN-CD-24 | A administradora marca como desocupada a unidade sem ninguém morando. Nela, não há morador habilitado; o proprietário vota e é o responsável financeiro de todas as cobranças; ninguém reserva, cadastra visitantes (exceto RN-VI-10) nem abre chamados pela unidade. Reclamação validada contra a unidade desocupada não tira pontos de ninguém, e o proprietário é avisado (RN-RC-16) |
-| RN-CD-25 | Quando o proprietário volta a morar na unidade, a administradora muda o vínculo dele para morador: ele volta a ser o morador habilitado e passa a ter score, que começa em 100 |
+| RN-CD-25 | Quando o proprietário volta a morar na unidade, a administradora muda o vínculo dele para morador: ele volta a ser o morador habilitado e inicia um novo score pessoal naquela unidade em 100. O histórico do vínculo anterior é preservado e os scores dele em outras unidades não mudam |
 | RN-CD-26 | Quando a unidade tem mais de um proprietário, a administradora cadastra só o proprietário representante, que vota e recebe os avisos da unidade |
 | RN-CD-27 | Fora da substituição, o subsíndico tem uma gestão limitada: julga o previsto em RN-RC-03 e RN-RC-07; acompanha os chamados de manutenção e o andamento, sem indicar empresa nem mudar o status; sugere comunicados ao síndico (RN-CO-05); registra votos presenciais nas reuniões convocadas pelo síndico (RN-VO-11); e vê as encomendas com prazo de guarda vencido, sem marcar a devolução. Não convoca reuniões, não cria pautas, não encerra votações, não faz solicitações à administradora e não vê a inadimplência |
 | RN-CD-28 | Na substituição, o subsíndico tem todas as funções do síndico, exceto ativar e desativar a substituição (RN-CD-12) |
 
 ## 4. Score
 
-Moradores, síndicos (inclusive o profissional), subsíndico e funcionários têm um score de 0 a 100 que começa em 100, cai com reclamações e avaliações ruins e se recupera com regularidade.
+Moradores têm um score pessoal de 0 a 100 em cada unidade em que residem. Cada novo vínculo de moradia começa em 100, cai com as ocorrências daquele vínculo e se recupera com regularidade própria. Funcionários e síndicos profissionais sem unidade têm score individual por condomínio, sem unidade fictícia. O score público do síndico morador usa o vínculo da unidade de referência do mandato, sem juntar os scores dos outros imóveis.
 
 ### 4.1 Eventos que alteram o score
 
@@ -120,7 +120,7 @@ Moradores, síndicos (inclusive o profissional), subsíndico e funcionários tê
 | Pesquisa mensal: média abaixo de 3 estrelas | Funcionário | −5 | Não |
 | Pesquisa mensal: média de 3 até menos de 4,5 | Funcionário | 0 | Não |
 | Pesquisa mensal: média de 4,5 ou mais | Funcionário | +5 | Não |
-| Duas faltas em reservas gratuitas no mesmo trimestre | Morador que reservou | −5 | Não |
+| Duas faltas em reservas gratuitas no mesmo trimestre pelo mesmo vínculo de moradia | Morador que reservou | −5 | Não |
 | Período de regularidade completo (2 meses) | Qualquer usuário | +5 | Começa um novo período |
 
 ### 4.2 Regras gerais
@@ -128,16 +128,17 @@ Moradores, síndicos (inclusive o profissional), subsíndico e funcionários tê
 | ID | Regra |
 | --- | --- |
 | RN-SC-01 | O score vai de 0 a 100; ganhos acima de 100 e perdas abaixo de 0 são descartados. Visitantes, administradora, suporte, admin da plataforma, proprietário não residente e empresas de manutenção não têm score |
-| RN-SC-02 | O score individual é visto só pelo próprio usuário. Exceções: todos veem o score do síndico; o julgador e a administradora veem identidade e score do reclamante e do alvo dentro da reclamação; a administradora vê o score dos funcionários; sem administradora, síndico e subsíndico veem o score dos funcionários |
+| RN-SC-02 | O score individual é visto só pelo próprio usuário. Exceções: todos veem o score do síndico — para síndico morador, o do vínculo da unidade de referência do mandato; para o profissional sem unidade, o funcional naquele condomínio. Reclamação contra síndico ou subsíndico usa o score do vínculo da unidade de referência do mandato, quando morador, sem somar nem alterar scores de outros imóveis. O julgador e a administradora veem identidade e score do reclamante e do alvo no contexto da reclamação; a administradora vê o score dos funcionários; sem administradora, síndico e subsíndico veem o score dos funcionários |
 | RN-SC-03 | Os pontos por gravidade e por motivo de negativa são configuráveis por condomínio |
 | RN-SC-04 | Reclamação contra uma unidade tira pontos só do morador habilitado |
 | RN-SC-05 | Penalidade só é aplicada após a decisão; reclamações pendentes não alteram o score |
-| RN-SC-08 | Recuperação: +5 pontos a cada 2 meses de regularidade. Reclamação validada contra a pessoa, ou penalidade por reclamação desproporcional ou falsa feita por ela, reinicia o período. Reclamações pendentes ou negadas sem penalidade não interrompem a contagem |
-| RN-SC-09 | Score menor ou igual a 60 (configurável) tira o direito a reservas gratuitas; reservas pagas continuam liberadas. O direito volta automaticamente quando o score passa de 60 |
-| RN-SC-10 | O bloqueio vale só para a pessoa; os outros moradores da unidade continuam reservando |
+| RN-SC-08 | Recuperação: +5 pontos a cada 2 meses de regularidade, contados separadamente para cada score. Reclamação validada contra a pessoa, ou penalidade por reclamação desproporcional ou falsa feita por ela, reinicia apenas o período do score afetado. Reclamações pendentes ou negadas sem penalidade não interrompem a contagem |
+| RN-SC-09 | Score menor ou igual a 60 (configurável) tira da pessoa o direito a reservas gratuitas pela unidade daquele score; reservas pagas continuam liberadas. O direito volta automaticamente quando esse score passa de 60 |
+| RN-SC-10 | O bloqueio vale só para a pessoa naquela unidade; os outros moradores da mesma unidade continuam reservando e os vínculos dela em outras unidades não são afetados |
 | RN-SC-11 | O score não decide nada sozinho no julgamento; o julgador o usa como referência |
 | RN-SC-12 | Cada alteração aparece no histórico do usuário com data, motivo e pontos; a identidade do reclamante nunca aparece no histórico do alvo |
-| RN-SC-13 | O score é da pessoa, não da unidade: um novo inquilino começa com 100 e não herda o score de quem morou antes. O proprietário não residente não perde pontos por reclamações contra a unidade alugada |
+| RN-SC-13 | O score de moradia pertence à pessoa em cada vínculo com uma unidade: não é uma pontuação compartilhada pelos moradores nem uma pontuação única da pessoa em todos os imóveis. A mesma pessoa tem saldo, histórico e regularidade separados em cada unidade. Cada novo vínculo de moradia começa em 100, inclusive para novo inquilino ou retorno do proprietário; não herda pontos do ocupante anterior nem apaga o histórico encerrado. Reclamação contra unidade afeta só o score do morador habilitado naquela unidade; reclamação feita por morador usa o vínculo da unidade ativa. O proprietário não residente não tem score de moradia nem perde pontos por reclamações contra a unidade alugada |
+| RN-SC-14 | Funcionário e síndico profissional sem unidade têm score individual separado por condomínio. Reclamações e, para funcionários, a pesquisa mensal alteram apenas esse score funcional no condomínio correspondente. Não se cria unidade fictícia nem se compartilha esse saldo com outro condomínio ou com score de moradia |
 
 ### 4.3 Exemplo
 
@@ -257,10 +258,11 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | RN-RE-06 | Antecedência: mínimo 24h e máximo 60 dias (configuráveis por área) |
 | RN-RE-07 | Limite: 2 reservas por mês, por área, por unidade (configurável por área); reservas canceladas não contam |
 | RN-RE-08 | Com score menor ou igual a 60, a pessoa não vê horários livres em áreas gratuitas, só em áreas pagas |
-| RN-RE-09 | Após o uso, a portaria ou a limpeza registra a vistoria da área com checklist e fotos; dano gera reclamação (RN-RC-12) |
-| RN-RE-10 | Se o morador não usar uma reserva gratuita, a portaria ou a limpeza registra o não comparecimento; a cada duas faltas no mesmo trimestre, quem reservou perde 5 pontos, aplicados pela rotina diária |
+| RN-RE-09 | Ao verificar o encerramento da reserva, a portaria ou a limpeza registra a vistoria. Se houve uso, preenche checklist e fotos e marca a reserva como Cumprida; dano gera reclamação (RN-RC-12). Se a área não foi usada, registra Não comparecimento, inclusive em reserva paga, sem exigir checklist de uso nem foto de uma área não utilizada |
+| RN-RE-10 | Se o morador não usar uma reserva gratuita, a portaria ou a limpeza registra o não comparecimento; a cada duas faltas no mesmo trimestre pelo mesmo vínculo de moradia, quem reservou perde 5 pontos no score daquela unidade, aplicados pela rotina diária. Faltas de outros imóveis ou vínculos não são somadas. Reserva paga não utilizada também fica Não comparecimento, mas não entra nessa contagem, não gera perda de pontos nem reembolso automático por falta |
 | RN-RE-11 | Se o condomínio ligar o bloqueio por atraso (RN-FI-12), a unidade em atraso não faz novas reservas até quitar; reservas já confirmadas são mantidas |
-| RN-RE-12 | Quando a reserva fica confirmada (na hora ou com a aprovação do pagamento), o app sugere montar a lista de visitantes vinculada a ela (RN-VI-14). A sugestão aparece na confirmação e no detalhe só se a reserva está **confirmada**, tem data depois de hoje e ainda não tem lista vinculada; "Agora não" a esconde para aquela reserva, sem voltar a insistir. Não aparece para reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje, porque a lista seria cancelada junto se a reserva caísse. As regras não distinguem áreas, então a sugestão vale para todas; a capacidade da área só avisa (RN-VI-14). Com lista vinculada, o detalhe mostra "Lista: N pessoas", com link para a lista |
+| RN-RE-12 | Quando a reserva fica confirmada (na hora ou com a aprovação do pagamento), o app sugere montar a lista de visitantes vinculada a ela (RN-VI-14). A sugestão aparece na confirmação e no detalhe só se a reserva está **confirmada**, tem data depois de hoje e ainda não tem lista vinculada; "Agora não" a esconde para aquela reserva, sem voltar a insistir. Não aparece para reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje, porque a lista seria cancelada junto se a reserva caísse. As regras não distinguem áreas, então a sugestão vale para todas; a capacidade da área só avisa (RN-VI-14). Com lista vinculada, o detalhe mostra "Lista: N pessoas", com link para a lista |
+| RN-RE-13 | A portaria consulta, em Áreas > Reservas de hoje, as reservas do dia, com área, horário, unidade e estado, sem valores, meios de pagamento ou score. Para reserva Confirmada cujo início já chegou, pode marcar Em andamento quando constata o uso. Após o término do uso, portaria ou limpeza pode fazer a vistoria e marcar Cumprida; não é obrigatório registrar Em andamento antes. Se o uso termina antes do horário previsto, o intervalo original continua ocupado até o fim, sem liberação automática. Não comparecimento só é registrado em reserva Confirmada após o término do horário, se não houve uso; Em andamento segue para Cumprida. Aguardando pagamento, Expirada e Cancelada não admitem marcação de uso. Cada marcação guarda autor, data e hora, sem inventar horário real de entrada ou saída dos usuários da área. A limpeza mantém as permissões de vistoria de RN-RE-09, sem ganhar o controle de início de uso. Consulta atualizada e marcações de reserva/vistoria exigem internet; o escopo offline continua restrito a visitantes e chamados de limpeza |
 
 ### 7.2 Cancelamento e reembolso
 
@@ -290,14 +292,15 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | Estado | Significado | Próximos estados |
 | --- | --- | --- |
 | Aguardando pagamento | Reserva paga com horário bloqueado, dentro do prazo de pagamento | Confirmada, Expirada, Cancelada |
-| Confirmada | Gratuita na criação ou paga com pagamento aprovado | Cancelada, Cancelada com reembolso, Cancelada sem reembolso, Cancelada pelo condomínio, Realizada, Não comparecimento |
+| Confirmada | Gratuita na criação ou paga com pagamento aprovado | Cancelada, Cancelada com reembolso, Cancelada sem reembolso, Cancelada pelo condomínio, Em andamento, Cumprida, Não comparecimento |
+| Em andamento | Uso constatado e marcado pela portaria a partir do início do horário reservado | Cumprida |
 | Expirada | Prazo de pagamento vencido; horário liberado | — |
 | Cancelada | Cancelada pelo morador sem valor pago: reserva gratuita ou paga ainda aguardando pagamento | — |
 | Cancelada com reembolso | Paga, cancelada pelo morador dentro do prazo de reembolso | — |
 | Cancelada sem reembolso | Paga, cancelada pelo morador depois do prazo de reembolso | — |
 | Cancelada pelo condomínio | Manutenção ou mudança de morador; reembolso integral se houve pagamento | — |
-| Realizada | Usada; vistoria registrada | — |
-| Não comparecimento | Reserva gratuita não usada, registrada pela portaria ou limpeza | — |
+| Cumprida | Usada; vistoria registrada pela portaria ou limpeza (antes chamada Realizada) | — |
+| Não comparecimento | Reserva paga ou gratuita não usada, registrada na vistoria pela portaria ou limpeza | — |
 
 A reserva gratuita já nasce confirmada; a paga passa por "aguardando pagamento" e expira se o prazo vencer. O fluxo completo está no User Flows, seções 5.1 a 5.3.
 
@@ -403,7 +406,7 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-CH-01 | Chamados são de limpeza ou de manutenção |
 | RN-CH-02 | Abrem chamados: moradores, síndico, subsíndico e portaria; a portaria não atende chamados |
 | RN-CH-03 | Todo chamado tem categoria, descrição e foto opcional |
-| RN-CH-04 | A equipe de limpeza atende os chamados do setor, também sem internet; se duas pessoas concluírem o mesmo chamado offline, vale a primeira conclusão |
+| RN-CH-04 | A equipe de limpeza atende os chamados do setor, também sem internet; se duas pessoas concluírem o mesmo ciclo do chamado offline, vale a conclusão com o menor horário registrado pelo celular, mesmo que ela seja enviada depois. A ordem de chegada ao servidor não substitui esse critério. As operações, os horários do celular e os de recebimento são preservados; a conclusão que deixa de valer continua no histórico, com aviso aos funcionários envolvidos. Reenvio da mesma operação não cria nova conclusão nem novo ciclo. Empate exato e tratamento de relógio incorreto são detalhes técnicos ainda propostos no ADR-014 |
 | RN-CH-05 | Manutenção é feita por empresas terceirizadas; o síndico registra a empresa, atualiza o status e conclui. O subsíndico acompanha os chamados sem alterá-los, exceto na substituição (RN-CD-27) |
 | RN-CH-06 | Prazos: limpeza concluída em 24h; manutenção com primeira atualização em 48h (configuráveis). Chamados fora do prazo aparecem em destaque para o síndico |
 | RN-CH-07 | Quem abriu é avisado da conclusão e pode reabrir em até 48h; o aviso também convida a avaliar o atendimento (RN-CH-15) |
@@ -414,9 +417,9 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-CH-12 | A urgência não altera os prazos de RN-CH-06 nem o estado do chamado |
 | RN-CH-13 | As listas de chamados (morador, síndico, limpeza e manutenção) mostram primeiro os abertos e depois os concluídos. Dentro de cada grupo, a ordem é por urgência: alta, média e leve. Se a urgência empatar, o chamado mais antigo (data e hora de abertura, RN-CH-10) aparece primeiro. A ordem só muda a exibição: não altera os dados nem os prazos (RN-CH-06, RN-CH-12) |
 | RN-CH-14 | Ao concluir um chamado, anexar fotos do serviço feito é opcional, até 5 fotos: a equipe de limpeza anexa na própria conclusão, e o síndico (ou o subsíndico na substituição) anexa ao concluir a manutenção. Sem foto, a conclusão segue igual. As fotos aparecem no detalhe do chamado para quem abriu, o síndico e o subsíndico; sem internet, ficam na fila de sincronização junto com a conclusão (RN-CH-04) |
-| RN-CH-15 | Concluído o chamado, quem abriu pode avaliar o atendimento. Avaliam o morador, o síndico morador e o subsíndico que abriram o chamado; síndico profissional, portaria e funcionários não avaliam (igual à RN-PE-02). A avaliação vale para quem atendeu: o funcionário que teve a conclusão registrada (na conclusão offline duplicada, o da primeira, RN-CH-04) nos chamados de limpeza, e a empresa registrada (RN-CH-05) nos de manutenção |
+| RN-CH-15 | Concluído o chamado, quem abriu pode avaliar o atendimento. Avaliam o morador, o síndico morador e o subsíndico que abriram o chamado; síndico profissional, portaria e funcionários não avaliam (igual à RN-PE-02). A avaliação vale para quem atendeu: o funcionário da conclusão efetiva, de menor horário do celular quando há concorrência offline (RN-CH-04), nos chamados de limpeza, e a empresa registrada (RN-CH-05) nos de manutenção. Se uma conclusão anterior chegar depois e passar a valer, a avaliação da conclusão superada fica somente no histórico, ligada ao atendente original, sem efeito nos agregados e sem ser transferida ao outro funcionário; quem abriu pode avaliar a conclusão que passou a valer |
 | RN-CH-16 | A avaliação tem de 1 a 5 estrelas (obrigatória) e comentário opcional de até 500 caracteres. Antes de enviar, quem avalia diz em que se baseia, de forma explícita: "Vi as fotos do serviço" (só aparece se há fotos) ou "Conferi pessoalmente". Sem fotos, "Conferi pessoalmente" é a única base e precisa ser marcada, senão a avaliação não é enviada. A base fica registrada e aparece no detalhe do chamado para o síndico e o subsíndico; o morador pode não avaliar, e não avaliar não tem consequência |
-| RN-CH-17 | A avaliação pode ser feita até 7 dias depois da conclusão (`chamado.janela_avaliacao_dias`, RN 13). Cada conclusão recebe uma única avaliação, definitiva: não se edita nem se apaga. Passada a janela, a ação some do chamado. Se o chamado ainda não foi avaliado 24h depois da conclusão, quem abriu recebe um único lembrete. Reabrir o chamado sem ter avaliado encerra a avaliação daquela conclusão; a nova conclusão abre nova janela, e a avaliação já feita continua valendo para a conclusão anterior |
+| RN-CH-17 | A avaliação pode ser feita até 7 dias depois da conclusão (`chamado.janela_avaliacao_dias`, RN 13). Cada conclusão recebe uma única avaliação, definitiva: não se edita nem se apaga. Passada a janela, a ação some do chamado. Se o chamado ainda não foi avaliado 24h depois da conclusão, quem abriu recebe um único lembrete. Reabrir o chamado sem ter avaliado encerra a avaliação daquela conclusão; a nova conclusão abre nova janela, e a avaliação já feita continua valendo para a conclusão anterior. Na correção tardia de RN-CH-15, a conclusão efetiva fica disponível para nova avaliação pela mesma duração configurada em `chamado.janela_avaliacao_dias` (padrão 7 dias), contada da disponibilização da correção, com um único lembrete após 24h se não avaliada; a avaliação superada continua somente no histórico. Essa correção não reinicia o prazo de 48h para reabrir: ele segue a conclusão efetiva (RN-CH-07) |
 | RN-CH-18 | Avaliação com 1 ou 2 estrelas é "avaliação baixa". Ela não reabre o chamado sozinha: logo depois de enviar, o app oferece "Reabrir chamado" se ainda estão dentro das 48h de RN-CH-07, ou "Abrir novo chamado" se passaram; a decisão é de quem avaliou. Toda avaliação baixa também avisa o síndico, com o comentário, e entra na lista de avaliações da Gestão. O aviso nunca vai ao funcionário nem à empresa |
 | RN-CH-19 | O síndico (e o subsíndico na substituição) vê as avaliações agregadas por funcionário de limpeza e por empresa de manutenção: média, número de avaliações e distribuição por estrelas. Na avaliação de um chamado, o síndico e o subsíndico veem a nota, o comentário e a base no detalhe do chamado, onde já veem quem o abriu (RN-CH-10). A administradora vê só o agregado por funcionário e por empresa, sem comentários, sem chamados e sem identificar quem avaliou. Nenhum desses perfis vê a avaliação de um morador por outra tela |
 | RN-CH-20 | O funcionário vê as avaliações que recebeu em "Minhas avaliações": média, número de avaliações, distribuição por estrelas e comentários, sem unidade, sem morador, sem chamado nem local, e com o mês no lugar da data. A média e os comentários só aparecem quando ele tem 3 ou mais avaliações; antes disso, o app mostra só "Poucas avaliações para mostrar a média." Ao ser desligado, as avaliações dele saem das listas por funcionário e continuam no agregado do setor |
@@ -631,11 +634,11 @@ O sistema executa 20 rotinas sem ação de ninguém; cada execução é registra
 | Recuperação de score | Diária | Soma +5 a quem completou 2 meses de regularidade e inicia novo período | RN-SC-08 |
 | Bloqueio de reservas gratuitas | A cada alteração de score | Bloqueia ou libera reservas gratuitas conforme o limite | RN-SC-09 |
 | Fechamento da pesquisa | Último dia do mês, 23h59 | Calcula médias, ajusta scores dos funcionários e publica notas dos setores | RN-PE-05 a RN-PE-08 |
-| Faltas em reservas | Diária | Aplica −5 a cada 2 faltas em reservas gratuitas no trimestre | RN-RE-10 |
+| Faltas em reservas | Diária | Conta as faltas em reservas gratuitas no trimestre por vínculo de moradia e aplica −5 a cada 2 faltas no score daquela unidade | RN-RE-10 |
 | Lembretes de encomenda | Diária | Envia lembretes de 3 e 7 dias e avisa o síndico ao fim do prazo de guarda | RN-EN-03, RN-EN-04 |
 | Entregas esperadas que não chegaram | Diária, à meia-noite | Passa a "Não chegou" a entrega esperada com data anterior (iFood/entregador vira "Encerrada") | RN-EN-12, RN-EN-13 |
 | Prazos de reclamação e chamado | Diária | Libera a decisão quando o alvo não responde no prazo, lembra o julgador e destaca chamados fora do prazo | RN-RC-04, RN-RC-06, RN-CH-06 |
-| Lembrete de avaliação de chamado | Diária | Envia um único lembrete a quem abriu o chamado concluído há 24h e ainda não avaliou; encerra a avaliação ao fim da janela | RN-CH-17 |
+| Lembrete de avaliação de chamado | Diária | Envia um único lembrete a quem abriu o chamado concluído há 24h e ainda não avaliou; em correção tardia, conta da disponibilização da conclusão efetiva. Encerra a avaliação ao fim da janela configurada, sem considerar avaliações somente históricas nos agregados | RN-CH-17 |
 | Encerrar reclamações sem recurso | Diária | Encerra reclamações decididas há mais de 7 dias sem recurso | RN-RC-15 |
 | Limpeza de dados offline | Diária, à meia-noite | Manda os aparelhos da portaria e da limpeza apagarem a cópia do dia | RN-OF-06 |
 | Anonimização de visitantes | Diária | Anonimiza visitas mais antigas que o prazo de retenção | 8.4 |

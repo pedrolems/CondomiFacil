@@ -115,7 +115,8 @@ const mediaTxt = n => n.toFixed(1).replace('.', ',');
 function avalEstado(c) {
   if (c.estado !== 'Concluído') return null;
   if (c.aval) return 'avaliado';
-  return c.concluidoEm && horasDesde(c.concluidoEm) <= JANELA_AVAL_DIAS * 24 ? 'pendente' : 'encerrada';
+  const inicio = c.avaliacaoDisponivelEm || c.concluidoEm;
+  return inicio && horasDesde(inicio) <= JANELA_AVAL_DIAS * 24 ? 'pendente' : 'encerrada';
 }
 const dentroReabrir = c => !!c.concluidoEm && horasDesde(c.concluidoEm) <= REABRIR_HORAS;
 /* Marcações extras do chamado concluído (DS 4.5): não são estados */
@@ -128,7 +129,7 @@ function avalBadge(c, dono) {
 /* Todas as avaliações recebidas: histórico anônimo (S.avaliacoes) + as dos chamados do protótipo (inclusive de conclusões anteriores a uma reabertura) */
 function avalTodas() {
   const dosChamados = [];
-  S.chamados.forEach(c => [...(c.avalHist || []), ...(c.aval ? [c.aval] : [])].forEach(a => dosChamados.push({ quem: c.tipo === 'limpeza' ? (a.quem || c.concluidoPor) : c.empresa, tipo: c.tipo, nota: a.nota, coment: a.coment, mes: 'novembro de 2026', dias: a.dias != null ? a.dias : 1 })));
+  S.chamados.forEach(c => [...(c.avalHist || []), ...(c.aval ? [c.aval] : [])].filter(a => !a.somenteHistorico).forEach(a => dosChamados.push({ quem: c.tipo === 'limpeza' ? (a.quem || c.concluidoPor) : c.empresa, tipo: c.tipo, nota: a.nota, coment: a.coment, mes: 'novembro de 2026', dias: a.dias != null ? a.dias : 1 })));
   return [...S.avaliacoes, ...dosChamados].filter(a => a.quem);
 }
 function avalResumo(quem) {
@@ -356,7 +357,7 @@ function renderSide(ctx) {
   const sim = [];
   if (ctx.P.staff) sim.push(`<button class="${S.online ? '' : 'on'}" ${cb(() => setOnline(!S.online))}>${S.online ? 'Simular sem internet' : 'Voltar internet'}</button>`);
   if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) {
-    sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? 78 : 58; rerender(); })}>Score baixo (58)</button>`);
+    sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? scoreContexto().base : 58; rerender(); })}>Score baixo nesta unidade (58)</button>`);
     sim.push(`<button class="${S.atraso ? 'on' : ''}" ${cb(() => { S.atraso = !S.atraso; rerender(); })}>Unidade em atraso</button>`);
     sim.push(`<button class="${S.termsPending ? 'on' : ''}" ${cb(() => { S.termsPending = !S.termsPending; rerender(); })}>Termos novos</button>`);
     if (ctx.p !== 'morador') sim.push(`<button class="${S.substituicao ? 'on' : ''}" ${cb(() => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa: Carla Mendes tem as funções de síndico.' : 'Substituição desativada.'); })}>Substituição ativa</button>`);
@@ -412,6 +413,29 @@ document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute && e.target.getAttribute('role') === 'button') { e.preventDefault(); e.target.click(); return; } if (e.key === 'Escape') { const o = document.querySelector('.overlay[data-scrim]'); if (o) closeLayer(); } });
 window.addEventListener('hashchange', () => render());
 
+function aplicarConclusaoLimpeza(c, op) {
+  const ciclo = c.ciclo || 1;
+  const historico = c.conclusoesSync || (c.conclusoesSync = []);
+  if (historico.some(x => x.opId === op.opId)) return '';
+  if (!historico.length && c.estado === 'Concluído' && c.concluidoEm && !c.conclusaoPendente) {
+    historico.push({ opId: 'inicial-' + c.id + '-' + ciclo, ciclo, registradaEm: c.concluidoEm, recebidaEm: c.concluidoEm, por: c.concluidoPor, fotos: c.fotos || 0 });
+  }
+  const anterior = historico.filter(x => x.ciclo === ciclo).sort((a, b) => a.registradaEm.localeCompare(b.registradaEm))[0];
+  historico.push(Object.assign({}, op, { recebidaEm: AGORA_PROTO }));
+  if (op.ciclo !== ciclo) return '';
+  const efetiva = historico.filter(x => x.ciclo === ciclo).sort((a, b) => a.registradaEm.localeCompare(b.registradaEm))[0];
+  c.conclusaoPendente = false;
+  if (anterior && anterior.opId === efetiva.opId) return op.opId === efetiva.opId ? '' : 'Vale a conclusão de ' + efetiva.por + ', registrada antes pelo horário do celular.';
+  const corrigida = !!anterior;
+  if (corrigida && c.aval) {
+    (c.avalHist || (c.avalHist = [])).push(Object.assign({}, c.aval, { quem: c.aval.quem || anterior.por, somenteHistorico: true, conclusaoOpId: anterior.opId }));
+    c.aval = null;
+  }
+  c.estado = 'Concluído'; c.concluidoEm = efetiva.registradaEm; c.concluidoPor = efetiva.por; c.fotos = efetiva.fotos || 0; c.conclusaoEfetivaOpId = efetiva.opId;
+  if (corrigida) { c.avaliacaoDisponivelEm = AGORA_PROTO; c.correcaoConclusao = 'A conclusão de ' + efetiva.por + ' passou a valer pelo horário do celular. Os envolvidos e quem abriu foram avisados.'; }
+  return corrigida ? c.correcaoConclusao : '';
+}
+
 /* Sincronização simulada (portaria e limpeza) */
 function setOnline(v) {
   S.online = v;
@@ -419,9 +443,12 @@ function setOnline(v) {
   if (!S.pending.length) { S.lastSync = nowH(); rerender(); toast('Conexão de volta. Tudo em dia.'); return; }
   S.syncing = true; rerender();
   setTimeout(() => {
-    S.syncing = false; const had = S.pending.slice(); S.pending = []; S.lastSync = nowH(); rerender();
+    S.syncing = false; const had = S.pending.slice(); S.pending = []; S.lastSync = nowH();
+    const avisosConclusao = had.filter(x => x.conclusao).map(x => { const c = S.chamados.find(c => c.id === x.chamadoId); return c ? aplicarConclusaoLimpeza(c, x.conclusao) : ''; }).filter(Boolean);
+    rerender();
     const div = had.find(x => x.diverge), dup = had.find(x => x.dup);
-    if (dup) dialog({ tone: 'info', icon: 'info', title: 'Chamado já concluído', text: dup.dup, actions: [{ label: 'Entendi' }] });
+    if (avisosConclusao.length) dialog({ tone: 'info', icon: 'info', title: 'Conclusão sincronizada', text: avisosConclusao.join(' '), actions: [{ label: 'Entendi' }] });
+    else if (dup) dialog({ tone: 'info', icon: 'info', title: 'Chamado já concluído', text: dup.dup, actions: [{ label: 'Entendi' }] });
     else if (div) dialog({ tone: 'warning', icon: 'triangle-alert', blocking: true, title: 'Confirme com o morador', text: div.diverge, actions: [{ label: 'Confirmei com o morador', on: () => toast('Confirmação registrada.') }] });
     else toast(had.length + (had.length === 1 ? ' registro enviado.' : ' registros enviados.'));
   }, 1400);

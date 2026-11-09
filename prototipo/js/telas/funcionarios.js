@@ -141,32 +141,67 @@ def('portaria', 'encomenda-nova', 'Registrar encomenda', 'Encomendas (7.1 e 7.2)
   };
 });
 
-/* Áreas: vistoria e não comparecimento (5.3) — portaria e limpeza */
-def(['portaria', 'limpeza'], 'areas', 'Vistorias', 'Áreas (5.3)', ctx => ({
-  tab: 'areas', top: { title: 'Áreas' }, flush: true,
-  body: `<div class="pad t-body-sm muted">Reservas encerradas aguardando vistoria.</div>
-    <div class="list">${S.vistorias.map(w => row({ icon: 'clipboard-check', title: w.area, sub: w.un + ' · terminou ' + w.fim, right: badge(w.estado, w.estado === 'Pendente' ? 'warning' : TONES[w.estado] || 'neutral'), on: w.estado === 'Pendente' ? ctx.p + '/vistoria/' + w.id : null })).join('')}</div>`,
-}));
+/* Horário fixo acompanha HOJE_PROTO; a tela identifica a simulação. */
+const HORA_RESERVAS_PROTO = 14 * 60 + 30;
+const diaReservaStaff = () => HOJE_PROTO.slice(8) + '/' + HOJE_PROTO.slice(5, 7);
+const dataReservaStaff = w => '2026-' + w.dia.slice(3) + '-' + w.dia.slice(0, 2);
+const iniciouReserva = w => dataReservaStaff(w) < HOJE_PROTO || (dataReservaStaff(w) === HOJE_PROTO && w.inicioMin <= HORA_RESERVAS_PROTO);
+const terminouReserva = w => dataReservaStaff(w) < HOJE_PROTO || (dataReservaStaff(w) === HOJE_PROTO && w.fimMin <= HORA_RESERVAS_PROTO);
+const usoReservaAtivo = w => ['Confirmada', 'Em andamento'].includes(w.estado);
+const seloUsoReserva = w => badge(w.estado, TONES[w.estado] || 'neutral', w.estado === 'Em andamento' ? 'clock' : w.estado === 'Cumprida' ? 'circle-check' : w.estado === 'Não comparecimento' ? 'user-x' : 'calendar-days');
+function marcarUsoReserva(w, estado, p) {
+  if (!['portaria', 'limpeza'].includes(p)) return false;
+  if (!['Em andamento', 'Cumprida', 'Não comparecimento'].includes(estado)) return false;
+  if (p === 'portaria' && S.training) { toast('Treinamento: marcação simulada, sem alterar as reservas.'); return false; }
+  if (!S.online) { toast('Reservas e vistorias precisam de internet. Seu preenchimento foi mantido.'); return false; }
+  if (estado === 'Em andamento' && (p !== 'portaria' || w.estado !== 'Confirmada' || !iniciouReserva(w))) return false;
+  if (estado === 'Cumprida' && (!usoReservaAtivo(w) || !iniciouReserva(w))) return false;
+  if (estado === 'Não comparecimento' && (w.estado !== 'Confirmada' || !terminouReserva(w))) return false;
+  w.eventos.push({ anterior: w.estado, novo: estado, autor: p === 'portaria' ? 'José Ribeiro · Portaria' : 'Sandra Rocha · Limpeza', em: HOJE_PROTO + 'T14:30:00' });
+  w.estado = estado;
+  const reserva = S.reservas.find(r => r.id === w.reserva);
+  if (reserva) reserva.estado = estado;
+  return true;
+}
+def(['portaria', 'limpeza'], 'areas', 'Reservas e vistorias', 'Áreas (5.3)', ctx => {
+  const hoje = S.vistorias.filter(w => w.dia === diaReservaStaff()).sort((a, b) => a.inicioMin - b.inicioMin);
+  const pendentes = S.vistorias.filter(w => dataReservaStaff(w) < HOJE_PROTO && usoReservaAtivo(w));
+  const linhas = L => L.length ? L.map(w => row({ icon: 'calendar-days', title: w.area, sub: w.un + ' · ' + w.dia + ' · ' + w.horario, right: seloUsoReserva(w), on: () => { resetForm(); go(ctx.p + '/vistoria/' + w.id); } })).join('') : `<p class="pad t-body-sm muted">Nenhuma reserva neste grupo.</p>`;
+  return {
+    tab: 'areas', top: { title: 'Áreas' }, flush: true,
+    body: `<div class="pad"><h2 class="t-title-sm">${ctx.p === 'portaria' ? 'Reservas de hoje' : 'Vistorias de hoje'}</h2><p class="help">Simulação: 05/11/2026, 14h30. Registros de uso e vistoria precisam de internet.</p></div>
+      <div class="list">${linhas(hoje)}</div><h2 class="t-title-sm pad">Vistorias pendentes de dias anteriores</h2><div class="list">${linhas(pendentes)}</div>`,
+  };
+});
 def(['portaria', 'limpeza'], 'vistoria', 'Fazer vistoria', 'Áreas (5.3)', ctx => {
   const w = S.vistorias.find(x => x.id === ctx.arg) || S.vistorias[0], p = ctx.p;
   const usou = FORM.usou, chk = FORM.chk || [];
   const ITENS = ['Área limpa', 'Móveis no lugar', 'Sem lixo', 'Equipamentos funcionando', 'Chave devolvida'];
-  const done = (estado, msg) => { w.estado = estado; if (!S.online) S.pending.push({ t: 'Vistoria · ' + w.area }); go(p + '/areas'); setTimeout(() => toast(msg), 50); };
+  const done = (estado, msg) => { if (!marcarUsoReserva(w, estado, p)) return; go(p + '/areas'); setTimeout(() => toast(msg), 50); };
+  const podeVistoriar = usoReservaAtivo(w) && iniciouReserva(w);
+  const podeFalta = w.estado === 'Confirmada' && terminouReserva(w);
+  const podeIniciar = p === 'portaria' && w.estado === 'Confirmada' && iniciouReserva(w);
+  const historico = w.eventos.map(e => `<p class="help">${ic('history')}${esc(e.autor)} · ${e.em.slice(11, 16)} · ${esc(e.anterior)} → ${esc(e.novo)}</p>`).join('');
   return {
     tab: 'areas', top: { title: 'Vistoria', back: p + '/areas' },
-    body: `<div class="stack-5">${card({ icon: 'clipboard-check', title: w.area, sub: w.un + ' · terminou ' + w.fim, badge: w.paga ? badge('Paga', 'info') : badge('Gratuita', 'neutral') })}
-      <div class="field"><span class="field-label">O morador usou a área?</span><div class="stack-2">${choice('usou', 'sim', 'Sim, usou')}${choice('usou', 'nao', 'Não, não compareceu')}</div></div>
-      ${usou === 'sim' ? `<div class="field"><span class="field-label">Checklist</span><div class="stack-2">${ITENS.map(i => choice('chk', i, i, { multi: true })).join('')}</div>${A.chkErr ? `<span class="error-msg">${ic('circle-x')}Marque todos os itens obrigatórios ou registre um dano.</span>` : ''}</div>
-        <div class="field"><span class="field-label">Fotos</span>${photoPicker('vfotos')}${!S.online && (FORM.vfotos || []).length ? `<span class="help row">${ic('cloud-upload')}A foto será enviada quando a conexão voltar.</span>` : ''}</div>
+    body: `<div class="stack-5">${card({ icon: 'clipboard-check', title: w.area, sub: w.un + ' · ' + w.dia + ' · ' + w.horario, badge: seloUsoReserva(w) })}
+      ${podeIniciar ? btn('Marcar em andamento', { v: 'secondary', block: true, size: 'lg', disabled: !S.online, on: () => { if (marcarUsoReserva(w, 'Em andamento', p)) { rerender(); toast('Uso em andamento registrado.'); } } }) : ''}
+      ${!S.online ? banner('warning', 'wifi-off', 'Reservas e vistorias precisam de internet. Seu preenchimento foi mantido.', { inline: true }) : ''}
+      ${!podeVistoriar ? banner('info', 'info', usoReservaAtivo(w) ? 'O horário ainda não começou. As ações de uso serão liberadas a partir do início.' : 'Esta reserva não aceita novas marcações de uso.', { inline: true }) : `<div class="field"><span class="field-label">Como está o uso da área?</span><div class="stack-2">${choice('usou', 'sim', 'O uso terminou: fazer vistoria')}${podeFalta ? choice('usou', 'nao', 'Não houve comparecimento') : ''}</div><p class="help">Não comparecimento só pode ser registrado após o fim previsto e se não houve uso. Se o uso terminou antes, a vistoria pode ser feita; o intervalo reservado continua ocupado até o fim previsto.</p></div>`}
+      ${podeVistoriar && usou === 'sim' ? `<div class="field"><span class="field-label">Checklist</span><div class="stack-2">${ITENS.map(i => choice('chk', i, i, { multi: true })).join('')}</div>${A.chkErr ? `<span class="error-msg">${ic('circle-x')}Marque todos os itens obrigatórios ou registre um dano.</span>` : ''}</div>
+        <div class="field"><span class="field-label">Fotos</span>${photoPicker('vfotos')}</div>
         <div class="field"><span class="field-label">Encontrou dano?</span><div class="stack-2">${choice('dano', 'nao', 'Não', { def: 'nao' })}${choice('dano', 'sim', 'Sim, registrar dano')}</div></div>
         ${FORM.dano === 'sim' ? field('Descreva o dano', textarea('vdano')) + banner('info', 'info', 'Uma reclamação contra a unidade será aberta em nome do condomínio, com as fotos.', { inline: true }) : ''}` : ''}
-      ${usou === 'nao' ? banner(w.paga ? 'info' : 'warning', w.paga ? 'info' : 'triangle-alert', w.paga ? 'Reserva paga: o registro de que a área não foi usada não gera penalidade.' : 'Não comparecimento: a cada 2 faltas no trimestre, a unidade perde 5 pontos.', { inline: true }) : ''}
+      ${podeFalta && usou === 'nao' ? banner(w.paga ? 'info' : 'warning', w.paga ? 'info' : 'triangle-alert', w.paga ? 'Reserva paga: Não comparecimento não gera perda de pontos nem reembolso automático.' : 'Não comparecimento: a cada 2 faltas gratuitas no trimestre pelo mesmo vínculo de moradia, quem reservou perde 5 pontos.', { inline: true }) : ''}${historico}
     </div>`,
-    footer: !usou ? '' : usou === 'nao' ? btn(w.paga ? 'Registrar área não usada' : 'Registrar não comparecimento', { block: true, size: 'lg', on: () => done(w.paga ? 'Realizada' : 'Não comparecimento', 'Registro salvo.') })
-      : btn('Concluir vistoria', { block: true, size: 'lg', on: () => {
+    footer: !podeVistoriar || !usou ? '' : usou === 'nao' && podeFalta ? btn('Registrar não comparecimento', { block: true, size: 'lg', disabled: !S.online, on: () => done('Não comparecimento', 'Não comparecimento registrado.') })
+      : usou === 'sim' ? btn('Marcar cumprida', { block: true, size: 'lg', disabled: !S.online, on: () => {
         if (FORM.dano !== 'sim' && chk.length < ITENS.length) { A.chkErr = true; rerender(); return; }
-        A.chkErr = false; done('Realizada', FORM.dano === 'sim' ? 'Vistoria salva. Reclamação aberta em nome do condomínio.' : 'Vistoria salva. Reserva realizada.');
-      } }),
+        if (!(FORM.vfotos || []).length) { toast('Anexe fotos da vistoria.'); return; }
+        if (FORM.dano === 'sim' && !(FORM.vdano || '').trim()) { toast('Descreva o dano encontrado.'); return; }
+        A.chkErr = false; w.vistoria = { checklist: [...chk], fotos: [...FORM.vfotos], dano: FORM.dano === 'sim' ? FORM.vdano : null };
+        done('Cumprida', FORM.dano === 'sim' ? 'Vistoria salva. Reclamação aberta em nome do condomínio.' : 'Vistoria salva. Reserva cumprida.');
+      } }) : '',
   };
 });
 
@@ -187,10 +222,16 @@ function sairStaff() {
 function concluirLimpeza(c, back) {
   FORM.lfotos = [];
   sheet(() => `<h2 class="t-title-md">Concluir chamado</h2><div class="t-body-sm muted">${c.cat} · ${c.local}</div>
+    ${c.id === 'c3' && !S.online ? `<div class="field"><span class="field-label">Simular disputa no mesmo ciclo</span>${choice('ordemConclusao', 'colega', 'Rita concluiu às 14h10 e enviou antes', { def: 'colega' })}${choice('ordemConclusao', 'minha', 'Rita concluiu às 14h15 e enviou antes; minha conclusão das 14h10 chega depois')}<span class="help">Vale o menor horário do celular. Horários iguais usam ordem da fila apenas como proposta de desempate nesta simulação.</span></div>` : ''}
     <div class="field"><span class="field-label">Fotos do serviço (opcional)</span>${photoPicker('lfotos')}<span class="help">Até 5 fotos. Você pode concluir sem foto.</span></div>
     ${btn('Concluir chamado', { block: true, size: 'lg', icon: 'check', on: () => {
-      c.estado = 'Concluído'; c.concluido = 'agora'; c.concluidoEm = AGORA_PROTO; c.concluidoPor = 'Sandra Rocha'; c.fotos = Math.min((FORM.lfotos || []).length, 5); FORM.lfotos = []; vibrate(); closeLayer();
-      if (!S.online) S.pending.push(Object.assign({ t: 'Conclusão · ' + c.local }, c.id === 'c3' ? { dup: 'Este chamado já tinha sido concluído por Rita Farias.' } : {}));
+      const op = { opId: uid(), ciclo: c.ciclo || 1, registradaEm: c.id === 'c3' && !S.online && FORM.ordemConclusao === 'minha' ? '2026-11-05T14:10' : AGORA_PROTO, por: 'Sandra Rocha', fotos: Math.min((FORM.lfotos || []).length, 5) };
+      if (!S.online) {
+        if (c.id === 'c3') S.pending.push({ t: 'Conclusão da colega · ' + c.local, chamadoId: c.id, conclusao: { opId: uid(), ciclo: op.ciclo, registradaEm: FORM.ordemConclusao === 'minha' ? '2026-11-05T14:15' : '2026-11-05T14:10', por: 'Rita Farias', fotos: 0 } });
+        S.pending.push({ t: 'Conclusão · ' + c.local, chamadoId: c.id, conclusao: op });
+        c.estado = 'Concluído'; c.conclusaoPendente = true; c.concluidoEm = op.registradaEm; c.concluidoPor = op.por; c.fotos = op.fotos;
+      } else aplicarConclusaoLimpeza(c, op);
+      c.concluido = 'agora'; FORM.lfotos = []; vibrate(); closeLayer();
       if (back) go(back); else rerender();
       toast(S.online ? 'Chamado concluído. Quem abriu foi avisado.' : 'Chamado concluído. Será enviado quando a conexão voltar.');
     } })}`);

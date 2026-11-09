@@ -213,7 +213,7 @@ Requisitos: RF-AD-19, RF-RS-15, RF-VI-13 · RN-CD-19, RN-CD-23, RN-CD-25, RN-CD-
 - [ ] Dado o contrato da unidade, quando peço a renovação, o encerramento ou o cadastro de um novo inquilino, então a administradora recebe o pedido e sou avisado do resultado.
 - [ ] Dado uma reclamação validada contra a unidade, quando a decisão sai, então recebo a categoria, a data, a decisão e a multa, sem a conversa e sem quem reclamou, e não perco pontos.
 - [ ] Dado uma unidade desocupada e a temporada permitida no condomínio, quando cadastro um hóspede com entrada e saída, então ele aparece na portaria como "hóspede de temporada"; com a temporada desligada (padrão), a opção não aparece.
-- [ ] Dado que volto a morar na unidade, quando a administradora muda o meu vínculo, então passo a ser o morador habilitado e ganho score começando em 100.
+- [ ] Dado que volto a morar na unidade, quando a administradora muda o meu vínculo, então passo a ser o morador habilitado e inicio novo score pessoal nessa unidade em 100, preservando histórico anterior e scores em outros imóveis.
 
 ## Épico 3 — Reservas e pagamentos
 
@@ -238,7 +238,7 @@ Requisitos: RF-RE-02 · RN-RE-02, RN-RE-07, RN-RE-12, RN-VI-14
 - [ ] Dado que minha unidade já fez 2 reservas na área neste mês, quando tento a terceira, então o app bloqueia e mostra o limite.
 - [ ] Dado uma reserva cancelada, quando conto o limite do mês, então ela não entra na conta.
 - [ ] Dado uma reserva confirmada com data depois de hoje e sem lista, quando vejo a confirmação ou o detalhe, então aparece "Vai receber convidados? Monte a lista de visitantes." com "Montar lista" (abre a lista com data, horário e local da reserva) e "Agora não" (esconde a sugestão para aquela reserva).
-- [ ] Dado uma reserva aguardando pagamento, expirada, cancelada, realizada ou com data de hoje, quando abro a confirmação ou o detalhe, então não aparece sugestão de lista.
+- [ ] Dado uma reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje, quando abro a confirmação ou o detalhe, então não aparece sugestão de lista.
 - [ ] Dado uma reserva com lista vinculada, quando abro o detalhe, então vejo "Lista: N pessoas" e, ao tocar, abro o detalhe da lista; e, ao cancelar a reserva, a lista vinculada é cancelada junto e eu sou avisado.
 
 ### US-RE-03 — Fazer e pagar reserva paga
@@ -277,13 +277,20 @@ Requisitos: RF-RE-06 · RN-SC-09, RN-SC-10, RN-RE-08
 
 ### US-RE-06 — Vistoria e não comparecimento
 
-Como porteiro ou funcionário de limpeza, quero registrar a vistoria da área e as faltas, para que danos e reservas não usadas tenham consequência.
+Como porteiro, quero consultar as reservas de hoje e acompanhar seu uso; como porteiro ou funcionário de limpeza, quero registrar a vistoria e as faltas, para manter o estado de cada reserva correto.
 
-Requisitos: RF-RE-08, RF-RE-09 · RN-RE-09, RN-RE-10, RN-RC-12
+Requisitos: RF-RE-08, RF-RE-09 · RN-RE-09, RN-RE-10, RN-RE-13, RN-RC-12
 
-- [ ] Dado o fim de uma reserva, quando registro a vistoria, então preencho o checklist e anexo fotos.
+- [ ] Dado que sou porteiro, quando abro Áreas > Reservas de hoje, então vejo as reservas do dia com área, horário, unidade e estado, sem valor, meio de pagamento nem score.
+- [ ] Dado uma reserva Confirmada cujo início chegou, quando constato uso e marco Em andamento, então o estado muda e ficam registrados autor, data e hora; o sistema não inventa horário real de chegada.
+- [ ] Dado o horário ainda não iniciado ou uma reserva Aguardando pagamento, Expirada ou Cancelada, quando abro a reserva, então não posso marcar uso.
+- [ ] Dado o fim do uso de uma reserva Confirmada ou Em andamento, quando registro a vistoria, então preencho checklist, anexo fotos e ela fica Cumprida, sem exigir marcação prévia Em andamento. Se o uso terminou antes do previsto, o intervalo original continua ocupado até seu fim.
 - [ ] Dado um dano na vistoria, quando o registro, então é aberta uma reclamação contra a unidade em nome do condomínio, com as fotos como evidência.
-- [ ] Dado uma reserva gratuita não usada, quando registro o não comparecimento, então a reserva fica com esse status.
+- [ ] Dado uma reserva paga ou gratuita não usada, quando registro Não comparecimento na vistoria após o fim do horário, então ela fica com esse estado, sem exigir checklist de uso nem fotos.
+- [ ] Dado uma reserva Em andamento, quando abro a vistoria, então não posso registrar Não comparecimento, pois o uso já foi constatado.
+- [ ] Dado uma reserva paga marcada Não comparecimento, quando salvo a vistoria, então não há perda de pontos nem reembolso automático por falta.
+- [ ] Dado que sou funcionário de limpeza, quando abro Áreas, então mantenho a vistoria e o registro de falta, sem permissão para marcar o início Em andamento.
+- [ ] Dado que estou sem internet, quando tento marcar o uso ou enviar a vistoria, então o envio é desabilitado com explicação e o preenchimento é preservado; não é criado registro pendente de reserva na fila offline.
 - [ ] Dado a segunda falta do morador no mesmo trimestre, quando a rotina diária roda, então ele perde 5 pontos; a quarta falta no trimestre tira mais 5.
 
 ## Épico 4 — Visitantes e portaria
@@ -451,7 +458,11 @@ Requisitos: RF-CH-02, RF-CH-03, RF-CH-06 · RN-CH-04, RN-CH-06, RN-CH-08, RN-CH-
 - [ ] Dado chamados de limpeza abertos, quando abro o app, então vejo a fila com o prazo de cada um (padrão 24h).
 - [ ] Dado chamados de limpeza abertos e concluídos, quando abro a fila, então os abertos vêm primeiro, da urgência alta para a leve; com urgência igual, o mais antigo vem antes; os concluídos ficam no fim (RN-CH-13).
 - [ ] Dado a internet fora, quando concluo um chamado, então a conclusão fica na fila e sincroniza ao voltar a conexão.
-- [ ] Dado duas conclusões offline do mesmo chamado, quando sincronizam, então vale a primeira.
+- [ ] Dado duas conclusões offline do mesmo ciclo, quando sincronizam, então vale a de menor horário registrado pelo celular, mesmo que chegue depois ao servidor.
+- [ ] Dado que uma conclusão anterior chega depois da já registrada, quando ela passa a valer, então a anterior aceita fica no histórico sem efeito e os funcionários envolvidos recebem aviso; o ciclo não é duplicado.
+- [ ] Dado o reenvio da mesma operação offline, quando sincroniza novamente, então não cria outra conclusão, aviso duplicado nem novo ciclo.
+- [ ] Dado avaliação já enviada para conclusão que foi superada por outra de horário anterior, quando ocorre a correção, então a avaliação anterior fica somente no histórico do atendente original, sai dos agregados e não é transferida; quem abriu pode avaliar a conclusão efetiva.
+- [ ] Dado uma conclusão efetiva disponibilizada por correção tardia, quando abro o chamado, então tenho a mesma janela configurada (padrão 7 dias) a partir dessa disponibilização e recebo um único lembrete em 24h se não avaliar; o prazo de reabertura de 48h não reinicia pela correção.
 - [ ] Dado um chamado fora do prazo, quando o síndico abre o painel, então ele aparece em destaque.
 - [ ] Dado que vou concluir um chamado, quando abro a conclusão, então posso anexar até 5 fotos do serviço, mas não preciso: sem foto, "Concluir chamado" funciona igual.
 - [ ] Dado a internet fora, quando concluo um chamado com fotos, então as fotos ficam na fila e são enviadas com a conclusão.
@@ -564,9 +575,12 @@ Requisitos: RF-RS-09 · RN-RC-07, RN-RC-14, RN-RC-15
 
 Como usuário, quero ver meu score, o histórico e quando vou recuperar pontos, para entender minha situação.
 
-Requisitos: RF-RS-10, RF-RS-11 · RN-SC-01, RN-SC-08, RN-SC-12
+Requisitos: RF-RS-10, RF-RS-11 · RN-SC-01, RN-SC-08, RN-SC-12 a RN-SC-14
 
 - [ ] Dado meu perfil, quando abro o score, então vejo o valor, cada ganho e perda com data e motivo, e a data da próxima recuperação.
+- [ ] Dado que moro em duas unidades, quando troco a unidade ativa, então vejo meu saldo, histórico e recuperação só do vínculo dessa unidade; uma penalidade ou bloqueio em uma não afeta a outra.
+- [ ] Dado um novo vínculo de moradia, quando entro na unidade, então começo em 100, sem herdar a pontuação de quem saiu e sem apagar o histórico encerrado.
+- [ ] Dado que sou funcionário ou síndico profissional sem unidade em dois condomínios, quando alterno o condomínio, então meu score funcional é separado por condomínio, sem unidade fictícia.
 - [ ] Dado 2 meses sem reclamação validada nem penalidade por reclamação, quando o período completa, então ganho 5 pontos, até 100.
 - [ ] Dado uma reclamação validada contra mim ou uma penalidade por reclamação desproporcional ou falsa, quando ocorre, então o período de regularidade reinicia.
 - [ ] Dado reclamações pendentes ou negadas sem penalidade, quando ocorrem, então o período continua contando.
@@ -579,6 +593,7 @@ Como morador, quero ver o score do síndico e a nota dos setores; como administr
 Requisitos: RF-RS-12 a RF-RS-14 · RN-SC-02, RN-RC-08, RN-RC-13
 
 - [ ] Dado a tela "Transparência", quando a abro, então vejo o score do síndico e a nota de cada setor, e nenhum score individual de outros moradores ou funcionários.
+- [ ] Dado um síndico morador com várias unidades, quando vejo seu score público, então ele corresponde à unidade vinculada ao mandato; as pontuações dos outros imóveis permanecem separadas.
 - [ ] Dado que sou administradora, quando abro as reclamações, então vejo todas, com identidade e score do reclamante e do alvo, inclusive contra síndico e subsíndico.
 - [ ] Dado um texto ofensivo, quando é enviado, então o filtro o bloqueia; e quando alguém denuncia um conteúdo, a denúncia vai ao síndico.
 

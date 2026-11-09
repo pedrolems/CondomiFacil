@@ -7,7 +7,7 @@ const TONES = {
   'Esperada': 'info', 'Chegou': 'success', 'Não chegou': 'warning',
   'Aberto': 'info', 'Em atendimento': 'info', 'Orçamento': 'info', 'Agendado': 'info', 'Concluído': 'success', 'Reaberto': 'warning', 'Fora do prazo': 'danger',
   'Emitida': 'info', 'Em atraso': 'danger', 'Paga': 'success', 'Paga com atraso': 'success', 'Em acordo': 'warning', 'Cancelada': 'neutral',
-  'Aguardando pagamento': 'warning', 'Confirmada': 'success', 'Expirada': 'neutral', 'Cancelada com reembolso': 'neutral', 'Cancelada sem reembolso': 'neutral', 'Cancelada pelo condomínio': 'info', 'Realizada': 'neutral', 'Não comparecimento': 'warning',
+  'Aguardando pagamento': 'warning', 'Confirmada': 'success', 'Expirada': 'neutral', 'Cancelada com reembolso': 'neutral', 'Cancelada sem reembolso': 'neutral', 'Cancelada pelo condomínio': 'info', 'Em andamento': 'info', 'Cumprida': 'neutral', 'Não comparecimento': 'warning',
   'Aberta': 'info', 'Em conversa com o alvo': 'info', 'Pendente': 'warning', 'Em recurso': 'info', 'Recurso aceito': 'success', 'Encerrada': 'neutral',
   'Votação aberta': 'info', 'Candidaturas abertas': 'info', 'Concluída': 'success', 'Recusada': 'neutral', 'Atendida': 'success',
 };
@@ -24,7 +24,7 @@ def(RES, 'inicio', 'Início', 'Início', ctx => {
   const p = ctx.p;
   const cob = cobrancaAtual().find(c => ['Emitida', 'Em atraso'].includes(c.estado));
   const enc = S.encomendas.filter(e => e.un === S.units[S.unit].name && e.estado === 'Recebida');
-  const prox = S.reservas.filter(r => ['Confirmada', 'Aguardando pagamento'].includes(r.estado));
+  const prox = S.reservas.filter(r => ['Confirmada', 'Aguardando pagamento', 'Em andamento'].includes(r.estado));
   const julgar = GES.includes(p) ? julgaveis().filter(j => !['Validada', 'Negada', 'Encerrada'].includes(j.estado)) : [];
   const quick = [['users', 'Cadastrar visitante', p + '/visitante-novo'], ['calendar-days', 'Reservar', p + '/reservas'], ['wrench', 'Abrir chamado', p + '/chamado-novo']];
   return {
@@ -230,7 +230,7 @@ def(RES, 'reserva-ok', 'Reserva confirmada', 'Reservas (5.1)', ctx => {
 
 def(RES, 'minhas-reservas', 'Minhas reservas', 'Reservas (5.2)', ctx => {
   const f = FORM.fres || 'proximas';
-  const list = S.reservas.filter(r => f === 'proximas' ? ['Confirmada', 'Aguardando pagamento'].includes(r.estado) : !['Confirmada', 'Aguardando pagamento'].includes(r.estado));
+  const list = S.reservas.filter(r => f === 'proximas' ? ['Confirmada', 'Aguardando pagamento', 'Em andamento'].includes(r.estado) : !['Confirmada', 'Aguardando pagamento', 'Em andamento'].includes(r.estado));
   return {
     tab: 'reservas', top: { title: 'Minhas reservas', back: ctx.p + '/reservas' }, flush: true,
     body: `<div class="pad chips">${chip('Próximas', f === 'proximas', () => { FORM.fres = 'proximas'; rerender(); })}${chip('Histórico', f === 'hist', () => { FORM.fres = 'hist'; rerender(); })}</div>
@@ -492,6 +492,7 @@ def([...RES, 'portaria'], 'chamado-novo', 'Abrir chamado', 'Chamados (8.1)', ctx
 });
 function reabrirChamado(c) {
   if (c.aval) { (c.avalHist = c.avalHist || []).push(c.aval); c.aval = null; }   // a avaliação feita vale para a conclusão anterior (RN-CH-17)
+  c.ciclo = (c.ciclo || 1) + 1; c.avaliacaoDisponivelEm = null; c.correcaoConclusao = ''; c.conclusaoPendente = false;
   c.estado = 'Reaberto'; c.concluidoEm = null; c.concluido = ''; c.fotos = 0; c.prazo = 'vence em 24h'; c.fora = false;
   closeLayer(); rerender(); toast('Chamado reaberto. Ele voltou para a fila.');
 }
@@ -512,7 +513,7 @@ function avaliarChamado(c, p) {
       ${field('Comentário (opcional)', textarea('av_coment', { ph: 'Conte como ficou o serviço' }), { help: 'Até 500 caracteres. O funcionário vê o comentário sem saber quem o escreveu.' })}
       ${btn('Enviar avaliação', { block: true, size: 'lg', icon: 'send', disabled: !!motivo, on: () => {
         const nota = FORM.av_nota, low = nota <= 2;
-        c.aval = { nota, base: FORM.av_base, coment: (FORM.av_coment || '').trim().slice(0, 500), em: '05/11/2026', dias: 0 };
+        c.aval = { nota, base: FORM.av_base, coment: (FORM.av_coment || '').trim().slice(0, 500), em: '05/11/2026', dias: 0, quem: c.tipo === 'limpeza' ? c.concluidoPor : c.empresa, conclusaoOpId: c.conclusaoEfetivaOpId };
         closeLayer(); rerender();
         if (!low) { toast('Avaliação enviada. Obrigado!'); return; }
         // Avaliação baixa: oferece reabrir, mas a decisão é de quem avaliou; o síndico é avisado (RN-CH-18)
@@ -536,6 +537,8 @@ def(RES, 'chamado', 'Detalhe do chamado', 'Chamados (8.1)', ctx => {
       ${c.empresa ? row({ icon: 'building-2', title: c.empresa, sub: 'Empresa responsável' + (c.agenda ? ' · visita ' + c.agenda : '') }) : ''}
       <h3 class="t-title-sm">Andamento</h3>${timeline(steps.map((s, i) => ({ t: s, state: i < idx || (c.estado === 'Concluído' && i === idx) ? 'done' : i === idx ? 'now' : '' })))}
       ${c.estado === 'Concluído' ? fotosServico(c) : ''}
+      ${c.correcaoConclusao ? banner('info', 'history', esc(c.correcaoConclusao) + ' A avaliação anterior ficou somente no histórico. Você pode avaliar este atendimento.', { inline: true }) : ''}
+      ${(c.avalHist || []).filter(a => a.somenteHistorico).map(a => `<div class="card"><b>Avaliação anterior · somente histórico</b><p class="help">${esc(a.quem)} · ${a.nota} de 5. Não entra nas médias.</p><p>${esc(a.coment || '')}</p></div>`).join('')}
       ${ae === 'pendente' ? banner('info', 'star', 'O serviço foi concluído. Conte como ficou.', { inline: true, action: btn('Avaliar o serviço', { size: 'sm', on: () => avaliarChamado(c, ctx.p) }) }) : ''}
       ${ae === 'avaliado' ? avalCartao(c, 'Sua avaliação') : ''}
       ${ae === 'encerrada' ? `<p class="help">${ic('clock')} O prazo para avaliar terminou.</p>` : ''}
@@ -567,17 +570,17 @@ def(RES, 'menu', 'Menu', 'Menu', ctx => {
 /* ---------------- Score e transparência (9.4) ---------------- */
 def([...RES, 'portaria', 'limpeza', 'manutencao'], 'score', 'Meu score', 'Score e reclamações (9)', ctx => ({
   tab: 'menu', top: { title: 'Meu score', back: ctx.p + '/menu' },
-  body: `<div class="stack">${scoreBlock(S.score)}
-    <p class="t-body-sm" style="margin:0">Próxima recuperação: <b>+5 em 01/02/2027</b></p>
+  body: `<div class="stack"><p class="t-body-sm muted">${S.scoresFuncionais[ctx.p] ? 'Seu score neste condomínio · ' + esc(S.units[S.unit].cond) : 'Seu score nesta unidade · ' + esc(S.units[S.unit].name)}</p>${scoreBlock(S.score)}
+    <p class="t-body-sm" style="margin:0">Próxima recuperação: <b>+5 em ${scoreContexto().recuperaEm}</b></p>
     ${btn('Como o score funciona', { v: 'text', icon: 'circle-help', on: ctx.p + '/como-funciona' })}
     <h2 class="t-title-sm">Histórico</h2>
-    <div class="list list-full">${S.scoreHist.map(h => row({ icon: h.p > 0 ? 'trending-up' : 'trending-down', title: h.t, sub: h.d, right: `<b class="num ${h.p > 0 ? 'c-success' : 'c-danger'}">${h.p > 0 ? '+' : '−'}${Math.abs(h.p)}</b>`, on: h.p < 0 && h.t.startsWith('Reclamação') ? ctx.p + '/reclamacao/m2' : null, noChev: false })).join('')}</div>
+    <div class="list list-full">${S.scoreHist.map(h => row({ icon: h.p > 0 ? 'trending-up' : h.p < 0 ? 'trending-down' : 'circle-dot', title: h.t, sub: h.d, right: `<b class="num${h.p > 0 ? ' c-success' : h.p < 0 ? ' c-danger' : ''}">${h.p > 0 ? '+' : h.p < 0 ? '−' : ''}${Math.abs(h.p)}</b>`, on: h.p < 0 && h.t.startsWith('Reclamação') ? ctx.p + '/reclamacao/m2' : null, noChev: false })).join('')}</div>
   </div>`,
 }));
 def([...RES, 'portaria', 'limpeza', 'manutencao'], 'transparencia', 'Transparência', 'Score e reclamações (9)', ctx => ({
   tab: 'menu', top: { title: 'Transparência', back: ctx.p + '/menu' },
   body: `<div class="stack">
-    <div class="card"><h2 class="t-title-sm">Score do síndico</h2><div class="t-body-sm muted">Pedro Alves</div>${scoreBlock(S.transp.sindico, { compact: true })}</div>
+    <div class="card"><h2 class="t-title-sm">Score do síndico</h2><div class="t-body-sm muted">Pedro Alves · Unidade do mandato: Bloco B · Apto 101</div>${scoreBlock(S.transp.sindico, { compact: true })}</div>
     <h2 class="t-title-sm">Nota dos setores · outubro</h2>
     ${S.transp.setores.map(s => `<div class="card"><div class="row-between"><h3 class="t-title-sm">${s.nome}</h3>${s.nota != null ? `<b class="num">${String(s.nota).replace('.', ',')} de 5</b>` : ''}</div>
       ${s.nota != null ? starsRead(s.nota) : `<p class="t-body-sm muted" style="margin:0">Nota não publicada este mês: poucas avaliações.</p>`}</div>`).join('')}
@@ -905,7 +908,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'privacidade'
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-funciona', 'Como funciona', 'Configurações (14.1)', ctx => ({
   tab: 'menu', top: { title: 'Como funciona', back: ctx.p + '/menu' },
   body: `<div class="stack" style="max-width:640px">${[
-    ['gauge', 'Score', 'Todo morador e funcionário começa com 100 pontos. Reclamações validadas tiram 5, 10 ou 20 pontos; boa convivência e boas notas na pesquisa devolvem pontos a cada trimestre. Com 60 ou menos, as reservas gratuitas ficam pausadas.'],
+    ['gauge', 'Score', 'Cada pessoa começa com 100 em cada novo vínculo de moradia. Saldo, histórico e recuperação são separados por unidade; ninguém herda o score de quem saiu. Reclamações e faltas afetam só esse vínculo. A regularidade recupera 5 pontos a cada 2 meses. Com 60 ou menos, as reservas gratuitas ficam pausadas só para você nesta unidade. Funcionários e síndico profissional sem unidade têm score individual por condomínio; a pesquisa mensal só altera o score funcional dos funcionários.'],
     ['message-square-warning', 'Reclamações', 'O julgador conversa com quem foi indicado antes de decidir. Quem foi indicado nunca sabe quem reclamou. Reclamações falsas ou desproporcionais tiram pontos de quem reclamou.'],
     ['undo-2', 'Recurso', 'Quem perdeu pontos pode recorrer uma vez, em até 7 dias.'],
     ['calendar-days', 'Reservas', 'De 24h a 60 dias antes, até 2 por mês em cada área. Áreas pagas: cancelamento com reembolso até 12h antes.'],

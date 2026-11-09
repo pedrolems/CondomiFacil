@@ -79,7 +79,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Síndico profissional | Contratado, sem unidade e sem funções de morador; contratação e desligamento registrados pela administradora |
 | Subsíndico | Morador eleito, de unidade diferente da do síndico. No dia a dia, tem uma gestão limitada: julga reclamações contra o síndico, acompanha a manutenção, sugere comunicados, registra votos presenciais e vê encomendas com prazo vencido (RN-CD-27). Assume todas as funções de síndico quando a substituição é ativada |
 | Funcionário de limpeza | Recebe e conclui chamados de limpeza, e vê as avaliações que recebe sem saber de quem |
-| Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados |
+| Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados; consulta reservas do dia, marca uso Em andamento e registra na vistoria Cumprida ou Não comparecimento, inclusive em reservas pagas |
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
 | Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores |
 | Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
@@ -117,7 +117,8 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Registrar encomendas e retiradas | — | — | — | — | — | Sim | — |
 | Avisar, editar e cancelar entregas esperadas da unidade | Sim | Sim | — | Sim | — | — | — |
 | Ver as entregas esperadas do dia e vinculá-las à encomenda | — | — | — | — | — | Sim | — |
-| Registrar vistoria de área após o uso | — | — | — | — | Sim | Sim | — |
+| Consultar reservas do dia e marcar Em andamento | — | — | — | — | — | Sim | — |
+| Registrar vistoria e marcar Cumprida ou Não comparecimento (paga ou gratuita) | — | — | — | — | Sim | Sim | — |
 | Abrir chamados de limpeza e manutenção | Sim | Sim | Sim | Sim | — | Sim | — |
 | Atender e concluir chamados de limpeza (também offline) | — | — | — | — | Sim | — | — |
 | Acompanhar chamados de manutenção | — | Sim | Sim | Sim | — | — | — |
@@ -215,10 +216,10 @@ São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RE-03 | Fazer reserva paga | Morador | Horário bloqueado até o fim do prazo de pagamento |
 | RF-RE-04 | Cancelar com reembolso até 12h antes do início | Morador | Prazo configurável por condomínio e área |
 | RF-RE-05 | Cancelar sem reembolso depois do prazo | Morador | Libera a área para outros moradores |
-| RF-RE-06 | Bloquear reservas gratuitas para a pessoa com score baixo | Sistema | Áreas gratuitas aparecem indisponíveis para ela, com aviso do motivo |
+| RF-RE-06 | Bloquear reservas gratuitas para a pessoa com score baixo naquela unidade | Sistema | Áreas gratuitas aparecem indisponíveis para ela pela unidade ativa; outras pessoas e outros vínculos de unidade não são bloqueados (RN-SC-09, RN-SC-10) |
 | RF-RE-07 | Configurar prazos, antecedência, limites e valores | Administradora | Por condomínio e por área |
-| RF-RE-08 | Registrar vistoria da área após o uso | Limpeza, Portaria | Checklist com fotos; dano encontrado vira reclamação contra a unidade |
-| RF-RE-09 | Registrar não comparecimento em reserva gratuita | Limpeza, Portaria | Usado na regra de faltas (RN-RE-10) |
+| RF-RE-08 | Consultar reservas do dia e acompanhar o uso; registrar vistoria e conclusão | Portaria; Limpeza na vistoria | Portaria vê área, horário, unidade e estado, sem dados financeiros; marca Em andamento ao constatar uso a partir do início. Ao fim do uso, portaria ou limpeza registra checklist/fotos e Cumprida; dano vira reclamação contra unidade. Não exige marcação prévia Em andamento nem libera antes o intervalo reservado; ações exigem internet (RN-RE-09, RN-RE-13) |
+| RF-RE-09 | Registrar Não comparecimento em reserva paga ou gratuita na vistoria | Limpeza, Portaria | Após o término do horário; só faltas gratuitas entram na contagem e penalidade de RN-RE-10. Paga não usada não gera penalidade nem reembolso automático |
 
 ### 4.4 Pagamentos
 
@@ -268,12 +269,12 @@ São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | --- | --- | --- | --- |
 | RF-CH-01 | Abrir chamado de limpeza ou manutenção, com foto | Morador, Síndico, Portaria | Categorias por tipo (ex.: piscina, jardim, ar-condicionado) |
 | RF-CH-02 | Ver e concluir chamados de limpeza | Limpeza | Fotos opcionais do serviço feito, até 5 (RN-CH-14) |
-| RF-CH-03 | Consultar e concluir chamados de limpeza sem internet | Limpeza | Conclusões sincronizam ao voltar a conexão |
+| RF-CH-03 | Consultar e concluir chamados de limpeza sem internet | Limpeza | Conclusões sincronizam ao voltar a conexão; no mesmo ciclo, vale o menor horário registrado pelo celular, mesmo se enviado depois, com histórico e aviso da correção (RN-CH-04) |
 | RF-CH-04 | Acompanhar chamados de manutenção, indicar a empresa e concluir | Síndico; Subsíndico só acompanha, exceto na substituição | Status: aberto, orçamento, agendado, concluído; fotos opcionais do serviço na conclusão (RN-CH-14) |
 | RF-CH-05 | Acompanhar o status, ver as fotos do serviço concluído e reabrir em até 48h | Quem abriu | Notificação na conclusão, que convida a avaliar o atendimento (RF-CH-08) |
 | RF-CH-06 | Classificar a urgência ao abrir o chamado (alta, média ou leve), ver a urgência em cores nas listas e no detalhe, e ver as listas em ordem de urgência (abertos antes dos concluídos; empate, o mais antigo primeiro) | Quem abre; todos os que veem o chamado | Obrigatória; textos de ajuda com exemplos no formulário; alta em vermelho, média em amarelo e leve em verde, sempre com texto; ordem na exibição (RN-CH-13) |
 | RF-CH-07 | Ajustar a urgência de um chamado já aberto | Síndico; Subsíndico só na substituição | Fica registrado (quem, quando, de/para) e quem abriu é avisado |
-| RF-CH-08 | Avaliar o atendimento de um chamado concluído, com 1 a 5 estrelas e comentário opcional, informando se viu as fotos ou conferiu pessoalmente | Quem abriu (morador, síndico morador, subsíndico) | Até 7 dias após a conclusão, uma avaliação por conclusão, sem edição; lembrete único em 24h (RN-CH-15 a RN-CH-17) |
+| RF-CH-08 | Avaliar o atendimento de um chamado concluído, com 1 a 5 estrelas e comentário opcional, informando se viu as fotos ou conferiu pessoalmente | Quem abriu (morador, síndico morador, subsíndico) | Até 7 dias após a conclusão, uma avaliação por conclusão, sem edição; lembrete único em 24h. Correção tardia offline preserva avaliação superada somente no histórico e permite avaliar a conclusão efetiva, sem transferir nota entre funcionários (RN-CH-15 a RN-CH-17) |
 | RF-CH-09 | Oferecer reabrir o chamado após avaliação baixa (1 ou 2 estrelas) e avisar o síndico | Sistema | Não reabre sozinho; reabrir segue as 48h de RN-CH-07; o aviso nunca vai ao funcionário (RN-CH-18) |
 | RF-CH-10 | Consultar as avaliações do atendimento, agregadas por funcionário de limpeza e por empresa de manutenção | Síndico (Subsíndico na substituição); Administradora só o agregado | Média, quantidade e distribuição por estrelas; comentário só no detalhe do chamado, para o síndico (RN-CH-19) |
 | RF-CH-11 | Ver as próprias avaliações recebidas, com média, distribuição e comentários anônimos | Funcionário | Só com 3 ou mais avaliações; sem unidade, morador, chamado nem local; sem efeito no score (RN-CH-20, RN-CH-21) |
@@ -292,8 +293,8 @@ São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RS-08 | Aplicar pontos ao alvo ou ao reclamante conforme a decisão | Sistema | Ver Regras de Negócio, 4.1 |
 | RF-RS-09 | Recorrer uma vez, em até 7 dias, de decisão que tirou pontos | Quem perdeu pontos | Ver RN-RC-07 |
 | RF-RS-10 | Recuperar +5 pontos a cada 2 meses de regularidade, até 100 | Sistema | Rotina diária; reclamação validada ou penalidade por reclamação falsa reinicia o período |
-| RF-RS-11 | Ver o próprio score e o histórico de ganhos e perdas | Todos | Motivo e data de cada alteração |
-| RF-RS-12 | Ver o score do síndico e a nota de cada setor | Todos | Tela "Transparência" |
+| RF-RS-11 | Ver o próprio score e o histórico de ganhos e perdas | Quem tem score | Morador: saldo, histórico e recuperação do vínculo da unidade ativa, com identificação da unidade; cada novo vínculo começa em 100. Funcionário e síndico profissional sem unidade: score individual por condomínio (RN-SC-13, RN-SC-14) |
+| RF-RS-12 | Ver o score do síndico e a nota de cada setor | Todos | Tela "Transparência"; síndico morador mostra o score da unidade vinculada ao mandato, sem juntar os outros imóveis; profissional sem unidade mostra o funcional do condomínio (RN-SC-02) |
 | RF-RS-13 | Consultar todas as reclamações, com identidade e score do reclamante e do alvo | Administradora | Inclusive contra síndico e subsíndico |
 | RF-RS-14 | Filtrar palavras ofensivas e denunciar conteúdo | Todos | Denúncia vai ao síndico |
 | RF-RS-15 | Avisar o proprietário não residente de reclamação validada contra a unidade | Sistema | Categoria, data, decisão e multa; sem a conversa e sem quem reclamou (RN-RC-16) |
@@ -376,7 +377,7 @@ As regras completas, com IDs, valores padrão e parâmetros configuráveis, est�
 
 | Tema | Regras principais | Seção nas Regras de Negócio |
 | --- | --- | --- |
-| Score | Começa em 100; reclamação validada tira 5, 10 ou 20 pontos do alvo; reclamação desproporcional tira 5 e falsa tira 15 de quem reclamou; +5 a cada 2 meses de regularidade; score menor ou igual a 60 tira o acesso a reservas gratuitas | 4 |
+| Score | Morador: pessoal por vínculo de unidade, começando em 100 a cada novo vínculo, com saldo e regularidade independentes; funcionário e síndico profissional sem unidade: pessoal por condomínio. Reclamações aplicam os pontos apenas ao score do contexto; +5 a cada 2 meses de regularidade; score menor ou igual a 60 bloqueia reservas gratuitas só daquela pessoa/unidade | 4 |
 | Reclamações | Identificadas, mas o alvo não vê quem reclamou; um alvo do mesmo condomínio; julgador definido pelo alvo; conversa obrigatória antes de decidir; um recurso em até 7 dias | 5 |
 | Pesquisa mensal | 1 a 5 estrelas por funcionário; média abaixo de 3 tira 5 pontos, 4,5 ou mais dá 5; nota do setor publicada com 2 ou mais funcionários avaliados | 6 |
 | Reservas e pagamentos | Pagas ou gratuitas; confirmação automática; pagamento em até 24h; cancelamento com reembolso até 12h antes e sem reembolso depois; dinheiro direto na conta do condomínio | 7 |

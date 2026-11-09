@@ -47,8 +47,9 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 
 - **Planos:** Essencial (condomínio com administradora, preço por faixa de unidades) e Gestão + Suporte (sem administradora; a equipe da plataforma faz o papel dela). Detalhes e preços no PRD, seção 2.
 - **Uma unidade ocupada tem um único morador habilitado** (proprietário, ou inquilino se alugada). Quem vota pela unidade é sempre o proprietário (RN-CD-19, RN-VO-01); o inquilino tem voto próprio só nos casos da regra de locação.
-- **Score** é referência para o julgador, não julgamento público. Nunca usar verde/vermelho para ele. Subsíndico e conselho fiscal julgam reclamações contra o síndico conforme RN-RC-03 e RN-RC-07; suporte da plataforma não vê reclamações nem scores.
-- **Portaria:** registro de entrada em até 2 toques, sem diálogo de confirmação (usa "Desfazer"), funcionando offline com fila de sincronização.
+- **Score** é pessoal por vínculo de moradia com cada unidade, começando em 100 em cada novo vínculo, sem herdar pontos do ocupante anterior; saldo, histórico, recuperação e bloqueio ficam separados por unidade. Funcionários e síndico profissional sem unidade têm score individual por condomínio. O score público do síndico morador usa a unidade vinculada ao mandato. É referência para o julgador, não julgamento público; nunca usar verde/vermelho para ele. Subsíndico e conselho fiscal julgam reclamações contra o síndico conforme RN-RC-03 e RN-RC-07; suporte da plataforma não vê reclamações nem scores.
+- **Portaria:** registro de entrada em até 2 toques, sem diálogo de confirmação (usa "Desfazer"), funcionando offline com fila de sincronização. Em Áreas, consulta reservas do dia e marca Em andamento, Cumprida ou Não comparecimento conforme RN-RE-13; vistoria inclusive de paga não usada exige internet. Falta paga não gera perda de pontos nem reembolso automático.
+- **Limpeza offline:** em conclusões do mesmo ciclo, vale o menor horário registrado pelo celular, mesmo enviado depois (RN-CH-04). Avaliação da conclusão superada fica apenas no histórico, fora das médias e sem transferência; a efetiva pode receber nova avaliação na janela configurada desde sua disponibilização. A correção não reinicia as 48h de reabertura. Desempate exato e relógio incorreto continuam propostas técnicas no ADR-014.
 - **Finanças do condomínio:** a administradora edita; síndico e conselho fiscal só leem e comentam; mês fechado só se altera por estorno. Receitas de cobrança e reservas entram automaticamente e agregadas, sem unidade. Não é contabilidade formal.
 - **Fora de escopo:** contabilidade oficial (balancete, parecer, ata), catracas e interfones, entrega de comida por app. **Versão 2:** relatórios e acordos de parcelamento.
 - **Stack planejada (PRD seção 10):** React Native + TypeScript com Expo (Android, iOS e web via React Native Web), Node.js + NestJS, PostgreSQL com Row Level Security, WebSockets para a lista da portaria, SQLite ou WatermelonDB offline, gateway brasileiro de pagamento (Asaas, Mercado Pago ou Pagar.me, ainda a escolher), Expo Push/FCM, S3, Sentry.
@@ -88,13 +89,13 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 - Visão de Produto, PRD, Regras de Negócio e Histórias de Usuário (13 épicos, 71 histórias cobrindo 138 requisitos funcionais, conforme a tabela de cobertura).
 - Design System e User Flows completos, revisados e alinhados aos docs de produto.
 - Protótipo navegável com os fluxos de todos os perfis, incluindo as últimas adições: finanças do condomínio, entregas esperadas, listas de visitantes, avaliação de chamados, urgência e ordenação de chamados, semáforo de prazo de reclamação, política de locação e interface do subsíndico.
+- Portaria com reservas do dia e registro de uso/vistoria: Em andamento, Cumprida e Não comparecimento, inclusive em reserva paga não usada; limpeza mantém vistoria (decisão de Pedro em 08/11/2026).
 
 ## Próximos passos
 
 1. **Resolver as pendências do negócio** (User Flows seção 17), que bloqueiam partes do desenho:
    - Parecer jurídico sobre reclamações (SEG-16) e sobre as regras de locação; é o marco 2 do roadmap.
    - Escolha do gateway de pagamento (define prazos e erros dos fluxos 5.1 e 13.1).
-   - Reserva paga não usada: definir estado e vistoria (RN 7.4).
    - Prazo de 5 dias de resposta do alvo da reclamação: validar no piloto.
    - Finanças: orçamento anual previsto, transparência financeira para moradores, saldo do fundo de reserva e da conta de obras, plano de contas por administradora.
    - Cobrança em atraso como notificação obrigatória (proposta, ainda fora das RN e do US-NO-01).

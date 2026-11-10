@@ -267,6 +267,8 @@ Requisitos: RF-RE-04, RF-RE-05, RF-RE-10, RF-PG-03 · RN-CA-01 a RN-CA-06, RN-RE
 - [ ] Dado o push do lembrete, quando uso o atalho para cancelar, então valem as regras de cancelamento (reembolso integral na reserva paga até 12h antes; depois disso, o app avisa que não haverá reembolso antes de confirmar) e o cancelamento não tira pontos do meu score.
 - [ ] Dado uma reserva aguardando pagamento, expirada, cancelada ou cancelada pelo condomínio, quando chega a hora do lembrete, então não recebo push.
 - [ ] Dado uma reserva confirmada com menos antecedência que a do lembrete, quando ela é criada, então não recebo lembrete para ela.
+- [ ] Dado o lembrete ligado e o parâmetro em 24h, quando uma reserva confirmada começa às 02:00 de sábado (horário calculado 02:00 de sexta, entre 00:00 e 08:59), então recebo o push na quinta às 21:00, e não na madrugada de sexta; horários calculados entre 09:00 e 23:59 não mudam.
+- [ ] Dado uma reserva confirmada depois das 21:00 antecipadas (mas antes do horário calculado), quando ela é confirmada, então não recebo lembrete, porque o horário de envio já passou.
 
 ### US-RE-05 — Bloqueio de reservas gratuitas por score
 

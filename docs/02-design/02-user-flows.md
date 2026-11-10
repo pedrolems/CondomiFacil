@@ -391,9 +391,9 @@ flowchart TD
     V -->|"Sim"| V1["Faixa: Vai receber convidados? Montar lista ou Agora não"]
     V -->|"Não"| V2(["Sem sugestão"])
     V1 -->|"Montar lista"| V3["Fluxo 6.5, com data, horário e local da reserva"]
-    Z1 --> R{"Reserva confirmada com 24h ou mais até o início e lembrete ligado?"}
+    Z1 --> R{"Reserva confirmada antes do horário de envio do lembrete e lembrete ligado?"}
     Z2 --> R
-    R -->|"Sim"| R1["24h antes do início, a rotina envia o push de lembrete"]
+    R -->|"Sim"| R1["24h antes do início, a rotina envia o push de lembrete; se esse horário cair entre 00:00 e 08:59, o push sai às 21:00 da noite anterior"]
     R1 --> R2["Toque abre o detalhe, com atalho para cancelar (fluxo 5.2)"]
     R -->|"Não"| R3(["Sem lembrete"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
@@ -418,8 +418,8 @@ flowchart TD
 | Reserva com lista vinculada | No detalhe, linha "Lista: N pessoas", com o nome da lista e "M chegaram" | Abre o detalhe da lista | RN-RE-12 |
 | Reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje | Nenhuma sugestão | — | RN-RE-12 |
 | Reserva cancelada com lista vinculada | Lista cancelada junto, com mensagem rápida: "Reserva cancelada. A lista vinculada também foi cancelada." | Monta outra lista, se quiser | RN-VI-14 |
-| Reserva confirmada, 24h antes do início (lembrete ligado) | Push: "Reserva amanhã" / "Salão de festas, amanhã, das 19h às 23h. Toque para ver ou cancelar." | O toque abre o detalhe da reserva, com "Cancelar reserva" (fluxo 5.2); ignorar não altera a reserva | RN-RE-14 |
-| Reserva aguardando pagamento, expirada, cancelada ou criada com menos antecedência que o lembrete (decidido em 09/11/2026) | Nenhum push de lembrete | — | RN-RE-14 |
+| Reserva confirmada, 24h antes do início (lembrete ligado) | Push: "Reserva amanhã" / "Salão de festas, amanhã, das 19h às 23h. Toque para ver ou cancelar." Se o horário de 24h antes cair entre 00:00 e 08:59, o push sai às 21:00 da noite anterior a ele (por exemplo, reserva às 02:00 de sábado: push na quinta às 21:00) e o texto usa o dia e o horário reais: "Reserva no sábado" / "Salão de festas, sábado, das 02h às 06h. Toque para ver ou cancelar." (D-39) | O toque abre o detalhe da reserva, com "Cancelar reserva" (fluxo 5.2); ignorar não altera a reserva | RN-RE-14 |
+| Reserva aguardando pagamento, expirada, cancelada ou confirmada depois do horário de envio do lembrete (inclusive depois das 21:00 antecipadas; decidido em 09/11/2026) | Nenhum push de lembrete | — | RN-RE-14 |
 | Lembrete desligado nas preferências | Nenhum push de lembrete; a reserva segue normal | Liga em Configurações > Notificações (fluxo 14.1) | RN-RE-14, RF-NO-01 |
 
 ### 5.2 Cancelar reserva
@@ -1370,7 +1370,7 @@ flowchart TD
 
 Notificações obrigatórias: decisão de reclamação contra a pessoa e divergência de sincronização para o porteiro (US-NO-01).
 
-Dentro de Reserva, o interruptor opcional "Lembrete de reserva" (ligado por padrão) controla o push enviado 24h antes do início de reserva confirmada (fluxo 5.1, RN-RE-14).
+Dentro de Reserva, o interruptor opcional "Lembrete de reserva" (ligado por padrão) controla o push enviado 24h antes do início de reserva confirmada, ou às 21:00 da noite anterior quando esse horário cair entre 00:00 e 08:59 (fluxo 5.1, RN-RE-14).
 
 ## 15. Mensagens de erro transversais
 
@@ -1429,6 +1429,7 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-36 | O PRD tinha só a cobrança por unidade: a administradora não tinha onde controlar despesas, o síndico e o conselho fiscal não viam para onde ia o dinheiro, e o balancete estava fora de escopo, sem distinguir contabilidade de controle | Controle **gerencial** de receitas e despesas: receitas de cobrança e reservas pagas entram sozinhas (regime de caixa), despesas por categoria lançadas pela administradora, fechamento do mês com correção só por estorno, leitura e comentário para síndico e conselho fiscal; sem orçamento previsto e sem visão para moradores, que o PRD não prevê (ver pendências) | RN-FI-21 a RN-FI-32, RN 12.3 e 12.4, RN 13 e 14, RF-FI-17 a RF-FI-24, US-FI-07 a US-FI-10, SEG-08, SEG-18, DS 4.7, 10.22, 11.9, 11.15, 12, 15 |
 | D-37 | O lembrete de reserva (RN-RE-14) não dizia o que fazer com reserva confirmada com menos antecedência que o parâmetro, inclusive paga aprovada depois desse ponto | Decidido por Pedro em 09/11/2026: não recebe lembrete. O lembrete é opcional, ligado por padrão, só por push, e a rotina roda a cada 5 min | RN-RE-14, RF-RE-10, US-RE-04, fluxo 5.1 |
 | D-38 | As rotinas diárias, exceto 3, 6, 9 e 13, não tinham horário, e as que enviam lembrete poderiam disparar push de madrugada | Decidido por Pedro em 09/11/2026: rotinas diárias sem horário rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as diárias de lembrete ou aviso a pessoas (encomenda, prazos de reclamação e chamado, avaliação de chamado, cobrança, fim de contrato de locação) rodam às 09:00 locais. Também decidido em 09/11/2026: (a) as rotinas 10 e 20 têm duas etapas na mesma rotina, efeito de regra na madrugada e aviso às 09:00; (b) o push gerado por rotina da madrugada fica na fila e sai às 09:00 locais, e o push de evento disparado por pessoa não muda; (c) o lembrete de avaliação de chamado sai às 09:00 locais do dia seguinte ao fim das 24h após a conclusão | RN 14, RN-CH-17, RF-CH-08, US-CH-02, US-CH-04, DS 11.12, arq. 3.5 e 3.7, ADR-012, ADR-014, backend 5.2 e 6.4 |
+| D-39 | O lembrete de reserva (RN-RE-14) enviado 24h antes do início cairia de madrugada quando a reserva começa entre 00:00 e 09:00 | Decidido por Pedro em 09/11/2026: se o horário calculado (início menos `reserva.lembrete_antecedencia_horas`) cair entre 00:00 e 08:59 no fuso do condomínio, o push é antecipado para as 21:00 da noite anterior ao dia desse horário, nunca adiado (reserva às 02:00 de sábado, 24h: push na quinta às 21:00); entre 09:00 e 23:59 não muda. Por coerência com RN-RE-14, reserva confirmada depois do horário de envio (inclusive depois das 21:00 antecipadas) não recebe lembrete (confirmado por Pedro em 09/11/2026). A rotina segue a cada 5 min, fora da fila das 09:00 da D-38. Como o push pode sair mais de 24h antes, o texto usa o dia e o horário reais em vez de "amanhã" | RN-RE-14, RN 14, RF-RE-10, US-RE-04, fluxo 5.1, DS 13.5, arq. 3.5, D12 (4.8), ADR-012, backend 5.2 e 5.5 |
 
 ## 17. Pendências
 

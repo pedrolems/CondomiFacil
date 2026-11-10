@@ -430,9 +430,30 @@ Frequências, fan-out e origem vêm de arq. 3.5 e RN 14. A coluna do módulo don
 | 18 | Lançamentos recorrentes | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | `financas` | RN-FI-26 |
 | 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | Por condomínio | `financas` | RN-FI-28 |
 | 20 | Fim de contrato de locação | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | Por condomínio | `condominio` | RN-CD-21 |
-| 21 | Lembrete de reserva | A cada 5 min | Por condomínio (parâmetro por condomínio); idempotente por reserva | `reservas` (envio pelo `notificacoes`) | RN-RE-14, RF-RE-10 |
+| 21 | Lembrete de reserva (envio antecipado para 21:00 da noite anterior se o horário calculado cair entre 00:00 e 08:59 locais) | A cada 5 min | Por condomínio (parâmetro e fuso por condomínio); idempotente por reserva | `reservas` (envio pelo `notificacoes`) | RN-RE-14, RF-RE-10 |
 
-**Rotina 21 em detalhe (decidido nas RN).** Envia **uma única vez** um push ao morador que fez a reserva **Confirmada**, com `reserva.lembrete_antecedencia_horas` de antecedência (padrão 24 h, faixa de 1 a 72 h, por condomínio). Ignora reserva aguardando pagamento, cancelada, cancelada pelo condomínio, expirada ou criada com menos antecedência que o parâmetro. Canal só push, opcional e ligado por padrão (preferência `lembrete de reserva`), com atalho para ver e cancelar (RN-RE-14, RF-RE-10, MER/DER 4.12). Implementação proposta: a rotina seleciona reservas confirmadas cujo início cai na janela `[agora + parâmetro, agora + parâmetro + 5 min)`, publica um `evento_saida` por reserva e o `notificacoes` aplica a preferência; a chave de idempotência é a reserva, o que garante envio único mesmo com repetição do job.
+**Rotina 21 em detalhe (decidido nas RN).** Envia **uma única vez** um push ao morador que fez a reserva **Confirmada**, com `reserva.lembrete_antecedencia_horas` de antecedência (padrão 24 h, faixa de 1 a 72 h, por condomínio). Ignora reserva aguardando pagamento, cancelada, cancelada pelo condomínio, expirada ou confirmada depois do horário de envio (inclusive depois das 21:00 antecipadas, confirmado por Pedro em 09/11/2026). Canal só push, opcional e ligado por padrão (preferência `lembrete de reserva`), com atalho para ver e cancelar (RN-RE-14, RF-RE-10, MER/DER 4.12). **Horário de envio (decisão de Pedro em 09/11/2026, RN-RE-14).** O horário calculado é `inicio - parametro`, no fuso do condomínio. Se a hora local dele estiver entre 00:00 e 08:59, o envio é antecipado para as 21:00 do dia anterior à data local desse horário calculado, nunca adiado; entre 09:00 e 23:59, o envio é o próprio horário calculado. Exemplo: início sábado 02:00, parâmetro 24 h, calculado sexta 02:00, envio quinta 21:00. A rotina continua a cada 5 min e não passa pela fila das 09:00 do `notificacoes` (6.4).
+
+**Função pura no domínio de reservas (proposta técnica, fora das RN).** O cálculo fica numa função sem relógio, banco ou I/O, o que a torna testável sozinha:
+
+```
+horarioEnvioLembrete(inicio: Instante, antecedenciaHoras: number, fuso: string): Instante
+  calculado = inicio - antecedenciaHoras horas
+  local     = calculado convertido para o fuso
+  se local.hora < 9:  retorna (local.data - 1 dia) às 21:00 no fuso, convertido para Instante
+  senão:              retorna calculado
+
+deveEnviarLembrete(reserva, agora, antecedenciaHoras, fuso): boolean
+  envio = horarioEnvioLembrete(reserva.inicio, antecedenciaHoras, fuso)
+  retorna reserva.estado == Confirmada
+      e reserva.confirmadaEm <= envio   // confirmada depois do envio: sem lembrete
+      e envio <= agora < reserva.inicio
+      e lembrete ligado e ainda não enviado
+```
+
+Casos de teste mínimos: calculado 00:00, 08:59 e 09:00 (limites); exemplo de 02:00 de sábado com 24 h; parâmetros de 1 e 72 h; confirmação às 20:59 e às 21:01 do envio antecipado (esta sem lembrete); confirmação depois do horário calculado; fuso diferente de `America/Sao_Paulo` (a data e a hora locais mudam, o instante não); reserva cancelada entre o cálculo e o envio. Em transição de horário de verão, as 21:00 locais valem pela hora de parede do fuso. A antecipação máxima é de quase 12 h (calculado 08:59, envio 21:00 da véspera).
+
+Implementação proposta: como o envio pode vir até 12 h antes do horário calculado, a rotina seleciona reservas confirmadas ainda não notificadas com início até `agora + parametro + 12 h` e aplica `deveEnviarLembrete` a cada uma (a seleção só reduz candidatas; a decisão é da função). Para cada reserva aprovada, publica um `evento_saida`, e o `notificacoes` aplica a preferência; a chave de idempotência é a reserva, o que garante envio único mesmo com repetição do job. Como a decisão usa `envio <= agora`, e não uma janela de 5 min, uma execução atrasada ainda envia, desde que o início não tenha passado.
 
 **Notas sobre a tabela.**
 
@@ -483,7 +504,7 @@ Cuidados: o job de atraso precisa ser **cancelável ou reconferido** na execuç�
 
 #### b) Lembretes de reserva
 
-É a **rotina 21** (seção 5.2): RN-RE-14, RF-RE-10, parâmetro `reserva.lembrete_antecedencia_horas`, a cada 5 min, só reservas confirmadas, push opcional ligado por padrão, envio único. A **rotina 1** (expirar reservas não pagas, RN-RE-03) é complementar: reserva aguardando pagamento não recebe lembrete e expira. A rotina 7 trata faltas (RN-RE-10).
+É a **rotina 21** (seção 5.2): RN-RE-14, RF-RE-10, parâmetro `reserva.lembrete_antecedencia_horas`, a cada 5 min, só reservas confirmadas, push opcional ligado por padrão, envio único, com antecipação para 21:00 da noite anterior quando o horário calculado cair entre 00:00 e 08:59 locais (função pura `horarioEnvioLembrete`). A **rotina 1** (expirar reservas não pagas, RN-RE-03) é complementar: reserva aguardando pagamento não recebe lembrete e expira. A rotina 7 trata faltas (RN-RE-10).
 
 #### c) Limpeza de dados antigos
 

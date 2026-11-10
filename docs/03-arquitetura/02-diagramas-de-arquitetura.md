@@ -823,11 +823,11 @@ flowchart TB
 | 18 | Lançamentos recorrentes | Diária, madrugada (00:00 a 06:00 local) | `financas` |
 | 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | `financas` |
 | 20 | Fim de contrato de locação | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | `condominio` |
-| 21 | Lembrete de reserva | A cada 5 min | `reservas` (envio pelo `notificacoes`) |
+| 21 | Lembrete de reserva (push antecipado para as 21:00 da noite anterior quando o horário de 24h antes cai entre 00:00 e 08:59 locais) | A cada 5 min | `reservas` (envio pelo `notificacoes`) |
 
 Também são jobs: processamento de webhook e conciliação diária (`pagamentos`), exportações (`financas`), envio de push e e-mail (`notificacoes`) e os prazos com atraso programado (reabertura de chamado em 48 h, janela de avaliação de 7 dias, prazo de recurso de 7 dias, segundo turno em 7 dias).
 
-**Horário local das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14).** As diárias sem horário próprio rodam na faixa de madrugada (00:00 a 06:00 no fuso do condomínio), em sequência; as que enviam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais; as rotinas 10 e 20 têm duas etapas, com o efeito na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda. As rotinas 3, 9 e 13 (00:00) e a 6 (23:59 do último dia do mês) mantêm o horário; 1, 2, 5 e 21 não são diárias.
+**Horário local das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14).** As diárias sem horário próprio rodam na faixa de madrugada (00:00 a 06:00 no fuso do condomínio), em sequência; as que enviam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais; as rotinas 10 e 20 têm duas etapas, com o efeito na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda. As rotinas 3, 9 e 13 (00:00) e a 6 (23:59 do último dia do mês) mantêm o horário; 1, 2, 5 e 21 não são diárias. A 21 roda a cada 5 min e antecipa o push para as 21:00 da noite anterior quando o horário calculado cai entre 00:00 e 08:59 locais (RN-RE-14, decisão de Pedro em 09/11/2026), sem passar pela fila das 09:00.
 
 Fontes: arq. 3.5, 3.6, 3.7, 4.4, 4.7, 6.8; RN 14 (21 rotinas); RF-FI-11; RNF-09; SEG-10; ADR-006, ADR-012.
 

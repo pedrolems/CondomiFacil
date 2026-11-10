@@ -149,7 +149,7 @@ const S = {
     { nome: 'Manutenção', funcs: [{ id: 'f5', nome: 'Marcelo Dias' }] },
   ], notas: {}, respondida: false },
   transp: { sindico: 72, setores: [{ nome: 'Portaria', nota: 4.3 }, { nome: 'Limpeza', nota: 3.7 }, { nome: 'Manutenção', nota: null }] },
-  notif: { reservas: true, visitantes: true, encomendas: true, chamados: true, comunicados: true, votacoes: true, cobrancas: true, pesquisa: false },
+  notif: { reservas: true, lembreteReserva: true, visitantes: true, encomendas: true, chamados: true, comunicados: true, votacoes: true, cobrancas: true, pesquisa: false },
   // Portaria
   esperados: [
     { id: 'x1', nome: 'Carlos Souza', un: 'Bloco A · Apto 101', bloco: 'A', estado: 'Esperado', cancelado: true },
@@ -227,6 +227,7 @@ const S = {
     { k: 'Antecedência máxima da reserva', v: 60, un: 'dias', pad: 60, min: 1, max: 365, herd: true },
     { k: 'Reservas por unidade, por área, por mês', v: 2, un: 'reservas', pad: 2, min: 1, max: 10, herd: true },
     { k: 'Prazo para pagar reserva', v: 24, un: 'horas', pad: 24, min: 1, max: 72, herd: true },
+    { k: 'Lembrete de reserva (antecedência do push)', v: 24, un: 'horas antes', pad: 24, min: 1, max: 72, herd: true },
     { k: 'Score mínimo para reservas gratuitas', v: 60, un: 'pontos', pad: 60, min: 0, max: 100, herd: true },
     { k: 'Prazo de resposta do alvo da reclamação', v: 5, un: 'dias', pad: 5, min: 1, max: 15, herd: true },
     { k: 'Prazo do chamado de limpeza', v: 24, un: 'horas', pad: 24, min: 1, max: 72, herd: true },

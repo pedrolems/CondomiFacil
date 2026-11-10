@@ -12,7 +12,7 @@ O PRD seção 10 manda rodar rotinas por jobs no backend e usar WebSockets na li
 
 O que a escolha precisa sustentar:
 
-- 20 rotinas automáticas (RN seção 14), com log de cada execução, mais jobs temporais fora da tabela (reabertura de chamado em 48 h, segundo turno em 7 dias, prazo de recurso de 7 dias).
+- 21 rotinas automáticas (RN seção 14), com log de cada execução, mais jobs temporais fora da tabela (reabertura de chamado em 48 h, segundo turno em 7 dias, prazo de recurso de 7 dias).
 - RLS valendo nos jobs: cada execução abre o contexto de **um** condomínio ([ADR-001](001-multi-tenant-rls.md)).
 - Evento de domínio sem perda: notificação não pode se perder se o processo cair. A proposta é o padrão outbox transacional (`evento_saida`), despachado pelo worker para tempo real, push e e-mail.
 - Tempo real: visitante cadastrado, editado ou cancelado aparece em até 5 s (RNF-05). Com mais de uma instância da API, o evento precisa chegar ao socket certo.

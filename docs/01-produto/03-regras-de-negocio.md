@@ -52,6 +52,7 @@ Um parâmetro é resolvido do nível mais geral para o mais específico; o níve
 | Período de regularidade | Contagem de 2 meses sem reclamação validada nem penalidade por reclamação; ao completar, o score recupera 5 pontos |
 | Reserva paga | Reserva de área que exige pagamento |
 | Reserva gratuita | Reserva de área sem pagamento |
+| Lembrete de reserva | Push opcional enviado ao morador que fez a reserva confirmada, com antecedência configurável (padrão 24h) do início, com atalho para ver a reserva e cancelar (RN-RE-14) |
 | Substituição | Período em que o subsíndico exerce as funções de síndico |
 | Sugestão de comunicado | Comunicado escrito pelo subsíndico fora da substituição, que o síndico revisa, edita e envia, ou descarta (RN-CO-05) |
 | Síndico profissional | Síndico contratado, sem unidade no condomínio |
@@ -263,6 +264,7 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | RN-RE-11 | Se o condomínio ligar o bloqueio por atraso (RN-FI-12), a unidade em atraso não faz novas reservas até quitar; reservas já confirmadas são mantidas |
 | RN-RE-12 | Quando a reserva fica confirmada (na hora ou com a aprovação do pagamento), o app sugere montar a lista de visitantes vinculada a ela (RN-VI-14). A sugestão aparece na confirmação e no detalhe só se a reserva está **confirmada**, tem data depois de hoje e ainda não tem lista vinculada; "Agora não" a esconde para aquela reserva, sem voltar a insistir. Não aparece para reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje, porque a lista seria cancelada junto se a reserva caísse. As regras não distinguem áreas, então a sugestão vale para todas; a capacidade da área só avisa (RN-VI-14). Com lista vinculada, o detalhe mostra "Lista: N pessoas", com link para a lista |
 | RN-RE-13 | A portaria consulta, em Áreas > Reservas de hoje, as reservas do dia, com área, horário, unidade e estado, sem valores, meios de pagamento ou score. Para reserva Confirmada cujo início já chegou, pode marcar Em andamento quando constata o uso. Após o término do uso, portaria ou limpeza pode fazer a vistoria e marcar Cumprida; não é obrigatório registrar Em andamento antes. Se o uso termina antes do horário previsto, o intervalo original continua ocupado até o fim, sem liberação automática. Não comparecimento só é registrado em reserva Confirmada após o término do horário, se não houve uso; Em andamento segue para Cumprida. Aguardando pagamento, Expirada e Cancelada não admitem marcação de uso. Cada marcação guarda autor, data e hora, sem inventar horário real de entrada ou saída dos usuários da área. A limpeza mantém as permissões de vistoria de RN-RE-09, sem ganhar o controle de início de uso. Consulta atualizada e marcações de reserva/vistoria exigem internet; o escopo offline continua restrito a visitantes e chamados de limpeza |
+| RN-RE-14 | **Lembrete de reserva.** Uma rotina envia um push, uma única vez, ao morador que fez a reserva, com 24h de antecedência do início (`reserva.lembrete_antecedencia_horas`, configurável por condomínio, de 1 a 72). Só vale para reserva **Confirmada**: reserva Aguardando pagamento não recebe lembrete (ela expira conforme RN-RE-03), e reserva Cancelada, Cancelada pelo condomínio ou Expirada não recebe nem mantém lembrete pendente. O canal é só push, sem e-mail. É opcional: o morador desliga em Preferências de notificação (RF-NO-01), e o padrão é ligado. O push abre o detalhe da reserva, com atalho para cancelar; o cancelamento segue RN-CA-01 a RN-CA-03 (na reserva paga, reembolso integral até 12h antes e, depois disso, sem reembolso, com aviso antes de confirmar) e não gera perda de pontos. Reserva confirmada com menos antecedência que o parâmetro (inclusive paga cuja aprovação do pagamento chega depois desse ponto) não recebe lembrete, porque o horário de envio já passou |
 
 ### 7.2 Cancelamento e reembolso
 
@@ -419,7 +421,7 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-CH-14 | Ao concluir um chamado, anexar fotos do serviço feito é opcional, até 5 fotos: a equipe de limpeza anexa na própria conclusão, e o síndico (ou o subsíndico na substituição) anexa ao concluir a manutenção. Sem foto, a conclusão segue igual. As fotos aparecem no detalhe do chamado para quem abriu, o síndico e o subsíndico; sem internet, ficam na fila de sincronização junto com a conclusão (RN-CH-04) |
 | RN-CH-15 | Concluído o chamado, quem abriu pode avaliar o atendimento. Avaliam o morador, o síndico morador e o subsíndico que abriram o chamado; síndico profissional, portaria e funcionários não avaliam (igual à RN-PE-02). A avaliação vale para quem atendeu: o funcionário da conclusão efetiva, de menor horário do celular quando há concorrência offline (RN-CH-04), nos chamados de limpeza, e a empresa registrada (RN-CH-05) nos de manutenção. Se uma conclusão anterior chegar depois e passar a valer, a avaliação da conclusão superada fica somente no histórico, ligada ao atendente original, sem efeito nos agregados e sem ser transferida ao outro funcionário; quem abriu pode avaliar a conclusão que passou a valer |
 | RN-CH-16 | A avaliação tem de 1 a 5 estrelas (obrigatória) e comentário opcional de até 500 caracteres. Antes de enviar, quem avalia diz em que se baseia, de forma explícita: "Vi as fotos do serviço" (só aparece se há fotos) ou "Conferi pessoalmente". Sem fotos, "Conferi pessoalmente" é a única base e precisa ser marcada, senão a avaliação não é enviada. A base fica registrada e aparece no detalhe do chamado para o síndico e o subsíndico; o morador pode não avaliar, e não avaliar não tem consequência |
-| RN-CH-17 | A avaliação pode ser feita até 7 dias depois da conclusão (`chamado.janela_avaliacao_dias`, RN 13). Cada conclusão recebe uma única avaliação, definitiva: não se edita nem se apaga. Passada a janela, a ação some do chamado. Se o chamado ainda não foi avaliado 24h depois da conclusão, quem abriu recebe um único lembrete. Reabrir o chamado sem ter avaliado encerra a avaliação daquela conclusão; a nova conclusão abre nova janela, e a avaliação já feita continua valendo para a conclusão anterior. Na correção tardia de RN-CH-15, a conclusão efetiva fica disponível para nova avaliação pela mesma duração configurada em `chamado.janela_avaliacao_dias` (padrão 7 dias), contada da disponibilização da correção, com um único lembrete após 24h se não avaliada; a avaliação superada continua somente no histórico. Essa correção não reinicia o prazo de 48h para reabrir: ele segue a conclusão efetiva (RN-CH-07) |
+| RN-CH-17 | A avaliação pode ser feita até 7 dias depois da conclusão (`chamado.janela_avaliacao_dias`, RN 13). Cada conclusão recebe uma única avaliação, definitiva: não se edita nem se apaga. Passada a janela, a ação some do chamado. Se o chamado ainda não foi avaliado ao fim de 24h da conclusão, quem abriu recebe um único lembrete, às 09:00 locais do dia seguinte ao fim dessas 24h (rotina de RN 14). Reabrir o chamado sem ter avaliado encerra a avaliação daquela conclusão; a nova conclusão abre nova janela, e a avaliação já feita continua valendo para a conclusão anterior. Na correção tardia de RN-CH-15, a conclusão efetiva fica disponível para nova avaliação pela mesma duração configurada em `chamado.janela_avaliacao_dias` (padrão 7 dias), contada da disponibilização da correção, com um único lembrete após 24h se não avaliada; a avaliação superada continua somente no histórico. Essa correção não reinicia o prazo de 48h para reabrir: ele segue a conclusão efetiva (RN-CH-07) |
 | RN-CH-18 | Avaliação com 1 ou 2 estrelas é "avaliação baixa". Ela não reabre o chamado sozinha: logo depois de enviar, o app oferece "Reabrir chamado" se ainda estão dentro das 48h de RN-CH-07, ou "Abrir novo chamado" se passaram; a decisão é de quem avaliou. Toda avaliação baixa também avisa o síndico, com o comentário, e entra na lista de avaliações da Gestão. O aviso nunca vai ao funcionário nem à empresa |
 | RN-CH-19 | O síndico (e o subsíndico na substituição) vê as avaliações agregadas por funcionário de limpeza e por empresa de manutenção: média, número de avaliações e distribuição por estrelas. Na avaliação de um chamado, o síndico e o subsíndico veem a nota, o comentário e a base no detalhe do chamado, onde já veem quem o abriu (RN-CH-10). A administradora vê só o agregado por funcionário e por empresa, sem comentários, sem chamados e sem identificar quem avaliou. Nenhum desses perfis vê a avaliação de um morador por outra tela |
 | RN-CH-20 | O funcionário vê as avaliações que recebeu em "Minhas avaliações": média, número de avaliações, distribuição por estrelas e comentários, sem unidade, sem morador, sem chamado nem local, e com o mês no lugar da data. A média e os comentários só aparecem quando ele tem 3 ou mais avaliações; antes disso, o app mostra só "Poucas avaliações para mostrar a média." Ao ser desligado, as avaliações dele saem das listas por funcionário e continuam no agregado do setor |
@@ -580,7 +582,7 @@ O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho
 
 ## 13. Catálogo de parâmetros configuráveis
 
-São 35 parâmetros; todos são alterados pela administradora (ou pelo suporte, no plano Gestão + Suporte), e o padrão de plataforma pelo admin da plataforma.
+São 36 parâmetros; todos são alterados pela administradora (ou pelo suporte, no plano Gestão + Suporte), e o padrão de plataforma pelo admin da plataforma.
 
 | Parâmetro | Regra | Padrão | Faixa permitida | Nível mais específico |
 | --- | --- | --- | --- | --- |
@@ -599,6 +601,7 @@ São 35 parâmetros; todos são alterados pela administradora (ou pelo suporte, 
 | `reserva.antecedencia_min_horas` | RN-RE-06 | 24 | 0 a 720 | Área |
 | `reserva.antecedencia_max_dias` | RN-RE-06 | 60 | 1 a 365 | Área |
 | `reserva.limite_mensal_por_unidade` | RN-RE-07 | 2 | 1 a 31 | Área |
+| `reserva.lembrete_antecedencia_horas` | RN-RE-14 | 24 | 1 a 72 | Condomínio |
 | `chamado.prazo_limpeza_horas` | RN-CH-06 | 24 | 1 a 168 | Condomínio |
 | `chamado.prazo_manutencao_resposta_horas` | RN-CH-06 | 48 | 4 a 168 | Condomínio |
 | `chamado.janela_avaliacao_dias` | RN-CH-17 | 7 | 1 a 30 | Condomínio |
@@ -624,27 +627,39 @@ Valores fora da faixa são recusados no cadastro, com a faixa permitida na mensa
 
 ## 14. Rotinas automáticas
 
-O sistema executa 20 rotinas sem ação de ninguém; cada execução é registrada em log.
+O sistema executa 21 rotinas sem ação de ninguém; cada execução é registrada em log.
 
-| Rotina | Frequência | O que faz | Regra |
-| --- | --- | --- | --- |
-| Expirar reservas não pagas | A cada 5 min | Libera o horário de reservas pagas cujo prazo de pagamento venceu | RN-RE-03 |
-| Saída não registrada | A cada hora | Encerra visitas com mais de 24h desde a entrada | RN-VI-07 |
-| Visitantes que não vieram | Diária, à meia-noite | Marca como "não compareceu" os visitantes avulsos do dia sem entrada | RN-VI-09 |
-| Recuperação de score | Diária | Soma +5 a quem completou 2 meses de regularidade e inicia novo período | RN-SC-08 |
-| Bloqueio de reservas gratuitas | A cada alteração de score | Bloqueia ou libera reservas gratuitas conforme o limite | RN-SC-09 |
-| Fechamento da pesquisa | Último dia do mês, 23h59 | Calcula médias, ajusta scores dos funcionários e publica notas dos setores | RN-PE-05 a RN-PE-08 |
-| Faltas em reservas | Diária | Conta as faltas em reservas gratuitas no trimestre por vínculo de moradia e aplica −5 a cada 2 faltas no score daquela unidade | RN-RE-10 |
-| Lembretes de encomenda | Diária | Envia lembretes de 3 e 7 dias e avisa o síndico ao fim do prazo de guarda | RN-EN-03, RN-EN-04 |
-| Entregas esperadas que não chegaram | Diária, à meia-noite | Passa a "Não chegou" a entrega esperada com data anterior (iFood/entregador vira "Encerrada") | RN-EN-12, RN-EN-13 |
-| Prazos de reclamação e chamado | Diária | Libera a decisão quando o alvo não responde no prazo, lembra o julgador e destaca chamados fora do prazo | RN-RC-04, RN-RC-06, RN-CH-06 |
-| Lembrete de avaliação de chamado | Diária | Envia um único lembrete a quem abriu o chamado concluído há 24h e ainda não avaliou; em correção tardia, conta da disponibilização da conclusão efetiva. Encerra a avaliação ao fim da janela configurada, sem considerar avaliações somente históricas nos agregados | RN-CH-17 |
-| Encerrar reclamações sem recurso | Diária | Encerra reclamações decididas há mais de 7 dias sem recurso | RN-RC-15 |
-| Limpeza de dados offline | Diária, à meia-noite | Manda os aparelhos da portaria e da limpeza apagarem a cópia do dia | RN-OF-06 |
-| Anonimização de visitantes | Diária | Anonimiza visitas mais antigas que o prazo de retenção | 8.4 |
-| Gerar cobranças mensais | Diária | Gera a cobrança de cada unidade 15 dias antes do vencimento | RN-FI-05 |
-| Marcar cobranças em atraso | Diária | Muda para "em atraso" as cobranças vencidas sem pagamento e atualiza multa e juros | RN-FI-06, RN-FI-09 |
-| Lembretes de cobrança | Diária | Envia lembretes 5 dias antes, no dia, 1 e 7 dias depois do vencimento | RN-FI-16 |
-| Lançamentos recorrentes | Diária | Cria os lançamentos recorrentes do mês no dia escolhido (no último dia, nos meses curtos) | RN-FI-26 |
-| Fechar o mês financeiro | Diária | No dia configurado do mês seguinte, fecha o mês financeiro anterior se a administradora ainda não o fechou | RN-FI-28 |
-| Fim de contrato de locação | Diária | Avisa 30 dias antes do fim do contrato; sem renovação, desativa o inquilino e os dependentes após a carência e marca a unidade como desocupada | RN-CD-21 |
+**Horário das rotinas (fuso do condomínio).** Todas as rotinas usam o fuso do condomínio (padrão `America/Sao_Paulo`). Rotina diária sem horário próprio roda na **madrugada**, entre 00:00 e 06:00, uma depois da outra. Rotina diária que envia lembrete ou aviso a pessoas roda às **09:00**, para que ninguém receba notificação de madrugada. As rotinas "Prazos de reclamação e chamado" e "Fim de contrato de locação" têm duas etapas dentro da mesma rotina: o efeito de regra (liberar decisão, marcar chamados fora do prazo, desativar inquilino e dependentes, marcar a unidade como desocupada) roda na madrugada, e os avisos saem às 09:00. As rotinas com horário na tabela (00:00 e 23:59) e as que rodam a cada 5 min, a cada hora ou por evento mantêm o seu horário. Decisão de Pedro em 09/11/2026.
+
+**Notificação gerada por rotina da madrugada.** A mudança acontece na madrugada, mas o push que ela gera (por exemplo, de score, cobrança, reclamação encerrada, chamado ou unidade) fica na fila e sai às 09:00 locais. A regra vale para o push gerado por rotina, ou por consequência direta dela (como a rotina de bloqueio de reservas gratuitas, disparada por alteração de score feita por rotina). Push de evento disparado por pessoa (por exemplo, visitante entrou, decisão de reclamação, divergência de sincronização) sai na hora, sem mudança. Decisão de Pedro em 09/11/2026.
+
+| Faixa | Rotinas | Horário |
+| --- | --- | --- |
+| Meia-noite (já definida) | Visitantes que não vieram, entregas esperadas que não chegaram, limpeza de dados offline | 00:00 |
+| Madrugada | Recuperação de score, faltas em reservas, encerrar reclamações sem recurso, anonimização de visitantes, gerar cobranças mensais, marcar cobranças em atraso, lançamentos recorrentes, fechar o mês financeiro, etapa de efeito de prazos de reclamação e chamado, etapa de efeito de fim de contrato de locação | Entre 00:00 e 06:00, em sequência |
+| Lembrete ou aviso a pessoas | Lembretes de encomenda, lembrete de avaliação de chamado, lembretes de cobrança, etapa de aviso de prazos de reclamação e chamado, etapa de aviso de fim de contrato de locação | 09:00 |
+| Sem faixa diária | Expirar reservas não pagas e lembrete de reserva (a cada 5 min), saída não registrada (a cada hora), bloqueio de reservas gratuitas (por evento), fechamento da pesquisa (23:59 do último dia do mês) | Como já definido |
+
+| Rotina | Frequência | Horário local | O que faz | Regra |
+| --- | --- | --- | --- | --- |
+| Expirar reservas não pagas | A cada 5 min | Sem horário fixo | Libera o horário de reservas pagas cujo prazo de pagamento venceu | RN-RE-03 |
+| Saída não registrada | A cada hora | Sem horário fixo | Encerra visitas com mais de 24h desde a entrada | RN-VI-07 |
+| Visitantes que não vieram | Diária, à meia-noite | 00:00 | Marca como "não compareceu" os visitantes avulsos do dia sem entrada | RN-VI-09 |
+| Recuperação de score | Diária | 00:00 a 06:00 | Soma +5 a quem completou 2 meses de regularidade e inicia novo período | RN-SC-08 |
+| Bloqueio de reservas gratuitas | A cada alteração de score | Sem horário fixo | Bloqueia ou libera reservas gratuitas conforme o limite | RN-SC-09 |
+| Fechamento da pesquisa | Último dia do mês, 23h59 | 23:59 do último dia | Calcula médias, ajusta scores dos funcionários e publica notas dos setores | RN-PE-05 a RN-PE-08 |
+| Faltas em reservas | Diária | 00:00 a 06:00 | Conta as faltas em reservas gratuitas no trimestre por vínculo de moradia e aplica −5 a cada 2 faltas no score daquela unidade | RN-RE-10 |
+| Lembrete de reserva | A cada 5 min | Sem horário fixo | Envia push, uma única vez, ao morador que fez a reserva Confirmada, 24h (`reserva.lembrete_antecedencia_horas`) antes do início, se ele não desligou o lembrete; ignora reservas aguardando pagamento, canceladas, expiradas ou criadas com menos antecedência que o parâmetro | RN-RE-14 |
+| Lembretes de encomenda | Diária | 09:00 | Envia lembretes de 3 e 7 dias e avisa o síndico ao fim do prazo de guarda | RN-EN-03, RN-EN-04 |
+| Entregas esperadas que não chegaram | Diária, à meia-noite | 00:00 | Passa a "Não chegou" a entrega esperada com data anterior (iFood/entregador vira "Encerrada") | RN-EN-12, RN-EN-13 |
+| Prazos de reclamação e chamado | Diária, em duas etapas | Efeito: 00:00 a 06:00; aviso: 09:00 | Etapa de efeito: libera a decisão quando o alvo não responde em 5 dias e marca os chamados fora do prazo. Etapa de aviso: lembra o julgador e avisa os envolvidos | RN-RC-04, RN-RC-06, RN-CH-06 |
+| Lembrete de avaliação de chamado | Diária | 09:00 | Envia um único lembrete a quem abriu o chamado concluído e ainda não avaliou, às 09:00 locais do dia seguinte ao fim das 24h após a conclusão; em correção tardia, as 24h contam da disponibilização da conclusão efetiva. Encerra a avaliação ao fim da janela configurada, sem considerar avaliações somente históricas nos agregados | RN-CH-17 |
+| Encerrar reclamações sem recurso | Diária | 00:00 a 06:00 | Encerra reclamações decididas há mais de 7 dias sem recurso | RN-RC-15 |
+| Limpeza de dados offline | Diária, à meia-noite | 00:00 | Manda os aparelhos da portaria e da limpeza apagarem a cópia do dia | RN-OF-06 |
+| Anonimização de visitantes | Diária | 00:00 a 06:00 | Anonimiza visitas mais antigas que o prazo de retenção | 8.4 |
+| Gerar cobranças mensais | Diária | 00:00 a 06:00 | Gera a cobrança de cada unidade 15 dias antes do vencimento | RN-FI-05 |
+| Marcar cobranças em atraso | Diária | 00:00 a 06:00 | Muda para "em atraso" as cobranças vencidas sem pagamento e atualiza multa e juros | RN-FI-06, RN-FI-09 |
+| Lembretes de cobrança | Diária | 09:00 | Envia lembretes 5 dias antes, no dia, 1 e 7 dias depois do vencimento | RN-FI-16 |
+| Lançamentos recorrentes | Diária | 00:00 a 06:00 | Cria os lançamentos recorrentes do mês no dia escolhido (no último dia, nos meses curtos) | RN-FI-26 |
+| Fechar o mês financeiro | Diária | 00:00 a 06:00 | No dia configurado do mês seguinte, fecha o mês financeiro anterior se a administradora ainda não o fechou | RN-FI-28 |
+| Fim de contrato de locação | Diária, em duas etapas | Efeito: 00:00 a 06:00; aviso: 09:00 | Etapa de efeito: sem renovação, desativa o inquilino e os dependentes após a carência e marca a unidade como desocupada. Etapa de aviso: avisa 30 dias antes do fim do contrato | RN-CD-21 |

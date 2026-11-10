@@ -20,7 +20,7 @@ Este documento traduz o produto (PRD, regras de negócio, histórias, design) em
 | Documento | O que fornece à arquitetura |
 | --- | --- |
 | PRD (`docs/01-produto/02-prd.md`) | Seção 10 é a **fonte da stack**; seção 3 (perfis e permissões); seção 7 (RNF); seção 8 (SEG) |
-| Regras de Negócio (`03-regras-de-negocio.md`) | Regras RN-* que viram invariantes de domínio; seção 13 (35 parâmetros configuráveis); seção 14 (20 rotinas automáticas) |
+| Regras de Negócio (`03-regras-de-negocio.md`) | Regras RN-* que viram invariantes de domínio; seção 13 (36 parâmetros configuráveis); seção 14 (21 rotinas automáticas) |
 | Histórias de Usuário (`04-historias-de-usuario.md`) | Critérios de aceite que viram testes |
 | Design System e User Flows (`docs/02-design/`) | Tokens, componentes, mensagens de erro transversais (UF 15), pendências (UF 17) |
 | Protótipo (`prototipo/`) | Referência de comportamento, não de código |
@@ -125,7 +125,7 @@ flowchart TB
 | Web (React Native Web) | Painel da administradora, do suporte, do admin da plataforma e do síndico; mesmo código do app | PRD 10; RF-AC-06; DS 11.9 |
 | API (NestJS) | Regras de negócio, autenticação, autorização, orquestração de pagamentos, auditoria; única porta de acesso aos dados | PRD 10 |
 | WebSocket | Lista da portaria em até 5 s (RNF-05) e edição de entrega esperada na hora (RN-EN-09) | PRD 10; RNF-05 |
-| Worker / jobs agendados | As 20 rotinas da RN seção 14, processamento assíncrono de webhooks, envio de push e e-mail | PRD 10; RN 14 |
+| Worker / jobs agendados | As 21 rotinas da RN seção 14, processamento assíncrono de webhooks, envio de push e e-mail | PRD 10; RN 14 |
 | PostgreSQL | Fonte da verdade; isolamento por condomínio e por unidade com RLS | PRD 10; SEG-05 |
 | Armazenamento de objetos | Fotos, comprovantes, atas, listas de presença | PRD 10 |
 | Gateway de pagamento | Subconta, boleto com QR Code Pix, Pix, cartão, reembolso, webhooks | PRD 10; RF-PG; RF-FI |
@@ -274,9 +274,12 @@ sequenceDiagram
 | `arquivos` | Upload e URLs assinadas | PRD 10 |
 | `lgpd` | Cópia e exclusão de dados | RF-LG; SEG-11 |
 | `auditoria` | Trilha append-only | SEG-08 |
+| `sync` (proposta dos diagramas 5.1) | Aplicar a fila offline e entregar delta ao aparelho | RN-OF-01 a 06, RN-CH-04; ADR-003, ADR-014 |
 | `plataforma` | Painel do admin: condomínios, planos, acessos de suporte | PRD 3 |
-| `tempo-real` | Gateway WebSocket | RNF-05 |
-| `rotinas` | Agendador e jobs | RN 14 |
+| `tempo-real` (mecanismo) | Gateway WebSocket | RNF-05 |
+| `rotinas` (mecanismo) | Agendador e jobs | RN 14 |
+
+`tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio: não têm regra de negócio própria. Os módulos de domínio são os outros 19 da tabela, incluindo `sync`, que vem da proposta dos diagramas (`02-diagramas-de-arquitetura.md`, 5.1) e não existia na lista anterior.
 
 Nomes dos módulos são proposta; a lista exata de prefixos RF por épico está em `04-historias-de-usuario.md`.
 
@@ -345,7 +348,7 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 
 ### 3.5 Rotinas agendadas (jobs)
 
-**Decidido:** jobs no backend (PRD 10); 20 rotinas (RN seção 14); cada execução registrada em log (RN 14).
+**Decidido:** jobs no backend (PRD 10); 21 rotinas (RN seção 14); cada execução registrada em log (RN 14).
 
 **Proposta de mecanismo.**
 
@@ -353,7 +356,7 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 - **Fila e agendador:** `pg-boss` (fila e cron sobre o próprio PostgreSQL, com enfileiramento transacional) como partida; alternativa BullMQ + Redis (seção 5.2).
 - **Um job por condomínio (fan-out):** um agendador leve enumera condomínios ativos e enfileira um job `rotina:condominio_id`. Assim cada execução abre o contexto de **um** condomínio (RLS vale também nos jobs), falha e repete isoladamente, e um condomínio grande não atrasa os outros.
 - **Idempotência:** cada rotina escreve só o que falta (ex.: "gerar cobrança do mês X para a unidade Y" tem chave única); rodar duas vezes não duplica.
-- **Fuso horário (lacuna, proposta):** as rotinas "à meia-noite" assumem fuso por condomínio (`America/Sao_Paulo` por padrão). Um disparo horário verifica quais condomínios entraram em "00:00 local" naquela hora.
+- **Fuso horário (lacuna, proposta):** as rotinas "à meia-noite" assumem fuso por condomínio (`America/Sao_Paulo` por padrão). Um disparo horário verifica quais condomínios entraram em "00:00 local" naquela hora. **Horário das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14):** as sem horário próprio rodam na faixa de madrugada, de 00:00 a 06:00 no fuso do condomínio, em sequência; as que enviam lembrete ou aviso a pessoas (rotinas 8, 11 e 17) rodam às 09:00 locais, para não haver push de madrugada. As rotinas 10 e 20 têm duas etapas dentro da mesma rotina: o efeito de regra roda na madrugada e o aviso às 09:00. **Push gerado por rotina da madrugada** (ex.: rotinas 4, 7, 12, 15, 16 e as etapas de efeito de 10 e 20) é gerado na madrugada mas fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda (ver 3.7). As rotinas 3, 6, 9 e 13 mantêm o horário já definido; a 1, a 2, a 5 e a 21 não são diárias e não mudam.
 - **Registro:** tabela `execucao_rotina` (rotina, condomínio, início, fim, resultado, contagens). Falhas repetidas geram alerta no Sentry.
 
 | # | Rotina (RN 14) | Frequência | Fan-out | Origem |
@@ -361,23 +364,24 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 | 1 | Expirar reservas não pagas | A cada 5 min | Global, filtra por prazo | RN-RE-03 |
 | 2 | Saída não registrada (visitas com mais de 24 h) | A cada hora | Por condomínio | RN-VI-07 |
 | 3 | Visitantes que não vieram ("não compareceu") | Diária, meia-noite | Por condomínio (fuso) | RN-VI-09 |
-| 4 | Recuperação de score (+5 após 2 meses de regularidade) | Diária | Por condomínio | RN-SC-08 |
+| 4 | Recuperação de score (+5 após 2 meses de regularidade) | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-SC-08 |
 | 5 | Bloqueio de reservas gratuitas | A cada alteração de score | Disparado por evento, não por cron | RN-SC-09 |
 | 6 | Fechamento da pesquisa (médias, ajuste de scores, notas dos setores) | Último dia do mês, 23h59 | Por condomínio (fuso) | RN-PE-05 a 08 |
-| 7 | Faltas em reservas (-5 a cada 2 faltas gratuitas no trimestre, por vínculo de moradia) | Diária | Por condomínio | RN-RE-10 |
-| 8 | Lembretes de encomenda (3 e 7 dias; aviso ao síndico no fim do prazo) | Diária | Por condomínio | RN-EN-03/04 |
+| 7 | Faltas em reservas (-5 a cada 2 faltas gratuitas no trimestre, por vínculo de moradia) | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-RE-10 |
+| 8 | Lembretes de encomenda (3 e 7 dias; aviso ao síndico no fim do prazo) | Diária, 09:00 local | Por condomínio | RN-EN-03/04 |
 | 9 | Entregas esperadas que não chegaram | Diária, meia-noite | Por condomínio (fuso) | RN-EN-12/13 |
-| 10 | Prazos de reclamação e chamado | Diária | Por condomínio | RN-RC-04, RN-RC-06, RN-CH-06 |
-| 11 | Lembrete de avaliação de chamado | Diária | Por condomínio | RN-CH-17 |
-| 12 | Encerrar reclamações sem recurso (decididas há mais de 7 dias) | Diária | Por condomínio | RN-RC-15 |
+| 10 | Prazos de reclamação e chamado | Diária, duas etapas: efeito na madrugada (00:00 a 06:00 local), aviso às 09:00 local | Por condomínio | RN-RC-04, RN-RC-06, RN-CH-06 |
+| 11 | Lembrete de avaliação de chamado | Diária, 09:00 local | Por condomínio | RN-CH-17 |
+| 12 | Encerrar reclamações sem recurso (decididas há mais de 7 dias) | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-RC-15 |
 | 13 | Limpeza de dados offline | Diária, meia-noite | Por condomínio (fuso); complementada pela limpeza local | RN-OF-06; SEG-09 |
-| 14 | Anonimização de visitantes | Diária | Por condomínio (usa `visitante.retencao_meses`) | RN 8.4; SEG-10 |
-| 15 | Gerar cobranças mensais (15 dias antes do vencimento) | Diária | Por condomínio | RN-FI-05 |
-| 16 | Marcar cobranças em atraso (multa e juros) | Diária | Por condomínio | RN-FI-06, RN-FI-09 |
-| 17 | Lembretes de cobrança (5 dias antes, no dia, 1 e 7 depois) | Diária | Por condomínio | RN-FI-16 |
-| 18 | Lançamentos recorrentes | Diária | Por condomínio | RN-FI-26 |
-| 19 | Fechar o mês financeiro | Diária (fecha no dia configurado) | Por condomínio | RN-FI-28 |
-| 20 | Fim de contrato de locação (aviso 30 dias antes; desativa após carência) | Diária | Por condomínio | RN-CD-21 |
+| 14 | Anonimização de visitantes | Diária, madrugada (00:00 a 06:00 local) | Por condomínio (usa `visitante.retencao_meses`) | RN 8.4; SEG-10 |
+| 15 | Gerar cobranças mensais (15 dias antes do vencimento) | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-FI-05 |
+| 16 | Marcar cobranças em atraso (multa e juros) | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-FI-06, RN-FI-09 |
+| 17 | Lembretes de cobrança (5 dias antes, no dia, 1 e 7 depois) | Diária, 09:00 local | Por condomínio | RN-FI-16 |
+| 18 | Lançamentos recorrentes | Diária, madrugada (00:00 a 06:00 local) | Por condomínio | RN-FI-26 |
+| 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | Por condomínio | RN-FI-28 |
+| 20 | Fim de contrato de locação (aviso 30 dias antes; desativa após carência) | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | Por condomínio | RN-CD-21 |
+| 21 | Lembrete de reserva (push 24 h antes do início de reserva confirmada; usa `reserva.lembrete_antecedencia_horas`) | A cada 5 min | Por condomínio (parâmetro por condomínio); idempotente por reserva | RN-RE-14 |
 
 Também são temporais e fora da tabela: contagem mensal de solicitações de suporte (RF-AD-16), alerta de conselho fiscal ausente (RN-VO-09), segundo turno em até 7 dias (RN-VO-07), reabertura de chamado em 48 h (RN-CH-07), janela de avaliação de 7 dias (RN-CH-17), prazo de recurso de 7 dias (RN-RC-07). Proposta: tratá-los como jobs com atraso programado (`delay`) criados no momento do evento, em vez de varreduras.
 
@@ -406,7 +410,7 @@ flowchart LR
 - **Subconta:** criada no cadastro da conta bancária do condomínio (RF-AD-08); o estado da subconta (pendente de verificação, ativa, recusada) é guardado e bloqueia a ativação do módulo de cobrança enquanto não estiver ativa. O processo de verificação cadastral do provedor (KYC) é lacuna.
 - **Webhook idempotente (SEG-17):**
   1. Endpoint recebe o corpo **bruto** e valida a assinatura do provedor antes de qualquer outra coisa.
-  2. Grava o evento em `evento_gateway` com unicidade `(provedor, id_do_evento)`; se já existe, responde 200 sem reprocessar.
+  2. Grava o evento em `evento_gateway` com unicidade por provedor, conta recebedora e id do evento (ou só provedor e id do evento, quando o provedor o garante único); evento sem correlação válida (assinatura inválida, conta ou transação desconhecida) vai para `evento_gateway_quarentena`, global, e não para esta tabela (MER/DER 4.10; decisão de Pedro em 08/11/2026); se já existe, responde 200 sem reprocessar.
   3. Responde 200 rápido e processa em job. O processamento não tem sessão de usuário: resolve o condomínio a partir da cobrança referenciada e abre o contexto desse condomínio (RLS vale).
   4. Transições de estado são monotônicas (um evento atrasado de "pendente" não desfaz um "pago").
   5. Pagamento confirmado atualiza cobrança ou reserva, gera comprovante por e-mail (RF-PG-04) e cria o lançamento financeiro automático (RN-FI-13, RN-FI-23).
@@ -430,6 +434,7 @@ flowchart LR
 - Tabela de dispositivos (usuário, token Expo, plataforma, última atividade). Recibos do Expo são consultados e tokens inválidos (`DeviceNotRegistered`) são removidos. Logout remove o token do aparelho.
 - Agrupamento da lista de visitantes (primeira chegada e resumo a cada 15 min, RN-VI-17) por debounce em job com atraso.
 - Mensagens usam texto genérico quando o conteúdo é sensível ("Você tem uma atualização"), e o detalhe só aparece dentro do app autenticado.
+- **Push gerado por rotina (decisão de Pedro em 09/11/2026, RN 14):** o evento de uma rotina da madrugada é processado na hora, mas o envio do push fica agendado para as 09:00 no fuso do condomínio (ver 3.5). Push de evento disparado por pessoa sai na hora.
 - Cobrança em atraso como notificação obrigatória é proposta de produto fora das RN (pendência em UF 17); a arquitetura comporta, mas não decide.
 - E-mail transacional por uma porta `Mailer` com adaptador do provedor escolhido (seção 5.2): código de acesso, comprovantes, cópia LGPD (RF-AC-01, RF-PG-04, RF-LG-01). Lembretes de cobrança: canal não especificado em RF-FI-11 (push e e-mail propostos).
 
@@ -633,7 +638,7 @@ CREATE POLICY tenant ON visita
 
 ### 4.9 Parâmetros configuráveis por condomínio
 
-**Decidido (RN 13):** 35 parâmetros, resolvidos do mais geral ao mais específico: Plataforma, Condomínio, Área comum (só reservas); o mais específico preenchido vence; valores fora da faixa são recusados com a faixa na mensagem; alterações guardam autor, data, valor antigo e novo (RN-GE-01); podem ter data de início futura (RN-GE-02); processos em andamento guardam cópia das regras aplicadas (RN-GE-03). A tela mostra padrão da plataforma, valor do condomínio, faixa e origem (DS 11.9).
+**Decidido (RN 13):** 36 parâmetros, resolvidos do mais geral ao mais específico: Plataforma, Condomínio, Área comum (só reservas); o mais específico preenchido vence; valores fora da faixa são recusados com a faixa na mensagem; alterações guardam autor, data, valor antigo e novo (RN-GE-01); podem ter data de início futura (RN-GE-02); processos em andamento guardam cópia das regras aplicadas (RN-GE-03). A tela mostra padrão da plataforma, valor do condomínio, faixa e origem (DS 11.9).
 
 **Proposta.**
 
@@ -1042,7 +1047,7 @@ Provedor de nuvem e região; CI/CD e IaC; ORM e migrações; fila e agendador co
 | 3.3 API e módulos | RF-* por épico | RN-GE-01 a 03 | RNF-01 | SEG-02, SEG-05 | PRD 10; `04-historias-de-usuario.md` |
 | 3.3.1 Autenticação e autorização | RF-AC-01, RF-AC-02, RF-AC-03, RF-AD-01, RF-AD-13 | RN-CD-01, RN-CD-02, RN-CD-10 a 13, RN-CD-27, RN-CD-28 | — | SEG-03, SEG-04, SEG-17 | PRD 3; UF 3.1 a 3.3, 15 |
 | 3.4 Tempo real | RF-VI-01, RF-VI-03, RF-VI-04, RF-VI-10 | RN-VI-01, RN-VI-17, RN-EN-09 | RNF-05, RNF-10, RNF-17 | — | DS 14 |
-| 3.5 Rotinas | RF-RS-10, RF-VI-08, RF-EN-08, RF-AD-16, RF-AD-20, RF-FI-05, RF-FI-11, RF-FI-20, RF-FI-23 | RN seção 14 (20 rotinas) e as RN citadas na tabela | RNF-09 | SEG-10 | PRD 10 |
+| 3.5 Rotinas | RF-RS-10, RF-VI-08, RF-EN-08, RF-AD-16, RF-AD-20, RF-FI-05, RF-FI-11, RF-FI-20, RF-FI-23 | RN seção 14 (21 rotinas) e as RN citadas na tabela | RNF-09 | SEG-10 | PRD 10 |
 | 3.6 Pagamentos | RF-PG-01 a 04, RF-FI-07, RF-FI-09, RF-FI-10, RF-AD-08 | RN-PG-01 a 07, RN-CA-01 a 06, RN-RE-03, RN-RE-04, RN-FI-01, RN-FI-02, RN-FI-13, RN-FI-17, RN-FI-19, RN-FI-23 | RNF-01 | SEG-12, SEG-15, SEG-17 | UF 5.1, 5.2, 13.1, 13.2, 17 |
 | 3.7 Notificações | RF-NO-01, RF-EN-02, RF-EN-04, RF-FI-11 | RN-VI-17, RN-RC-10, RN-CH-18 | — | — | US-NO-01; DS 15 |
 | 3.8 Arquivos | RF-RE-08, RF-VO-09, RF-FI-10 | RN-CH-14, RN-FI-24, RN 8.4 | RNF-04 | SEG-01 | PRD 10; DS 16 |

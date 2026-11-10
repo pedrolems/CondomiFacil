@@ -1,4 +1,4 @@
-# ADR-012: Fuso horário por condomínio para rotinas "à meia-noite"
+# ADR-012: Fuso horário e faixas de horário das rotinas por condomínio
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
@@ -21,6 +21,8 @@ Rotinas afetadas (RN seção 14):
 
 Risco concreto: com fuso errado, efeitos saem fora de hora, por exemplo visitantes marcados "não compareceu" cedo demais (arquitetura 9.4). A rotina 13 também tem um complemento local no aparelho, que apaga o cache na primeira abertura de um novo dia ([ADR-003](003-banco-local-e-sync-offline.md)), e esse "dia" precisa usar o mesmo critério.
 
+As demais rotinas diárias (4, 7, 8, 10, 11, 12, 14 a 20) não tinham horário. Em 09/11/2026 Pedro decidiu: as diárias sem horário próprio rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as que mandam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais, para não haver push de madrugada. As rotinas 10 e 20 ficam com a numeração e têm duas etapas: o efeito de regra roda na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada é enfileirado e sai às 09:00 locais; push de evento disparado por pessoa não muda. O horário está registrado na RN seção 14.
+
 A regra de produto sobre o fuso não existe nas RN. A decisão é de produto.
 
 ## Opções consideradas
@@ -35,8 +37,9 @@ A regra de produto sobre o fuso não existe nas RN. A decisão é de produto.
 
 Opção **B**.
 
-- O condomínio tem um campo de fuso, com padrão `America/Sao_Paulo`. Não é um dos 35 parâmetros da RN seção 13; é configuração do condomínio, junto de módulo de cobrança, blocos, portarias e plano.
+- O condomínio tem um campo de fuso, com padrão `America/Sao_Paulo`. Não é um dos 36 parâmetros da RN seção 13; é configuração do condomínio, junto de módulo de cobrança, blocos, portarias e plano.
 - O agendador dispara **de hora em hora** e verifica quais condomínios entraram em "00:00 local" naquela hora; para a rotina 6, quais entraram em "23:59 local" do último dia do mês. Em seguida enfileira um job por condomínio ([ADR-006](006-fila-agendador-eventos.md)).
+- O mesmo disparo horário cobre as faixas de horário local da RN 14 (decisão de Pedro em 09/11/2026): rotinas diárias sem horário próprio, na madrugada (00:00 a 06:00 locais, em sequência, ordem proposta no catálogo do backend); rotinas diárias de lembrete ou aviso a pessoas, às 09:00 locais; rotinas 10 e 20 em duas etapas (efeito na madrugada, aviso às 09:00); push gerado por rotina da madrugada com envio agendado para 09:00 locais (enfileirado no `notificacoes`).
 - Cada rotina é idempotente, então um disparo repetido na virada não duplica efeito.
 - Datas de negócio (vencimento, mês financeiro, prazos) são interpretadas no fuso do condomínio; o banco guarda instantes em UTC.
 - A verificação local de "novo dia" no app usa o mesmo fuso do condomínio.
@@ -63,7 +66,7 @@ Pontos sem definição nos documentos e que ficam abertos: tratamento de horári
 ## Critérios de validação e o que falta para aceitar
 
 - Decisão de produto do Pedro sobre fuso por condomínio.
-- Testes das rotinas 3, 6, 9 e 13 com condomínios em dois fusos diferentes e na virada do mês.
+- Testes das rotinas 3, 6, 9 e 13, e de uma rotina de cada faixa (madrugada e 09:00), com condomínios em dois fusos diferentes e na virada do mês.
 - Teste de recuperação após queda do worker na hora da virada.
 - Registro da regra nas RN (rastreabilidade: RN, PRD, histórias, fluxos), quando aceita.
 

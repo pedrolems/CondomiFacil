@@ -13,8 +13,9 @@ docs/
   01-produto/       Fonte da verdade do negócio (ver abaixo)
   02-design/        Design System e User Flows
   03-arquitetura/   Documento de arquitetura e ADRs (ver abaixo)
-  04-banco-de-dados/ ... 09-infra/   Vazias (.gitkeep): banco, backend, frontend,
-                                     segurança, qualidade, infra
+  04-banco-de-dados/ MER/DER do banco (ver abaixo)
+  05-backend/       Documentação do backend (ver abaixo)
+  06-frontend/ ... 09-infra/   Vazias (.gitkeep): frontend, segurança, qualidade, infra
 prototipo/          Wireframes navegáveis em HTML/CSS/JS puro (sem build)
 graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 ```
@@ -24,7 +25,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | Arquivo | Conteúdo | IDs que define |
 | --- | --- | --- |
 | `01-visao-de-produto.md` | Problema, personas, proposta de valor, mercado, modelo de negócio, riscos, roadmap | — |
-| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (138), `RNF-*` (18), `SEG-*` (18) |
+| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (139), `RNF-*` (18), `SEG-*` (18) |
 | `03-regras-de-negocio.md` | Regras detalhadas por módulo, glossário, catálogo de parâmetros configuráveis, rotinas automáticas | `RN-XX-nn` (CA, CD, CH, CO, EN, FI, GE, OF, PE, PG, PL, RC, RE, SC, VI, VO) |
 | `04-historias-de-usuario.md` | 13 épicos, 71 histórias com critérios de aceite; tabela de cobertura RF -> US | `US-XX-nn` |
 
@@ -42,6 +43,18 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | `01-arquitetura.md` | Componentes (mobile, web, API, tempo real, jobs, pagamentos, notificações, arquivos, auditoria, votações, finanças), estratégia multi-tenant (RLS por `condominio_id`), stacks com justificativas, ambientes (dev, staging, produção), segurança/LGPD, RNF, decisões em aberto e riscos (9), rastreabilidade |
 | `02-diagramas-de-arquitetura.md` | Diagramas C4 em Mermaid (12): nível 1 contexto, nível 2 containers (fluxos offline, pagamento e implantação), nível 3 componentes do backend; decisões do documento (`sync` como módulo, pagamentos por eventos) e rastreabilidade. Proposta, não aceito |
 | `adr/` | 14 ADRs (001 a 014) e índice em `adr/README.md`. Todos em estado Proposto ou Em aberto (002 gateway, 004 nuvem, 005 e-mail): nenhum foi aceito pelo Pedro ainda |
+
+### Documentos de banco de dados (`docs/04-banco-de-dados/`)
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `01-mer-e-der.md` | MER conceitual e DER lógico do MVP (acesso, pessoas, unidades, locação, planos, parâmetros, reservas, visitantes, encomendas, chamados, reclamações e score, pesquisa, comunicação, reuniões e eleições, cobrança, pagamentos, finanças, arquivos, notificações, auditoria e sincronização), com dicionário por domínio (seção 4), regras de integridade e operações indivisíveis, isolamento por RLS por condomínio, unidade e função, anonimização e retenção, ciclos de vida, rastreabilidade, pendências a decidir (seção 9) e critérios para o modelo físico. Proposta de 08/11/2026, não aceita pelo Pedro; sem banco nem migrações |
+
+### Documentos de backend (`docs/05-backend/`)
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `01-backend.md` | Monólito modular NestJS (processos API e worker), estrutura de pastas **híbrida** do `apps/api` (`interfaces/http/<perfil>/` na borda e `modulos/<dominio>/` no núcleo, com tabela perfil -> pasta -> módulos), padrões de código (SOLID, GRASP, GoF, erros, idempotência, outbox, testes), as 21 rotinas agendadas com os destaques QR Code Pix, lembretes de reserva e limpeza de dados, serviços externos e integrações, pendências e rastreabilidade. Proposta, não aceita pelo Pedro |
 
 ## Decisões de produto que não se deduzem do código
 
@@ -72,6 +85,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 - **Respeitar o escopo do pedido.** Não altere nada além do que foi solicitado. Se for necessário mexer em algo que não esteja no comando, explique a necessidade e pergunte antes de alterar, inclusive quando a mudança decorrer da rastreabilidade entre documentos.
 - **Aguardar as respostas antes de continuar.** O desenvolvimento só deve continuar depois que todas as perguntas apresentadas tiverem respostas. Enquanto houver pergunta sem resposta, pause o desenvolvimento e as alterações, inclusive nos subagentes. Silêncio, tempo decorrido e opção pré-selecionada não são respostas nem autorização.
 - **Rastreabilidade é a regra central.** Mudou uma regra? Atualize, na mesma alteração, o que depende dela: RN -> PRD (RF) -> história de usuário -> fluxo -> Design System -> protótipo. Mudanças de design entram na tabela da seção 18 do Design System com data e motivo.
+- **Padrões de projeto em alta no mercado: SOLID, GRASP e GoF.** Ao planejar e ao implementar código (backend, frontend, jobs, integrações), siga os três. SOLID: responsabilidade única por classe e inversão de dependência por portas e adaptadores (por exemplo `PaymentGateway` e `Mailer`). GRASP: Controller, Information Expert, Low Coupling e High Cohesion. GoF: Adapter para gateway de pagamento e e-mail, Strategy, Observer para eventos de domínio e outbox, Factory, Template Method para rotinas. Registre o padrão escolhido no doc ou em ADR quando a decisão for relevante. Não aplique padrão por enfeite: use quando resolver um problema real.
 - Texto de interface: termos fixos do Design System seção 13 (por exemplo "Proprietário", "Inquilino", "Despesa extraordinária", "Desocupada"; nunca "locador" ou "locatário").
 - Estado nunca só por cor: sempre texto e ícone (WCAG 1.4.1). Hex solto no código é erro; use referências à paleta.
 - Docs em Markdown, tabelas para regras e matrizes, diagramas em Mermaid. Datas no formato dd/mm/aaaa nos docs.
@@ -89,7 +103,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 
 ## O que já está pronto
 
-- Visão de Produto, PRD, Regras de Negócio e Histórias de Usuário (13 épicos, 71 histórias cobrindo 138 requisitos funcionais, conforme a tabela de cobertura).
+- Visão de Produto, PRD, Regras de Negócio e Histórias de Usuário (13 épicos, 71 histórias cobrindo 139 requisitos funcionais, conforme a tabela de cobertura).
 - Design System e User Flows completos, revisados e alinhados aos docs de produto.
 - Protótipo navegável com os fluxos de todos os perfis, incluindo as últimas adições: finanças do condomínio, entregas esperadas, listas de visitantes, avaliação de chamados, urgência e ordenação de chamados, semáforo de prazo de reclamação, política de locação e interface do subsíndico.
 - Portaria com reservas do dia e registro de uso/vistoria: Em andamento, Cumprida e Não comparecimento, inclusive em reserva paga não usada; limpeza mantém vistoria (decisão de Pedro em 08/11/2026).
@@ -104,7 +118,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
    - Cobrança em atraso como notificação obrigatória (proposta, ainda fora das RN e do US-NO-01).
 2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso.
 3. **Decidir o perfil Manutenção:** incluir no PRD ou descartar do protótipo.
-4. **Validar os ADRs de `docs/03-arquitetura/adr/`** (aceitar, rejeitar ou ajustar cada um; os em aberto dependem de PoC, custo ou parecer) e **preencher as pastas vazias de `docs/`** na ordem natural: 04-banco-de-dados (modelo com RLS por condomínio e por unidade), 05-backend (API, jobs da seção 14 das RN, webhooks de pagamento), 06-frontend (estrutura Expo, offline, tokens do Design System), 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra.
+4. **Validar os ADRs de `docs/03-arquitetura/adr/`** (aceitar, rejeitar ou ajustar cada um; os em aberto dependem de PoC, custo ou parecer) e **preencher as pastas vazias de `docs/`** na ordem natural: 06-frontend (estrutura Expo, offline, tokens do Design System), 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
 5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 

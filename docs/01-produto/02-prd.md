@@ -166,7 +166,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 ## 4. Requisitos funcionais
 
-São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
+São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
 
 ### 4.1 Acesso e conta
 
@@ -220,6 +220,7 @@ São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RE-07 | Configurar prazos, antecedência, limites e valores | Administradora | Por condomínio e por área |
 | RF-RE-08 | Consultar reservas do dia e acompanhar o uso; registrar vistoria e conclusão | Portaria; Limpeza na vistoria | Portaria vê área, horário, unidade e estado, sem dados financeiros; marca Em andamento ao constatar uso a partir do início. Ao fim do uso, portaria ou limpeza registra checklist/fotos e Cumprida; dano vira reclamação contra unidade. Não exige marcação prévia Em andamento nem libera antes o intervalo reservado; ações exigem internet (RN-RE-09, RN-RE-13) |
 | RF-RE-09 | Registrar Não comparecimento em reserva paga ou gratuita na vistoria | Limpeza, Portaria | Após o término do horário; só faltas gratuitas entram na contagem e penalidade de RN-RE-10. Paga não usada não gera penalidade nem reembolso automático |
+| RF-RE-10 | Enviar lembrete de reserva por push, com atalho para ver e cancelar | Sistema | Só reserva confirmada, 24h antes do início (parâmetro de 1 a 72h por condomínio); o morador pode desligar nas preferências de notificação; o cancelamento segue as regras de RN-CA-01 a RN-CA-03, sem perda de pontos (RN-RE-14) |
 
 ### 4.4 Pagamentos
 
@@ -274,7 +275,7 @@ São 138 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-CH-05 | Acompanhar o status, ver as fotos do serviço concluído e reabrir em até 48h | Quem abriu | Notificação na conclusão, que convida a avaliar o atendimento (RF-CH-08) |
 | RF-CH-06 | Classificar a urgência ao abrir o chamado (alta, média ou leve), ver a urgência em cores nas listas e no detalhe, e ver as listas em ordem de urgência (abertos antes dos concluídos; empate, o mais antigo primeiro) | Quem abre; todos os que veem o chamado | Obrigatória; textos de ajuda com exemplos no formulário; alta em vermelho, média em amarelo e leve em verde, sempre com texto; ordem na exibição (RN-CH-13) |
 | RF-CH-07 | Ajustar a urgência de um chamado já aberto | Síndico; Subsíndico só na substituição | Fica registrado (quem, quando, de/para) e quem abriu é avisado |
-| RF-CH-08 | Avaliar o atendimento de um chamado concluído, com 1 a 5 estrelas e comentário opcional, informando se viu as fotos ou conferiu pessoalmente | Quem abriu (morador, síndico morador, subsíndico) | Até 7 dias após a conclusão, uma avaliação por conclusão, sem edição; lembrete único em 24h. Correção tardia offline preserva avaliação superada somente no histórico e permite avaliar a conclusão efetiva, sem transferir nota entre funcionários (RN-CH-15 a RN-CH-17) |
+| RF-CH-08 | Avaliar o atendimento de um chamado concluído, com 1 a 5 estrelas e comentário opcional, informando se viu as fotos ou conferiu pessoalmente | Quem abriu (morador, síndico morador, subsíndico) | Até 7 dias após a conclusão, uma avaliação por conclusão, sem edição; lembrete único às 09:00 locais do dia seguinte ao fim das 24h após a conclusão. Correção tardia offline preserva avaliação superada somente no histórico e permite avaliar a conclusão efetiva, sem transferir nota entre funcionários (RN-CH-15 a RN-CH-17) |
 | RF-CH-09 | Oferecer reabrir o chamado após avaliação baixa (1 ou 2 estrelas) e avisar o síndico | Sistema | Não reabre sozinho; reabrir segue as 48h de RN-CH-07; o aviso nunca vai ao funcionário (RN-CH-18) |
 | RF-CH-10 | Consultar as avaliações do atendimento, agregadas por funcionário de limpeza e por empresa de manutenção | Síndico (Subsíndico na substituição); Administradora só o agregado | Média, quantidade e distribuição por estrelas; comentário só no detalhe do chamado, para o síndico (RN-CH-19) |
 | RF-CH-11 | Ver as próprias avaliações recebidas, com média, distribuição e comentários anônimos | Funcionário | Só com 3 ou mais avaliações; sem unidade, morador, chamado nem local; sem efeito no score (RN-CH-20, RN-CH-21) |

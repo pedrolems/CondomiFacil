@@ -770,7 +770,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 ### 11.2 Limpeza
 
 - **Conclusões concorrentes sem internet (RN-CH-04):** vale o menor horário registrado pelo celular, mesmo recebido depois. Mostrar "Vale a conclusão de [colega], registrada antes pelo horário do celular." a quem teve seu registro superado e avisar quem teve sua conclusão reconhecida. Preservar as duas operações no histórico; reenvio não abre outro ciclo nem repete avisos. Não apresentar a ordem de chegada como ordem de execução do serviço. Empate exato e relógio incorreto permanecem no ADR-014 como detalhes técnicos propostos.
-- **Correção após avaliação (RN-CH-15, RN-CH-17):** avisar também quem abriu o chamado. Avaliação da conclusão superada fica só no histórico autorizado, sai das médias e não é transferida ao colega. Oferecer "Avaliar o serviço" para a conclusão efetiva pela janela configurada (padrão 7 dias), contada da disponibilização da correção, com lembrete único em 24h; não reiniciar as 48h de reabertura. Nunca mostrar o comentário antigo ao funcionário que passou a ter a conclusão efetiva.
+- **Correção após avaliação (RN-CH-15, RN-CH-17):** avisar também quem abriu o chamado. Avaliação da conclusão superada fica só no histórico autorizado, sai das médias e não é transferida ao colega. Oferecer "Avaliar o serviço" para a conclusão efetiva pela janela configurada (padrão 7 dias), contada da disponibilização da correção, com lembrete único às 09:00 locais do dia seguinte ao fim das 24h após a disponibilização; não reiniciar as 48h de reabertura. Nunca mostrar o comentário antigo ao funcionário que passou a ter a conclusão efetiva.
 
 - **Tela inicial = fila de chamados do setor** em cartões, ordenados por urgência e, empatando, pelo mais antigo (10.9, RN-CH-13), com o selo de urgência (10.8.1) e o prazo restante ("vence em 3h") e selo `danger` "Fora do prazo" quando vencido.
 - Botão "Concluir" visível no cartão, sem abrir o chamado (PRD, seção 9). Concluir abre uma folha curta com foto opcional e o botão "Concluir chamado".
@@ -795,6 +795,8 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 4. Para a paga: escolha de Pix (primeira opção, RF-PG-01) ou cartão. O Pix mostra QR Code, botão "Copiar código Pix" e o tempo restante para pagar ("Pague até 14h30 de amanhã ou o horário é liberado").
 
 Ao cancelar depois do prazo de reembolso, o diálogo avisa antes de confirmar (RN-CA-03).
+
+**Lembrete de reserva (RN-RE-14).** O push de lembrete (13.5) abre o detalhe da reserva confirmada, que mostra o botão "Cancelar reserva" com as mesmas regras e avisos de reembolso acima.
 
 **Sugestão de lista de visitantes (RN-RE-12).** Na confirmação e no detalhe de uma reserva confirmada, com data depois de hoje e sem lista vinculada, aparece uma faixa `info` (10.10) com ícone `list-checks`: "Vai receber convidados? Monte a lista de visitantes.", o botão secundário "Montar lista" (abre a 11.13 com data, horário e local da reserva) e o botão de texto "Agora não" (esconde a sugestão para aquela reserva). Não aparece em reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje. Com lista vinculada, o detalhe mostra uma linha (10.9) "Lista: N pessoas", com o nome da lista e "M chegaram", que abre o detalhe da lista. Na confirmação, a faixa fica abaixo do status; no detalhe, abaixo do cartão da reserva.
 
@@ -1053,6 +1055,7 @@ Use sempre o mesmo termo para a mesma coisa, igual ao glossário das Regras de N
 
 - Título curto com o assunto e texto com o detalhe e a ação. Ex.: "Encomenda na portaria" / "Chegou um pacote da Amazon para Bloco A · Apto 101. Retire quando puder."
 - O toque abre a tela do item, não a tela inicial.
+- Lembrete de reserva (RN-RE-14): título "Reserva amanhã" / texto "Salão de festas, amanhã, das 19h às 23h. Toque para ver ou cancelar." O toque abre o detalhe da reserva, com o botão "Cancelar reserva". Não traz valor nem dados de outras pessoas. É opcional, ligado por padrão, com o interruptor "Lembrete de reserva" (10.6) nas preferências de notificação. Com outra antecedência configurada, o texto usa o dia e o horário reais em vez de "amanhã".
 - Notificações de reclamação ao alvo nunca citam o reclamante. Notificações nunca mostram valores de cobrança na tela bloqueada: "Você tem uma cobrança vencendo em 5 dias."
 
 ## 14. Acessibilidade
@@ -1184,6 +1187,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 09/11/2026 | Texto do push "Lembrete de reserva" (13.5), interruptor "Lembrete de reserva" nas preferências de notificação e atalho "Cancelar reserva" no detalhe da reserva (11.4); sem componente nem token novo | Decisão de Pedro: avisar o morador 24h antes de reserva confirmada, de forma opcional, só por push e com atalho para cancelar nas regras de RN-CA-01 a RN-CA-03 (RN-RE-14, RF-RE-10, US-RE-04, US-NO-01, UF 5.1, 5.2 e 14.1) |
 | 08/11/2026 | Conclusão de limpeza sem internet escolhida pelo menor horário do celular, mesmo enviada depois; aviso de correção, avaliação superada só no histórico e nova avaliação na janela configurada desde a disponibilização | Decisão de Pedro (RN-CH-04, RN-CH-15, RN-CH-17): preservar autoria do serviço e das avaliações, retirar notas superadas das médias e impedir efeitos duplicados; a correção não reinicia as 48h de reabertura |
 | 08/11/2026 | Score do morador por pessoa e vínculo de unidade, com unidade identificada, saldo/histórico/recuperação próprios e início em 100; score funcional por condomínio para funcionários e síndico profissional sem unidade; score público do síndico morador usa unidade do mandato | Decisão de Pedro: não compartilhar pontuação entre moradores nem imóveis, não herdar score de antigo ocupante e manter referência inequívoca para gestão (RN-SC-02, RN-SC-13, RN-SC-14) |
 | 08/11/2026 | Portaria com Reservas de hoje em Áreas e marcações Em andamento, Cumprida e Não comparecimento; Cumprida substitui Realizada; falta paga registrada na vistoria; limpeza mantém vistoria | Decisão de Pedro: acompanhar uso diário e encerrar também reserva paga não usada (RN-RE-09, RN-RE-10, RN-RE-13, RF-RE-08, RF-RE-09, US-RE-06, UF 5.3). Sem nova penalidade/reembolso de falta paga e sem ampliar offline |
@@ -1252,7 +1256,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 | 10.9 Linha de lista (ordem de chamados) | RF-CH-06, RN-CH-13, US-CH-02 |
 | 11.2 Limpeza | RF-CH-02, RF-CH-03, RF-CH-06, RN-CH-04, RN-CH-06, RN-CH-10, RN-CH-14, US-CH-02 |
 | 11.12 Avaliação do atendimento | RF-CH-05, RF-CH-08 a RF-CH-11, RN-CH-14 a RN-CH-21, US-CH-04, US-CH-05 |
-| 11.4 Reservas | RF-RE-01 a RF-RE-05, RF-PG-01, RN-RE-03, RN-CA-02, RN-CA-03, RN-RE-12, RN-VI-14, US-RE-02 a US-RE-04 |
+| 11.4 Reservas | RF-RE-01 a RF-RE-05, RF-PG-01, RN-RE-03, RN-CA-02, RN-CA-03, RN-RE-12, RN-RE-14, RF-RE-10, RN-VI-14, US-RE-02 a US-RE-04 |
 | 11.5 Reclamações | RF-RS-01 a RF-RS-09, RF-RS-16, RN-RC-01 a RN-RC-07, RN-RC-17 a RN-RC-19, SEG-07, US-RS-01 a US-RS-05, US-RS-08 |
 | 11.6 Transparência | RF-RS-12, RF-PE-04, RN-PE-08, US-RS-07 |
 | 11.7 Votações | RF-VO-02, RF-VO-07, RF-VO-11, RN-VO-01, RN-VO-03, RN-VO-16, RN-VO-18, RN-FI-11, US-VO-02 |
@@ -1262,7 +1266,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 | 11.10 Unidade do proprietário | RF-AD-19, RF-RS-15, RF-VI-13, RN-CD-19, RN-CD-23, RN-RC-16, RN-VI-10, US-AD-11 |
 | 11.11 Gestão do subsíndico | RF-CH-04, RF-CO-04, RF-EN-05, RF-VO-04, RN-CD-27, RN-CD-28, RN-CO-05, RN-EN-04, RN-VO-11, US-AD-12, US-CO-03 |
 | 12. Navegação | RF-AC-05, RF-AC-07, RF-RE-08, RF-RE-09, RNF-15, RN-CD-19, RN-VO-01 |
-| 13. Escrita | RNF-14, glossário das Regras de Negócio |
+| 13. Escrita | RNF-14, glossário das Regras de Negócio, RN-RE-14 (13.5), RF-RE-10, US-NO-01 |
 | 14. Acessibilidade | RNF-12 |
 | 15. Privacidade | RN-SC-02, RN-RC-01, RN-RC-16, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-FI-29, RN-FI-30, RN-CD-19, SEG-07, SEG-17, SEG-18 |
 | 16. Desempenho | RNF-02, RNF-04 |

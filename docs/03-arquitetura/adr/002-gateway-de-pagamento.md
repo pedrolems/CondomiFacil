@@ -51,7 +51,7 @@ Não há decisão. Recomenda-se:
 
 1. Tratar **Asaas como candidato inicial** para a prova de conceito, sem compromisso.
 2. Implementar a **porta `PaymentGateway`** (`criarSubconta`, `criarCobranca`, `consultar`, `reembolsar`, `validarWebhook`) e **um único adaptador**. A troca de provedor fica isolada no adaptador e não toca regra de negócio.
-3. Desenhar já, atrás da porta: webhook com corpo bruto e assinatura validados, gravação em `evento_gateway` com unicidade `(provedor, id_do_evento)`, resposta 200 rápida e processamento em job, transições de estado monotônicas, conciliação diária.
+3. Desenhar já, atrás da porta: webhook com corpo bruto e assinatura validados, gravação em `evento_gateway` com unicidade por provedor, conta recebedora e id do evento (ou só provedor e id, quando o provedor o garante único) e quarentena global para evento sem correlação válida (MER/DER 4.10), resposta 200 rápida e processamento em job, transições de estado monotônicas, conciliação diária.
 4. Em dev, staging e local usar só credenciais de sandbox; o adaptador se recusa a iniciar em staging com chave de produção. Fluxos de erro são simulados com um dublê do adaptador nos testes.
 
 ## Consequências

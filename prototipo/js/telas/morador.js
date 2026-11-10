@@ -57,6 +57,7 @@ def([...RES, 'proprietario'], 'notificacoes', 'Notificações', 'Início', ctx =
     ['receipt', 'Cobrança vencendo', 'Você tem uma cobrança vencendo em 5 dias.', '05/11', 'cobranca/b1'],
     ['megaphone', 'Novo comunicado', 'Manutenção da piscina', 'hoje', 'comunicado/k1'],
     ['calendar-days', 'Reserva confirmada', 'Churrasqueira, 15/11 das 12h às 16h.', '03/11', 'reserva/r1'],
+    ...(S.notif.lembreteReserva ? [['calendar-clock', 'Reserva amanhã', 'Churrasqueira, amanhã, das 12h às 16h. Toque para ver ou cancelar.', 'ontem', 'reserva/r5']] : []),
   ].filter(() => ctx.p !== 'proprietario').concat(ctx.p !== 'proprietario' ? [] : [
     ['message-square-warning', 'Ocorrência na unidade', 'Uma reclamação contra o Bloco B · Apto 302 foi validada: barulho.', '12/10', 'unidade'],
     ['receipt', 'Cobrança vencendo', 'Você tem uma cobrança vencendo em 5 dias.', '05/11', 'cobranca/h1'],
@@ -895,7 +896,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'notif-config
     tab: 'menu', top: { title: 'Notificações', back: ctx.p + '/menu' },
     body: `<div>${sw('Decisão de reclamação contra você', true, null, { disabled: true, sub: 'Obrigatória: você precisa saber para poder recorrer.' })}
       ${ctx.p === 'portaria' ? sw('Divergência ao sincronizar', true, null, { disabled: true, sub: 'Obrigatória: exige confirmar com o morador.' }) : ''}
-      ${Object.keys(lab).map(k => sw(lab[k], N[k], () => { N[k] = !N[k]; toast('Preferência salva.'); })).join('')}</div>`,
+      ${Object.keys(lab).map(k => sw(lab[k], N[k], () => { N[k] = !N[k]; toast('Preferência salva.'); }) + (k === 'reservas' && RES.includes(ctx.p) ? sw('Lembrete de reserva', N.lembreteReserva, () => { N.lembreteReserva = !N.lembreteReserva; toast('Preferência salva.'); }, { sub: 'Opcional: um aviso 24h antes do início da reserva confirmada, com atalho para ver ou cancelar.' }) : '')).join('')}</div>`,
   };
 });
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'privacidade', 'Privacidade e dados', 'Configurações (14.1)', ctx => ({

@@ -55,6 +55,6 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | 009 | [Votação com registro separado do conteúdo e limite de sigilo](009-votacao-sigilo.md) | Proposto | 06/11/2026 | Parecer jurídico (SEG-16) |
 | 010 | [Anonimato com identidade separada, HMAC e limites mínimos](010-anonimato-identidade-separada.md) | Proposto | 06/11/2026 | Parecer jurídico |
 | 011 | [Ambientes, branches, promoção, EAS e OTA](011-ambientes-branches-eas-ota.md) | Proposto | 06/11/2026 | Equipe |
-| 012 | [Fuso horário por condomínio para rotinas "à meia-noite"](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | Produto |
+| 012 | [Fuso horário e faixas de horário das rotinas por condomínio](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | Produto |
 | 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | Custo (RNF-18) |
 | 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |

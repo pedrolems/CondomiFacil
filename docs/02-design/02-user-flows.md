@@ -391,12 +391,17 @@ flowchart TD
     V -->|"Sim"| V1["Faixa: Vai receber convidados? Montar lista ou Agora não"]
     V -->|"Não"| V2(["Sem sugestão"])
     V1 -->|"Montar lista"| V3["Fluxo 6.5, com data, horário e local da reserva"]
+    Z1 --> R{"Reserva confirmada com 24h ou mais até o início e lembrete ligado?"}
+    Z2 --> R
+    R -->|"Sim"| R1["24h antes do início, a rotina envia o push de lembrete"]
+    R1 --> R2["Toque abre o detalhe, com atalho para cancelar (fluxo 5.2)"]
+    R -->|"Não"| R3(["Sem lembrete"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
     classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
     class Z1,Z2 ok
     class E1,E2,E3,E4,E5,E6,E7 erro
-    class S1,V1,V3 sis
+    class S1,V1,V3,R1 sis
 ```
 
 | Situação | O que o usuário vê | Como sai | Regra |
@@ -413,6 +418,9 @@ flowchart TD
 | Reserva com lista vinculada | No detalhe, linha "Lista: N pessoas", com o nome da lista e "M chegaram" | Abre o detalhe da lista | RN-RE-12 |
 | Reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje | Nenhuma sugestão | — | RN-RE-12 |
 | Reserva cancelada com lista vinculada | Lista cancelada junto, com mensagem rápida: "Reserva cancelada. A lista vinculada também foi cancelada." | Monta outra lista, se quiser | RN-VI-14 |
+| Reserva confirmada, 24h antes do início (lembrete ligado) | Push: "Reserva amanhã" / "Salão de festas, amanhã, das 19h às 23h. Toque para ver ou cancelar." | O toque abre o detalhe da reserva, com "Cancelar reserva" (fluxo 5.2); ignorar não altera a reserva | RN-RE-14 |
+| Reserva aguardando pagamento, expirada, cancelada ou criada com menos antecedência que o lembrete (decidido em 09/11/2026) | Nenhum push de lembrete | — | RN-RE-14 |
+| Lembrete desligado nas preferências | Nenhum push de lembrete; a reserva segue normal | Liga em Configurações > Notificações (fluxo 14.1) | RN-RE-14, RF-NO-01 |
 
 ### 5.2 Cancelar reserva
 
@@ -451,6 +459,7 @@ flowchart TD
 | Cancelar depois do prazo de reembolso | "Faltam menos de 12h. Se cancelar, o valor não será devolvido." | Confirma ou mantém | RN-CA-03 |
 | Reembolso falhou no gateway | Push: "Seu reembolso está atrasado. Já estamos resolvendo." A administradora recebe alerta | Acompanha no histórico | RN-CA-04, SEG-17 |
 | Reserva já começou | Sem botão de cancelar | — | RN-CA-01 |
+| Chegou pelo atalho do push de lembrete | Detalhe da reserva com "Cancelar reserva"; vale o mesmo aviso de reembolso (integral até 12h antes, depois sem reembolso). Cancelar não tira pontos | Confirma ou mantém | RN-RE-14, RN-CA-02, RN-CA-03 |
 
 ### 5.3 Reservas do dia, vistoria e não comparecimento
 
@@ -820,7 +829,7 @@ flowchart TD
 | Conclusão de mesmo ciclo com horário posterior | "Vale a conclusão de [colega], registrada antes pelo horário do celular." | Confirma leitura; operação preservada sem efeito | RN-CH-04 |
 | Conclusão com horário anterior enviada depois | "A conclusão de [colega] passa a valer: foi registrada antes pelo horário do celular." Os envolvidos são avisados; não cria outro ciclo | Confirma leitura; histórico preservado | RN-CH-04 |
 | Reenvio da mesma operação | Mantém o resultado já processado, sem duplicar conclusão nem aviso | Nenhuma ação | RN-CH-04 |
-| Correção tardia com avaliação já enviada | "Uma conclusão anterior passou a valer. Sua avaliação anterior ficou no histórico; você pode avaliar este atendimento." A nota antiga não entra nos agregados nem é transferida ao outro funcionário; janela configurada (padrão 7 dias) a partir da disponibilização, lembrete único em 24h | Abre a avaliação da conclusão efetiva; reabertura continua sujeita às 48h da conclusão efetiva | RN-CH-15, RN-CH-17 |
+| Correção tardia com avaliação já enviada | "Uma conclusão anterior passou a valer. Sua avaliação anterior ficou no histórico; você pode avaliar este atendimento." A nota antiga não entra nos agregados nem é transferida ao outro funcionário; janela configurada (padrão 7 dias) a partir da disponibilização, lembrete único às 09:00 locais do dia seguinte ao fim das 24h | Abre a avaliação da conclusão efetiva; reabertura continua sujeita às 48h da conclusão efetiva | RN-CH-15, RN-CH-17 |
 | Reabrir depois de 48h | Botão "Reabrir" some; aparece "Abrir novo chamado" | Abre um chamado novo | RN-CH-07 |
 | Conclusão sem foto | Conclui normalmente; a folha diz "Fotos do serviço (opcional)" | Nenhuma ação | RN-CH-14 |
 | Fotos com a conclusão sem internet | "Será enviado quando a conexão voltar." As fotos seguem a conclusão na fila | Nenhuma ação | RN-CH-14, RN-CH-04 |
@@ -857,7 +866,7 @@ flowchart TD
     K -->|"Não"| M["Oferece Abrir novo chamado"]
     L --> Z2(["Avaliado; síndico avisado da avaliação baixa"])
     M --> Z2
-    S1["24h sem avaliar: um lembrete; 7 dias: janela encerrada"]
+    S1["24h sem avaliar: um lembrete às 09:00 do dia seguinte; 7 dias: janela encerrada"]
     A -.-> S1
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
@@ -1361,6 +1370,8 @@ flowchart TD
 
 Notificações obrigatórias: decisão de reclamação contra a pessoa e divergência de sincronização para o porteiro (US-NO-01).
 
+Dentro de Reserva, o interruptor opcional "Lembrete de reserva" (ligado por padrão) controla o push enviado 24h antes do início de reserva confirmada (fluxo 5.1, RN-RE-14).
+
 ## 15. Mensagens de erro transversais
 
 Estas situações podem acontecer em qualquer fluxo e têm um tratamento único. Os textos são os padrões do Design System (13.4).
@@ -1416,6 +1427,8 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-34 | Depois de reservar, nada levava o morador para a lista de visitantes, e não estava definido quando a sugestão aparece: reserva ainda não paga, área sem convidados, reserva já passada | Sugestão só para reserva confirmada, com data depois de hoje e sem lista; "Agora não" esconde para aquela reserva. A lista não é oferecida com origem antes da aprovação, porque a reserva pode expirar (RN-RE-03) e levaria a lista junto (a lista ainda pode ser montada sem origem, em Visitantes). As regras não separam áreas, então a sugestão vale para todas | RN-RE-12, RN-VI-14, RF-RE-02, US-RE-02, fluxo 5.1, DS 11.4 e 18 |
 | D-35 | A portaria só sabia de um pacote quando ele já estava na mão; o morador não tinha como avisar que uma entrega estava a caminho | "Entrega esperada": data obrigatória e descrição, faixa de horário e origem opcionais; limite de 10 ativas por unidade; "Esperadas hoje" na portaria por faixa; vínculo sugerido ao registrar a encomenda, com o push normal e sem aviso duplicado; passada a data vira "Não chegou" (some da portaria, vinculável por 3 dias, reagendável pelo morador). O aviso é só informativo: não autoriza nem é exigido (RN-EN-01 segue), e iFood/entregador é só aviso, sem registro (RN-EN-05 segue), terminando "Encerrada". Parâmetros e rotina novos | RN-EN-07 a RN-EN-13, RN 13 e 14, RF-EN-06 a RF-EN-08, US-EN-03, US-EN-04, DS 4.5, 11.14 e 18, fluxo 7.2 |
 | D-36 | O PRD tinha só a cobrança por unidade: a administradora não tinha onde controlar despesas, o síndico e o conselho fiscal não viam para onde ia o dinheiro, e o balancete estava fora de escopo, sem distinguir contabilidade de controle | Controle **gerencial** de receitas e despesas: receitas de cobrança e reservas pagas entram sozinhas (regime de caixa), despesas por categoria lançadas pela administradora, fechamento do mês com correção só por estorno, leitura e comentário para síndico e conselho fiscal; sem orçamento previsto e sem visão para moradores, que o PRD não prevê (ver pendências) | RN-FI-21 a RN-FI-32, RN 12.3 e 12.4, RN 13 e 14, RF-FI-17 a RF-FI-24, US-FI-07 a US-FI-10, SEG-08, SEG-18, DS 4.7, 10.22, 11.9, 11.15, 12, 15 |
+| D-37 | O lembrete de reserva (RN-RE-14) não dizia o que fazer com reserva confirmada com menos antecedência que o parâmetro, inclusive paga aprovada depois desse ponto | Decidido por Pedro em 09/11/2026: não recebe lembrete. O lembrete é opcional, ligado por padrão, só por push, e a rotina roda a cada 5 min | RN-RE-14, RF-RE-10, US-RE-04, fluxo 5.1 |
+| D-38 | As rotinas diárias, exceto 3, 6, 9 e 13, não tinham horário, e as que enviam lembrete poderiam disparar push de madrugada | Decidido por Pedro em 09/11/2026: rotinas diárias sem horário rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as diárias de lembrete ou aviso a pessoas (encomenda, prazos de reclamação e chamado, avaliação de chamado, cobrança, fim de contrato de locação) rodam às 09:00 locais. Também decidido em 09/11/2026: (a) as rotinas 10 e 20 têm duas etapas na mesma rotina, efeito de regra na madrugada e aviso às 09:00; (b) o push gerado por rotina da madrugada fica na fila e sai às 09:00 locais, e o push de evento disparado por pessoa não muda; (c) o lembrete de avaliação de chamado sai às 09:00 locais do dia seguinte ao fim das 24h após a conclusão | RN 14, RN-CH-17, RF-CH-08, US-CH-02, US-CH-04, DS 11.12, arq. 3.5 e 3.7, ADR-012, ADR-014, backend 5.2 e 6.4 |
 
 ## 17. Pendências
 

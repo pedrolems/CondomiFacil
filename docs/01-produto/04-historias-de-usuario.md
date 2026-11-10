@@ -256,13 +256,17 @@ Requisitos: RF-RE-03, RF-PG-01, RF-PG-02, RF-PG-04 · RN-RE-03, RN-PG-04 a RN-PG
 
 Como morador, quero cancelar uma reserva, para liberar a área quando eu não puder usar.
 
-Requisitos: RF-RE-04, RF-RE-05, RF-PG-03 · RN-CA-01 a RN-CA-06
+Requisitos: RF-RE-04, RF-RE-05, RF-RE-10, RF-PG-03 · RN-CA-01 a RN-CA-06, RN-RE-14
 
 - [ ] Dado uma reserva paga com mais de 12h até o início, quando cancelo, então recebo reembolso integral (Pix em até 2 dias úteis; cartão estornado pela operadora).
 - [ ] Dado uma reserva paga com menos de 12h até o início, quando tento cancelar, então o app avisa que não haverá reembolso e, se eu confirmar, cancela.
 - [ ] Dado uma reserva que já começou, quando abro os detalhes, então a opção de cancelar não aparece.
 - [ ] Dado um cancelamento feito pelo condomínio, quando ele ocorre, então recebo reembolso integral e o motivo, em qualquer prazo.
 - [ ] Dado qualquer cancelamento, quando ele é confirmado, então o horário fica livre na hora.
+- [ ] Dado uma reserva confirmada e o lembrete ligado, quando faltam 24h para o início (ou o valor de `reserva.lembrete_antecedencia_horas`), então recebo um único push com o nome da área, o dia e o horário; ao tocar, abre o detalhe da reserva, com o atalho "Cancelar reserva".
+- [ ] Dado o push do lembrete, quando uso o atalho para cancelar, então valem as regras de cancelamento (reembolso integral na reserva paga até 12h antes; depois disso, o app avisa que não haverá reembolso antes de confirmar) e o cancelamento não tira pontos do meu score.
+- [ ] Dado uma reserva aguardando pagamento, expirada, cancelada ou cancelada pelo condomínio, quando chega a hora do lembrete, então não recebo push.
+- [ ] Dado uma reserva confirmada com menos antecedência que a do lembrete, quando ela é criada, então não recebo lembrete para ela.
 
 ### US-RE-05 — Bloqueio de reservas gratuitas por score
 
@@ -462,7 +466,7 @@ Requisitos: RF-CH-02, RF-CH-03, RF-CH-06 · RN-CH-04, RN-CH-06, RN-CH-08, RN-CH-
 - [ ] Dado que uma conclusão anterior chega depois da já registrada, quando ela passa a valer, então a anterior aceita fica no histórico sem efeito e os funcionários envolvidos recebem aviso; o ciclo não é duplicado.
 - [ ] Dado o reenvio da mesma operação offline, quando sincroniza novamente, então não cria outra conclusão, aviso duplicado nem novo ciclo.
 - [ ] Dado avaliação já enviada para conclusão que foi superada por outra de horário anterior, quando ocorre a correção, então a avaliação anterior fica somente no histórico do atendente original, sai dos agregados e não é transferida; quem abriu pode avaliar a conclusão efetiva.
-- [ ] Dado uma conclusão efetiva disponibilizada por correção tardia, quando abro o chamado, então tenho a mesma janela configurada (padrão 7 dias) a partir dessa disponibilização e recebo um único lembrete em 24h se não avaliar; o prazo de reabertura de 48h não reinicia pela correção.
+- [ ] Dado uma conclusão efetiva disponibilizada por correção tardia, quando abro o chamado, então tenho a mesma janela configurada (padrão 7 dias) a partir dessa disponibilização e recebo um único lembrete, às 09:00 locais do dia seguinte ao fim das 24h após essa disponibilização, se não avaliar; o prazo de reabertura de 48h não reinicia pela correção.
 - [ ] Dado um chamado fora do prazo, quando o síndico abre o painel, então ele aparece em destaque.
 - [ ] Dado que vou concluir um chamado, quando abro a conclusão, então posso anexar até 5 fotos do serviço, mas não preciso: sem foto, "Concluir chamado" funciona igual.
 - [ ] Dado a internet fora, quando concluo um chamado com fotos, então as fotos ficam na fila e são enviadas com a conclusão.
@@ -492,7 +496,7 @@ Requisitos: RF-CH-05, RF-CH-08, RF-CH-09 · RN-CH-14 a RN-CH-18, RN-CH-21
 - [ ] Dado que dei 1 ou 2 estrelas dentro das 48h da conclusão, quando envio, então o app oferece "Reabrir chamado"; o chamado só reabre se eu aceitar, e o síndico é avisado da avaliação baixa.
 - [ ] Dado que dei 1 ou 2 estrelas depois das 48h, quando envio, então o app oferece "Abrir novo chamado" em vez de reabrir.
 - [ ] Dado que já avaliei a conclusão, quando abro o chamado, então vejo minha avaliação sem poder editá-la.
-- [ ] Dado que passaram 7 dias da conclusão sem avaliação, quando abro o chamado, então o botão de avaliar não aparece; 24h depois da conclusão, sem avaliação, recebo um único lembrete.
+- [ ] Dado que passaram 7 dias da conclusão sem avaliação, quando abro o chamado, então o botão de avaliar não aparece; sem avaliação ao fim de 24h da conclusão, recebo um único lembrete às 09:00 locais do dia seguinte.
 - [ ] Dado que reabri o chamado sem avaliar, quando ele é concluído de novo, então abre-se uma nova janela de avaliação.
 - [ ] Dado que sou síndico profissional, porteiro ou funcionário, quando vejo um chamado concluído, então não aparece a ação de avaliar.
 
@@ -739,9 +743,10 @@ Requisitos: RF-AD-16 · RN-PL-02 a RN-PL-05, RN-CD-16
 
 Como usuário, quero escolher quais notificações recebo, para não ser incomodado com o que não me interessa.
 
-Requisitos: RF-NO-01
+Requisitos: RF-NO-01, RF-RE-10 · RN-RE-14
 
 - [ ] Dado as configurações de notificação, quando as abro, então vejo cada tipo (visitante, encomenda, reserva, chamado, comunicado, votação, reclamação) com opção de ligar ou desligar.
+- [ ] Dado as configurações de notificação, quando abro o tipo reserva, então vejo "Lembrete de reserva" (opcional, ligado por padrão); desligado, não recebo o push de lembrete.
 - [ ] Dado um tipo obrigatório (ex.: decisão de reclamação contra mim, divergência de sincronização para o porteiro), quando tento desligá-lo, então o app não permite.
 
 ### US-LG-01 — Exercer meus direitos de titular
@@ -883,13 +888,13 @@ Requisitos: RF-FI-24 · RN-FI-29, RN-FI-31
 
 ## Cobertura
 
-As 71 histórias cobrem os 138 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 71 histórias cobrem os 139 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
 | 1. Acesso e conta | US-AC-01 a US-AC-06 | RF-AC-01 a RF-AC-08 |
 | 2. Administração | US-AD-01 a US-AD-12 | RF-AD-01 a RF-AD-15, RF-AD-17 a RF-AD-21 |
-| 3. Reservas e pagamentos | US-RE-01 a US-RE-06 | RF-RE-01 a RF-RE-09, RF-PG-01 a RF-PG-04 |
+| 3. Reservas e pagamentos | US-RE-01 a US-RE-06 | RF-RE-01 a RF-RE-10, RF-PG-01 a RF-PG-04 |
 | 4. Visitantes e portaria | US-VI-01 a US-VI-08, US-AD-11 | RF-VI-01 a RF-VI-15 |
 | 5. Encomendas | US-EN-01 a US-EN-04, US-AD-12 | RF-EN-01 a RF-EN-08 |
 | 6. Chamados | US-CH-01 a US-CH-05 | RF-CH-01 a RF-CH-11 |
@@ -898,5 +903,5 @@ As 71 histórias cobrem os 138 requisitos funcionais do PRD; requisitos não fun
 | 9. Comunicação | US-CO-01 a US-CO-03 | RF-CO-01 a RF-CO-04 |
 | 10. Reuniões, votações e eleições | US-VO-01 a US-VO-03 | RF-VO-01 a RF-VO-11 |
 | 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
-| 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 |
+| 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 (US-NO-01 também verifica o interruptor de RF-RE-10) |
 | 13. Cobrança e finanças do condomínio | US-FI-01 a US-FI-10 | RF-FI-01 a RF-FI-24 |

@@ -228,7 +228,7 @@ Fontes: arq. 2.2, 2.3, 3.1 a 3.8, 4.5 a 4.8, 5.1 a 5.3, 6.5, 6.8; PRD 10; RNF-05
 | Banco local offline | SQLite + SQLCipher com outbox (alternativa WatermelonDB) | Lista do dia da portaria e chamados do setor da limpeza. Um arquivo por usuário + condomínio, apagado ao sair, ao trocar de condomínio e ao fim do dia | "SQLite ou WatermelonDB" decidido no PRD 10; escolha Proposta (ADR-003) |
 | API HTTP | Node.js + NestJS, monólito modular | Regras de negócio, autenticação, autorização, pagamentos, auditoria; única porta de acesso aos dados | Decidido (PRD 10); monólito modular é Proposta |
 | Gateway WebSocket | Socket.IO no NestJS | Lista da portaria em até 5 s (RNF-05); edição de entrega esperada na hora (RN-EN-09) | WebSocket decidido; mesmo processo da API e Socket.IO são Proposta |
-| Worker de jobs | Mesmo código da API, outro ponto de entrada, pg-boss | 20 rotinas (RN 14), webhooks, push, e-mail, exportações | Jobs decididos; mecanismo Proposta (ADR-006) |
+| Worker de jobs | Mesmo código da API, outro ponto de entrada, pg-boss | 21 rotinas (RN 14), webhooks, push, e-mail, exportações | Jobs decididos; mecanismo Proposta (ADR-006) |
 | PostgreSQL | PostgreSQL com RLS | Fonte da verdade; fila, outbox e `LISTEN/NOTIFY` | Decidido (PRD 10, SEG-05); fila e outbox são Proposta |
 | Armazenamento de objetos | S3 ou equivalente | Fotos, comprovantes, atas, listas de presença. Chave `c/{condominio_id}/{modulo}/{uuid}` | Decidido (PRD 10); prefixo é Proposta |
 
@@ -321,7 +321,7 @@ flowchart LR
     GW["Gateway de pagamento<br/>(a escolher, ADR-002)"]
 
     subgraph PGDB["PostgreSQL"]
-        EVG[("evento_gateway<br/>único por provedor + id do evento")]
+        EVG[("evento_gateway<br/>único por provedor, conta recebedora<br/>e id do evento (MER/DER 4.10)")]
         FILA[("Fila pg-boss<br/>(Proposta, ADR-006)")]
         EST[("Reserva ou cobrança<br/>transições monotônicas")]
         LANC[("Lançamento financeiro automático<br/>agregado, sem unidade")]
@@ -425,7 +425,7 @@ Fontes: arq. 6.1 a 6.9; RNF-09, RNF-13, RNF-17, RNF-18; SEG-01, SEG-02; ADR-004,
 
 ## 4. Nível 3: Componentes do backend
 
-**Resumo:** o backend é um monólito modular (Proposta). Vinte módulos de domínio, mais o módulo `sync` (Proposta deste documento), usam uma camada interna comum (`TenantContext`, guards, outbox, portas de gateway e e-mail). `tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio. Todos os nomes são Proposta (arq. 3.3).
+**Resumo:** o backend é um monólito modular (Proposta). Dezenove módulos de domínio, entre eles `sync` (Proposta deste documento), usam uma camada interna comum (`TenantContext`, guards, outbox, portas de gateway e e-mail). `tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio. Todos os nomes são Proposta (arq. 3.3).
 
 **Regras comuns a todos os módulos (Proposta):** acesso a dados só pelo `TenantContext`; validação com Zod em `shared-types`; eventos de domínio no outbox `evento_saida`; auditoria na mesma transação; papéis resolvidos no servidor a cada requisição (JWT sem papéis, ADR-007).
 
@@ -761,7 +761,7 @@ flowchart TB
     EVENTO["Evento de domínio<br/>ex.: alteração de score dispara a rotina 5"]
     ATRASO["Job com atraso programado<br/>prazos de 48 h e 7 dias (Proposta)"]
     WEBHOOK["Webhook gravado em evento_gateway"]
-    ENUM["Job enumerador<br/>lista condomínios ativos e checa<br/>a meia-noite local (ADR-012)"]
+    ENUM["Job enumerador<br/>lista condomínios ativos e checa a hora local<br/>(00:00, madrugada ou 09:00; ADR-012)"]
     FILA[("Fila no PostgreSQL<br/>payload com condominio_id")]
     PEGA["Worker pega o job"]
     TCTX["TenantContext de um condomínio"]
@@ -806,27 +806,30 @@ flowchart TB
 | 1 | Expirar reservas não pagas | A cada 5 min, global | `reservas` |
 | 2 | Saída não registrada | A cada hora | `visitantes` |
 | 3 | Visitantes que não vieram | Diária, meia-noite local | `visitantes` |
-| 4 | Recuperação de score | Diária | `convivencia` |
+| 4 | Recuperação de score | Diária, madrugada (00:00 a 06:00 local) | `convivencia` |
 | 5 | Bloqueio de reservas gratuitas | Por evento de alteração de score | `convivencia` (efeito em `reservas`) |
 | 6 | Fechamento da pesquisa | Último dia do mês, 23h59 local | `convivencia` |
-| 7 | Faltas em reservas | Diária | `reservas` |
-| 8 | Lembretes de encomenda | Diária | `encomendas` |
+| 7 | Faltas em reservas | Diária, madrugada (00:00 a 06:00 local) | `reservas` |
+| 8 | Lembretes de encomenda | Diária, 09:00 local | `encomendas` |
 | 9 | Entregas esperadas que não chegaram | Diária, meia-noite local | `encomendas` |
-| 10 | Prazos de reclamação e chamado | Diária | `convivencia` e `chamados` |
-| 11 | Lembrete de avaliação de chamado | Diária | `chamados` |
-| 12 | Encerrar reclamações sem recurso | Diária | `convivencia` |
+| 10 | Prazos de reclamação e chamado | Diária, duas etapas: efeito na madrugada (00:00 a 06:00 local), aviso às 09:00 local | `convivencia` e `chamados` |
+| 11 | Lembrete de avaliação de chamado | Diária, 09:00 local | `chamados` |
+| 12 | Encerrar reclamações sem recurso | Diária, madrugada (00:00 a 06:00 local) | `convivencia` |
 | 13 | Limpeza de dados offline | Diária, meia-noite local | `sync` |
-| 14 | Anonimização de visitantes | Diária | `visitantes` |
-| 15 | Gerar cobranças mensais | Diária | `cobranca` |
-| 16 | Marcar cobranças em atraso | Diária | `cobranca` |
-| 17 | Lembretes de cobrança | Diária | `cobranca` (canal não definido em RF-FI-11) |
-| 18 | Lançamentos recorrentes | Diária | `financas` |
-| 19 | Fechar o mês financeiro | Diária, fecha no dia configurado | `financas` |
-| 20 | Fim de contrato de locação | Diária | `condominio` |
+| 14 | Anonimização de visitantes | Diária, madrugada (00:00 a 06:00 local) | `visitantes` |
+| 15 | Gerar cobranças mensais | Diária, madrugada (00:00 a 06:00 local) | `cobranca` |
+| 16 | Marcar cobranças em atraso | Diária, madrugada (00:00 a 06:00 local) | `cobranca` |
+| 17 | Lembretes de cobrança | Diária, 09:00 local | `cobranca` (canal não definido em RF-FI-11) |
+| 18 | Lançamentos recorrentes | Diária, madrugada (00:00 a 06:00 local) | `financas` |
+| 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | `financas` |
+| 20 | Fim de contrato de locação | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | `condominio` |
+| 21 | Lembrete de reserva | A cada 5 min | `reservas` (envio pelo `notificacoes`) |
 
 Também são jobs: processamento de webhook e conciliação diária (`pagamentos`), exportações (`financas`), envio de push e e-mail (`notificacoes`) e os prazos com atraso programado (reabertura de chamado em 48 h, janela de avaliação de 7 dias, prazo de recurso de 7 dias, segundo turno em 7 dias).
 
-Fontes: arq. 3.5, 3.6, 3.7, 4.4, 4.7, 6.8; RN 14 (20 rotinas); RF-FI-11; RNF-09; SEG-10; ADR-006, ADR-012.
+**Horário local das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14).** As diárias sem horário próprio rodam na faixa de madrugada (00:00 a 06:00 no fuso do condomínio), em sequência; as que enviam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais; as rotinas 10 e 20 têm duas etapas, com o efeito na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda. As rotinas 3, 9 e 13 (00:00) e a 6 (23:59 do último dia do mês) mantêm o horário; 1, 2, 5 e 21 não são diárias.
+
+Fontes: arq. 3.5, 3.6, 3.7, 4.4, 4.7, 6.8; RN 14 (21 rotinas); RF-FI-11; RNF-09; SEG-10; ADR-006, ADR-012.
 
 ## 5. Decisões deste documento e pontos em aberto
 
@@ -858,7 +861,7 @@ Todas são Proposta: valem para os diagramas e esperam validação do Pedro. Nen
 | Fila e Redis | ADR-006 | Sim: possível container Redis | D2, D12 |
 | WebSocket no mesmo processo | arq. 3.4 | Sim | D2, D5 |
 | Empate exato, relógio incorreto e correção tardia da conclusão | ADR-014; menor horário do celular já definido em RN-CH-04 | Não muda a forma, detalha a regra do passo 7 de D3 | D3 |
-| Fuso horário das rotinas | ADR-012 | Não muda a forma | D12 |
+| Fuso horário e faixa de horário das rotinas diárias (madrugada ou 09:00) | ADR-012; RN 14 | Não muda a forma | D12 |
 | Escala horizontal de WebSocket (conexões por instância) | arq. 9.3 | Pode mudar D5 (número de instâncias) | D5 |
 | Vírus em uploads | arq. 3.8, 9.3 | Pode acrescentar um serviço externo | D1, D2, D10 |
 | Detalhes do painel da plataforma | arq. 3.2, 9.3 | Pode detalhar o módulo `plataforma` | D7 |
@@ -901,7 +904,7 @@ Cada diagrama aponta para o que o originou. Ao mudar uma regra, revisar as linha
 | D9 Dinheiro e governança | RF-PG, RF-FI-01 a 24, RF-VO | RN-PG, RN-CA, RN-FI, RN-VO, RN-GE-03 | — | SEG-06, SEG-12, SEG-15, SEG-17, SEG-18 | 002, 009 | 3.3, 3.6, 3.10, 3.11 |
 | D10 Transversais e tempo real | RF-NO-01, RF-LG-01, RF-LG-02 | RN-RC-10, RN-VI-17, RN-CH-18 | RNF-05, RNF-17 | SEG-08, SEG-11, SEG-13 | 005 | 3.4, 3.7, 3.8, 3.9.1, 4.5, 4.6, 7 |
 | D11 Camadas de uma requisição | RF-AC-04 | RN-CD-05, RN-CD-12, RN-CD-28 | RNF-01, RNF-11 | SEG-05, SEG-07, SEG-08, SEG-17 | 001, 007, 008 | 3.3, 3.3.1, 3.9, 4.3, 4.4 |
-| D12 Fluxo de jobs | RF-FI-11 | RN 14 (20 rotinas) | RNF-09 | SEG-10 | 006, 012 | 3.5, 3.6, 3.7, 4.4, 4.7, 6.8 |
+| D12 Fluxo de jobs | RF-FI-11 | RN 14 (21 rotinas) | RNF-09 | SEG-10 | 006, 012 | 3.5, 3.6, 3.7, 4.4, 4.7, 6.8 |
 | Tabela de módulos (4.6) | RF-* por épico | RN citadas por módulo | — | SEG citados por módulo | 001 a 014 conforme a linha | 3.3 a 3.11 |
 | Decisões e pontos em aberto (5) | — | — | — | SEG-16 | 002 a 006, 009, 012, 014 | 9.1 a 9.3 |
 

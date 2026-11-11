@@ -19,7 +19,7 @@
 
 **Escopo.** Só o que `01-arquitetura.md`, os ADRs, o PRD e as Regras de Negócio sustentam. O que os docs não definem aparece como "não definido nos docs". Nomes de módulos, tabelas e rotas são ilustrativos; o esquema real vem em `docs/04-banco-de-dados`.
 
-**Status do documento.** Proposta, em 08/11/2026. Não foi aceito pelo Pedro. Nenhum dos 14 ADRs está aceito: 002 (gateway), 004 (nuvem) e 005 (e-mail) estão Em aberto; os demais, Propostos.
+**Status do documento.** Proposta, em 08/11/2026, atualizada em 10/11/2026. O documento em si não foi aceito pelo Pedro. Dos 14 ADRs, 002 (Asaas), 004 (Supabase + Render, só para construir o MVP) e 005 (Resend) foram aceitos, com ressalvas, em 10/11/2026; os demais continuam Propostos.
 
 ### 1.1 O modelo C4 em cinco linhas
 
@@ -40,7 +40,7 @@ Estado nunca é mostrado só por cor. Os diagramas usam forma, estilo de linha e
 | Caixa com borda tracejada | Elemento **(Proposta)**: não decidido. O rótulo também traz "(Proposta)" |
 | Cilindro | Armazenamento de dados |
 | Círculo | O sistema CondomiFacil visto de fora (só no nível 1) |
-| "a escolher" | Fornecedor ainda não decidido (gateway, nuvem, e-mail) |
+| "a escolher" | Fornecedor ainda não decidido (hoje nenhum rótulo usa: gateway e e-mail foram decididos em 10/11/2026; a nuvem de produção segue a definir na revisão do ADR-004) |
 | Números nos rótulos (1., 2., ...) | Ordem dos passos em diagramas de fluxo |
 
 Os diagramas não usam cor para indicar estado. A borda tracejada é definida em `classDef proposta` (só `stroke-dasharray`, sem cor).
@@ -81,9 +81,9 @@ flowchart LR
     CF(("CondomiFacil<br/>app, web e backend único"))
 
     subgraph EXTERNOS["Sistemas externos"]
-        GW["Gateway de pagamento<br/>a escolher: Asaas, Mercado Pago ou Pagar.me<br/>(ADR-002, Em aberto)"]
+        GW["Asaas<br/>gateway de pagamento<br/>(ADR-002, Aceito com ressalvas)"]
         PUSH["Expo Push / FCM"]
-        MAIL["E-mail transacional<br/>a escolher: Resend ou Amazon SES<br/>(ADR-005, Em aberto)"]
+        MAIL["Resend<br/>e-mail transacional<br/>(ADR-005, Aceito com ressalvas)"]
         MON["Sentry + logs"]
         LOJA["App Store e Google Play"]
         EAS["EAS Build e EAS Update<br/>(Proposta, ADR-011)"]
@@ -97,7 +97,7 @@ flowchart LR
     PLATAF -->|"web"| CF
 
     CF -->|"cria subconta, cobrança e reembolso"| GW
-    GW -->|"webhook assinado"| CF
+    GW -->|"webhook com token"| CF
     CF -->|"envia notificações; lê recibos"| PUSH
     CF -->|"código de acesso, comprovantes, cópia LGPD"| MAIL
     CF -->|"erros, sem dado pessoal"| MON
@@ -134,12 +134,12 @@ Fontes: arq. 2.1, 2.4, 3.6 a 3.8, 5.1, 6.4, 6.8; PRD 3 e 10; RF-AC-06, RF-AD-14;
 
 | Sistema | Relação | Status | Origem |
 | --- | --- | --- | --- |
-| Gateway de pagamento (Asaas, Mercado Pago ou Pagar.me) | Bidirecional: a plataforma cria subconta, cobrança (boleto com QR Code Pix, Pix, cartão) e reembolso; o gateway envia webhook assinado | **Em aberto** (ADR-002; candidato Asaas, não decidido). Aparece como "a escolher" | PRD 10; arq. 3.6 |
+| Asaas (gateway de pagamento) | Bidirecional: a plataforma cria subconta, cobrança (boleto com QR Code Pix, Pix, cartão) e reembolso; o Asaas envia webhook autenticado por token | **Decidido** (ADR-002, Aceito com ressalvas em 10/11/2026). Pendentes: KYC, chargeback, prazos reais | PRD 10; arq. 3.6 |
 | Expo Push / FCM | Saída: envio de notificações; consulta de recibos | Decidido | PRD 10; arq. 3.7 |
-| E-mail transacional (Resend ou Amazon SES) | Saída: código de acesso, comprovantes, cópia LGPD | **Em aberto** (ADR-005, depende de ADR-004). Aparece como "a escolher" | PRD 10; arq. 3.7, 5.2 |
+| Resend (e-mail transacional) | Saída: código de acesso, comprovantes, cópia LGPD | **Decidido** (ADR-005, Aceito com ressalvas em 10/11/2026). Dados de e-mail saem do Brasil (LGPD) | PRD 10; arq. 3.7, 5.2 |
 | Sentry + logs | Saída: erros de app, web, API e worker, com filtro de dados sensíveis | Decidido | PRD 10; arq. 6.8 |
 | App Store e Google Play | Distribuem o app | Decidido | arq. 2.1, 6.4 |
-| Armazenamento de objetos (S3 ou equivalente) | Tratado como container de infraestrutura no nível 2 | Tecnologia decidida; provedor depende de ADR-004 (Em aberto) | PRD 10; arq. 3.8 |
+| Armazenamento de objetos (compatível com S3) | Tratado como container de infraestrutura no nível 2 | Tecnologia decidida; provedor para o MVP: Supabase Storage (ADR-004, Aceito com ressalvas em 10/11/2026; revisão antes do piloto) | PRD 10; arq. 3.8 |
 | EAS Build e EAS Update (OTA) | Builds e atualizações JavaScript do app | Proposta (ADR-011); não citado no PRD | arq. 5.1, 6.4 |
 | Monitor externo de disponibilidade | Sonda a API e alerta | Proposta (RNF-09) | arq. 6.8 |
 | CDN da web | Serve a web estática | Proposta | arq. 3.2 |
@@ -171,15 +171,15 @@ flowchart TB
         WRK["Worker de jobs<br/>mesmo código, outro ponto de entrada<br/>pg-boss (Proposta, ADR-006)"]
     end
 
-    subgraph DADOS["Dados (nuvem a escolher, ADR-004)"]
+    subgraph DADOS["Dados (ambiente de construção: Supabase, São Paulo, ADR-004; produção a definir)"]
         DB[("PostgreSQL com RLS<br/>fonte da verdade<br/>fila pg-boss, outbox evento_saida,<br/>evento_gateway, LISTEN/NOTIFY")]
-        OBJ[("Armazenamento de objetos<br/>S3 ou equivalente, bucket privado")]
+        OBJ[("Armazenamento de objetos<br/>dev e staging: Supabase Storage (API compatível com S3)<br/>produção: a definir na revisão do ADR-004<br/>bucket privado")]
     end
 
     COFRE["Cofre de segredos<br/>(Proposta, SEG-02)"]
-    GW["Gateway de pagamento<br/>(a escolher, ADR-002)"]
+    GW["Asaas<br/>(ADR-002)"]
     PUSH["Expo Push / FCM"]
-    MAIL["E-mail transacional<br/>(a escolher, ADR-005)"]
+    MAIL["Resend<br/>(ADR-005)"]
     MON["Sentry + logs"]
     UPT["Monitor externo<br/>(Proposta)"]
 
@@ -195,7 +195,7 @@ flowchart TB
     WRK -->|"SQL, fila e outbox"| DB
     API -->|"emite URLs assinadas"| OBJ
     API -->|"cria subconta, cobrança, reembolso"| GW
-    GW -->|"webhook assinado"| API
+    GW -->|"webhook com token"| API
     WRK -->|"conciliação diária"| GW
     BACKEND -->|"envia push"| PUSH
     BACKEND -->|"envia e-mail"| MAIL
@@ -230,7 +230,7 @@ Fontes: arq. 2.2, 2.3, 3.1 a 3.8, 4.5 a 4.8, 5.1 a 5.3, 6.5, 6.8; PRD 10; RNF-05
 | Gateway WebSocket | Socket.IO no NestJS | Lista da portaria em até 5 s (RNF-05); edição de entrega esperada na hora (RN-EN-09) | WebSocket decidido; mesmo processo da API e Socket.IO são Proposta |
 | Worker de jobs | Mesmo código da API, outro ponto de entrada, pg-boss | 21 rotinas (RN 14), webhooks, push, e-mail, exportações | Jobs decididos; mecanismo Proposta (ADR-006) |
 | PostgreSQL | PostgreSQL com RLS | Fonte da verdade; fila, outbox e `LISTEN/NOTIFY` | Decidido (PRD 10, SEG-05); fila e outbox são Proposta |
-| Armazenamento de objetos | S3 ou equivalente | Fotos, comprovantes, atas, listas de presença. Chave `c/{condominio_id}/{modulo}/{uuid}` | Decidido (PRD 10); prefixo é Proposta |
+| Armazenamento de objetos | Compatível com S3; em dev e staging, Supabase Storage (produção a definir na revisão do ADR-004) | Fotos, comprovantes, atas, listas de presença. Chave `c/{condominio_id}/{modulo}/{uuid}` | Tecnologia decidida (PRD 10); provedor do ambiente de construção decidido (ADR-004), produção depende da revisão antes do piloto; prefixo é Proposta |
 
 **Comunicação entre containers**
 
@@ -244,10 +244,10 @@ Fontes: arq. 2.2, 2.3, 3.1 a 3.8, 4.5 a 4.8, 5.1 a 5.3, 6.5, 6.8; PRD 10; RNF-05
 | API, WebSocket, worker | PostgreSQL | SQL (pool) | Papel `app_user` sem `BYPASSRLS`; transação com `set_config(..., true)` | Proposta alinhada a SEG-05 (ADR-001) |
 | API | Worker | Fila e outbox no PostgreSQL | Payload com `condominio_id`; outbox gravado na mesma transação | Proposta (ADR-006) |
 | Worker | WebSocket | `NOTIFY` do PostgreSQL | Evento mínimo por condomínio; cliente relê pela API | Proposta |
-| API | Gateway | HTTPS | Credencial do gateway no cofre; tempo limite, nova tentativa com recuo, disjuntor | Gateway decidido como tipo; fornecedor Em aberto; resiliência Proposta |
-| Gateway | API | HTTPS (`POST /webhooks/pagamentos/:provedor`) | Assinatura do provedor validada sobre o corpo bruto | Decidido (webhook, PRD 10); detalhes Proposta |
-| App, web | Gateway | HTTPS | Checkout hospedado ou tokenização no cliente; cartão nunca passa pela API (SEG-12) | Forma exata não definida nos docs (depende do gateway) |
-| API, worker | Expo Push / FCM, e-mail | HTTPS | Credenciais no servidor; texto sem dado sensível | Push decidido; e-mail Em aberto |
+| API | Gateway | HTTPS | Credencial do Asaas no cofre; tempo limite, nova tentativa com recuo, disjuntor | Asaas decidido (ADR-002); resiliência Proposta |
+| Gateway | API | HTTPS (`POST /webhooks/pagamentos/:provedor`) | Token do Asaas validado (cabeçalho `asaas-access-token`) antes de qualquer processamento; corpo bruto preservado | Decidido (webhook, PRD 10; Asaas, ADR-002); detalhes Proposta |
+| App, web | Gateway | HTTPS | Checkout hospedado ou tokenização no cliente; cartão nunca passa pela API (SEG-12) | Forma exata não definida nos docs (a definir com o checkout hospedado do Asaas, na prova de conceito) |
+| API, worker | Expo Push / FCM, e-mail | HTTPS | Credenciais no servidor; texto sem dado sensível | Push decidido; e-mail: Resend (ADR-005) |
 | App, web, API, worker | Sentry | HTTPS | Filtro de dados sensíveis no SDK | Decidido |
 
 O cliente trata os erros transversais (401, 403, 426, falha de rede) num interceptor único (UF 15).
@@ -314,11 +314,11 @@ flowchart LR
     subgraph APIP["API"]
         DOM["reservas ou cobranca"]
         PGM["pagamentos<br/>porta PaymentGateway"]
-        ADP["Adaptador do gateway<br/>(um só, a escolher)"]
+        ADP["AdaptadorAsaas<br/>(um só)"]
         WH["POST /webhooks/pagamentos/:provedor<br/>corpo bruto"]
     end
 
-    GW["Gateway de pagamento<br/>(a escolher, ADR-002)"]
+    GW["Asaas<br/>(ADR-002)"]
 
     subgraph PGDB["PostgreSQL"]
         EVG[("evento_gateway<br/>único por provedor, conta recebedora<br/>e id do evento (MER/DER 4.10)")]
@@ -332,15 +332,15 @@ flowchart LR
         CONC["Job de conciliação diária"]
     end
 
-    MAIL["E-mail transacional<br/>(a escolher)"]
+    MAIL["Resend"]
 
     PAGADOR -->|"1. reserva área paga ou abre cobrança"| DOM
     DOM -->|"2. pede cobrança"| PGM
     PGM -->|"3. chamada interna"| ADP
     ADP -->|"4. cria cobrança com tempo limite e disjuntor"| GW
     PAGADOR -.->|"5. paga boleto com QR Pix, Pix ou cartão; cartão não passa pela API"| GW
-    GW -->|"6. webhook assinado"| WH
-    WH -->|"7. valida assinatura e grava; repetido é ignorado"| EVG
+    GW -->|"6. webhook com token"| WH
+    WH -->|"7. valida token e grava; repetido é ignorado"| EVG
     WH -->|"8. responde 200"| GW
     WH -.->|"9. enfileira job (assíncrono)"| FILA
     FILA -.->|"10. entrega job (assíncrono)"| JOB
@@ -366,7 +366,7 @@ Fontes: arq. 3.6, 3.11, 4.4; RF-PG-01 a 04, RF-FI-07, RF-FI-09, RF-FI-10, RF-AD-
 
 ### 3.5 Implantação por ambiente (D5)
 
-Mostra só o que a seção 6 de `01-arquitetura.md` sustenta. Provedor de nuvem e região estão Em aberto (ADR-004), por isso não há nomes de serviço gerenciado.
+Mostra só o que a seção 6 de `01-arquitetura.md` sustenta. Para construir o MVP, dev e staging usam Supabase (PostgreSQL e Storage, São Paulo) e Render (API, WebSocket e worker; no plano gratuito o worker roda no mesmo serviço web da API e as rotinas param quando o serviço dorme), planos gratuitos (ADR-004, decisão de Pedro em 10/11/2026). A infraestrutura de produção com dados reais está a definir na revisão do ADR-004 antes do piloto; por isso o bloco de produção não leva nome de serviço.
 
 ```mermaid
 flowchart LR
@@ -374,28 +374,28 @@ flowchart LR
         L_APP["API + WebSocket + worker<br/>processos locais"]
         L_DB[("PostgreSQL em contêiner")]
         L_OBJ[("MinIO, S3 compatível")]
-        L_EXT["Gateway sandbox<br/>e-mail capturado (Mailpit)"]
+        L_EXT["Asaas sandbox<br/>e-mail capturado (Mailpit)"]
     end
 
     subgraph DEVENV["Dev: branch develop"]
-        D_APP["API + WebSocket + worker<br/>deploy automático"]
-        D_DB[("PostgreSQL, instância pequena")]
-        D_OBJ[("Bucket próprio")]
-        D_EXT["Gateway sandbox<br/>e-mail em caixa falsa<br/>push só em aparelhos de teste"]
+        D_APP["Render gratuito, só serviço web<br/>API + WebSocket + worker no mesmo serviço<br/>(dorme sem tráfego)<br/>deploy automático"]
+        D_DB[("Supabase gratuito<br/>PostgreSQL, São Paulo")]
+        D_OBJ[("Supabase Storage<br/>bucket próprio")]
+        D_EXT["Asaas sandbox<br/>e-mail em caixa falsa<br/>push só em aparelhos de teste"]
     end
 
     subgraph STGENV["Staging: branch staging"]
-        S_APP["API + WebSocket + worker<br/>deploy automático"]
-        S_DB[("PostgreSQL igual à produção, menor<br/>dados fictícios de carga")]
-        S_OBJ[("Bucket próprio")]
-        S_EXT["Gateway sandbox<br/>e-mail em caixa falsa<br/>push só em aparelhos de teste"]
+        S_APP["Render gratuito, só serviço web<br/>API + WebSocket + worker no mesmo serviço<br/>(dorme sem tráfego)<br/>deploy automático"]
+        S_DB[("Supabase gratuito<br/>PostgreSQL, versão da produção<br/>dados fictícios de carga")]
+        S_OBJ[("Supabase Storage<br/>bucket próprio")]
+        S_EXT["Asaas sandbox<br/>e-mail em caixa falsa<br/>push só em aparelhos de teste"]
     end
 
     subgraph PRDENV["Produção: branch main"]
         P_APP["API + WebSocket: 2 ou mais instâncias (Proposta)<br/>worker"]
         P_DB[("PostgreSQL gerenciado<br/>backup diário, 7 dias<br/>PITR e réplica (Proposta)")]
         P_OBJ[("Bucket próprio")]
-        P_EXT["Gateway produção<br/>e-mail real (a escolher)<br/>push real"]
+        P_EXT["Asaas produção<br/>Resend real<br/>push real"]
     end
 
     L_APP --> L_DB
@@ -612,8 +612,8 @@ flowchart LR
     end
 
     PGW["Porta PaymentGateway"]
-    ADP["Adaptador do gateway<br/>(um só, a escolher)"]
-    GWEXT["Gateway de pagamento<br/>(a escolher, ADR-002)"]
+    ADP["AdaptadorAsaas<br/>(um só)"]
+    GWEXT["Asaas<br/>(ADR-002)"]
     MAILER["Porta Mailer"]
     COND["condominio"]
     NOT["notificacoes"]
@@ -661,7 +661,7 @@ flowchart LR
     OUT[("Outbox evento_saida")]
     MAILER["Porta Mailer"]
     PUSH["Expo Push / FCM"]
-    MAILEXT["E-mail transacional<br/>(a escolher, ADR-005)"]
+    MAILEXT["Resend<br/>(ADR-005)"]
     OBJ[("Armazenamento de objetos")]
     DB[("PostgreSQL")]
 
@@ -701,7 +701,7 @@ Todos os módulos são Proposta (arq. 3.3). "Depende de" segue as setas de D7 a 
 | `reservas` | Áreas, regras, reservas, vistoria | `pagamentos`, `configuracao`, `convivencia`, `notificacoes` | RF-RE; RN-RE; RN-RE-04 |
 | `convivencia` | Reclamações, recursos, score, pesquisa mensal de funcionários | `auditoria`, `notificacoes`, `configuracao` | RF-RC, RF-SC, RF-PE; RN-RC, RN-SC, RN-PE; SEG-07; ADR-010 |
 | `comunicados` | Gerais e individuais, sugestões | `notificacoes` | RF-CO; RN-CO |
-| `pagamentos` | Porta PaymentGateway, subconta, cobrança de reserva, reembolso, webhooks, conciliação | Porta PaymentGateway (gateway a escolher), Porta Mailer; emite eventos para `reservas`, `cobranca`, `financas` | RF-PG; RN-PG, RN-CA; RN-PG-04; SEG-12, SEG-15, SEG-17; ADR-002 |
+| `pagamentos` | Porta PaymentGateway, subconta, cobrança de reserva, reembolso, webhooks, conciliação | Porta PaymentGateway (Asaas), Porta Mailer (Resend); emite eventos para `reservas`, `cobranca`, `financas` | RF-PG; RN-PG, RN-CA; RN-PG-04; SEG-12, SEG-15, SEG-17; ADR-002 |
 | `cobranca` | Taxa condominial, inadimplência, lembretes | `pagamentos`, `financas`, `notificacoes` | RF-FI-01 a 16; RN-FI; RN-FI-01; SEG-17 |
 | `financas` | Lançamentos, categorias, fechamento de mês, estorno, exportação | `arquivos`, `auditoria`; recebe lançamentos de `cobranca` e eventos de `pagamentos` | RF-FI-17 a 24; RN-FI-21 a 32; SEG-18 |
 | `governanca` | Reuniões, pautas, votações, eleições, atas | `condominio`, `cobranca`, `arquivos`, `auditoria` | RF-VO; RN-VO; RN-VO-01, RN-FI-11, RN-GE-03; SEG-06; ADR-009 |
@@ -770,7 +770,7 @@ flowchart TB
     OUT[("Outbox evento_saida")]
     DESP["Despacho do outbox"]
     PUSH["Expo Push / FCM"]
-    MAIL["E-mail transacional<br/>(a escolher)"]
+    MAIL["Resend"]
     WS["Gateway WebSocket<br/>via NOTIFY"]
     REPETE["Nova tentativa<br/>só daquele condomínio"]
     SENTRY["Sentry<br/>alerta em falhas repetidas"]
@@ -854,9 +854,9 @@ Todas são Proposta: valem para os diagramas e esperam validação do Pedro. Nen
 
 | Ponto | Origem | Afeta os diagramas? | Onde |
 | --- | --- | --- | --- |
-| Gateway de pagamento (Asaas, Mercado Pago ou Pagar.me) | ADR-002; UF 17 | Sim: nome do sistema externo, forma do pagamento no cliente (seta 5 de D4), prazos e erros | D1, D2, D4, D9 |
-| Nuvem e região | ADR-004 | Sim: serviços gerenciados de D5, provedor do armazenamento, cofre e CDN | D2, D5 |
-| E-mail transacional (Resend ou SES) | ADR-005 | Sim: nome do sistema externo | D1, D2, D10 |
+| Gateway de pagamento: Asaas (decidido em 10/11/2026) | ADR-002; UF 17 | Nome já aplicado; ficam a forma do pagamento no cliente (seta 5 de D4), prazos e erros, a confirmar na prova de conceito | D1, D2, D4, D9 |
+| Nuvem e região: Supabase + Render para construir o MVP (decidido em 10/11/2026) | ADR-004 | Nome já aplicado em dev e staging; produção, cofre e CDN dependem da revisão antes do piloto | D2, D5 |
+| E-mail transacional: Resend (decidido em 10/11/2026) | ADR-005 | Nome já aplicado | D1, D2, D10 |
 | Banco local (SQLite + SQLCipher ou WatermelonDB) | ADR-003 | Sim: rótulo do banco local e do cliente de sincronização | D2, D3 |
 | Fila e Redis | ADR-006 | Sim: possível container Redis | D2, D12 |
 | WebSocket no mesmo processo | arq. 3.4 | Sim | D2, D5 |

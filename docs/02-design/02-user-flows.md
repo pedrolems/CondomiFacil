@@ -1435,12 +1435,14 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 
 Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma decisão do negócio ou de terceiros.
 
+**Resolvido por Pedro em 10/11/2026:** gateway de pagamento Asaas (ADR-002, aceito com ressalvas). Seguem pendentes, na tabela abaixo, os prazos reais de confirmação de boleto e Pix, o KYC da subconta e o chargeback.
+
 **Resolvido por Pedro em 08/11/2026:** reserva paga não utilizada recebe Não comparecimento na vistoria. A portaria vê reservas do dia e marca Em andamento/Cumprida/Não comparecimento nas condições de RN-RE-13; a limpeza mantém vistoria. A decisão está em RN-RE-09/10/13, RF-RE-08/09, US-RE-06, fluxo 5.3 e Design System 18. Não se acrescentam penalidade ou reembolso automático por falta paga.
 
 | Pendência | Por que importa | Quem decide |
 | --- | --- | --- |
 | Parecer jurídico (SEG-16) | Pode mudar os fluxos 9.1 a 9.4, os prazos e os textos das mensagens de reclamação | Advogado |
-| Escolha do gateway de pagamento | Define os prazos reais de confirmação de boleto e Pix e os erros possíveis nos fluxos 5.1 e 13.1 | Produto e engenharia |
+| Prazos reais de confirmação de boleto e Pix, KYC da subconta e chargeback no Asaas (gateway escolhido por Pedro em 10/11/2026, ADR-002) | Definem os prazos e os erros possíveis nos fluxos 5.1 e 13.1; a prova de conceito no sandbox e o piloto os medem | Produto e engenharia (verificação do ADR-002) |
 | Prazo de 5 dias para resposta do alvo | Valor novo, sem dado de uso; validar no piloto | Produto, após o piloto |
 | Revisão jurídica das regras de locação | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
 | Orçamento anual previsto | O PRD não tem orçamento; sem ele, o painel só compara com o mês anterior, e não com o previsto | Produto |

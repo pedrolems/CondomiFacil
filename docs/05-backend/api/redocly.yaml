@@ -1,0 +1,47 @@
+# Regras de validação da documentação da API (Proposta de 10/11/2026).
+# Uso, a partir da raiz do repositório:
+#   npx --yes @redocly/cli lint docs/05-backend/api/openapi/<arquivo>.yaml --config docs/05-backend/api/redocly.yaml
+extends:
+  - recommended
+
+rules:
+  # Obrigatoriedade pedida pelo plano.
+  operation-operationId: error
+  operation-summary: error
+  # Sem licença nem servidor definidos nesta fase (nada a inventar).
+  info-license: off
+  no-empty-servers: off
+  # Componentes comuns são consumidos por outros arquivos.
+  no-unused-components: off
+
+  # Toda operação tem ao menos uma tag (módulo de domínio).
+  rule/operacao-com-tags:
+    subject:
+      type: Operation
+      property: tags
+    assertions:
+      defined: true
+      nonEmpty: true
+    message: Toda operação precisa de ao menos uma tag (módulo de domínio).
+    severity: error
+
+  # Toda resposta 2xx com corpo traz ao menos um exemplo.
+  rule/resposta-2xx-com-exemplo:
+    where:
+      - subject:
+          type: Response
+          filterInParentKeys:
+            - '200'
+            - '201'
+            - '202'
+            - '203'
+        assertions:
+          defined: true
+    subject:
+      type: MediaType
+    assertions:
+      requireAny:
+        - example
+        - examples
+    message: Resposta 2xx com corpo precisa de `example` ou `examples`.
+    severity: error

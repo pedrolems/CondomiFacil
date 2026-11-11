@@ -49,9 +49,9 @@ flowchart LR
 
     CF(("CondomiFacil"))
 
-    GW["Gateway de pagamento<br/>(a escolher)"]
+    GW["Asaas<br/>(gateway de pagamento)"]
     PUSH["Expo Push / FCM"]
-    MAIL["E-mail transacional<br/>(Resend ou SES)"]
+    MAIL["Resend<br/>(e-mail transacional)"]
     MON["Sentry + logs"]
     LOJA["App Store e Google Play"]
 
@@ -106,7 +106,7 @@ flowchart TB
     WRK --> DB
     API -- "URLs assinadas" --> OBJ
     API -- "cria cobrança, reembolso" --> GW
-    GW -- "webhook assinado" --> API
+    GW -- "webhook com token" --> API
     WRK --> PUSH
     API --> PUSH
     WRK --> MAIL
@@ -387,18 +387,16 @@ Também são temporais e fora da tabela: contagem mensal de solicitações de su
 
 ### 3.6 Pagamentos
 
-**Decidido:** gateway brasileiro com subconta ou split; boleto registrado com QR Code Pix, Pix e cartão; confirmação por webhook (PRD 10). O dinheiro vai direto para a conta do condomínio, a plataforma não retém (RN-PG-04). Conta única do condomínio para reservas e taxa (RN-PG-01); sem conta cadastrada, sem cobrança nem áreas pagas (RN-FI-01, RN-PG-03). Titular pessoa física exige o termo SEG-15 (RN-PG-02, RF-AD-08). Taxas do gateway saem do valor recebido e viram despesa "Administração" (RN-PG-05, RN-FI-17, RN-FI-23). **A escolha do gateway está pendente (UF 17).**
+**Decidido:** gateway brasileiro com subconta ou split; boleto registrado com QR Code Pix, Pix e cartão; confirmação por webhook (PRD 10). O dinheiro vai direto para a conta do condomínio, a plataforma não retém (RN-PG-04). Conta única do condomínio para reservas e taxa (RN-PG-01); sem conta cadastrada, sem cobrança nem áreas pagas (RN-FI-01, RN-PG-03). Titular pessoa física exige o termo SEG-15 (RN-PG-02, RF-AD-08). Taxas do gateway saem do valor recebido e viram despesa "Administração" (RN-PG-05, RN-FI-17, RN-FI-23). **Gateway escolhido: Asaas (ADR-002, decisão de Pedro em 10/11/2026).** Seguem pendentes KYC da subconta, chargeback e prazos reais de confirmação (UF 17).
 
 **Proposta de estrutura.**
 
 ```mermaid
 flowchart LR
     ReservaSvc["Reservas / Cobrança"] --> Porta["Porta PaymentGateway<br/>(interface)"]
-    Porta --> AdA["Adaptador Asaas"]
-    Porta --> AdB["Adaptador Mercado Pago"]
-    Porta --> AdC["Adaptador Pagar.me"]
-    GW["Gateway"] -- "webhook assinado" --> WH["POST /webhooks/pagamentos/:provedor"]
-    WH -->|"1. valida assinatura<br/>2. grava evento (único)<br/>3. responde 200"| EV[("evento_gateway")]
+    Porta --> AdA["AdaptadorAsaas"]
+    GW["Asaas"] -- "webhook com token" --> WH["POST /webhooks/pagamentos/:provedor"]
+    WH -->|"1. valida token<br/>2. grava evento (único)<br/>3. responde 200"| EV[("evento_gateway")]
     EV --> JOB["Job de processamento"]
     JOB --> ST["Máquina de estados<br/>reserva / cobrança"]
     ST --> FIN["Lançamento financeiro automático"]
@@ -406,11 +404,11 @@ flowchart LR
     CONC --> ST
 ```
 
-- **Porta e adaptadores:** o domínio fala com uma interface (`criarSubconta`, `criarCobranca`, `consultar`, `reembolsar`, `validarWebhook`). A decisão do gateway fica isolada em um adaptador; trocar de provedor não toca regra de negócio. Só um adaptador será implementado.
-- **Subconta:** criada no cadastro da conta bancária do condomínio (RF-AD-08); o estado da subconta (pendente de verificação, ativa, recusada) é guardado e bloqueia a ativação do módulo de cobrança enquanto não estiver ativa. O processo de verificação cadastral do provedor (KYC) é lacuna.
+- **Porta e adaptadores:** o domínio fala com uma interface (`criarSubconta`, `criarCobranca`, `consultar`, `reembolsar`, `validarWebhook`). O provedor, o Asaas, fica isolado no `AdaptadorAsaas`; trocar de provedor não toca regra de negócio. Só um adaptador será implementado. Mercado Pago e Pagar.me ficam como histórico da comparação (5.2).
+- **Subconta:** criada no cadastro da conta bancária do condomínio (RF-AD-08); o estado da subconta (pendente de verificação, ativa, recusada) é guardado e bloqueia a ativação do módulo de cobrança enquanto não estiver ativa. No Asaas, a subconta é criada por API e a chave da subconta é devolvida uma única vez (guardar no cofre na hora). O processo de verificação cadastral (KYC) segue como lacuna.
 - **Webhook idempotente (SEG-17):**
-  1. Endpoint recebe o corpo **bruto** e valida a assinatura do provedor antes de qualquer outra coisa.
-  2. Grava o evento em `evento_gateway` com unicidade por provedor, conta recebedora e id do evento (ou só provedor e id do evento, quando o provedor o garante único); evento sem correlação válida (assinatura inválida, conta ou transação desconhecida) vai para `evento_gateway_quarentena`, global, e não para esta tabela (MER/DER 4.10; decisão de Pedro em 08/11/2026); se já existe, responde 200 sem reprocessar.
+  1. Endpoint recebe o corpo **bruto** e valida a autenticação do provedor antes de qualquer outra coisa. No Asaas, é o token configurado no webhook, enviado no cabeçalho `asaas-access-token` (não há assinatura HMAC do corpo; consulta de 10/11/2026). A entrega é "ao menos uma vez", então o id do evento garante a idempotência.
+  2. Grava o evento em `evento_gateway` com unicidade por provedor, conta recebedora e id do evento (ou só provedor e id do evento, quando o provedor o garante único); evento sem correlação válida (autenticação inválida, conta ou transação desconhecida) vai para `evento_gateway_quarentena`, global, e não para esta tabela (MER/DER 4.10; decisão de Pedro em 08/11/2026); se já existe, responde 200 sem reprocessar.
   3. Responde 200 rápido e processa em job. O processamento não tem sessão de usuário: resolve o condomínio a partir da cobrança referenciada e abre o contexto desse condomínio (RLS vale).
   4. Transições de estado são monotônicas (um evento atrasado de "pendente" não desfaz um "pago").
   5. Pagamento confirmado atualiza cobrança ou reserva, gera comprovante por e-mail (RF-PG-04) e cria o lançamento financeiro automático (RN-FI-13, RN-FI-23).
@@ -422,7 +420,7 @@ flowchart LR
 - **Valores:** inteiros em centavos, nunca ponto flutuante. Multa e juros calculados no servidor, segunda via sempre atualizada (RN 12).
 - **Gateway fora do ar:** reserva mantém o horário até o fim do prazo; cobrança mantém o vencimento (UF 5.1, 13.1). Chamadas ao gateway com tempo limite, nova tentativa com recuo e disjuntor (Proposta).
 - **Cartão (SEG-12):** dados de cartão nunca passam pela API nem pelo banco; uso de checkout hospedado ou tokenização do gateway no cliente.
-- **Lacunas:** chargeback, regras de repasse e taxas por provedor, prazos reais de confirmação de boleto e Pix (dependem da escolha, UF 17).
+- **Lacunas:** chargeback, regras de repasse e taxas do Asaas, prazos reais de confirmação de boleto e Pix (a medir na prova de conceito e no piloto, UF 17).
 
 ### 3.7 Notificações
 
@@ -436,11 +434,11 @@ flowchart LR
 - Mensagens usam texto genérico quando o conteúdo é sensível ("Você tem uma atualização"), e o detalhe só aparece dentro do app autenticado.
 - **Push gerado por rotina (decisão de Pedro em 09/11/2026, RN 14):** o evento de uma rotina da madrugada é processado na hora, mas o envio do push fica agendado para as 09:00 no fuso do condomínio (ver 3.5). Push de evento disparado por pessoa sai na hora.
 - Cobrança em atraso como notificação obrigatória é proposta de produto fora das RN (pendência em UF 17); a arquitetura comporta, mas não decide.
-- E-mail transacional por uma porta `Mailer` com adaptador do provedor escolhido (seção 5.2): código de acesso, comprovantes, cópia LGPD (RF-AC-01, RF-PG-04, RF-LG-01). Lembretes de cobrança: canal não especificado em RF-FI-11 (push e e-mail propostos).
+- E-mail transacional por uma porta `Mailer` com o `AdaptadorResend` (Resend, ADR-005, decisão de Pedro em 10/11/2026; seção 5.2): código de acesso, comprovantes, cópia LGPD (RF-AC-01, RF-PG-04, RF-LG-01). Lembretes de cobrança: canal não especificado em RF-FI-11 (push e e-mail propostos).
 
 ### 3.8 Arquivos
 
-**Decidido:** armazenamento de objetos (S3 ou equivalente), fotos comprimidas no aparelho (PRD 10). Usos: etiqueta de encomenda, foto de chamado, até 5 fotos de conclusão (RN-CH-14), checklist de vistoria (RF-RE-08), comprovante de lançamento financeiro (foto ou PDF até 10 MB, RN-FI-24), ata e lista de presença (RF-VO-09), comprovante de pagamento externo (RF-FI-10), fotos de áreas (DS 16).
+**Decidido:** armazenamento de objetos compatível com S3 (PRD 10); para construir o MVP, o Supabase Storage, pela API compatível com S3 (ADR-004, decisão de Pedro em 10/11/2026); fotos comprimidas no aparelho (PRD 10). Usos: etiqueta de encomenda, foto de chamado, até 5 fotos de conclusão (RN-CH-14), checklist de vistoria (RF-RE-08), comprovante de lançamento financeiro (foto ou PDF até 10 MB, RN-FI-24), ata e lista de presença (RF-VO-09), comprovante de pagamento externo (RF-FI-10), fotos de áreas (DS 16).
 
 **Proposta.**
 
@@ -707,16 +705,16 @@ Obrigatórios no CI, bloqueiam o merge (reforçam RNF-11 e SEG-05; detalhe em `0
 | **WebSockets** | Tempo real da portaria | Latência baixa, RNF-05 (PRD 10) | SSE; *polling* | Escala de conexões e reconexão em rede móvel instável |
 | **SQLite ou WatermelonDB** | Offline | Ver 5.2 | Ver 5.2 | Ver 5.2 |
 | **JWT no armazenamento seguro** | Autenticação | PRD 10 | Sessões de servidor por cookie | Tokens revogáveis só com tabela de sessões (proposta na seção 3.3.1) |
-| **Gateway brasileiro com subconta ou split** | Pagamentos | Boleto + Pix + cartão e dinheiro direto ao condomínio (PRD 10; RN-PG-04) | Pagar direto em banco; maquininha | Escolha pendente, prazos e erros dependem dele (UF 17) |
+| **Asaas** (gateway brasileiro com subconta ou split) | Pagamentos | Boleto + Pix + cartão e dinheiro direto ao condomínio (PRD 10; RN-PG-04); escolhido em 10/11/2026 (ADR-002) | Mercado Pago; Pagar.me; pagar direto em banco; maquininha | Prazos e erros reais ainda a medir; KYC e chargeback pendentes (UF 17); webhook autenticado por token, não por assinatura |
 | **Expo Push / FCM** | Notificações | Integra com Expo; FCM no Android (PRD 10) | OneSignal; Pusher | Entrega não garantida; iOS depende do APNs |
-| **Armazenamento de objetos (S3 ou equivalente)** | Fotos, atas | Barato, durável, URLs assinadas (PRD 10) | Arquivos no banco | Uploads exigem validação e vírus (lacuna) |
-| **Resend ou Amazon SES** | E-mail transacional | PRD 10 | SendGrid; Mailgun | Entregabilidade (SPF, DKIM, DMARC); decisão em 5.2 |
+| **Armazenamento de objetos compatível com S3** (Supabase Storage no MVP) | Fotos, atas | Barato, durável, URLs assinadas (PRD 10); Supabase em São Paulo, gratuito para construir (ADR-004) | Arquivos no banco; S3 nativo; Cloudflare R2 | Uploads exigem validação e vírus (lacuna); limite de 1 GB no plano gratuito |
+| **Resend** | E-mail transacional | PRD 10; escolhido em 10/11/2026 (ADR-005); plano gratuito para construir | Amazon SES; SendGrid; Mailgun | Entregabilidade (SPF, DKIM, DMARC); dados fora do Brasil (LGPD); 100 e-mails por dia no plano gratuito |
 | **Sentry + logs** | Monitoramento | PRD 10 | Datadog; Grafana | Ver 5.3 (observabilidade além de Sentry é lacuna) |
 | **EAS (Expo Application Services)** | Build e atualização OTA | Parte do ecossistema Expo (Proposta de uso, não citada no PRD) | Fastlane; GitHub Actions + builds locais | Custo por build; limites do plano |
 
 ### 5.2 Decisões em aberto: critérios e recomendação
 
-**Todas as recomendações abaixo são "proposta, a decidir". Nenhuma foi decidida.** Cada uma deveria virar um ADR (seção 9).
+**Gateway, nuvem e e-mail foram decididos pelo Pedro em 10/11/2026** (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas); as comparações abaixo ficam como histórico, seguidas da decisão. **As demais recomendações continuam "proposta, a decidir".** Cada uma deveria virar um ADR (seção 9).
 
 #### Banco local do aparelho (SQLite x WatermelonDB)
 
@@ -733,7 +731,7 @@ Obrigatórios no CI, bloqueiam o merge (reforçam RNF-11 e SEG-05; detalhe em `0
 
 #### Gateway de pagamento (Asaas, Mercado Pago, Pagar.me)
 
-Critérios, a medir em prova de conceito antes de decidir:
+Critérios usados na comparação (histórico); a prova de conceito no sandbox continua como verificação da implementação:
 
 | Critério | Pergunta |
 | --- | --- |
@@ -747,7 +745,7 @@ Critérios, a medir em prova de conceito antes de decidir:
 | Qualidade | Documentação, suporte, estabilidade, SDK para Node |
 | Certificação | Gateway certificado (SEG-12) |
 
-**Proposta, a decidir:** candidato inicial **Asaas**, por ser um provedor brasileiro focado em boleto e Pix com subcontas, o que casa com o modelo (sem reter dinheiro). Não é decisão: confirmar nos critérios acima com uma prova de conceito no sandbox (subconta, boleto com Pix, webhook, reembolso). A **porta `PaymentGateway`** (seção 3.6) torna a decisão reversível. Mercado Pago e Pagar.me permanecem alternativas válidas e devem passar pelos mesmos critérios.
+**Decisão (Pedro, 10/11/2026, ADR-002): Asaas**, por ser um provedor brasileiro focado em boleto e Pix com subcontas, o que casa com o modelo (sem reter dinheiro). A prova de conceito no sandbox (subconta, boleto com Pix, webhook, reembolso) continua como verificação da implementação, não como condição da escolha. A **porta `PaymentGateway`** (seção 3.6) mantém a troca reversível. Mercado Pago e Pagar.me ficam como opções consideradas. Pendentes: KYC da subconta, chargeback, prazos reais e custo.
 
 #### E-mail transacional (Resend x Amazon SES)
 
@@ -759,7 +757,7 @@ Critérios, a medir em prova de conceito antes de decidir:
 | Coerência com a nuvem | Independente | Natural se a nuvem for AWS |
 | Região e LGPD | Provedor internacional | Região escolhida |
 
-**Proposta, a decidir:** SES se a nuvem for AWS (menos um fornecedor, custo mínimo); Resend se a nuvem for outra e a equipe quiser simplicidade. Atrás de uma porta `Mailer`, a troca é de adaptador.
+**Decisão (Pedro, 10/11/2026, ADR-005): Resend.** O SES dependia de a nuvem ser AWS, que foi descartada para construir o MVP (ADR-004). Atrás de uma porta `Mailer`, a troca é de adaptador. Pendentes: entregabilidade, LGPD (dados de e-mail fora do Brasil) e plano pago antes do piloto (o gratuito limita a 100 e-mails por dia).
 
 #### Provedor de nuvem e região
 
@@ -775,7 +773,7 @@ Critérios, a medir em prova de conceito antes de decidir:
 
 Opções: (A) AWS em São Paulo (RDS PostgreSQL, ECS Fargate ou App Runner, S3, SES, CloudFront); (B) PaaS (Render, Fly.io, Railway) com PostgreSQL gerenciado e S3 compatível (ex.: Cloudflare R2), menor operação e custo inicial, menos opções de região no Brasil; (C) outro provedor de nuvem com região no Brasil.
 
-**Proposta, a decidir:** começar por **A com poucos serviços gerenciados** se a região no Brasil e o S3 nativo pesarem mais, ou por **B** se o custo inicial e a operação enxuta pesarem mais. A decisão pede uma **estimativa de custo real** comparada ao orçamento da Visão de Produto (R$ 300 a 470/mês até 20 condomínios). Região e residência de dados são lacuna (seção 9).
+**Decisão (Pedro, 10/11/2026, ADR-004), só para construir o MVP:** **Supabase** em São Paulo (apenas PostgreSQL e Storage compatível com S3) mais **Render** (API, WebSocket e worker), desenvolvimento e staging, custo zero. A AWS foi descartada nesta fase por não caber no custo zero pedido pelo Pedro (decisão de 10/11/2026); o SES sai junto. No plano gratuito do Render só há serviço web (consulta de 10/11/2026), então o worker roda no mesmo serviço da API (mesmo processo ou segundo processo no mesmo contêiner; a confirmar na prova de conceito) e as rotinas agendadas param quando o serviço dorme, o que vale só para dev e staging. Revisão obrigatória **antes do piloto com dados reais**: custo contra o orçamento da Visão de Produto (R$ 300 a 470/mês até 20 condomínios), região, PITR e LGPD. Limitações do plano gratuito (consulta de 10/11/2026): o Render suspende sem tráfego e não tem região no Brasil; o Supabase gratuito pausa por inatividade (a confirmar) e não tem PITR. Regras de uso do Supabase: só PostgreSQL e Storage, sem Supabase Auth, Data API desligada, conexão direta ou pooler em modo sessão para pg-boss e `LISTEN/NOTIFY`. Residência de dados do piloto segue como lacuna (seção 9).
 
 #### Itens menores (propostas, a decidir)
 
@@ -821,12 +819,12 @@ Regras: `apps/*` dependem de `packages/*`, nunca o contrário; `packages/design-
 | --- | --- | --- | --- | --- |
 | Branch git | qualquer | `develop` | `staging` | `main` |
 | Para quê | Desenvolvimento | Integração contínua do time, testes manuais cedo | Ensaio idêntico à produção; testes de carga e restauração; pilotos de validação interna | Usuários reais |
-| API e worker | Processos locais | Implantação automática a cada merge | Implantação automática; promoção da `develop` | Implantação com aprovação manual |
-| Banco | PostgreSQL em contêiner | Instância pequena | Mesma versão e configuração que produção, tamanho menor | Gerenciado, com backup e PITR |
-| Objetos | Emulador S3 compatível (MinIO) | Bucket próprio | Bucket próprio | Bucket próprio |
-| E-mail | Captura local (ex.: Mailpit) | Domínio de teste, **caixa de saída falsa** | Caixa de saída falsa (nada sai) | Provedor real |
+| API e worker | Processos locais | Render gratuito, só serviço web (suspende sem tráfego); worker no mesmo serviço da API; implantação automática a cada merge | Render gratuito, só serviço web; worker no mesmo serviço da API; implantação automática; promoção da `develop` | Implantação com aprovação manual (plataforma na revisão do ADR-004) |
+| Banco | PostgreSQL em contêiner | Supabase gratuito (PostgreSQL, São Paulo) | Supabase gratuito; mesma versão que produção, tamanho menor | A definir na revisão do ADR-004 antes do piloto (com backup e PITR) |
+| Objetos | Emulador S3 compatível (MinIO) | Supabase Storage, bucket próprio | Supabase Storage, bucket próprio | Bucket próprio (provedor na revisão do ADR-004) |
+| E-mail | Captura local (ex.: Mailpit) | Domínio de teste, **caixa de saída falsa** | Caixa de saída falsa (nada sai) | Resend, real |
 | Push | Desligado ou aparelho de teste | Só aparelhos de teste cadastrados | Só aparelhos de teste cadastrados | Real |
-| Gateway | **Sandbox** | **Sandbox** | **Sandbox** | **Produção** |
+| Gateway | **Sandbox** (Asaas) | **Sandbox** (Asaas) | **Sandbox** (Asaas) | **Produção** (Asaas) |
 | Dados | Fictícios (semente) | Fictícios | Fictícios (gerador de carga com 5.000 unidades) | Reais |
 | Sentry | Desligado | Projeto dev | Projeto staging | Projeto produção |
 
@@ -840,7 +838,7 @@ Regras: `apps/*` dependem de `packages/*`, nunca o contrário; `packages/design-
 
 ### 6.3 Gateway: sandbox x produção
 
-- Dev, staging e local usam **apenas** credenciais de sandbox do provedor; a produção usa credenciais de produção guardadas no cofre de segredos e fora do alcance de outros ambientes.
+- Dev, staging e local usam **apenas** credenciais de sandbox do Asaas; a produção usa credenciais de produção guardadas no cofre de segredos e fora do alcance de outros ambientes.
 - Webhooks de sandbox apontam para os endpoints de dev e staging; os de produção só para a produção. O adaptador valida o ambiente da credencial na inicialização e se recusa a iniciar em staging com chave de produção (proteção contra erro humano, Proposta).
 - Fluxos de erro (gateway fora do ar, boleto não pago, reembolso que falha) são simulados em staging com o sandbox e com um **simulador do adaptador** (dublê) nos testes automáticos.
 
@@ -911,6 +909,7 @@ flowchart LR
 
 **Proposta.**
 
+- **No MVP (Supabase e Render gratuitos, ADR-004), RPO e RTO não são atendidos:** o plano gratuito não tem PITR e o Supabase pausa por inatividade (a confirmar); vale só para dev e staging com dados fictícios. A revisão do ADR-004 antes do piloto trata disso (ADR-013).
 - Backup diário automático do PostgreSQL (gerenciado), 7 dias de retenção, **mais** recuperação a qualquer ponto no tempo (PITR) se o custo permitir, porque com só backup diário a perda aceitável (RPO) seria de até 24 h de pagamentos, votos e finanças. Sugerir RPO ≤ 15 min e RTO ≤ 4 h como **metas a validar**, não como compromisso.
 - **Teste de restauração mensal** (RNF-13) em ambiente isolado: restaurar, subir a API e rodar a suíte de isolamento e de integridade (ex.: soma de lançamentos, cobranças x pagamentos).
 - Objetos: versionamento do bucket e replicação opcional; arquivos são parte da restauração.
@@ -939,12 +938,12 @@ flowchart LR
 | SEG-14 | Contrato padrão | Documento jurídico; arquitetura reflete: dados sempre sob o condomínio (tenant), exportação e exclusão por condomínio | 4 |
 | SEG-15 | Termo para conta de pessoa física | Aceite registrado (versão, data) no cadastro da conta; bloqueio de ativação do gateway sem o aceite | 3.6 |
 | SEG-16 | Parecer jurídico antes do lançamento | Não é mecanismo técnico: é portão de lançamento (marco 2) e **pode mudar** reclamações, score e eleições; manter regras em parâmetros e dados (seção 4.9) para ajustar sem reescrever | 9 |
-| SEG-17 | Dados financeiros e webhooks | Visibilidade por unidade e papel via RLS e API; webhook com assinatura validada, evento idempotente, conciliação diária | 3.6, 4.3 |
+| SEG-17 | Dados financeiros e webhooks | Visibilidade por unidade e papel via RLS e API; webhook com assinatura validada (texto do PRD; no Asaas a autenticação é por token no cabeçalho `asaas-access-token`, ver 3.6 e ADR-002), evento idempotente, conciliação diária | 3.6, 4.3 |
 | SEG-18 | Finanças do condomínio | RLS por papel; receitas de cobrança agregadas; folha só total; mês fechado imutável por gatilho; estornos e comentários auditados | 3.11 |
 
 **Outras práticas (Proposta):**
 
-- **LGPD, o que o docs não fecha:** base legal por tratamento, encarregado (DPO), registro de operações, lista de subprocessadores (nuvem, gateway, e-mail, Sentry, Expo/FCM) e residência de dados (seção 9). Subprocessadores internacionais (Expo, Sentry, Resend) pedem avaliação de transferência internacional.
+- **LGPD, o que o docs não fecha:** base legal por tratamento, encarregado (DPO), registro de operações, lista de subprocessadores (nuvem, gateway, e-mail, Sentry, Expo/FCM) e residência de dados (seção 9). Subprocessadores internacionais (Expo, Sentry, Resend, Render) pedem avaliação de transferência internacional.
 - **Minimização:** logs e Sentry sem dados pessoais; notificações sem conteúdo sensível na tela bloqueada (DS 15); "Indisponível" sem revelar motivo a terceiros (DS 15).
 - **Anonimização x backup:** ver seção 6.9.
 - Cabeçalhos de segurança na web, CORS restrito às origens conhecidas, proteção contra CSRF para o cookie de refresh, limite de tamanho de corpo, validação estrita de entrada.
@@ -977,19 +976,19 @@ flowchart LR
 
 ## 9. Decisões em aberto e riscos
 
-**Resumo:** a maior parte do que falta decidir é escolha de fornecedor, parecer jurídico e política operacional; cada decisão está registrada como ADR em [`docs/03-arquitetura/adr/`](adr/README.md).
+**Resumo:** gateway, nuvem e e-mail foram decididos em 10/11/2026 (ADR-002, 004 e 005, com ressalvas); o que falta decidir é, sobretudo, parecer jurídico, política operacional (RPO e RTO, retenção) e a revisão da nuvem antes do piloto; cada decisão está registrada como ADR em [`docs/03-arquitetura/adr/`](adr/README.md).
 
 ### 9.1 Decisões a registrar como ADR (Proposta)
 
-Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda sem validação do Pedro (estado Proposto ou Em aberto).
+Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; os demais ainda estão sem validação (estado Proposto).
 
 | ADR sugerido | Decisão | Estado | Depende de |
 | --- | --- | --- | --- |
 | [ADR-001](adr/001-multi-tenant-rls.md) | Multi-tenant: banco compartilhado, `condominio_id` + RLS, contexto por transação | Proposta nesta arquitetura, alinhada a PRD 10 e SEG-05 | Prova de conceito de RLS com carga |
-| [ADR-002](adr/002-gateway-de-pagamento.md) | Gateway de pagamento (Asaas, Mercado Pago, Pagar.me) | **Em aberto (UF 17)**; candidato inicial Asaas, não decidido | Prova de conceito; marco 2 do roadmap |
+| [ADR-002](adr/002-gateway-de-pagamento.md) | Gateway de pagamento: Asaas | **Aceito, com ressalvas** (Asaas, 10/11/2026) | Prova de conceito como verificação; KYC, chargeback e prazos reais; marco 2 |
 | [ADR-003](adr/003-banco-local-e-sync-offline.md) | Banco local do aparelho e sincronização offline (SQLite + SQLCipher x WatermelonDB) | Proposta, a decidir | Prova de conceito de criptografia e fila |
-| [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) | Provedor de nuvem, região e residência de dados | Em aberto | Estimativa de custo (Visão de Produto), exigências LGPD |
-| [ADR-005](adr/005-email-transacional.md) | E-mail transacional (Resend x SES) | Em aberto | [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) |
+| [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) | Provedor de nuvem, região e residência de dados | **Aceito, com ressalvas** (Supabase + Render, só MVP, 10/11/2026) | Revisão obrigatória antes do piloto com dados reais (custo, LGPD, PITR) |
+| [ADR-005](adr/005-email-transacional.md) | E-mail transacional: Resend | **Aceito, com ressalvas** (Resend, 10/11/2026) | Entregabilidade; LGPD; revisão do [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) |
 | [ADR-006](adr/006-fila-agendador-eventos.md) | Fila e agendador (pg-boss x BullMQ/Redis) e distribuição de eventos | Proposta, a decidir | Carga esperada |
 | [ADR-007](adr/007-autorizacao-jwt-sem-papeis.md) | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | Proposta | Revisão de segurança |
 | [ADR-008](adr/008-orm-query-builder-migracoes.md) | ORM / query builder e migrações | Proposta (Kysely ou Drizzle) | Necessidade de controle de transação |
@@ -1005,7 +1004,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda 
 | Pendência | Efeito na arquitetura |
 | --- | --- |
 | **Parecer jurídico (SEG-16, marco 2)** sobre score, reclamações, penalidades, eleições e termos | Pode alterar fluxos e prazos de reclamação (UF 9.1 a 9.4); por isso regras e prazos ficam em parâmetros e dados. Pode exigir mais rigor de sigilo do voto (ADR-009) |
-| **Escolha do gateway** | Define prazos reais de confirmação e erros dos fluxos 5.1 e 13.1; webhooks, subconta e conciliação ficam atrás de porta até a decisão |
+| **Gateway: escolhido (Asaas, 10/11/2026); pendem KYC da subconta, chargeback e prazos reais** | Prazos reais de confirmação e erros dos fluxos 5.1 e 13.1 só ficam conhecidos após a prova de conceito e o piloto; webhooks, subconta e conciliação ficam atrás da porta |
 | Revisão jurídica das regras de locação (Lei 8.245/1991) | Regras de voto do inquilino e divisão de despesas |
 | Reserva paga não usada — resolvida por Pedro em 08/11/2026 | Vistoria registra Não comparecimento em paga ou gratuita. Portaria consulta reservas do dia e marca Em andamento/Cumprida/Não comparecimento; registro de autor e momento, sem ampliar offline (RN-RE-09, RN-RE-10, RN-RE-13) |
 | Prazo de 5 dias para resposta do alvo da reclamação | Validar no piloto; parâmetro `reclamacao.prazo_resposta_alvo_dias` |
@@ -1015,19 +1014,19 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão, todos ainda 
 
 ### 9.3 Lacunas técnicas (seção 11 do contexto do projeto)
 
-Provedor de nuvem e região; CI/CD e IaC; ORM e migrações; fila e agendador concretos; estratégia de cache; escala horizontal de WebSockets (número de conexões por instância); modelo de dados e esquema final de RLS por unidade; como o JWT carrega vínculos (esta proposta: não carrega); estratégia detalhada de sincronização além de RN-OF-04 e RN-CH-04; **fuso horário** das rotinas à meia-noite; RPO/RTO e retenção de auditoria e logs; política de versões mínimas do cliente; observabilidade além de Sentry; segurança de uploads (vírus, URL assinado); subprocessadores e residência de dados; formato das exportações CSV/PDF; limites de taxa e anti-abuso; detalhes do painel da plataforma; estratégia de testes (`08-qualidade` vazio); KYC da subconta, chargeback, tratamento de repasses.
+Nuvem e região do piloto (o MVP usa Supabase e Render gratuitos, ADR-004); CI/CD e IaC; ORM e migrações; fila e agendador concretos; estratégia de cache; escala horizontal de WebSockets (número de conexões por instância); modelo de dados e esquema final de RLS por unidade; como o JWT carrega vínculos (esta proposta: não carrega); estratégia detalhada de sincronização além de RN-OF-04 e RN-CH-04; **fuso horário** das rotinas à meia-noite; RPO/RTO e retenção de auditoria e logs; política de versões mínimas do cliente; observabilidade além de Sentry; segurança de uploads (vírus, URL assinado); subprocessadores e residência de dados (incluindo e-mail do Resend fora do Brasil); formato das exportações CSV/PDF; limites de taxa e anti-abuso; detalhes do painel da plataforma; estratégia de testes (`08-qualidade` vazio); KYC da subconta, chargeback, tratamento de repasses.
 
 ### 9.4 Riscos principais
 
 | Risco | Impacto | Mitigação |
 | --- | --- | --- |
 | Política de RLS errada ou ausente em tabela nova | Vazamento entre condomínios (RNF-11) | Papel sem `BYPASSRLS`, `FORCE RLS`, teste de catálogo e dois-tenants no CI |
-| Cobrança é o módulo de maior peso no prazo do MVP (Visão) e depende de gateway indefinido | Atraso do MVP | Decidir gateway cedo (prova de conceito); porta `PaymentGateway`; começar por acesso, portaria offline e cobrança |
+| Cobrança é o módulo de maior peso no prazo do MVP (Visão) e depende do gateway escolhido (Asaas, ADR-002) e da verificação cadastral (KYC) da subconta, ainda sem prazo conhecido | Atraso do MVP | Testar subconta e boleto no sandbox cedo; porta `PaymentGateway`; começar por acesso, portaria offline e cobrança |
 | Complexidade do offline (divergência, relógio do aparelho, criptografia) | Falhas na portaria, que "nunca para" | Escopo restrito, testes RNF-16, prova de conceito antecipada |
 | React Native Web em telas densas e acessibilidade | Painel pouco usável ou fora de WCAG | Componentes específicos de web; axe no CI; validar com administradoras no piloto |
 | Anonimato por desenho com poucas respostas | Reidentificação por correlação | Limites mínimos aplicados no servidor; testes de DTO |
 | Sigilo do voto sem prova criptográfica | Questionamento jurídico | Registrar limite (ADR-009); parecer (SEG-16) |
-| Custo de infraestrutura acima de 10 a 15% da receita | Margem | Poucos serviços gerenciados no início; alertas 80%/100% (RNF-18); estimativa antes de ADR-004 |
+| Custo de infraestrutura acima de 10 a 15% da receita | Margem | Poucos serviços gerenciados no início; alertas 80%/100% (RNF-18); estimativa na revisão do ADR-004 antes do piloto |
 | Disponibilidade de 99,5% com equipe pequena | Quebra de meta | Duas instâncias, deploy sem indisponibilidade, monitor externo, runbooks |
 | Rotinas à meia-noite com fuso indefinido | Efeitos fora de hora (ex.: visitantes marcados "não compareceu" cedo) | ADR-012 |
 | Dependência do ecossistema Expo (versões, limites de build) | Bloqueio de entregas | Fixar versões do SDK; manter o código de domínio fora da camada de UI |

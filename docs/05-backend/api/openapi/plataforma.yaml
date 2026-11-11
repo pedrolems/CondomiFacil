@@ -1,0 +1,2638 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface da plataforma
+  version: 0.1.0-proposta
+  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro nem do PRD (caminhos, nomes de campos de entrada, códigos de erro, códigos de plano) é Proposta. Estados e regras vêm das Regras de Negócio e do MER/DER.
+
+
+    Interface do painel da plataforma, em `/v1/plataforma/*` (pasta `plataforma/`, `01-backend.md` 3.3). O **Admin da plataforma** cadastra condomínios, planos e acessos de suporte e não acessa dados de condomínios (arquitetura 4.4). O **Suporte da plataforma** abre contexto em condomínio do plano Gestão + Suporte e passa a operar por `/v1/administradora/*` com `X-Condominio-Id`, exceto reclamações e scores (SEG-13, RN-CD-16).
+
+
+    Nenhuma rota deste arquivo leva `X-Condominio-Id` nem `X-Unidade-Id`: não pertencem a um contexto de condomínio; quando a operação trata de um condomínio, ele vai no caminho. Os detalhes do painel da plataforma além de "condomínios, planos, suporte" são lacuna nos docs (arquitetura 3.2 e 9.3): documenta-se só o que tem fonte. Ações sensíveis são auditadas (SEG-08).'
+servers:
+- url: https://api.condomifacil.example
+  description: Endereço fictício; ambientes ainda não definidos (ADR-004, ADR-011).
+tags:
+- name: plataforma
+  description: Condomínios, planos, assinaturas e faturas.
+- name: configuracao
+  description: Padrões de plataforma dos parâmetros.
+- name: auditoria
+  description: Acesso do suporte e auditoria global.
+paths:
+  /v1/plataforma/planos:
+    get:
+      operationId: plataformaListarPlanos
+      summary: Lista os planos e as faixas de preço
+      description: 'Essencial (com administradora) e Gestão + Suporte (sem administradora), por faixa de unidades (RN 11). Os planos não se criam: só os preços têm versões. Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlanoPlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 00000191-0000-4000-8000-000000000191
+                  codigo: essencial
+                  nome: Essencial
+                  precos:
+                  - id: 00000192-0000-4000-8000-000000000192
+                    unidades_de: 1
+                    unidades_ate: 30
+                    valor_centavos: 9900
+                    franquia_solicitacoes: null
+                    extra_centavos: 1500
+                    vigente_desde: '2026-01-01T00:00:00-03:00'
+                    vigente_ate: null
+                    sob_consulta: false
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - RN-PL-07
+      - US-PL-01
+  /v1/plataforma/planos/{plano_id}/precos:
+    post:
+      operationId: plataformaPublicarPreco
+      summary: Publica uma nova versão de preço
+      description: 'Nova versão de preço, revista uma vez por ano; o cliente é avisado com 30 dias de antecedência e o valor vale a partir do ciclo seguinte (RN-PL-07). Faixas não se sobrepõem no mesmo plano e período (RN-PL-01). Não recalcula fatura antiga. Ação auditada (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: plano_id
+        in: path
+        required: true
+        description: Identificador do plano.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovoPrecoPlanoEntradaPlataforma'
+            example:
+              unidades_de: 1
+              unidades_ate: 30
+              valor_centavos: 10900
+              franquia_solicitacoes: null
+              extra_centavos: 1500
+              vigente_desde: '2027-01-01T00:00:00-03:00'
+              sob_consulta: false
+      responses:
+        '201':
+          description: Versão publicada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrecoPlanoPlataforma'
+              example:
+                id: 00000192-0000-4000-8000-000000000192
+                unidades_de: 1
+                unidades_ate: 30
+                valor_centavos: 9900
+                franquia_solicitacoes: null
+                extra_centavos: 1500
+                vigente_desde: '2026-01-01T00:00:00-03:00'
+                vigente_ate: null
+                sob_consulta: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                sobreposicao:
+                  summary: Faixas sobrepostas no mesmo plano e período (RN-PL-01)
+                  value:
+                    codigo: PRECO_FAIXA_SOBREPOSTA
+                    mensagem: Já existe preço vigente para esta faixa no período.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-07
+      - US-PL-01
+      - SEG-08
+  /v1/plataforma/condominios:
+    get:
+      operationId: plataformaListarCondominios
+      summary: Lista os condomínios
+      description: 'Condomínios cadastrados, com plano e número de unidades. Só dados da plataforma (arquitetura 4.4). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: plano
+        in: query
+        required: false
+        description: Filtra pelo código do plano.
+        schema:
+          type: string
+          enum:
+          - essencial
+          - gestao_suporte
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no nome.
+        schema:
+          type: string
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `nome`.
+        schema:
+          type: string
+          enum:
+          - nome
+          - -nome
+          default: nome
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CondominioPlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 0000019b-0000-4000-8000-00000000019b
+                  nome: Condomínio Residencial Exemplo
+                  documento_mascarado: '**.***.***/0001-**'
+                  fuso_horario: America/Sao_Paulo
+                  plano:
+                    codigo: essencial
+                    nome: Essencial
+                  unidades_apuradas: 120
+                  administradora_id: 0000019c-0000-4000-8000-00000000019c
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - US-PL-01
+    post:
+      operationId: plataformaCadastrarCondominio
+      summary: Cadastra um condomínio
+      description: 'Cadastra o condomínio e sua assinatura; a faixa vem do número de unidades cadastradas e a mudança de faixa vale a partir do ciclo seguinte (RN-PL-01). Ação auditada na auditoria da plataforma (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CondominioEntradaPlataforma'
+            example:
+              nome: Condomínio Residencial Exemplo
+              documento: '12345678000190'
+              fuso_horario: America/Sao_Paulo
+              plano_codigo: essencial
+              ciclo_dia: 10
+      responses:
+        '201':
+          description: Condomínio cadastrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CondominioPlataforma'
+              example:
+                id: 0000019b-0000-4000-8000-00000000019b
+                nome: Condomínio Residencial Exemplo
+                documento_mascarado: '**.***.***/0001-**'
+                fuso_horario: America/Sao_Paulo
+                plano:
+                  codigo: essencial
+                  nome: Essencial
+                unidades_apuradas: 120
+                administradora_id: 0000019c-0000-4000-8000-00000000019c
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                negociado:
+                  summary: Faixa sob consulta sem valor negociado (RN 11)
+                  value:
+                    codigo: ASSINATURA_ACIMA_DE_600_SEM_VALOR_NEGOCIADO
+                    mensagem: Acima de 600 unidades, informe o valor e a franquia contratados.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - US-PL-01
+      - SEG-08
+  /v1/plataforma/condominios/{condominio_id}:
+    get:
+      operationId: plataformaObterCondominio
+      summary: Detalha um condomínio
+      description: 'Dados da plataforma do condomínio. Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      responses:
+        '200':
+          description: Condomínio.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CondominioPlataforma'
+              example:
+                id: 0000019b-0000-4000-8000-00000000019b
+                nome: Condomínio Residencial Exemplo
+                documento_mascarado: '**.***.***/0001-**'
+                fuso_horario: America/Sao_Paulo
+                plano:
+                  codigo: essencial
+                  nome: Essencial
+                unidades_apuradas: 120
+                administradora_id: 0000019c-0000-4000-8000-00000000019c
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - US-PL-01
+    put:
+      operationId: plataformaAtualizarCondominio
+      summary: Atualiza um condomínio
+      description: 'Altera nome, documento e fuso. A troca de plano é por `/assinatura` e vale a partir do ciclo seguinte (RN-PL-01). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CondominioEntradaPlataforma'
+            example:
+              nome: Condomínio Residencial Exemplo
+              documento: '12345678000190'
+              plano_codigo: essencial
+      responses:
+        '200':
+          description: Condomínio atualizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CondominioPlataforma'
+              example:
+                id: 0000019b-0000-4000-8000-00000000019b
+                nome: Condomínio Residencial Exemplo
+                documento_mascarado: '**.***.***/0001-**'
+                fuso_horario: America/Sao_Paulo
+                plano:
+                  codigo: essencial
+                  nome: Essencial
+                unidades_apuradas: 120
+                administradora_id: 0000019c-0000-4000-8000-00000000019c
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - US-PL-01
+      - SEG-08
+  /v1/plataforma/condominios/{condominio_id}/assinatura:
+    put:
+      operationId: plataformaAlterarAssinatura
+      summary: Altera o plano do condomínio
+      description: 'Mudança de plano ou de faixa vale a partir do ciclo seguinte e não recalcula fatura antiga (RN-PL-01). Ação auditada (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssinaturaEntradaPlataforma'
+            example:
+              plano_codigo: gestao_suporte
+      responses:
+        '200':
+          description: Assinatura agendada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssinaturaPlataforma'
+              example:
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                plano:
+                  codigo: gestao_suporte
+                  nome: Gestão + Suporte
+                preco_plano_id: 00000193-0000-4000-8000-000000000193
+                ciclo_dia: 10
+                efetiva_a_partir_de: '2026-12-10T00:00:00-03:00'
+                valor_negociado_centavos: null
+                franquia_negociada: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                comAdministradora:
+                  summary: Gestão + Suporte é para condomínio sem administradora (RN 11)
+                  value:
+                    codigo: PLANO_GESTAO_SUPORTE_COM_ADMINISTRADORA
+                    mensagem: Condomínio com administradora usa o plano Essencial.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-02
+      - US-PL-01
+      - SEG-08
+  /v1/plataforma/condominios/{condominio_id}/administracao:
+    post:
+      operationId: plataformaRegistrarContratacaoDeAdministradora
+      summary: Registra a contratação de uma administradora
+      description: 'Condomínio do Gestão + Suporte que contrata administradora passa ao Essencial no ciclo seguinte e o suporte perde o acesso (RN-PL-06). Ação auditada (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdministracaoEntradaPlataforma'
+            example:
+              administradora_id: 0000019c-0000-4000-8000-00000000019c
+              inicio: '2026-11-10T00:00:00-03:00'
+      responses:
+        '201':
+          description: Contratação registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdministracaoPlataforma'
+              example:
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                administradora_id: 0000019c-0000-4000-8000-00000000019c
+                inicio: '2026-11-10T00:00:00-03:00'
+                plano_apos: essencial
+                suporte_perde_acesso_em: '2026-12-10T00:00:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaTem:
+                  summary: No máximo uma administradora operacional vigente (MER/DER 4.2)
+                  value:
+                    codigo: CONDOMINIO_JA_TEM_ADMINISTRADORA
+                    mensagem: Este condomínio já tem uma administradora vigente.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-06
+      - RN-CD-16
+      - US-PL-01
+      - SEG-08
+  /v1/plataforma/condominios/{condominio_id}/faturas:
+    get:
+      operationId: plataformaListarFaturas
+      summary: Lista as faturas da plataforma ao condomínio
+      description: 'Faturas da assinatura, com o valor da faixa e as solicitações além da franquia a R$ 15 cada, na fatura seguinte (RN-PL-05). Não é a cobrança da taxa condominial das unidades. Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FaturaPlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000001a5-0000-4000-8000-0000000001a5
+                  competencia: 2026-11
+                  ciclo_inicio: '2026-11-10'
+                  ciclo_fim: '2026-12-09'
+                  unidades_apuradas: 120
+                  franquia_apurada: null
+                  total_centavos: 29900
+                  estado: emitida
+                  itens:
+                  - tipo: assinatura
+                    descricao: Plano Essencial, 81 a 150 unidades
+                    quantidade: 1
+                    unitario_centavos: 29900
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-PL-01
+      - RN-PL-05
+      - US-PL-01
+  /v1/plataforma/autorizacoes-suporte:
+    get:
+      operationId: plataformaListarAutorizacoesDeSuporte
+      summary: Lista as autorizações de acesso de suporte
+      description: 'Quem pode abrir contexto em qual condomínio (RN-CD-16). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: condominio_id
+        in: query
+        required: false
+        description: Filtra por condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: vigentes
+        in: query
+        required: false
+        description: Verdadeiro lista só as vigentes.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AutorizacaoSuportePlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000001af-0000-4000-8000-0000000001af
+                  usuario:
+                    id: 000001b0-0000-4000-8000-0000000001b0
+                    nome: Rita Campos
+                  condominio_id: 0000019b-0000-4000-8000-00000000019b
+                  inicio: '2026-11-10T08:00:00-03:00'
+                  fim: null
+                  concedido_por:
+                    nome: Admin da Plataforma
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - SEG-13
+      - US-PL-02
+    post:
+      operationId: plataformaConcederAcessoDeSuporte
+      summary: Concede acesso de suporte a um condomínio
+      description: 'O suporte só acessa condomínios do plano Gestão + Suporte, e a pessoa precisa ter a atribuição global de Suporte vigente (RN-CD-16, MER/DER 4.3). Ação auditada (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutorizacaoSuporteEntradaPlataforma'
+            example:
+              usuario_id: 000001b0-0000-4000-8000-0000000001b0
+              condominio_id: 0000019b-0000-4000-8000-00000000019b
+              inicio: '2026-11-10T08:00:00-03:00'
+      responses:
+        '201':
+          description: Acesso concedido.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutorizacaoSuportePlataforma'
+              example:
+                id: 000001af-0000-4000-8000-0000000001af
+                usuario:
+                  id: 000001b0-0000-4000-8000-0000000001b0
+                  nome: Rita Campos
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                inicio: '2026-11-10T08:00:00-03:00'
+                fim: null
+                concedido_por:
+                  nome: Admin da Plataforma
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                plano:
+                  summary: Condomínio do plano Essencial (RN-CD-16)
+                  value:
+                    codigo: CONDOMINIO_FORA_DO_PLANO_GESTAO_SUPORTE
+                    mensagem: O suporte só acessa condomínios do plano Gestão + Suporte.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semAtribuicao:
+                  summary: Sem atribuição global vigente (MER/DER 4.3)
+                  value:
+                    codigo: USUARIO_SEM_ATRIBUICAO_DE_SUPORTE
+                    mensagem: Esta pessoa não tem a atribuição de suporte da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - SEG-13
+      - US-PL-02
+      - SEG-08
+  /v1/plataforma/autorizacoes-suporte/{autorizacao_id}/encerramento:
+    post:
+      operationId: plataformaEncerrarAcessoDeSuporte
+      summary: Encerra um acesso de suporte
+      description: 'Define o fim da autorização; o histórico dos acessos é mantido (SEG-13). Ação auditada (SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: autorizacao_id
+        in: path
+        required: true
+        description: Identificador da autorização.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fim:
+                  $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+            example:
+              fim: '2026-11-10T18:00:00-03:00'
+      responses:
+        '200':
+          description: Autorização encerrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutorizacaoSuportePlataforma'
+              example:
+                id: 000001af-0000-4000-8000-0000000001af
+                usuario:
+                  id: 000001b0-0000-4000-8000-0000000001b0
+                  nome: Rita Campos
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                inicio: '2026-11-10T08:00:00-03:00'
+                fim: '2026-11-10T18:00:00-03:00'
+                concedido_por:
+                  nome: Admin da Plataforma
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaEncerrada:
+                  summary: Autorização com `fim` registrado (SEG-13)
+                  value:
+                    codigo: AUTORIZACAO_JA_ENCERRADA
+                    mensagem: Esta autorização já foi encerrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - SEG-13
+      - US-PL-02
+      - SEG-08
+  /v1/plataforma/condominios/{condominio_id}/contexto-suporte:
+    post:
+      operationId: plataformaAbrirContextoDeSuporte
+      summary: Abre o contexto de suporte em um condomínio
+      description: 'Verifica na hora de abrir que o condomínio é do plano Gestão + Suporte e que há autorização vigente, e registra o acesso (quem, condomínio, quando, finalidade). Depois, o suporte opera por `/v1/administradora/*` com `X-Condominio-Id`, sem acesso a reclamações e scores. Perde o acesso quando o condomínio contrata administradora (RN-PL-06). Só o Suporte; o Admin da plataforma não acessa dados de condomínios. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbrirContextoSuporteEntradaPlataforma'
+            example:
+              finalidade: Atender solicitação de cadastro de moradores.
+      responses:
+        '201':
+          description: Contexto aberto e acesso registrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcessoSuportePlataforma'
+              example:
+                id: 000001b9-0000-4000-8000-0000000001b9
+                autorizacao_id: 000001af-0000-4000-8000-0000000001af
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                iniciado_em: '2026-11-10T09:00:00-03:00'
+                encerrado_em: null
+                finalidade: Atender solicitação de cadastro de moradores.
+                recurso_acessado: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Admin da plataforma não abre contexto em condomínio (arquitetura 4.4)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para suporte da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                plano:
+                  summary: Condomínio do plano Essencial (RN-CD-16, RN-PL-06)
+                  value:
+                    codigo: CONDOMINIO_FORA_DO_PLANO_GESTAO_SUPORTE
+                    mensagem: O suporte só acessa condomínios do plano Gestão + Suporte.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - RN-PL-06
+      - SEG-13
+      - US-PL-02
+  /v1/plataforma/acessos-suporte/{acesso_id}/encerramento:
+    post:
+      operationId: plataformaEncerrarContextoDeSuporte
+      summary: Encerra o contexto de suporte
+      description: 'Registra o fim do acesso (SEG-13). Só o Suporte. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: acesso_id
+        in: path
+        required: true
+        description: Identificador do acesso.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      responses:
+        '200':
+          description: Acesso encerrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcessoSuportePlataforma'
+              example:
+                id: 000001b9-0000-4000-8000-0000000001b9
+                autorizacao_id: 000001af-0000-4000-8000-0000000001af
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                iniciado_em: '2026-11-10T09:00:00-03:00'
+                encerrado_em: '2026-11-10T09:30:00-03:00'
+                finalidade: Atender solicitação de cadastro de moradores.
+                recurso_acessado: null
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Admin da plataforma não abre contexto em condomínio (arquitetura 4.4)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para suporte da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaEncerrado:
+                  summary: Acesso com `encerrado_em` (SEG-13)
+                  value:
+                    codigo: ACESSO_JA_ENCERRADO
+                    mensagem: Este acesso já foi encerrado.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - SEG-13
+      - US-PL-02
+  /v1/plataforma/acessos-suporte:
+    get:
+      operationId: plataformaListarAcessosDeSuporte
+      summary: Consulta o registro de acessos do suporte
+      description: 'Cada acesso fica registrado (SEG-13, RN-CD-16). Sem conteúdo de reclamação nem de score. Só o Admin da plataforma. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: condominio_id
+        in: query
+        required: false
+        description: Filtra por condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: usuario_id
+        in: query
+        required: false
+        description: Filtra por pessoa do suporte.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: de
+        in: query
+        required: false
+        description: Iniciados a partir desta data (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Iniciados até esta data (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-iniciado_em`.
+        schema:
+          type: string
+          enum:
+          - iniciado_em
+          - -iniciado_em
+          default: -iniciado_em
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AcessoSuportePlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000001b9-0000-4000-8000-0000000001b9
+                  autorizacao_id: 000001af-0000-4000-8000-0000000001af
+                  condominio_id: 0000019b-0000-4000-8000-00000000019b
+                  iniciado_em: '2026-11-10T09:00:00-03:00'
+                  encerrado_em: null
+                  finalidade: Atender solicitação de cadastro de moradores.
+                  recurso_acessado: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-CD-16
+      - SEG-13
+      - US-PL-02
+  /v1/plataforma/auditoria:
+    get:
+      operationId: plataformaListarAuditoria
+      summary: Consulta a auditoria da plataforma
+      description: 'Alterações globais: preços, condomínios, assinaturas, padrões de parâmetros e acessos de suporte (SEG-08, SEG-13). Não traz conteúdo operacional de condomínios. Só o Admin da plataforma. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - auditoria
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: acao
+        in: query
+        required: false
+        description: Filtra pela ação.
+        schema:
+          type: string
+      - name: de
+        in: query
+        required: false
+        description: Registradas a partir desta data (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Registradas até esta data (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-registrada_em`.
+        schema:
+          type: string
+          enum:
+          - registrada_em
+          - -registrada_em
+          default: -registrada_em
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditoriaPlataformaItem'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000001c3-0000-4000-8000-0000000001c3
+                  ator:
+                    nome: Admin da Plataforma
+                  acao: preco_plano.publicado
+                  entidade_tipo: preco_plano
+                  entidade_referencia: 00000192-0000-4000-8000-000000000192
+                  antes_sanitizado: null
+                  depois_sanitizado:
+                    valor_centavos: 10900
+                  registrada_em: '2026-11-10T10:00:00-03:00'
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - SEG-08
+      - SEG-13
+      - RN-GE-01
+  /v1/plataforma/condominios/{condominio_id}/solicitacoes-suporte/contagem:
+    get:
+      operationId: plataformaContarSolicitacoesDeSuporte
+      summary: Conta as solicitações de suporte do mês
+      description: 'Plano Gestão + Suporte: franquia de 10, 25 ou 50 por faixa; recusadas e a importação inicial não contam; excedente de R$ 15 vai para a fatura seguinte (RF-AD-16, RN-PL-03 a RN-PL-05). Admin da plataforma e Suporte. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - plataforma
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: path
+        required: true
+        description: Identificador do condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: competencia
+        in: query
+        required: false
+        description: 'Competência aaaa-mm. Padrão: mês corrente.'
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-(0[1-9]|1[0-2])$
+          examples:
+          - 2026-11
+      responses:
+        '200':
+          description: Contagem do mês.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContagemSolicitacoesSuportePlataforma'
+              example:
+                condominio_id: 0000019b-0000-4000-8000-00000000019b
+                competencia: 2026-11
+                franquia_mensal: 10
+                atendidas: 12
+                excedentes: 2
+                valor_por_excedente_centavos: 1500
+                valor_excedente_centavos: 3000
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-16
+      - RN-PL-03
+      - RN-PL-04
+      - RN-PL-05
+      - US-PL-02
+  /v1/plataforma/parametros:
+    get:
+      operationId: plataformaListarPadroesDeParametros
+      summary: Lista os padrões de plataforma dos parâmetros
+      description: 'Catálogo de 36 parâmetros com o padrão e a faixa permitida; o padrão de plataforma é alterado pelo admin da plataforma (RN 13). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - configuracao
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre na chave ou descrição.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ParametroPadraoPlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - chave: cobranca.dia_vencimento
+                  descricao: Dia de vencimento da taxa condominial
+                  regra: RN-FI-04
+                  minimo: 1
+                  maximo: 28
+                  niveis_permitidos:
+                  - condominio
+                  valor_padrao: 10
+                  vigente_desde: '2026-01-01T00:00:00-03:00'
+                  proxima_vigencia: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-GE-01
+      - RN-GE-02
+      - RN-GE-03
+      - US-AD-04
+  /v1/plataforma/parametros/{chave}/padrao:
+    put:
+      operationId: plataformaDefinirPadraoDeParametro
+      summary: Define o padrão de plataforma de um parâmetro
+      description: 'Grava nova versão do padrão. Valor fora da faixa é recusado com a faixa na mensagem (RN 13). Reservas, reclamações e votações em andamento seguem as regras de quando foram criadas (RN-GE-03). Auditado com valor antigo e novo (RN-GE-01, SEG-08). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - configuracao
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: chave
+        in: path
+        required: true
+        description: Chave do parâmetro do catálogo (RN 13).
+        schema:
+          type: string
+          enum:
+          - score.limite_bloqueio_gratuitas
+          - score.pontos_leve
+          - score.pontos_media
+          - score.pontos_grave
+          - score.penalidade_desproporcional
+          - score.penalidade_falsa
+          - reclamacao.prazo_decisao_dias
+          - reclamacao.prazo_resposta_alvo_dias
+          - reserva.tipo
+          - reserva.valor
+          - reserva.prazo_pagamento_horas
+          - reserva.prazo_cancelamento_reembolso_horas
+          - reserva.antecedencia_min_horas
+          - reserva.antecedencia_max_dias
+          - reserva.limite_mensal_por_unidade
+          - reserva.lembrete_antecedencia_horas
+          - chamado.prazo_limpeza_horas
+          - chamado.prazo_manutencao_resposta_horas
+          - chamado.janela_avaliacao_dias
+          - encomenda.prazo_guarda_dias
+          - entrega_esperada.limite_por_unidade
+          - entrega_esperada.tolerancia_vinculo_dias
+          - visitante.retencao_meses
+          - visitante.lista_max_pessoas
+          - mandato.reeleicao_permitida
+          - cobranca.formas_pagamento
+          - cobranca.dia_vencimento
+          - cobranca.antecedencia_emissao_dias
+          - cobranca.multa_atraso_pct
+          - cobranca.juros_mes_pct
+          - cobranca.desconto_pontualidade_pct
+          - cobranca.bloqueia_reserva_em_atraso
+          - financeiro.dia_fechamento_mes
+          - locacao.aviso_fim_contrato_dias
+          - locacao.carencia_fim_contrato_dias
+          - locacao.temporada_permitida
+          examples:
+          - cobranca.dia_vencimento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefinirPadraoEntradaPlataforma'
+            example:
+              valor: 12
+              vigente_desde: '2027-01-01T00:00:00-03:00'
+      responses:
+        '200':
+          description: Padrão atualizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParametroPadraoPlataforma'
+              example:
+                chave: cobranca.dia_vencimento
+                descricao: Dia de vencimento da taxa condominial
+                regra: RN-FI-04
+                minimo: 1
+                maximo: 28
+                niveis_permitidos:
+                - condominio
+                valor_padrao: 12
+                vigente_desde: '2026-01-01T00:00:00-03:00'
+                proxima_vigencia: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                foraDaFaixa:
+                  summary: Valor recusado com a faixa na mensagem (RN 13)
+                  value:
+                    codigo: PARAMETRO_FORA_DA_FAIXA
+                    mensagem: Valor fora da faixa permitida. Informe de 1 a 28.
+                    detalhes:
+                    - campo: valor
+                      codigo: PARAMETRO_FORA_DA_FAIXA
+                      mensagem: 'Faixa permitida: 1 a 28.'
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-GE-01
+      - RN-GE-02
+      - RN-GE-03
+      - US-AD-04
+      - SEG-08
+  /v1/plataforma/parametros/{chave}/padrao/historico:
+    get:
+      operationId: plataformaListarHistoricoDoPadrao
+      summary: Histórico do padrão de plataforma
+      description: 'Histórico imutável com vigências passadas e futuras (RN-GE-01, RN-GE-02). Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      tags:
+      - configuracao
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: chave
+        in: path
+        required: true
+        description: Chave do parâmetro do catálogo (RN 13).
+        schema:
+          type: string
+          enum:
+          - score.limite_bloqueio_gratuitas
+          - score.pontos_leve
+          - score.pontos_media
+          - score.pontos_grave
+          - score.penalidade_desproporcional
+          - score.penalidade_falsa
+          - reclamacao.prazo_decisao_dias
+          - reclamacao.prazo_resposta_alvo_dias
+          - reserva.tipo
+          - reserva.valor
+          - reserva.prazo_pagamento_horas
+          - reserva.prazo_cancelamento_reembolso_horas
+          - reserva.antecedencia_min_horas
+          - reserva.antecedencia_max_dias
+          - reserva.limite_mensal_por_unidade
+          - reserva.lembrete_antecedencia_horas
+          - chamado.prazo_limpeza_horas
+          - chamado.prazo_manutencao_resposta_horas
+          - chamado.janela_avaliacao_dias
+          - encomenda.prazo_guarda_dias
+          - entrega_esperada.limite_por_unidade
+          - entrega_esperada.tolerancia_vinculo_dias
+          - visitante.retencao_meses
+          - visitante.lista_max_pessoas
+          - mandato.reeleicao_permitida
+          - cobranca.formas_pagamento
+          - cobranca.dia_vencimento
+          - cobranca.antecedencia_emissao_dias
+          - cobranca.multa_atraso_pct
+          - cobranca.juros_mes_pct
+          - cobranca.desconto_pontualidade_pct
+          - cobranca.bloqueia_reserva_em_atraso
+          - financeiro.dia_fechamento_mes
+          - locacao.aviso_fim_contrato_dias
+          - locacao.carencia_fim_contrato_dias
+          - locacao.temporada_permitida
+          examples:
+          - cobranca.dia_vencimento
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de resultados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PadraoHistoricoPlataforma'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - valor: 10
+                  vigente_desde: '2026-01-01T00:00:00-03:00'
+                  registrado_em: '2025-12-20T10:00:00-03:00'
+                  registrado_por:
+                    nome: Admin da Plataforma
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para o papel efetivo ou sem vínculo com o condomínio (guards de contexto e papel).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semPermissao:
+                  summary: Suporte da plataforma recebe 403 (PRD 3)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para admin da plataforma.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-GE-01
+      - RN-GE-02
+      - RN-GE-03
+      - US-AD-04
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  schemas:
+    PrecoPlanoPlataforma:
+      type: object
+      required:
+      - id
+      - unidades_de
+      - extra_centavos
+      - vigente_desde
+      - sob_consulta
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidades_de:
+          type: integer
+          examples:
+          - 1
+        unidades_ate:
+          type:
+          - integer
+          - 'null'
+          examples:
+          - 30
+        valor_centavos:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+        franquia_solicitacoes:
+          type:
+          - integer
+          - 'null'
+          examples:
+          - 10
+        extra_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        vigente_desde:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        vigente_ate:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        sob_consulta:
+          type: boolean
+          examples:
+          - false
+    PlanoPlataforma:
+      type: object
+      required:
+      - id
+      - codigo
+      - nome
+      - precos
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        codigo:
+          type: string
+          enum:
+          - essencial
+          - gestao_suporte
+          description: Código (Proposta).
+          examples:
+          - essencial
+        nome:
+          type: string
+          examples:
+          - Essencial
+        precos:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrecoPlanoPlataforma'
+          description: Faixas e versões de preço, sem sobreposição no mesmo plano e período.
+    NovoPrecoPlanoEntradaPlataforma:
+      type: object
+      required:
+      - unidades_de
+      - extra_centavos
+      - vigente_desde
+      properties:
+        unidades_de:
+          type: integer
+          examples:
+          - 1
+        unidades_ate:
+          type:
+          - integer
+          - 'null'
+          examples:
+          - 30
+        valor_centavos:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+        franquia_solicitacoes:
+          type:
+          - integer
+          - 'null'
+          examples:
+          - 10
+        extra_centavos:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          description: Valor de cada solicitação além da franquia (RN-PL-05).
+        vigente_desde:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        sob_consulta:
+          type: boolean
+          examples:
+          - false
+    CondominioPlataforma:
+      type: object
+      description: Só dados da plataforma; nenhum dado operacional do condomínio.
+      required:
+      - id
+      - nome
+      - plano
+      - unidades_apuradas
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+          examples:
+          - Condomínio Residencial Exemplo
+        documento_mascarado:
+          type:
+          - string
+          - 'null'
+          examples:
+          - '**.***.***/0001-**'
+        fuso_horario:
+          type:
+          - string
+          - 'null'
+          examples:
+          - America/Sao_Paulo
+        plano:
+          type: object
+          required:
+          - codigo
+          - nome
+          properties:
+            codigo:
+              type: string
+              examples:
+              - essencial
+            nome:
+              type: string
+              examples:
+              - Essencial
+        unidades_apuradas:
+          type: integer
+          description: Unidades cadastradas, que definem a faixa (RN-PL-01).
+          examples:
+          - 120
+        administradora_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    CondominioEntradaPlataforma:
+      type: object
+      required:
+      - nome
+      - plano_codigo
+      properties:
+        nome:
+          type: string
+          examples:
+          - Condomínio Residencial Exemplo
+        documento:
+          type:
+          - string
+          - 'null'
+          examples:
+          - '12345678000190'
+        fuso_horario:
+          type:
+          - string
+          - 'null'
+          description: Proposta do ADR-012.
+          examples:
+          - America/Sao_Paulo
+        plano_codigo:
+          type: string
+          enum:
+          - essencial
+          - gestao_suporte
+          examples:
+          - essencial
+        ciclo_dia:
+          type: integer
+          minimum: 1
+          maximum: 28
+          description: Dia do ciclo de cobrança da assinatura.
+          examples:
+          - 10
+        valor_negociado_centavos:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+          description: Só acima de 600 unidades (sob consulta).
+        franquia_negociada:
+          type:
+          - integer
+          - 'null'
+    AssinaturaEntradaPlataforma:
+      type: object
+      required:
+      - plano_codigo
+      properties:
+        plano_codigo:
+          type: string
+          enum:
+          - essencial
+          - gestao_suporte
+          examples:
+          - gestao_suporte
+        valor_negociado_centavos:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+        franquia_negociada:
+          type:
+          - integer
+          - 'null'
+    AssinaturaPlataforma:
+      type: object
+      required:
+      - condominio_id
+      - plano
+      - preco_plano_id
+      - efetiva_a_partir_de
+      properties:
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        plano:
+          type: object
+          required:
+          - codigo
+          - nome
+          properties:
+            codigo:
+              type: string
+              examples:
+              - gestao_suporte
+            nome:
+              type: string
+              examples:
+              - Gestão + Suporte
+        preco_plano_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        ciclo_dia:
+          type: integer
+          examples:
+          - 10
+        efetiva_a_partir_de:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Início do ciclo seguinte (RN-PL-01, RN-PL-06).
+        valor_negociado_centavos:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+        franquia_negociada:
+          type:
+          - integer
+          - 'null'
+    AdministracaoEntradaPlataforma:
+      type: object
+      required:
+      - administradora_id
+      properties:
+        administradora_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    AdministracaoPlataforma:
+      type: object
+      required:
+      - condominio_id
+      - administradora_id
+      - inicio
+      - plano_apos
+      - suporte_perde_acesso_em
+      properties:
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        administradora_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        plano_apos:
+          type: string
+          description: Plano a partir do ciclo seguinte.
+          examples:
+          - essencial
+        suporte_perde_acesso_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: O suporte perde o acesso no ciclo seguinte (RN-PL-06).
+    FaturaPlataforma:
+      type: object
+      required:
+      - id
+      - competencia
+      - ciclo_inicio
+      - ciclo_fim
+      - unidades_apuradas
+      - total_centavos
+      - estado
+      - itens
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        competencia:
+          type: string
+          examples:
+          - 2026-11
+        ciclo_inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        ciclo_fim:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        unidades_apuradas:
+          type: integer
+          examples:
+          - 120
+        franquia_apurada:
+          type:
+          - integer
+          - 'null'
+          examples:
+          - 10
+        total_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        estado:
+          type: string
+          description: 'Estado da fatura (valores: lacuna).'
+          examples:
+          - emitida
+        itens:
+          type: array
+          items:
+            type: object
+            required:
+            - tipo
+            - descricao
+            - quantidade
+            - unitario_centavos
+            properties:
+              tipo:
+                type: string
+                examples:
+                - assinatura
+              descricao:
+                type: string
+                examples:
+                - Plano Essencial, 81 a 150 unidades
+              quantidade:
+                type: integer
+                examples:
+                - 1
+              unitario_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+    AutorizacaoSuportePlataforma:
+      type: object
+      required:
+      - id
+      - usuario
+      - condominio_id
+      - inicio
+      - concedido_por
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        usuario:
+          type: object
+          required:
+          - id
+          - nome
+          properties:
+            id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            nome:
+              type: string
+              examples:
+              - Rita Campos
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        concedido_por:
+          type: object
+          required:
+          - nome
+          properties:
+            nome:
+              type: string
+              examples:
+              - Admin da Plataforma
+    AutorizacaoSuporteEntradaPlataforma:
+      type: object
+      required:
+      - usuario_id
+      - condominio_id
+      properties:
+        usuario_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    AbrirContextoSuporteEntradaPlataforma:
+      type: object
+      required:
+      - finalidade
+      properties:
+        finalidade:
+          type: string
+          description: Motivo do acesso, registrado (SEG-13).
+          examples:
+          - Atender solicitação de cadastro de moradores.
+    AcessoSuportePlataforma:
+      type: object
+      description: Registro do acesso. Nunca guarda conteúdo de reclamação nem de score (MER/DER 4.3).
+      required:
+      - id
+      - autorizacao_id
+      - condominio_id
+      - iniciado_em
+      - finalidade
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        autorizacao_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        condominio_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Use este valor em `X-Condominio-Id` nas rotas de `/v1/administradora/*`.
+        iniciado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        encerrado_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        finalidade:
+          type: string
+          examples:
+          - Atender solicitação de cadastro de moradores.
+        recurso_acessado:
+          type:
+          - string
+          - 'null'
+          description: Tela ou recurso acessado, preenchido pelo servidor (arquitetura 4.4).
+    AuditoriaPlataformaItem:
+      type: object
+      description: Só alterações globais; não replica conteúdo operacional dos condomínios (MER/DER 4.12).
+      required:
+      - id
+      - ator
+      - acao
+      - entidade_tipo
+      - entidade_referencia
+      - registrada_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        ator:
+          type: object
+          required:
+          - nome
+          properties:
+            nome:
+              type: string
+              examples:
+              - Admin da Plataforma
+        acao:
+          type: string
+          examples:
+          - preco_plano.publicado
+        entidade_tipo:
+          type: string
+          examples:
+          - preco_plano
+        entidade_referencia:
+          type: string
+          examples:
+          - 00000192-0000-4000-8000-000000000192
+        antes_sanitizado:
+          type:
+          - object
+          - 'null'
+        depois_sanitizado:
+          type:
+          - object
+          - 'null'
+        registrada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    ContagemSolicitacoesSuportePlataforma:
+      type: object
+      required:
+      - condominio_id
+      - competencia
+      - franquia_mensal
+      - atendidas
+      - excedentes
+      - valor_por_excedente_centavos
+      - valor_excedente_centavos
+      properties:
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        competencia:
+          type: string
+          examples:
+          - 2026-11
+        franquia_mensal:
+          type: integer
+          description: Pela faixa de unidades; as não usadas não acumulam (RN-PL-04).
+          examples:
+          - 10
+        atendidas:
+          type: integer
+          description: Pedidos atendidos no mês, sem a importação inicial (RN-PL-03).
+          examples:
+          - 12
+        excedentes:
+          type: integer
+          description: Atendidas além da franquia.
+          examples:
+          - 2
+        valor_por_excedente_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        valor_excedente_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+    ParametroPadraoPlataforma:
+      type: object
+      required:
+      - chave
+      - regra
+      - niveis_permitidos
+      - valor_padrao
+      - vigente_desde
+      properties:
+        chave:
+          type: string
+          enum:
+          - score.limite_bloqueio_gratuitas
+          - score.pontos_leve
+          - score.pontos_media
+          - score.pontos_grave
+          - score.penalidade_desproporcional
+          - score.penalidade_falsa
+          - reclamacao.prazo_decisao_dias
+          - reclamacao.prazo_resposta_alvo_dias
+          - reserva.tipo
+          - reserva.valor
+          - reserva.prazo_pagamento_horas
+          - reserva.prazo_cancelamento_reembolso_horas
+          - reserva.antecedencia_min_horas
+          - reserva.antecedencia_max_dias
+          - reserva.limite_mensal_por_unidade
+          - reserva.lembrete_antecedencia_horas
+          - chamado.prazo_limpeza_horas
+          - chamado.prazo_manutencao_resposta_horas
+          - chamado.janela_avaliacao_dias
+          - encomenda.prazo_guarda_dias
+          - entrega_esperada.limite_por_unidade
+          - entrega_esperada.tolerancia_vinculo_dias
+          - visitante.retencao_meses
+          - visitante.lista_max_pessoas
+          - mandato.reeleicao_permitida
+          - cobranca.formas_pagamento
+          - cobranca.dia_vencimento
+          - cobranca.antecedencia_emissao_dias
+          - cobranca.multa_atraso_pct
+          - cobranca.juros_mes_pct
+          - cobranca.desconto_pontualidade_pct
+          - cobranca.bloqueia_reserva_em_atraso
+          - financeiro.dia_fechamento_mes
+          - locacao.aviso_fim_contrato_dias
+          - locacao.carencia_fim_contrato_dias
+          - locacao.temporada_permitida
+          examples:
+          - cobranca.dia_vencimento
+        descricao:
+          type: string
+          examples:
+          - Dia de vencimento da taxa condominial
+        regra:
+          type: string
+          examples:
+          - RN-FI-04
+        minimo:
+          type:
+          - number
+          - 'null'
+          examples:
+          - 1
+        maximo:
+          type:
+          - number
+          - 'null'
+          examples:
+          - 28
+        niveis_permitidos:
+          type: array
+          items:
+            type: string
+            enum:
+            - condominio
+            - area
+        valor_padrao:
+          description: Valor do parâmetro. Inteiro, número, booleano ou lista, conforme a chave. Dinheiro em centavos (`reserva.valor`); percentuais em pontos percentuais (`2` é 2%).
+          anyOf:
+          - type: integer
+          - type: number
+          - type: boolean
+          - type: string
+          - type: array
+            items:
+              type: string
+        vigente_desde:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        proxima_vigencia:
+          oneOf:
+          - type: object
+            required:
+            - valor
+            - vigente_desde
+            properties:
+              valor:
+                description: Valor do parâmetro. Inteiro, número, booleano ou lista, conforme a chave. Dinheiro em centavos (`reserva.valor`); percentuais em pontos percentuais (`2` é 2%).
+                anyOf:
+                - type: integer
+                - type: number
+                - type: boolean
+                - type: string
+                - type: array
+                  items:
+                    type: string
+              vigente_desde:
+                $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+    DefinirPadraoEntradaPlataforma:
+      type: object
+      required:
+      - valor
+      properties:
+        valor:
+          description: Valor do parâmetro. Inteiro, número, booleano ou lista, conforme a chave. Dinheiro em centavos (`reserva.valor`); percentuais em pontos percentuais (`2` é 2%).
+          anyOf:
+          - type: integer
+          - type: number
+          - type: boolean
+          - type: string
+          - type: array
+            items:
+              type: string
+        vigente_desde:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Pode ser futura; até lá vale o valor anterior (RN-GE-02).
+    PadraoHistoricoPlataforma:
+      type: object
+      description: Histórico imutável (MER/DER 4.3; RN-GE-01).
+      required:
+      - valor
+      - vigente_desde
+      - registrado_em
+      - registrado_por
+      properties:
+        valor:
+          description: Valor do parâmetro. Inteiro, número, booleano ou lista, conforme a chave. Dinheiro em centavos (`reserva.valor`); percentuais em pontos percentuais (`2` é 2%).
+          anyOf:
+          - type: integer
+          - type: number
+          - type: boolean
+          - type: string
+          - type: array
+            items:
+              type: string
+        vigente_desde:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        registrado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        registrado_por:
+          type: object
+          required:
+          - nome
+          properties:
+            nome:
+              type: string
+              examples:
+              - Admin da Plataforma
+x-lacunas:
+- 'Detalhes do painel da plataforma além de condomínios, planos e suporte: lacuna (arquitetura 3.2 e 9.3).'
+- 'Cadastro de administradoras: o MER/DER tem a entidade `administradora`, mas nenhum RF, RN ou US define quem a cria; só o vínculo ao condomínio (RN-PL-06) tem operação aqui.'
+- 'Consulta da quarentena de eventos do gateway: o MER/DER 4.10 diz que o Admin da plataforma a lê, sem ID de produto; fica sem operação.'
+- 'Estado do condomínio (`condominio.estado`), estado da fatura e meio de cobrança da assinatura: o MER/DER não define os valores nem o meio.'
+- Códigos de plano (`essencial`, `gestao_suporte`) são Proposta; os planos não se criam, só os preços (MER/DER 4.3).
+- 'Preço e franquia acima de 600 unidades: sob consulta, valor e franquia contratados (RN 11); a API recebe `valor_negociado_centavos` e `franquia_negociada`.'
+- 'Origem administrativa da primeira atribuição global de Admin da plataforma e de Suporte: definida na implantação (MER/DER 4.1); sem operação.'
+- 'Retenção do registro de acesso do suporte e de `auditoria_plataforma`: lacuna.'
+- 'Aviso de 30 dias do novo preço ao cliente (RN-PL-07): canal e texto não definidos.'
+- 'Limites de taxa, tempo de guarda da `Idempotency-Key` e política de versão mínima do app: lacunas do guia.'

@@ -1,0 +1,1153 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface da limpeza
+  version: 0.1.0-proposta
+  description: |-
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Rotas `/v1/limpeza/*` do funcionário de limpeza, coluna Limpeza da matriz de permissões do PRD seção 3.
+
+    **Decidido (PRD e regras de negócio):** a limpeza atende os chamados do setor, também sem internet (RN-CH-04), faz a vistoria de reservas (RN-RE-09) sem marcar Em andamento (RN-RE-13), vê as próprias avaliações sem saber de quem (RN-CH-20) e responde comunicados individuais.
+
+    **Fora deste arquivo:** o próprio score e o recurso de decisão usam o endpoint único de score (ADR-010) e o recurso de `comum.yaml`; a fila offline de conclusões é `POST /v1/sync` (`sync.yaml`).
+
+    **Proposta:** caminhos, nomes de campos e códigos de erro específicos. Os DTOs não trazem identidade de quem abriu o chamado nem de quem avaliou. A autorização é validada nos guards e na RLS (`01-backend.md` 3.4). Perfil Manutenção não tem operações.
+
+    **Ações atendidas por `comum.yaml`:** "Denunciar conteúdo ofensivo" (RF-RS-14, RN-RC-13, `POST /v1/denuncias`) e "Ver score do síndico e nota dos setores" (RF-RS-12, `GET /v1/score` com `escopo=sindico` e `GET /v1/notas-dos-setores`) são abertas a três ou mais perfis com o mesmo DTO e ficam em `comum.yaml`. Esta interface não tem rota para elas.
+tags:
+- name: chamados
+  description: Fila do setor, atendimento, conclusão e avaliações recebidas.
+- name: reservas
+  description: Vistoria de reservas.
+- name: comunicados
+  description: Comunicados recebidos e respostas.
+paths:
+  /v1/limpeza/chamados:
+    get:
+      operationId: limpezaListarChamados
+      summary: Lista os chamados de limpeza do setor
+      description: 'Fila do setor com prazo de cada chamado (RF-CH-02, RN-CH-06). Ordem fixa pelas RN: abertos antes dos concluídos; em cada grupo, urgência alta, média e leve; empate, o mais antigo primeiro (RN-CH-13). Para o app offline, o mesmo conjunto vem no delta de `GET /v1/sync` (RN-CH-04).'
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoChamado
+        example:
+        - aberto
+        - reaberto
+      responses:
+        '200':
+          description: Página de chamados do setor.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChamadoLimpeza'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                  categoria: hall
+                  local: Hall do Bloco A
+                  descricao: Líquido no chão perto do elevador.
+                  urgencia: alta
+                  estado: aberto
+                  aberto_em: '2026-11-10T08:40:00-03:00'
+                  prazo_conclusao_em: '2026-11-11T08:40:00-03:00'
+                  fotos_abertura: []
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-02
+      - RF-CH-03
+      - RF-CH-06
+      - RN-CH-06
+      - RN-CH-13
+      - US-CH-02
+  /v1/limpeza/chamados/{chamado_id}:
+    get:
+      operationId: limpezaObterChamado
+      summary: Detalha um chamado de limpeza
+      description: 'Chamado de manutenção responde `403`: o setor só atende limpeza (RN-CH-01, RN-CH-05). Chamado de outro condomínio responde `404`.'
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: chamado_id
+        in: path
+        required: true
+        description: Identificador do chamado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+      responses:
+        '200':
+          description: Chamado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChamadoLimpeza'
+              example:
+                id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                categoria: hall
+                local: Hall do Bloco A
+                descricao: Líquido no chão perto do elevador.
+                urgencia: alta
+                estado: aberto
+                aberto_em: '2026-11-10T08:40:00-03:00'
+                prazo_conclusao_em: '2026-11-11T08:40:00-03:00'
+                fotos_abertura: []
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-02
+      - RN-CH-01
+      - RN-CH-10
+  /v1/limpeza/chamados/{chamado_id}/atendimento:
+    post:
+      operationId: limpezaIniciarAtendimento
+      summary: Assume o chamado (Em atendimento)
+      description: 'Passo opcional, pelo detalhe: o estado passa a "Em atendimento", só em limpeza (RN 9.2, UF 8.2). Não é obrigatório antes de concluir. Exige internet: não há tipo de sincronização para esta ação (lacuna).'
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: chamado_id
+        in: path
+        required: true
+        description: Identificador do chamado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+      responses:
+        '200':
+          description: Atendimento iniciado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChamadoLimpeza'
+              example:
+                id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                categoria: hall
+                local: Hall do Bloco A
+                descricao: Líquido no chão perto do elevador.
+                urgencia: alta
+                estado: em_atendimento
+                aberto_em: '2026-11-10T08:40:00-03:00'
+                prazo_conclusao_em: '2026-11-11T08:40:00-03:00'
+                fotos_abertura: []
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Chamado já concluído
+                  value:
+                    codigo: CHAMADO_ESTADO_NAO_PERMITE_ATENDIMENTO
+                    mensagem: Este chamado não está aberto para atendimento.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-02
+      - US-CH-02
+  /v1/limpeza/chamados/{chamado_id}/conclusao:
+    post:
+      operationId: limpezaConcluirChamado
+      summary: Conclui o chamado, com fotos opcionais
+      description: 'Conclusão online do chamado, com até 5 fotos do serviço, sem obrigatoriedade (RN-CH-14). Quem abriu é avisado e convidado a avaliar (RN-CH-07). Se já existe conclusão do mesmo ciclo com menor horário, esta fica no histórico sem efeito e a resposta traz `efetiva: false` (RN-CH-04). Sem internet, a conclusão vai pela fila de `POST /v1/sync` com tipo `conclusao_chamado`; a regra do menor horário registrado pelo celular está em `sync.yaml`.'
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: chamado_id
+        in: path
+        required: true
+        description: Identificador do chamado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConcluirChamadoLimpeza'
+            examples:
+              comFotos:
+                summary: Com fotos
+                value:
+                  fotos:
+                  - e3b5d7f9-1a2c-4e64-8f06-0b2d4f6a8c91
+                  - c7a9b1d3-5e6f-4a80-9b12-3d4f5a6b7c89
+              semFotos:
+                summary: Sem fotos
+                value: {}
+      responses:
+        '201':
+          description: Conclusão registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConclusaoChamadoLimpeza'
+              examples:
+                efetiva:
+                  summary: Conclusão efetiva
+                  value:
+                    id: 4a6c8e0b-2d4f-4a71-b3c5-7e9a1c3d5f82
+                    chamado_id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                    ciclo: 1
+                    concluida_em: '2026-11-10T10:05:00-03:00'
+                    efetiva: true
+                    estado_chamado: concluido
+                semEfeito:
+                  summary: Outra conclusão do ciclo tem menor horário
+                  value:
+                    id: 4a6c8e0b-2d4f-4a71-b3c5-7e9a1c3d5f82
+                    chamado_id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                    ciclo: 1
+                    concluida_em: '2026-11-10T10:05:00-03:00'
+                    efetiva: false
+                    estado_chamado: concluido
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                fotos:
+                  summary: Mais de 5 fotos
+                  value:
+                    codigo: CHAMADO_FOTOS_ALEM_DO_LIMITE
+                    mensagem: Anexe no máximo 5 fotos do serviço.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-02
+      - RF-CH-03
+      - RN-CH-04
+      - RN-CH-07
+      - RN-CH-14
+      - US-CH-02
+  /v1/limpeza/reservas:
+    get:
+      operationId: limpezaListarReservasParaVistoria
+      summary: Lista as reservas para vistoria
+      description: Reservas do dia, em Áreas, para a vistoria da limpeza (RN-RE-09, RF-RE-08). A limpeza mantém a vistoria e o registro de falta, sem o controle de início de uso (RN-RE-13). Exige internet.
+      tags:
+      - reservas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: data
+        in: query
+        required: false
+        description: 'Dia das reservas. Padrão: hoje.'
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        example: '2026-11-10'
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        example:
+        - confirmada
+        - em_andamento
+      responses:
+        '200':
+          description: Página de reservas.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReservaVistoriaLimpeza'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+                  area:
+                    area_id: 2c4e6a8b-0d1f-4357-9b79-3d5f7a9c1e03
+                    nome: Salão de festas
+                  inicio: '2026-11-10T18:00:00-03:00'
+                  fim: '2026-11-10T22:00:00-03:00'
+                  estado: confirmada
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RE-08
+      - RN-RE-09
+      - RN-RE-13
+      - US-RE-06
+  /v1/limpeza/reservas/{reserva_id}/vistoria:
+    post:
+      operationId: limpezaRegistrarVistoria
+      summary: Registra a vistoria e marca Cumprida ou Não comparecimento
+      description: 'Mesmas regras da vistoria da portaria (RN-RE-09, RN-RE-13): Cumprida com checklist e fotos (obrigatoriedade do checklist é Proposta), só após o término do uso; Não comparecimento só em reserva Confirmada após o fim do horário, inclusive paga, sem checklist nem foto. Falta paga não gera perda de pontos nem reembolso automático (RN-RE-10). A limpeza não marca Em andamento. Exige internet, sem fila offline.'
+      tags:
+      - reservas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: reserva_id
+        in: path
+        required: true
+        description: Identificador da reserva.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarVistoriaLimpeza'
+            example:
+              resultado: nao_comparecimento
+      responses:
+        '201':
+          description: Vistoria registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VistoriaLimpeza'
+              example:
+                id: f0a2c4e6-8b1d-4f35-a7c9-2e4b6d8f0a13
+                reserva_id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+                estado_reserva: nao_comparecimento
+                registrada_em: '2026-11-10T22:30:00-03:00'
+                dano_registrado: false
+                reclamacao_aberta: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                antesDoFim:
+                  summary: Não comparecimento antes do fim do horário
+                  value:
+                    codigo: VISTORIA_NAO_COMPARECIMENTO_ANTES_DO_FIM
+                    mensagem: O não comparecimento só pode ser registrado depois do fim do horário.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                emAndamento:
+                  summary: Não comparecimento em reserva Em andamento
+                  value:
+                    codigo: VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO
+                    mensagem: O uso já foi constatado nesta reserva.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                checklist:
+                  summary: Cumprida sem checklist (obrigatoriedade Proposta)
+                  value:
+                    codigo: VISTORIA_CHECKLIST_OBRIGATORIO
+                    mensagem: Preencha os itens obrigatórios do checklist.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                antesDoTermino:
+                  summary: Cumprida antes do término do uso
+                  value:
+                    codigo: VISTORIA_CUMPRIDA_ANTES_DO_TERMINO_DO_USO
+                    mensagem: A vistoria só pode ser feita depois do término do uso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RE-08
+      - RF-RE-09
+      - RN-RE-09
+      - RN-RE-10
+      - RN-RE-13
+      - RN-RC-12
+      - US-RE-06
+  /v1/limpeza/minhas-avaliacoes:
+    get:
+      operationId: limpezaConsultarMinhasAvaliacoes
+      summary: Consulta o resumo das avaliações recebidas
+      description: Quantidade, média e distribuição por estrelas, só com 3 ou mais avaliações; antes, com `quantidade` nula e "Poucas avaliações para mostrar a média." (RN-CH-20). Não identifica quem avaliou e não afeta o score (RN-CH-21).
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Resumo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumoAvaliacoesLimpeza'
+              examples:
+                comMedia:
+                  summary: Com 3 ou mais avaliações
+                  value:
+                    quantidade: 5
+                    media: 4.2
+                    distribuicao:
+                      '1': 0
+                      '2': 1
+                      '3': 0
+                      '4': 1
+                      '5': 3
+                    mensagem: null
+                poucas:
+                  summary: Poucas avaliações
+                  value:
+                    quantidade: null
+                    media: null
+                    distribuicao: null
+                    mensagem: Poucas avaliações para mostrar a média.
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-11
+      - RN-CH-15
+      - RN-CH-20
+      - RN-CH-21
+  /v1/limpeza/minhas-avaliacoes/comentarios:
+    get:
+      operationId: limpezaListarComentariosAvaliacao
+      summary: Lista os comentários das avaliações recebidas
+      description: Comentários anônimos, com o mês no lugar da data, sem unidade, morador, chamado nem local. Só com 3 ou mais avaliações; antes, a lista vem vazia (RN-CH-20).
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de comentários.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComentarioAvaliacaoLimpeza'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - mes: 2026-10
+                  nota: 5
+                  comentario: Serviço rápido e bem feito.
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-11
+      - RN-CH-20
+  /v1/limpeza/comunicados:
+    get:
+      operationId: limpezaListarComunicados
+      summary: Lista os comunicados recebidos
+      description: Comunicados gerais para funcionários e individuais dirigidos ao funcionário (RF-CO-01, RN-CO-02, RN-CO-03). Nunca traz vínculo com reclamação (RN-CO-04). Exige internet.
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: tipo
+        in: query
+        required: false
+        description: Filtra por tipo.
+        schema:
+          type: string
+          enum:
+          - geral
+          - individual
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-enviado_em`.
+        schema:
+          type: string
+          enum:
+          - enviado_em
+          - -enviado_em
+          default: -enviado_em
+      responses:
+        '200':
+          description: Página de comunicados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComunicadoLimpeza'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+                  tipo: geral
+                  titulo: Horário de coleta no feriado
+                  enviado_em: '2026-11-09T10:00:00-03:00'
+                  lido_em: null
+                  mensagens:
+                  - id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+                    texto: A coleta do feriado será às 7h.
+                    enviada_em: '2026-11-09T10:00:00-03:00'
+                    minha: false
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-01
+      - RF-CO-03
+      - RN-CO-02
+      - RN-CO-03
+      - US-CO-02
+  /v1/limpeza/comunicados/{comunicado_id}/respostas:
+    post:
+      operationId: limpezaResponderComunicado
+      summary: Responde a um comunicado individual
+      description: Só comunicado individual aceita resposta (RN-CO-03, RF-CO-03). Coluna Limpeza da matriz do PRD 3.
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: comunicado_id
+        in: path
+        required: true
+        description: Identificador do comunicado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponderComunicadoLimpeza'
+            example:
+              texto: Recebido, obrigado.
+      responses:
+        '201':
+          description: Resposta enviada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MensagemComunicadoLimpeza'
+              example:
+                id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+                texto: Recebido, obrigado.
+                enviada_em: '2026-11-09T11:00:00-03:00'
+                minha: true
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                geral:
+                  summary: Comunicado geral
+                  value:
+                    codigo: COMUNICADO_NAO_ACEITA_RESPOSTA
+                    mensagem: Este comunicado não aceita resposta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-03
+      - RN-CO-03
+      - US-CO-02
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  schemas:
+    ChamadoLimpeza:
+      type: object
+      description: Chamado de limpeza do setor. Sem autor nem unidade de quem abriu. Urgência com texto e cor na tela, nunca só cor (RN-CH-10).
+      required:
+      - id
+      - categoria
+      - local
+      - descricao
+      - urgencia
+      - estado
+      - aberto_em
+      - prazo_conclusao_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        categoria:
+          type: string
+        local:
+          type: string
+        descricao:
+          type: string
+        urgencia:
+          type: string
+          enum:
+          - alta
+          - media
+          - leve
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoChamado
+        aberto_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        prazo_conclusao_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Abertura mais o prazo de limpeza, 24h por padrão e configurável (RN-CH-06). Calculado.
+        fotos_abertura:
+          type: array
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Arquivos da foto de abertura, para leitura por URL assinado de `/v1/arquivos`.
+      examples:
+      - id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+        categoria: hall
+        local: Hall do Bloco A
+        descricao: Líquido no chão perto do elevador.
+        urgencia: alta
+        estado: aberto
+        aberto_em: '2026-11-10T08:40:00-03:00'
+        prazo_conclusao_em: '2026-11-11T08:40:00-03:00'
+        fotos_abertura: []
+    ConcluirChamadoLimpeza:
+      type: object
+      properties:
+        fotos:
+          type: array
+          maxItems: 5
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Até 5 arquivos do serviço feito, opcionais (RN-CH-14). Já enviados por `/v1/arquivos`.
+    ConclusaoChamadoLimpeza:
+      type: object
+      required:
+      - id
+      - chamado_id
+      - ciclo
+      - concluida_em
+      - efetiva
+      - estado_chamado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        chamado_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        ciclo:
+          type: integer
+          minimum: 1
+        concluida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        efetiva:
+          type: boolean
+          description: 'Falsa quando já existe conclusão do mesmo ciclo com menor horário registrado pelo celular: esta fica no histórico, sem efeito (RN-CH-04).'
+        estado_chamado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoChamado
+    ReservaVistoriaLimpeza:
+      type: object
+      description: Reserva para vistoria. Sem unidade, valores, meios de pagamento nem score.
+      required:
+      - id
+      - area
+      - inicio
+      - fim
+      - estado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        area:
+          type: object
+          required:
+          - area_id
+          - nome
+          properties:
+            area_id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            nome:
+              type: string
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+      examples:
+      - id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+        area:
+          area_id: 2c4e6a8b-0d1f-4357-9b79-3d5f7a9c1e03
+          nome: Salão de festas
+        inicio: '2026-11-10T18:00:00-03:00'
+        fim: '2026-11-10T22:00:00-03:00'
+        estado: confirmada
+    RegistrarVistoriaLimpeza:
+      type: object
+      required:
+      - resultado
+      properties:
+        resultado:
+          type: string
+          enum:
+          - cumprida
+          - nao_comparecimento
+        itens:
+          type: array
+          items:
+            type: object
+            required:
+            - item
+            - resultado
+            properties:
+              item:
+                type: string
+                minLength: 1
+              resultado:
+                type: string
+                enum:
+                - conforme
+                - com_dano
+                description: 'Valores Proposta: o MER não lista os resultados do item.'
+              observacao:
+                type: string
+          description: Checklist de uso. RN-RE-09 só diz "preenche checklist e fotos"; a obrigatoriedade em `cumprida` é Proposta (UF 5.3).
+        fotos:
+          type: array
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Arquivos já enviados por `/v1/arquivos`.
+    VistoriaLimpeza:
+      type: object
+      required:
+      - id
+      - reserva_id
+      - estado_reserva
+      - registrada_em
+      - dano_registrado
+      - reclamacao_aberta
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        reserva_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        estado_reserva:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        registrada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        dano_registrado:
+          type: boolean
+        reclamacao_aberta:
+          type: boolean
+          description: Dano gera reclamação contra a unidade em nome do condomínio (RN-RC-12).
+    ResumoAvaliacoesLimpeza:
+      type: object
+      description: Avaliações recebidas. Quantidade, média e distribuição só com 3 ou mais avaliações; antes, só a mensagem, e `quantidade` vem nula para não facilitar identificar quem avaliou (RN-CH-20). Conclusão superada não entra (RN-CH-15). Sem efeito no score (RN-CH-21).
+      required:
+      - quantidade
+      - media
+      - distribuicao
+      - mensagem
+      properties:
+        quantidade:
+          oneOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+        media:
+          oneOf:
+          - type: number
+            minimum: 1
+            maximum: 5
+          - type: 'null'
+        distribuicao:
+          oneOf:
+          - type: object
+            description: Quantidade por estrelas.
+            required:
+            - '1'
+            - '2'
+            - '3'
+            - '4'
+            - '5'
+            properties:
+              '1':
+                type: integer
+                minimum: 0
+              '2':
+                type: integer
+                minimum: 0
+              '3':
+                type: integer
+                minimum: 0
+              '4':
+                type: integer
+                minimum: 0
+              '5':
+                type: integer
+                minimum: 0
+          - type: 'null'
+        mensagem:
+          oneOf:
+          - type: string
+          - type: 'null'
+      examples:
+      - quantidade: 5
+        media: 4.2
+        distribuicao:
+          '1': 0
+          '2': 1
+          '3': 0
+          '4': 1
+          '5': 3
+        mensagem: null
+    ComentarioAvaliacaoLimpeza:
+      type: object
+      description: 'Comentário anônimo: sem unidade, morador, chamado nem local, sem identificar quem avaliou.'
+      required:
+      - mes
+      - nota
+      - comentario
+      properties:
+        mes:
+          type: string
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          description: Mês no lugar da data (RN-CH-20).
+        nota:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comentario:
+          oneOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+      examples:
+      - mes: 2026-10
+        nota: 5
+        comentario: Serviço rápido e bem feito.
+    MensagemComunicadoLimpeza:
+      type: object
+      required:
+      - id
+      - texto
+      - enviada_em
+      - minha
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        texto:
+          type: string
+        enviada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        minha:
+          type: boolean
+          description: Mensagem do próprio funcionário. O autor das demais não é identificado.
+    ComunicadoLimpeza:
+      type: object
+      description: Comunicado recebido. Nunca traz vínculo com reclamação nem identidade de reclamante (RN-CO-04, ADR-010).
+      required:
+      - id
+      - tipo
+      - titulo
+      - enviado_em
+      - mensagens
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - geral
+          - individual
+        titulo:
+          type: string
+        enviado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        lido_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        mensagens:
+          type: array
+          items:
+            $ref: '#/components/schemas/MensagemComunicadoLimpeza'
+      examples:
+      - id: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+        tipo: geral
+        titulo: Horário de coleta no feriado
+        enviado_em: '2026-11-09T10:00:00-03:00'
+        lido_em: null
+        mensagens:
+        - id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+          texto: A coleta do feriado será às 7h.
+          enviada_em: '2026-11-09T10:00:00-03:00'
+          minha: false
+    ResponderComunicadoLimpeza:
+      type: object
+      required:
+      - texto
+      properties:
+        texto:
+          type: string
+          minLength: 1
+x-lacunas:
+- 'Iniciar atendimento (Em atendimento) não tem RF nem RN próprios: vem da tabela de estados da RN 9.2 e de UF 8.2; citado por RF-CH-02. Sem tipo de sincronização offline definido.'
+- 'Itens do checklist de vistoria, obrigatoriedade (Proposta), limite de fotos e valores de `resultado` do item: não definidos (valores Proposta).'
+- 'Avaliação superada fica só no histórico autorizado (RN-CH-15): os docs não dizem se o funcionário original a vê; esta interface não a expõe.'
+- Lista de categorias de chamado não definida; `categoria` é texto livre.
+- 'Confirmação de leitura de comunicado geral por funcionários (RN-CO-02): sem operação aqui.'
+- 'Score próprio e recurso: em `comum.yaml`, não duplicados.'

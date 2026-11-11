@@ -1,0 +1,3038 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface da portaria
+  version: 0.1.0-proposta
+  description: |-
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Rotas `/v1/portaria/*` do funcionário de portaria, coluna Portaria da matriz de permissões do PRD seção 3.
+
+    **Decidido (PRD e regras de negócio):** a portaria vê a lista do dia só dos blocos que atende (RF-VI-04); registra entrada e saída, também sem internet (RF-VI-06); registra encomendas e retiradas; vê as entregas esperadas do dia; consulta as reservas do dia, marca Em andamento e registra vistoria (Cumprida ou Não comparecimento, inclusive em reserva paga); abre chamados e responde comunicados individuais.
+
+    **Offline:** só entrada e saída de visitantes funcionam sem internet, pela fila de `POST /v1/sync` (`sync.yaml`). Encomendas, reservas, vistoria, chamados e comunicados exigem internet (RN-RE-13, UF 6.3).
+
+    **Tempo real:** a lista é atualizada por WebSocket; os eventos estão em `asyncapi/tempo-real.yaml`.
+
+    **Proposta:** caminhos, nomes de campos, códigos de estado de evento e códigos de erro específicos. Os DTOs não trazem situação financeira, score nem identidade protegida. A autorização é validada nos guards e na RLS, não pela pasta (`01-backend.md` 3.4). Perfil Manutenção não tem operações.
+
+    **Ações atendidas por `comum.yaml`:** "Denunciar conteúdo ofensivo" (RF-RS-14, RN-RC-13, `POST /v1/denuncias`) e "Ver score do síndico e nota dos setores" (RF-RS-12, `GET /v1/score` com `escopo=sindico` e `GET /v1/notas-dos-setores`) são abertas a três ou mais perfis com o mesmo DTO e ficam em `comum.yaml`. Esta interface não tem rota para elas.
+tags:
+- name: visitantes
+  description: Lista do dia, entrada, saída, desfazer e divergência.
+- name: encomendas
+  description: Encomendas e entregas esperadas.
+- name: reservas
+  description: Reservas do dia e vistoria.
+- name: chamados
+  description: Abertura de chamados.
+- name: comunicados
+  description: Comunicados recebidos e respostas.
+- name: condominio
+  description: Portarias, blocos e unidades que a portaria atende.
+paths:
+  /v1/portaria/visitas:
+    get:
+      operationId: portariaListarVisitas
+      summary: Lista os visitantes do dia dos blocos que a portaria atende
+      description: Devolve as visitas do dia só dos blocos que a portaria atende, com busca por nome, unidade e bloco (RF-VI-04, RN-CD-17, RN-OF-01). Pessoas de lista de visitantes vêm com `lista` preenchida; o alerta de bloqueio vem na própria linha (RN-VI-05). O filtro "esperados hoje" é `estado=esperado`. A lista é atualizada por WebSocket (eventos em `asyncapi/tempo-real.yaml`) e, na queda do socket, por consulta incremental (`GET /v1/sync`); sem internet, o app usa a cópia salva (RN-OF-02).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: portaria_id
+        in: query
+        required: false
+        description: 'Portaria a consultar. Padrão: as portarias do funcionário (`funcionario_portaria`). Proposta: a cardinalidade por turno não está definida.'
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoVisita
+        example:
+        - esperado
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no nome do visitante, na unidade ou no nome do bloco.
+        schema:
+          type: string
+        example: Carlos
+      - name: bloco_id
+        in: query
+        required: false
+        description: Restringe a um bloco atendido.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+      - name: lista_id
+        in: query
+        required: false
+        description: Mostra só as pessoas de uma lista.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 8b3d5c17-6e2a-4f90-9d14-7a1c3e5b8f20
+      - name: ordenar
+        in: query
+        required: false
+        description: 'Ordenação. Padrão `nome` (Proposta: as RN não definem).'
+        schema:
+          type: string
+          enum:
+          - nome
+          - -nome
+          - unidade
+          - entrada_em
+          - -entrada_em
+          default: nome
+      responses:
+        '200':
+          description: Página de visitas do dia.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VisitaPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: esperado
+                  dia: '2026-11-10'
+                  nome_visitante: Carlos Souza
+                  tipo: avulsa
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: null
+                  saida_em: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-04
+      - RF-VI-15
+      - RN-VI-05
+      - RN-OF-01
+      - RN-CD-17
+      - US-VI-03
+      - US-VI-08
+    post:
+      operationId: portariaRegistrarEntradaPorInterfone
+      summary: Registra a entrada de visitante não cadastrado, autorizado por interfone
+      description: Cria a autorização e a visita já com estado "Autorizado por interfone" (RF-VI-07, RN-VI-04). Nome obrigatório, documento opcional (RN-VI-02). Pessoa bloqueada gera o alerta e exige a decisão da portaria (RN-VI-05). Unidade fora dos blocos da portaria é recusada com o aviso "Esta portaria atende os blocos X e Y." (RN-CD-17; a recusa pela API é Proposta). O morador recebe push (RN-VI-06). Sem internet, esta operação não tem tipo de sincronização definido (lacuna).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntradaPorInterfonePortaria'
+            example:
+              nome_visitante: Ana Paula Ribeiro
+              unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+      responses:
+        '201':
+          description: Entrada registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoVisitaPortaria'
+              example:
+                evento_id: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+                tipo: entrada
+                registrado_em: '2026-11-10T14:10:00-03:00'
+                evento_desfeito_id: null
+                visita:
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: autorizado_por_interfone
+                  dia: '2026-11-10'
+                  nome_visitante: Ana Paula Ribeiro
+                  tipo: autorizada_por_interfone
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: '2026-11-10T14:10:00-03:00'
+                  saida_em: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                foraDosBlocos:
+                  summary: Unidade de bloco que a portaria não atende
+                  value:
+                    codigo: UNIDADE_FORA_DOS_BLOCOS_DA_PORTARIA
+                    mensagem: Esta portaria atende os blocos A e B.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                motivoObrigatorio:
+                  summary: Liberar apesar do bloqueio exige motivo
+                  value:
+                    codigo: BLOQUEIO_MOTIVO_OBRIGATORIO
+                    mensagem: Informe o motivo para liberar a entrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-07
+      - RN-VI-02
+      - RN-VI-04
+      - RN-VI-05
+      - RN-VI-06
+      - RN-CD-17
+      - US-VI-05
+  /v1/portaria/listas-visitantes:
+    get:
+      operationId: portariaListarListasVisitantes
+      summary: Lista as listas de visitantes do dia, agrupadas
+      description: Mostra o nome da lista, a unidade e o contador "N pessoas, M chegaram" (RF-VI-15, RN-VI-17). A portaria só vê a lista no dia da data (RN-VI-13). A entrada e a saída são registradas pessoa a pessoa pelas rotas de visita.
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: portaria_id
+        in: query
+        required: false
+        description: 'Portaria a consultar. Padrão: as portarias do funcionário (`funcionario_portaria`). Proposta: a cardinalidade por turno não está definida.'
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no nome da lista ou da unidade.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Página de listas do dia.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ListaVisitantesPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - lista_id: 8b3d5c17-6e2a-4f90-9d14-7a1c3e5b8f20
+                  nome: Aniversário do Theo
+                  data: '2026-11-10'
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  total_pessoas: 18
+                  total_chegaram: 12
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-15
+      - RN-VI-13
+      - RN-VI-17
+      - US-VI-08
+  /v1/portaria/bloqueios:
+    get:
+      operationId: portariaListarBloqueios
+      summary: Lista as pessoas com entrada bloqueada
+      description: A portaria vê a lista mantida pela administradora (matriz do PRD 3; RN-CD-15). Serve à busca e ao alerta no registro de entrada (RN-VI-05). Só leitura.
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no nome ou no documento.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Página de bloqueios vigentes.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BloqueioPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 2a4c6e8b-0d1f-4a35-b7c9-1e3b5d7f9a46
+                  nome: Mauro Teixeira
+                  documento: 529.982.247-25
+                  motivo: Entrada vetada pela administração em 03/11/2026.
+                  inicio: '2026-11-03T09:00:00-03:00'
+                  fim: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-15
+      - RN-CD-15
+      - RN-VI-05
+      - US-VI-05
+  /v1/portaria/visitas/{visita_id}/entrada:
+    post:
+      operationId: portariaRegistrarEntrada
+      summary: Registra a entrada de um visitante esperado
+      description: Registra a entrada sem diálogo de confirmação, em 1 toque; o erro se corrige com o Desfazer (`portariaDesfazerRegistroVisita`) (RN-VI-17, US-VI-03). O morador recebe push (RN-VI-06). Se o visitante está na lista de bloqueio, o corpo traz a decisão de liberar com motivo (RN-VI-05). Visita cancelada pelo morador antes do registro responde `409`. A mesma operação, feita sem internet, vai pela fila de `POST /v1/sync` com tipo `entrada_visita` (RN-OF-03).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: visita_id
+        in: path
+        required: true
+        description: Identificador da visita.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntradaVisitaPortaria'
+            examples:
+              semBloqueio:
+                summary: Visitante esperado, sem bloqueio
+                value: {}
+              liberandoBloqueio:
+                summary: Liberar apesar do bloqueio
+                value:
+                  decisao_bloqueio:
+                    bloqueio_id: 2a4c6e8b-0d1f-4a35-b7c9-1e3b5d7f9a46
+                    decisao: liberar
+                    motivo: Morador confirmou por interfone que a pessoa é convidada.
+      responses:
+        '200':
+          description: Entrada registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoVisitaPortaria'
+              example:
+                evento_id: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+                tipo: entrada
+                registrado_em: '2026-11-10T14:10:00-03:00'
+                evento_desfeito_id: null
+                visita:
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: entrou
+                  dia: '2026-11-10'
+                  nome_visitante: Carlos Souza
+                  tipo: avulsa
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: '2026-11-10T14:10:00-03:00'
+                  saida_em: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Dado alterado antes do registro.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                canceladaPeloMorador:
+                  summary: Morador cancelou a visita
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra violada no registro de entrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                motivoObrigatorio:
+                  summary: Liberar apesar do bloqueio exige motivo
+                  value:
+                    codigo: BLOQUEIO_MOTIVO_OBRIGATORIO
+                    mensagem: Informe o motivo para liberar a entrada.
+                    detalhes:
+                    - campo: decisao_bloqueio.motivo
+                      mensagem: Informe o motivo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estadoInvalido:
+                  summary: Visita que já entrou
+                  value:
+                    codigo: VISITA_ESTADO_NAO_PERMITE_ENTRADA
+                    mensagem: Esta visita não está esperando entrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-06
+      - RF-VI-09
+      - RF-VI-10
+      - RN-VI-05
+      - RN-VI-06
+      - RN-VI-17
+      - US-VI-03
+      - US-VI-08
+  /v1/portaria/visitas/{visita_id}/entrada-negada:
+    post:
+      operationId: portariaRegistrarEntradaNegada
+      summary: Registra que a portaria não liberou pessoa bloqueada
+      description: 'Grava a decisão "Não liberar", com autor e momento, para visitante na lista de bloqueio (RN-VI-05; UF 6.2: "Entrada negada e registrada"). A decisão final é da portaria. Operação sem tipo de sincronização definido: exige internet.'
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: visita_id
+        in: path
+        required: true
+        description: Identificador da visita.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntradaNegadaPortaria'
+            example:
+              bloqueio_id: 2a4c6e8b-0d1f-4a35-b7c9-1e3b5d7f9a46
+              motivo: Morador não autorizou.
+      responses:
+        '200':
+          description: Decisão registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoVisitaPortaria'
+              example:
+                evento_id: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+                tipo: entrada_negada
+                registrado_em: '2026-11-10T14:10:00-03:00'
+                evento_desfeito_id: null
+                visita:
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: esperado
+                  dia: '2026-11-10'
+                  nome_visitante: Carlos Souza
+                  tipo: avulsa
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: null
+                  saida_em: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-VI-05
+      - RF-VI-09
+      - US-VI-05
+  /v1/portaria/visitas/{visita_id}/saida:
+    post:
+      operationId: portariaRegistrarSaida
+      summary: Registra a saída de um visitante
+      description: Registra a saída, em 1 toque e com Desfazer (RF-VI-06, RN-VI-17). Só vale para visita "Entrou" ou "Autorizado por interfone" (RN 8.3). Sem internet, vai pela fila de `POST /v1/sync` com tipo `saida_visita` (RN-OF-03). Visita já encerrada pela rotina "saída não registrada" responde `422` aqui; na sincronização vira no-op com aviso (Proposta, arquitetura 3.1.1).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: visita_id
+        in: path
+        required: true
+        description: Identificador da visita.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+      responses:
+        '200':
+          description: Saída registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoVisitaPortaria'
+              example:
+                evento_id: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+                tipo: saida
+                registrado_em: '2026-11-10T17:20:00-03:00'
+                evento_desfeito_id: null
+                visita:
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: saiu
+                  dia: '2026-11-10'
+                  nome_visitante: Carlos Souza
+                  tipo: avulsa
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: '2026-11-10T14:10:00-03:00'
+                  saida_em: '2026-11-10T17:20:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semEntrada:
+                  summary: Visita sem entrada registrada
+                  value:
+                    codigo: VISITA_ESTADO_NAO_PERMITE_SAIDA
+                    mensagem: Esta visita não tem entrada registrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-06
+      - RF-VI-08
+      - RN-VI-07
+      - RN-VI-17
+      - US-VI-03
+  /v1/portaria/eventos-visita/{evento_id}/desfazer:
+    post:
+      operationId: portariaDesfazerRegistroVisita
+      summary: Desfaz o registro de entrada ou saída
+      description: 'Operação do "Desfazer" que substitui o diálogo de confirmação. Cria um novo evento que aponta para o desfeito, sem apagar o fato anterior (MER 4.4, `evento_desfeito_id`; RN-VI-17). A janela de tempo na API não está definida nas RN: UF 6.2 e o Design System 11.1 só trazem 10 s para a mensagem rápida da interface (lacuna). Repetir o desfazer sobre o mesmo evento responde `409` (Proposta).'
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: evento_id
+        in: path
+        required: true
+        description: Identificador do evento de entrada ou saída a desfazer.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+      responses:
+        '200':
+          description: Registro desfeito.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoVisitaPortaria'
+              example:
+                evento_id: b8d0f2a4-6c8e-4a13-9b35-7d9f1b3c5e68
+                tipo: desfazer
+                registrado_em: '2026-11-10T14:10:05-03:00'
+                evento_desfeito_id: 6d2b9f84-1a7c-4e35-8b09-3c5e7a1d4f62
+                visita:
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  estado: esperado
+                  dia: '2026-11-10'
+                  nome_visitante: Carlos Souza
+                  tipo: avulsa
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  inicio_faixa: '14:00'
+                  fim_faixa: '16:00'
+                  lista: null
+                  alerta_bloqueio: null
+                  fora_do_horario_cadastrado: false
+                  entrada_em: null
+                  saida_em: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Evento já desfeito.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaDesfeito:
+                  summary: Desfazer repetido
+                  value:
+                    codigo: EVENTO_JA_DESFEITO
+                    mensagem: Este registro já foi desfeito.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-VI-17
+      - RF-VI-06
+      - US-VI-08
+  /v1/portaria/divergencias:
+    get:
+      operationId: portariaListarDivergencias
+      summary: Lista as divergências de sincronização
+      description: Divergência é notificação obrigatória para o porteiro, que não pode desligá-la (US-NO-01, RF-VI-11). Nunca vai ao síndico (RN-OF-05). Por padrão só as pendentes, que mantêm o aviso fixo na tela até a confirmação (RN-OF-04).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: pendentes
+        in: query
+        required: false
+        description: Só as ainda não confirmadas.
+        schema:
+          type: boolean
+          default: true
+      responses:
+        '200':
+          description: Página de divergências.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DivergenciaPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: c4a8e1b6-3f72-4d59-a0c8-5b2d7e9f1a34
+                  motivo: visitante_cancelado
+                  nome_visitante: Carlos Souza
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  entrada_registrada_em: '2026-11-10T14:10:00-03:00'
+                  criada_em: '2026-11-10T14:32:00-03:00'
+                  confirmada_em: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-11
+      - RN-OF-04
+      - RN-OF-05
+      - US-VI-04
+      - US-NO-01
+  /v1/portaria/divergencias/{divergencia_id}/confirmacao:
+    post:
+      operationId: portariaConfirmarDivergencia
+      summary: Confirma a divergência após ligar para o morador
+      description: Botão "Confirmei com o morador". Registra quem e quando; o aviso só fecha depois disso (RN-OF-04, RF-VI-11). Exige internet (lacuna para confirmação sem conexão).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: divergencia_id
+        in: path
+        required: true
+        description: Identificador da divergência.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: c4a8e1b6-3f72-4d59-a0c8-5b2d7e9f1a34
+      responses:
+        '200':
+          description: Divergência confirmada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DivergenciaPortaria'
+              example:
+                id: c4a8e1b6-3f72-4d59-a0c8-5b2d7e9f1a34
+                motivo: visitante_cancelado
+                nome_visitante: Carlos Souza
+                unidade:
+                  unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                  bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                  bloco_nome: Bloco A
+                  identificacao: Apto 101
+                  rotulo: Bloco A · Apto 101
+                entrada_registrada_em: '2026-11-10T14:10:00-03:00'
+                criada_em: '2026-11-10T14:32:00-03:00'
+                confirmada_em: '2026-11-10T14:40:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Divergência já confirmada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaConfirmada:
+                  summary: Confirmação repetida
+                  value:
+                    codigo: DIVERGENCIA_JA_CONFIRMADA
+                    mensagem: Esta divergência já foi confirmada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-11
+      - RN-OF-04
+      - US-VI-04
+  /v1/portaria/entregas-esperadas:
+    get:
+      operationId: portariaListarEntregasEsperadas
+      summary: Lista as entregas esperadas do dia ou as vinculáveis à unidade
+      description: '`escopo=hoje` devolve "Esperadas hoje", ordenadas pelo início da faixa, sem faixa por último; entregas de outras datas não aparecem (RN-EN-10). `escopo=vinculaveis` exige `unidade_id` e traz as de hoje, as futuras e as "Não chegou" dentro da tolerância, para a sugestão de vínculo ao registrar a encomenda (RN-EN-11, RN-EN-13). A entrega esperada não autoriza nada e não é exigida. Origem iFood/entregador vem com `so_aviso` verdadeiro (RN-EN-12). A ordem é fixa pelas RN.'
+      tags:
+      - encomendas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: escopo
+        in: query
+        required: false
+        description: Recorte da lista.
+        schema:
+          type: string
+          enum:
+          - hoje
+          - vinculaveis
+          default: hoje
+        example: hoje
+      - name: unidade_id
+        in: query
+        required: false
+        description: Unidade da encomenda. Obrigatório com `escopo=vinculaveis`.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+      responses:
+        '200':
+          description: Página de entregas esperadas.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EntregaEsperadaPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  data_esperada: '2026-11-10'
+                  inicio_faixa: '12:00'
+                  fim_faixa: '19:00'
+                  descricao: Caixa média
+                  origem: correios
+                  origem_outra: null
+                  estado: esperada
+                  so_aviso: false
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-EN-07
+      - RN-EN-10
+      - RN-EN-11
+      - RN-EN-12
+      - RN-EN-13
+      - US-EN-04
+  /v1/portaria/encomendas:
+    get:
+      operationId: portariaListarEncomendas
+      summary: Lista as encomendas
+      description: Consulta de encomendas para registrar retirada. O filtro `estado=prazo_vencido` mostra as de prazo de guarda vencido, que a portaria também vê (matriz do PRD 3, RN-EN-04). Só a gestão marca a devolução; a portaria não.
+      tags:
+      - encomendas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoEncomenda
+        example:
+        - recebida
+        - prazo_vencido
+      - name: unidade_id
+        in: query
+        required: false
+        description: Restringe a uma unidade.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no remetente.
+        schema:
+          type: string
+        example: Correios
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-recebida_em` (Proposta).
+        schema:
+          type: string
+          enum:
+          - recebida_em
+          - -recebida_em
+          default: -recebida_em
+      responses:
+        '200':
+          description: Página de encomendas.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EncomendaPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  remetente: Correios
+                  estado: recebida
+                  recebida_em: '2026-11-10T15:05:00-03:00'
+                  retirada_em: null
+                  foto_etiqueta_id: null
+                  entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-EN-03
+      - RN-EN-02
+      - RN-EN-04
+      - US-EN-02
+    post:
+      operationId: portariaRegistrarEncomenda
+      summary: Registra o recebimento de uma encomenda
+      description: 'Registra unidade, remetente e foto opcional da etiqueta; o morador recebe push na hora (RF-EN-01, RN-EN-01). Com `entrega_esperada_id` a entrega passa a "Chegou", o remetente vem da origem se estiver em branco e o morador recebe um único push (RN-EN-11). Entrega de comida por aplicativo não se registra (RN-EN-05). Exige internet: sem conexão o botão fica desabilitado (UF 6.3).'
+      tags:
+      - encomendas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarEncomendaPortaria'
+            example:
+              unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+              remetente: Correios
+              entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+      responses:
+        '201':
+          description: Encomenda registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncomendaPortaria'
+              example:
+                id: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+                unidade:
+                  unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                  bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                  bloco_nome: Bloco A
+                  identificacao: Apto 101
+                  rotulo: Bloco A · Apto 101
+                remetente: Correios
+                estado: recebida
+                recebida_em: '2026-11-10T15:05:00-03:00'
+                retirada_em: null
+                foto_etiqueta_id: null
+                entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '409':
+          description: Entrega já vinculada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaVinculada:
+                  summary: Uma encomenda vincula uma entrega
+                  value:
+                    codigo: ENCOMENDA_ENTREGA_JA_VINCULADA
+                    mensagem: Esta entrega esperada já foi vinculada a outra encomenda.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                outraUnidade:
+                  summary: Entrega de outra unidade
+                  value:
+                    codigo: ENCOMENDA_ENTREGA_DE_OUTRA_UNIDADE
+                    mensagem: A entrega esperada é de outra unidade.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                soAviso:
+                  summary: Origem iFood/entregador nunca é vinculada
+                  value:
+                    codigo: ENCOMENDA_ENTREGA_SO_AVISO
+                    mensagem: Esta entrega é só um aviso e não pode ser vinculada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semRemetente:
+                  summary: Sem remetente e sem entrega vinculada
+                  value:
+                    codigo: ENCOMENDA_REMETENTE_OBRIGATORIO
+                    mensagem: Informe o remetente.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-EN-01
+      - RF-EN-02
+      - RF-EN-07
+      - RN-EN-01
+      - RN-EN-05
+      - RN-EN-11
+      - RN-EN-12
+      - US-EN-01
+      - US-EN-04
+  /v1/portaria/encomendas/{encomenda_id}/unidade:
+    patch:
+      operationId: portariaCorrigirUnidadeEncomenda
+      summary: Corrige a unidade de uma encomenda não retirada
+      description: A unidade registrada por engano recebe o aviso "O aviso de encomenda foi enviado por engano." e o vínculo com entrega esperada se desfaz (RN-EN-06, RN-EN-11).
+      tags:
+      - encomendas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: encomenda_id
+        in: path
+        required: true
+        description: Identificador da encomenda.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrigirUnidadeEncomendaPortaria'
+            example:
+              unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+      responses:
+        '200':
+          description: Unidade corrigida.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncomendaPortaria'
+              example:
+                id: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+                unidade:
+                  unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                  bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                  bloco_nome: Bloco A
+                  identificacao: Apto 101
+                  rotulo: Bloco A · Apto 101
+                remetente: Correios
+                estado: recebida
+                recebida_em: '2026-11-10T15:05:00-03:00'
+                retirada_em: null
+                foto_etiqueta_id: null
+                entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaRetirada:
+                  summary: Encomenda já retirada
+                  value:
+                    codigo: ENCOMENDA_ESTADO_NAO_PERMITE_CORRECAO
+                    mensagem: Só é possível corrigir a unidade de uma encomenda ainda não retirada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-EN-06
+      - RN-EN-11
+      - RF-EN-01
+  /v1/portaria/encomendas/{encomenda_id}/retirada:
+    post:
+      operationId: portariaRegistrarRetirada
+      summary: Registra a retirada e quem retirou
+      description: Qualquer morador da unidade pode retirar; a portaria registra quem retirou (RF-EN-03, RN-EN-02). Só passa a "Retirada" a encomenda "Recebida" ou "Prazo vencido" (RN 9.1).
+      tags:
+      - encomendas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: encomenda_id
+        in: path
+        required: true
+        description: Identificador da encomenda.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetiradaEncomendaPortaria'
+            example:
+              retirante_vinculo_id: 0f2a4c6e-8b0d-4f13-a5c7-9e1b3d5f7a24
+      responses:
+        '200':
+          description: Retirada registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncomendaPortaria'
+              example:
+                id: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+                unidade:
+                  unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                  bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                  bloco_nome: Bloco A
+                  identificacao: Apto 101
+                  rotulo: Bloco A · Apto 101
+                remetente: Correios
+                estado: retirada
+                recebida_em: '2026-11-10T15:05:00-03:00'
+                retirada_em: '2026-11-10T18:30:00-03:00'
+                foto_etiqueta_id: null
+                entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                naoMorador:
+                  summary: Retirante não é morador da unidade
+                  value:
+                    codigo: ENCOMENDA_RETIRANTE_NAO_E_DA_UNIDADE
+                    mensagem: Escolha um morador desta unidade.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estado:
+                  summary: Encomenda já retirada ou devolvida
+                  value:
+                    codigo: ENCOMENDA_ESTADO_NAO_PERMITE_RETIRADA
+                    mensagem: Esta encomenda não está disponível para retirada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-EN-03
+      - RN-EN-02
+      - US-EN-02
+  /v1/portaria/reservas-do-dia:
+    get:
+      operationId: portariaListarReservasDoDia
+      summary: Lista as reservas do dia
+      description: 'Em Áreas, Reservas de hoje: área, horário, unidade e estado, sem valores, meios de pagamento nem score (RF-RE-08, RN-RE-13). Exige internet; não há fila offline de reservas.'
+      tags:
+      - reservas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        style: form
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        example:
+        - confirmada
+        - em_andamento
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `inicio`.
+        schema:
+          type: string
+          enum:
+          - inicio
+          - -inicio
+          default: inicio
+      responses:
+        '200':
+          description: Página de reservas do dia.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReservaDoDiaPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+                  area:
+                    area_id: 2c4e6a8b-0d1f-4357-9b79-3d5f7a9c1e03
+                    nome: Salão de festas
+                  inicio: '2026-11-10T18:00:00-03:00'
+                  fim: '2026-11-10T22:00:00-03:00'
+                  unidade:
+                    unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                    bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    bloco_nome: Bloco A
+                    identificacao: Apto 101
+                    rotulo: Bloco A · Apto 101
+                  estado: confirmada
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RE-08
+      - RN-RE-13
+      - US-RE-06
+  /v1/portaria/reservas/{reserva_id}/em-andamento:
+    post:
+      operationId: portariaMarcarReservaEmAndamento
+      summary: Marca a reserva como Em andamento
+      description: Para reserva Confirmada cujo início já chegou, quando a portaria constata o uso (RN-RE-13). Guarda autor, data e hora, sem inventar horário real. Aguardando pagamento, Expirada e Cancelada não admitem marcação. Só a portaria marca; a limpeza não. Exige internet.
+      tags:
+      - reservas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: reserva_id
+        in: path
+        required: true
+        description: Identificador da reserva.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+      responses:
+        '200':
+          description: Uso marcado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventoUsoReservaPortaria'
+              example:
+                id: b8d0f2a4-6c8e-4a13-9b35-7d9f1b3c5e68
+                reserva_id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+                estado_anterior: confirmada
+                estado_novo: em_andamento
+                registrado_em: '2026-11-10T18:07:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                antesDoInicio:
+                  summary: Início ainda não chegou
+                  value:
+                    codigo: RESERVA_INICIO_NAO_CHEGOU
+                    mensagem: O horário da reserva ainda não começou.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estado:
+                  summary: Reserva que não está Confirmada
+                  value:
+                    codigo: RESERVA_ESTADO_NAO_ADMITE_USO
+                    mensagem: Esta reserva não admite marcação de uso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RE-08
+      - RN-RE-13
+      - US-RE-06
+  /v1/portaria/reservas/{reserva_id}/vistoria:
+    post:
+      operationId: portariaRegistrarVistoria
+      summary: Registra a vistoria e marca Cumprida ou Não comparecimento
+      description: 'Cumprida: checklist e fotos (a obrigatoriedade do checklist é Proposta; RN-RE-09 só diz que se preenche), só após o término do uso, sem exigir marcação prévia Em andamento; dano gera reclamação contra a unidade em nome do condomínio (RN-RE-09, RN-RC-12). Não comparecimento: só em reserva Confirmada após o fim do horário e sem uso constatado, inclusive em reserva paga, sem checklist nem foto (RN-RE-09, RN-RE-13). Falta de reserva paga não gera perda de pontos nem reembolso automático (RN-RE-10); a perda por faltas gratuitas é da rotina diária. Exige internet: o envio sem conexão fica desabilitado e não há fila offline.'
+      tags:
+      - reservas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: reserva_id
+        in: path
+        required: true
+        description: Identificador da reserva.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarVistoriaPortaria'
+            examples:
+              cumprida:
+                summary: Uso sem dano
+                value:
+                  resultado: cumprida
+                  itens:
+                  - item: Piso e bancadas
+                    resultado: conforme
+                  - item: Mobiliário
+                    resultado: conforme
+                  fotos:
+                  - e3b5d7f9-1a2c-4e64-8f06-0b2d4f6a8c91
+              naoComparecimento:
+                summary: Reserva paga não usada
+                value:
+                  resultado: nao_comparecimento
+      responses:
+        '201':
+          description: Vistoria registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VistoriaPortaria'
+              example:
+                id: f0a2c4e6-8b1d-4f35-a7c9-2e4b6d8f0a13
+                reserva_id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+                estado_reserva: cumprida
+                registrada_em: '2026-11-10T22:40:00-03:00'
+                dano_registrado: false
+                reclamacao_aberta: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          description: Regra violada na vistoria.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                antesDoFim:
+                  summary: Não comparecimento antes do fim do horário
+                  value:
+                    codigo: VISTORIA_NAO_COMPARECIMENTO_ANTES_DO_FIM
+                    mensagem: O não comparecimento só pode ser registrado depois do fim do horário.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                emAndamento:
+                  summary: Não comparecimento em reserva Em andamento
+                  value:
+                    codigo: VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO
+                    mensagem: O uso já foi constatado nesta reserva.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                checklist:
+                  summary: Cumprida sem checklist (obrigatoriedade Proposta)
+                  value:
+                    codigo: VISTORIA_CHECKLIST_OBRIGATORIO
+                    mensagem: Preencha os itens obrigatórios do checklist.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                antesDoTermino:
+                  summary: Cumprida antes do término do uso
+                  value:
+                    codigo: VISTORIA_CUMPRIDA_ANTES_DO_TERMINO_DO_USO
+                    mensagem: A vistoria só pode ser feita depois do término do uso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estado:
+                  summary: Reserva sem uso possível
+                  value:
+                    codigo: RESERVA_ESTADO_NAO_ADMITE_VISTORIA
+                    mensagem: Esta reserva não admite vistoria.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RE-08
+      - RF-RE-09
+      - RN-RE-09
+      - RN-RE-10
+      - RN-RE-13
+      - RN-RC-12
+      - US-RE-06
+  /v1/portaria/chamados:
+    post:
+      operationId: portariaAbrirChamado
+      summary: Abre um chamado de limpeza ou manutenção
+      description: 'A portaria abre chamados, mas não os atende nem vê fila (RN-CH-02, US-CH-01). Tipo, categoria, local, descrição e urgência; foto opcional (RN-CH-03). Urgência alta, média ou leve, sem valor pré-selecionado: sem ela o chamado não é enviado (RN-CH-09). Limpeza vai para a fila da limpeza; manutenção, para o síndico. Exige internet; o texto fica como rascunho no app.'
+      tags:
+      - chamados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbrirChamadoPortaria'
+            example:
+              tipo: limpeza
+              categoria: piscina
+              local: Área da piscina
+              descricao: Água turva e folhas na borda da piscina.
+              urgencia: media
+      responses:
+        '201':
+          description: Chamado aberto.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChamadoPortaria'
+              example:
+                id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                tipo: limpeza
+                categoria: piscina
+                local: Área da piscina
+                descricao: Água turva e folhas na borda da piscina.
+                urgencia: media
+                estado: aberto
+                aberto_em: '2026-11-10T09:15:00-03:00'
+                foto_id: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semUrgencia:
+                  summary: Urgência não escolhida
+                  value:
+                    codigo: CHAMADO_URGENCIA_OBRIGATORIA
+                    mensagem: Escolha a urgência do chamado.
+                    detalhes:
+                    - campo: urgencia
+                      mensagem: Escolha a urgência do chamado.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CH-01
+      - RF-CH-06
+      - RN-CH-01
+      - RN-CH-02
+      - RN-CH-03
+      - RN-CH-09
+      - US-CH-01
+  /v1/portaria/comunicados:
+    get:
+      operationId: portariaListarComunicados
+      summary: Lista os comunicados recebidos
+      description: Comunicados gerais para funcionários e individuais dirigidos à portaria (RF-CO-01, RF-CO-02, RN-CO-02, RN-CO-03). Nunca traz vínculo com reclamação nem identidade de reclamante (RN-CO-04). Exige internet.
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: tipo
+        in: query
+        required: false
+        description: Filtra por tipo.
+        schema:
+          type: string
+          enum:
+          - geral
+          - individual
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-enviado_em`.
+        schema:
+          type: string
+          enum:
+          - enviado_em
+          - -enviado_em
+          default: -enviado_em
+      responses:
+        '200':
+          description: Página de comunicados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComunicadoPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+                  tipo: individual
+                  titulo: Escala do feriado
+                  enviado_em: '2026-11-09T10:00:00-03:00'
+                  lido_em: null
+                  mensagens:
+                  - id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+                    texto: Confirme se consegue cobrir o turno de 15/11.
+                    enviada_em: '2026-11-09T10:00:00-03:00'
+                    minha: false
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-01
+      - RF-CO-03
+      - RN-CO-02
+      - RN-CO-03
+      - US-CO-02
+  /v1/portaria/comunicados/{comunicado_id}/respostas:
+    post:
+      operationId: portariaResponderComunicado
+      summary: Responde a um comunicado individual
+      description: Só comunicado individual aceita resposta; a conversa fica no histórico dos dois e o síndico é notificado (RN-CO-03, RF-CO-03). Comunicado geral não aceita resposta.
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: comunicado_id
+        in: path
+        required: true
+        description: Identificador do comunicado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponderComunicadoPortaria'
+            example:
+              texto: Consigo cobrir o turno de 15/11.
+      responses:
+        '201':
+          description: Resposta enviada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MensagemComunicadoPortaria'
+              example:
+                id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+                texto: Consigo cobrir o turno de 15/11.
+                enviada_em: '2026-11-09T11:00:00-03:00'
+                minha: true
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                geral:
+                  summary: Comunicado geral
+                  value:
+                    codigo: COMUNICADO_NAO_ACEITA_RESPOSTA
+                    mensagem: Este comunicado não aceita resposta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-03
+      - RN-CO-03
+      - US-CO-02
+  /v1/portaria/condominio/portarias:
+    get:
+      operationId: portariaListarPortariasEBlocos
+      summary: Lista as portarias do funcionário e os blocos que atendem
+      description: Cada portaria atende todos os blocos ou só os definidos pela administradora (RN-CD-17, RF-AD-17). Serve ao aviso "Esta portaria atende os blocos X e Y.".
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de portarias.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PortariaDoCondominioPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+                  nome: Portaria principal
+                  atende_todos_blocos: false
+                  blocos:
+                  - bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                    nome: Bloco A
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-17
+      - RN-CD-17
+      - RF-VI-04
+  /v1/portaria/condominio/unidades:
+    get:
+      operationId: portariaBuscarUnidades
+      summary: Busca unidades dos blocos que a portaria atende
+      description: Escolha da unidade ao registrar encomenda ou entrada por interfone (RF-EN-01, RF-VI-07). Só unidades dos blocos atendidos (RN-CD-17). Não traz situação financeira nem de ocupação (SEG-17).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: portaria_id
+        in: query
+        required: false
+        description: 'Portaria a consultar. Padrão: as portarias do funcionário (`funcionario_portaria`). Proposta: a cardinalidade por turno não está definida.'
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre na identificação da unidade ou no nome do bloco.
+        schema:
+          type: string
+        example: '101'
+      - name: bloco_id
+        in: query
+        required: false
+        description: Restringe a um bloco atendido.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+      responses:
+        '200':
+          description: Página de unidades.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UnidadeResumoPortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                  bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                  bloco_nome: Bloco A
+                  identificacao: Apto 101
+                  rotulo: Bloco A · Apto 101
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-EN-01
+      - RF-VI-07
+      - RN-CD-17
+  /v1/portaria/condominio/unidades/{unidade_id}/retirantes:
+    get:
+      operationId: portariaListarRetirantes
+      summary: Lista os moradores que podem retirar encomenda
+      description: Mostra só os moradores da unidade (RN-EN-02, UF 7.1).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: unidade_id
+        in: path
+        required: true
+        description: Identificador da unidade.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de moradores da unidade.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RetirantePortaria'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - vinculo_id: 0f2a4c6e-8b0d-4f13-a5c7-9e1b3d5f7a24
+                  nome: Helena Prado
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-EN-02
+      - RF-EN-03
+      - US-EN-02
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  schemas:
+    UnidadeResumoPortaria:
+      type: object
+      description: Unidade como a portaria a vê. Sem situação financeira, situação de ocupação nem score (SEG-17, RN-RE-13).
+      required:
+      - unidade_id
+      - identificacao
+      - rotulo
+      properties:
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        bloco_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        bloco_nome:
+          oneOf:
+          - type: string
+          - type: 'null'
+        identificacao:
+          type: string
+          description: Identificação da unidade no bloco (coluna `unidade.identificacao`).
+        rotulo:
+          type: string
+          description: Texto pronto para a tela, no formato "Bloco A · Apto 101".
+      examples:
+      - unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+        bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+        bloco_nome: Bloco A
+        identificacao: Apto 101
+        rotulo: Bloco A · Apto 101
+    AlertaBloqueioPortaria:
+      type: object
+      required:
+      - bloqueio_id
+      - motivo
+      properties:
+        bloqueio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        motivo:
+          type: string
+          description: Motivo registrado pela administradora (RN-CD-15).
+    ListaResumoPortaria:
+      type: object
+      required:
+      - lista_id
+      - nome
+      properties:
+        lista_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+    VisitaPortaria:
+      type: object
+      description: Visita do dia como a portaria a vê (RF-VI-04).
+      required:
+      - id
+      - estado
+      - dia
+      - nome_visitante
+      - tipo
+      - unidade
+      - fora_do_horario_cadastrado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoVisita
+        dia:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        nome_visitante:
+          type: string
+          description: Nome informado no cadastro. O documento do visitante não vem na lista (RN 8.4).
+        tipo:
+          type: string
+          enum:
+          - avulsa
+          - recorrente
+          - hospede_de_temporada
+          - autorizada_por_interfone
+          description: Tipo da autorização (`autorizacao_visita.tipo`, MER 4.4). Os códigos são Proposta; os tipos são os de RN-VI-02, RN-VI-03, RN-VI-04 e RN-VI-10.
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        inicio_faixa:
+          oneOf:
+          - type: string
+            pattern: ^([01]\d|2[0-3]):[0-5]\d$
+          - type: 'null'
+        fim_faixa:
+          oneOf:
+          - type: string
+            pattern: ^([01]\d|2[0-3]):[0-5]\d$
+          - type: 'null'
+        lista:
+          oneOf:
+          - $ref: '#/components/schemas/ListaResumoPortaria'
+          - type: 'null'
+        alerta_bloqueio:
+          oneOf:
+          - $ref: '#/components/schemas/AlertaBloqueioPortaria'
+          - type: 'null'
+        fora_do_horario_cadastrado:
+          type: boolean
+          description: Verdadeiro para visitante recorrente fora do dia ou da faixa (RN-VI-03); a decisão é da portaria, que interfona.
+        entrada_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        saida_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+      examples:
+      - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+        estado: esperado
+        dia: '2026-11-10'
+        nome_visitante: Carlos Souza
+        tipo: avulsa
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        inicio_faixa: '14:00'
+        fim_faixa: '16:00'
+        lista: null
+        alerta_bloqueio: null
+        fora_do_horario_cadastrado: false
+        entrada_em: null
+        saida_em: null
+    ListaVisitantesPortaria:
+      type: object
+      description: 'Lista de visitantes agrupada: "N pessoas, M chegaram" (RN-VI-17).'
+      required:
+      - lista_id
+      - nome
+      - data
+      - unidade
+      - total_pessoas
+      - total_chegaram
+      properties:
+        lista_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        data:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        total_pessoas:
+          type: integer
+          minimum: 0
+        total_chegaram:
+          type: integer
+          minimum: 0
+      examples:
+      - lista_id: 8b3d5c17-6e2a-4f90-9d14-7a1c3e5b8f20
+        nome: Aniversário do Theo
+        data: '2026-11-10'
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        total_pessoas: 18
+        total_chegaram: 12
+    BloqueioPortaria:
+      type: object
+      description: 'Pessoa com entrada bloqueada (RN-CD-15). Nome e documento não são chave única de pessoa: a decisão é sempre da portaria (MER 4.4).'
+      required:
+      - id
+      - nome
+      - motivo
+      - inicio
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        documento:
+          oneOf:
+          - type: string
+          - type: 'null'
+        motivo:
+          type: string
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+      examples:
+      - id: 2a4c6e8b-0d1f-4a35-b7c9-1e3b5d7f9a46
+        nome: Mauro Teixeira
+        documento: 529.982.247-25
+        motivo: Entrada vetada pela administração em 03/11/2026.
+        inicio: '2026-11-03T09:00:00-03:00'
+        fim: null
+    DecisaoBloqueioPortaria:
+      type: object
+      description: Decisão "Liberar mesmo assim" (RN-VI-05).
+      required:
+      - bloqueio_id
+      - decisao
+      - motivo
+      properties:
+        bloqueio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        decisao:
+          type: string
+          const: liberar
+        motivo:
+          type: string
+          description: Obrigatório ao liberar apesar do bloqueio (MER 4.4, `decisao_bloqueio`).
+          minLength: 1
+      examples:
+      - bloqueio_id: 2a4c6e8b-0d1f-4a35-b7c9-1e3b5d7f9a46
+        decisao: liberar
+        motivo: Morador confirmou por interfone que a pessoa é convidada.
+    EntradaVisitaPortaria:
+      type: object
+      description: Corpo opcional. Enviado quando a pessoa está na lista de bloqueio e a portaria decide liberar.
+      properties:
+        decisao_bloqueio:
+          $ref: '#/components/schemas/DecisaoBloqueioPortaria'
+    EntradaPorInterfonePortaria:
+      type: object
+      required:
+      - nome_visitante
+      - unidade_id
+      properties:
+        nome_visitante:
+          type: string
+          minLength: 1
+          description: Obrigatório (RN-VI-02).
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        documento:
+          oneOf:
+          - type: string
+            description: Opcional (RN-VI-02).
+          - type: 'null'
+        decisao_bloqueio:
+          $ref: '#/components/schemas/DecisaoBloqueioPortaria'
+    EntradaNegadaPortaria:
+      type: object
+      required:
+      - bloqueio_id
+      properties:
+        bloqueio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        motivo:
+          type: string
+          description: Opcional ao não liberar.
+    EventoVisitaPortaria:
+      type: object
+      description: 'Registro de entrada, saída ou desfazer. O `evento_id` serve ao Desfazer. Nada é apagado: o fato anterior permanece (MER 4.4).'
+      required:
+      - evento_id
+      - tipo
+      - registrado_em
+      - visita
+      properties:
+        evento_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - entrada
+          - saida
+          - desfazer
+          - entrada_negada
+          description: Tipo do evento (`evento_visita.tipo`). Códigos são Proposta.
+        registrado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        evento_desfeito_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        visita:
+          $ref: '#/components/schemas/VisitaPortaria'
+    DivergenciaPortaria:
+      type: object
+      description: Divergência de sincronização a confirmar por interfone com o morador que cadastrou (RN-OF-04).
+      required:
+      - id
+      - motivo
+      - nome_visitante
+      - unidade
+      - entrada_registrada_em
+      - criada_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        motivo:
+          type: string
+          enum:
+          - visitante_cancelado
+          - visitante_editado
+          - visitante_removido
+          description: Motivo da divergência. Códigos são Proposta (arquitetura 3.1.1).
+        nome_visitante:
+          type: string
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        entrada_registrada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        criada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        confirmada_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+      examples:
+      - id: c4a8e1b6-3f72-4d59-a0c8-5b2d7e9f1a34
+        motivo: visitante_cancelado
+        nome_visitante: Carlos Souza
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        entrada_registrada_em: '2026-11-10T14:10:00-03:00'
+        criada_em: '2026-11-10T14:32:00-03:00'
+        confirmada_em: null
+    EntregaEsperadaPortaria:
+      type: object
+      description: Entrega esperada como a portaria a vê (RN-EN-10).
+      required:
+      - id
+      - unidade
+      - data_esperada
+      - estado
+      - so_aviso
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        data_esperada:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        inicio_faixa:
+          oneOf:
+          - type: string
+            pattern: ^([01]\d|2[0-3]):[0-5]\d$
+          - type: 'null'
+        fim_faixa:
+          oneOf:
+          - type: string
+            pattern: ^([01]\d|2[0-3]):[0-5]\d$
+          - type: 'null'
+        descricao:
+          oneOf:
+          - type: string
+            maxLength: 60
+          - type: 'null'
+        origem:
+          oneOf:
+          - type: string
+            enum:
+            - amazon
+            - correios
+            - mercado_livre
+            - shopee
+            - ifood_entregador
+            - outra
+          - type: 'null'
+        origem_outra:
+          oneOf:
+          - type: string
+            maxLength: 30
+          - type: 'null'
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoEntregaEsperada
+        so_aviso:
+          type: boolean
+          description: 'Verdadeiro para origem iFood/entregador: selo "Só aviso", sem ação de registro (RN-EN-12).'
+      examples:
+      - id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        data_esperada: '2026-11-10'
+        inicio_faixa: '12:00'
+        fim_faixa: '19:00'
+        descricao: Caixa média
+        origem: correios
+        origem_outra: null
+        estado: esperada
+        so_aviso: false
+    EncomendaPortaria:
+      type: object
+      description: Encomenda recebida pela portaria.
+      required:
+      - id
+      - unidade
+      - remetente
+      - estado
+      - recebida_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        remetente:
+          type: string
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoEncomenda
+        recebida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        retirada_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        foto_etiqueta_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        entrega_esperada_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+      examples:
+      - id: 7e2c9a45-8d13-4b6f-92e0-1f4a6c8b3d57
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        remetente: Correios
+        estado: recebida
+        recebida_em: '2026-11-10T15:05:00-03:00'
+        retirada_em: null
+        foto_etiqueta_id: null
+        entrega_esperada_id: a1c3e5b7-9d2f-4a68-8c04-6e8f0b2d4a71
+    CriarEncomendaPortaria:
+      type: object
+      description: Ausência de `entrega_esperada_id` equivale a "Não vincular". Não existe campo para comida por aplicativo (RN-EN-05).
+      required:
+      - unidade_id
+      properties:
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        remetente:
+          type: string
+          description: 'Obrigatório, salvo quando há entrega esperada vinculada: aí vem da origem (RN-EN-11).'
+        foto_etiqueta_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        entrega_esperada_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    CorrigirUnidadeEncomendaPortaria:
+      type: object
+      required:
+      - unidade_id
+      properties:
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    RetiradaEncomendaPortaria:
+      type: object
+      required:
+      - retirante_vinculo_id
+      properties:
+        retirante_vinculo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    RetirantePortaria:
+      type: object
+      description: Morador da unidade que pode retirar (RN-EN-02).
+      required:
+      - vinculo_id
+      - nome
+      properties:
+        vinculo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+      examples:
+      - vinculo_id: 0f2a4c6e-8b0d-4f13-a5c7-9e1b3d5f7a24
+        nome: Helena Prado
+    ReservaDoDiaPortaria:
+      type: object
+      description: 'Reserva do dia: área, horário, unidade e estado, sem valores, meios de pagamento nem score (RN-RE-13).'
+      required:
+      - id
+      - area
+      - inicio
+      - fim
+      - unidade
+      - estado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        area:
+          type: object
+          required:
+          - area_id
+          - nome
+          properties:
+            area_id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            nome:
+              type: string
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        unidade:
+          $ref: '#/components/schemas/UnidadeResumoPortaria'
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+      examples:
+      - id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+        area:
+          area_id: 2c4e6a8b-0d1f-4357-9b79-3d5f7a9c1e03
+          nome: Salão de festas
+        inicio: '2026-11-10T18:00:00-03:00'
+        fim: '2026-11-10T22:00:00-03:00'
+        unidade:
+          unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+          bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          bloco_nome: Bloco A
+          identificacao: Apto 101
+          rotulo: Bloco A · Apto 101
+        estado: confirmada
+    EventoUsoReservaPortaria:
+      type: object
+      description: Marcação de uso. Guarda autor e momento; não inventa horário real de entrada ou saída (RN-RE-13).
+      required:
+      - id
+      - reserva_id
+      - estado_anterior
+      - estado_novo
+      - registrado_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        reserva_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        estado_anterior:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        estado_novo:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        registrado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+      examples:
+      - id: b8d0f2a4-6c8e-4a13-9b35-7d9f1b3c5e68
+        reserva_id: d5f7a9c1-3b4e-4682-a1d3-9c0e2b4f6a85
+        estado_anterior: confirmada
+        estado_novo: em_andamento
+        registrado_em: '2026-11-10T18:07:00-03:00'
+    RegistrarVistoriaPortaria:
+      type: object
+      required:
+      - resultado
+      properties:
+        resultado:
+          type: string
+          enum:
+          - cumprida
+          - nao_comparecimento
+          description: Estado resultante da reserva (RN-RE-09, RN-RE-13).
+        itens:
+          type: array
+          items:
+            type: object
+            required:
+            - item
+            - resultado
+            properties:
+              item:
+                type: string
+                minLength: 1
+              resultado:
+                type: string
+                enum:
+                - conforme
+                - com_dano
+                description: 'Valores Proposta: o MER não lista os resultados do item.'
+              observacao:
+                type: string
+          description: 'Checklist de uso. RN-RE-09 só diz "preenche checklist e fotos"; que o checklist seja obrigatório em `cumprida` é Proposta (UF 5.3: itens obrigatórios destacados). Não exigido em `nao_comparecimento`.'
+        fotos:
+          type: array
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Arquivos já enviados por `/v1/arquivos`. Não se exige foto de área não usada.
+    VistoriaPortaria:
+      type: object
+      required:
+      - id
+      - reserva_id
+      - estado_reserva
+      - registrada_em
+      - dano_registrado
+      - reclamacao_aberta
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        reserva_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        estado_reserva:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReserva
+        registrada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        dano_registrado:
+          type: boolean
+        reclamacao_aberta:
+          type: boolean
+          description: Verdadeiro quando o dano gerou reclamação contra a unidade em nome do condomínio, sem reclamante pessoa (RN-RC-12).
+    AbrirChamadoPortaria:
+      type: object
+      required:
+      - tipo
+      - categoria
+      - local
+      - descricao
+      properties:
+        tipo:
+          type: string
+          enum:
+          - limpeza
+          - manutencao
+        categoria:
+          type: string
+          minLength: 1
+        local:
+          type: string
+          minLength: 1
+        descricao:
+          type: string
+          minLength: 1
+        urgencia:
+          type: string
+          enum:
+          - alta
+          - media
+          - leve
+          description: 'Obrigatória, sem valor pré-selecionado (RN-CH-09). Ausente: `422`.'
+        foto_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    ChamadoPortaria:
+      type: object
+      required:
+      - id
+      - tipo
+      - categoria
+      - local
+      - descricao
+      - urgencia
+      - estado
+      - aberto_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - limpeza
+          - manutencao
+        categoria:
+          type: string
+        local:
+          type: string
+        descricao:
+          type: string
+        urgencia:
+          type: string
+          enum:
+          - alta
+          - media
+          - leve
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoChamado
+        aberto_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        foto_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    MensagemComunicadoPortaria:
+      type: object
+      required:
+      - id
+      - texto
+      - enviada_em
+      - minha
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        texto:
+          type: string
+        enviada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        minha:
+          type: boolean
+          description: Mensagem da própria portaria. O autor das demais não é identificado.
+    ComunicadoPortaria:
+      type: object
+      description: Comunicado recebido. Nunca traz vínculo com reclamação nem identidade de reclamante (RN-CO-04, ADR-010).
+      required:
+      - id
+      - tipo
+      - titulo
+      - enviado_em
+      - mensagens
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - geral
+          - individual
+        titulo:
+          type: string
+        enviado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        lido_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        mensagens:
+          type: array
+          items:
+            $ref: '#/components/schemas/MensagemComunicadoPortaria'
+      examples:
+      - id: 5d7f9b1c-3e4a-4602-8a24-6c8e0a2b4d96
+        tipo: individual
+        titulo: Escala do feriado
+        enviado_em: '2026-11-09T10:00:00-03:00'
+        lido_em: null
+        mensagens:
+        - id: e1b3d5f7-9a0c-4e24-8c46-0a2d4f6b8e57
+          texto: Confirme se consegue cobrir o turno de 15/11.
+          enviada_em: '2026-11-09T10:00:00-03:00'
+          minha: false
+    ResponderComunicadoPortaria:
+      type: object
+      required:
+      - texto
+      properties:
+        texto:
+          type: string
+          minLength: 1
+    PortariaDoCondominioPortaria:
+      type: object
+      description: Portaria do funcionário e blocos que atende (RN-CD-17).
+      required:
+      - id
+      - nome
+      - atende_todos_blocos
+      - blocos
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        atende_todos_blocos:
+          type: boolean
+        blocos:
+          type: array
+          items:
+            type: object
+            required:
+            - bloco_id
+            - nome
+            properties:
+              bloco_id:
+                $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+              nome:
+                type: string
+          description: Blocos atendidos. Quando `atende_todos_blocos` é verdadeiro, traz todos os blocos do condomínio.
+      examples:
+      - id: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+        nome: Portaria principal
+        atende_todos_blocos: false
+        blocos:
+        - bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+          nome: Bloco A
+x-lacunas:
+- 'Janela de tempo do Desfazer na API: nenhuma RN define. UF 6.2 e Design System 11.1 trazem 10 s só para a mensagem rápida da interface. Efeito do desfazer sobre o push já enviado ao morador (RN-VI-06) e sobre a autorização criada na entrada por interfone: não definido.'
+- 'Itens do checklist de vistoria, quais são obrigatórios, limite de fotos e valores de `resultado` do item: não definidos nos docs; a obrigatoriedade do checklist em `cumprida` é Proposta (RN-RE-09 só diz que se preenche) (valores `conforme` e `com_dano` são Proposta).'
+- 'Ordenação padrão da lista de visitas e de encomendas: as RN não definem (padrões são Proposta).'
+- 'Retirada por quem não mora na unidade: UF 7.1 diz que a portaria registra o nome, mas o MER só tem `retirante_vinculo_id`; a API aceita só morador da unidade.'
+- 'Estados da divergência além de `confirmada_em`, e códigos de `motivo`: Proposta. Confirmação de divergência sem internet: não definida.'
+- 'Recusa pela API de entrada por interfone em unidade de bloco não atendido (RN-CD-17): Proposta.'
+- 'Portaria acompanhar o status dos chamados que abriu (RF-CH-05) não aparece na matriz nem em US-CH-01: sem operação.'
+- 'Confirmação de leitura de comunicado geral por funcionários (RN-CO-02): sem operação aqui.'
+- 'Modo de treinamento (RF-VI-12): dados fictícios separados (MER seção 8); como o cliente o aciona na API não está definido.'
+- 'Categorias de chamado: lista não definida (exemplos em RF-CH-01); `categoria` é texto livre.'
+- 'Cardinalidade de portarias por funcionário e por turno (MER 4.2): `portaria_id` é opcional.'
+- 'Reentradas do mesmo visitante no mesmo dia (MER P-10): não definidas.'
+- 'Entrada por interfone, entrada negada e desfazer sem internet: sem tipo de operação de sincronização definido nas RN-OF.'

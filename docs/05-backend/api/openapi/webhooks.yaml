@@ -1,0 +1,590 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - webhooks recebidos
+  version: 0.1.0-proposta
+  summary: Endpoints que provedores externos chamam (pagamento e e-mail). Sem usuário, sem cabeçalhos de contexto.
+  description: |
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Decisões do Pedro de 10/11/2026 que este arquivo
+    segue: gateway **Asaas** (ADR-002) e e-mail **Resend** (ADR-005). Tudo o mais é Proposta.
+
+    Estes endpoints ficam **fora do prefixo `/v1`** e não passam pelos guards de usuário: não há
+    `Authorization: Bearer`, `X-Condominio-Id`, `X-Unidade-Id` nem `X-App-Version`
+    (`01-guia-da-api.md`, seções 3 e 4). O contexto do condomínio é resolvido pelo servidor a partir
+    da cobrança, da reserva ou da tentativa de pagamento referenciada, nunca do que vem no corpo
+    (arquitetura 3.6, SEG-17).
+
+    **Regras comuns (Proposta, `01-backend.md` 4.6 e 6.2):**
+
+    1. O endpoint recebe o **corpo bruto** e valida a **autenticação do provedor** antes de qualquer
+       outra coisa. No Asaas é um **token** enviado no cabeçalho `asaas-access-token`; não há assinatura
+       HMAC do corpo. No Resend há assinatura (Svix) pelos cabeçalhos `svix-*`.
+    2. Grava o evento com unicidade pelo id do evento do provedor (`evento_gateway`, MER/DER 4.10).
+       Repetição responde `200` sem reprocessar.
+    3. Evento sem correlação válida (autenticação inválida, conta ou transação desconhecida) vai para
+       `evento_gateway_quarentena` (global, fora do RLS dos condomínios). Quarentena com **token
+       válido** responde `200` (para o provedor não repetir); **token inválido** responde `401`.
+    4. Responde rápido e processa em job. Transições de estado são monotônicas.
+    5. A resposta `200` tem o mesmo corpo para evento novo, repetido ou em quarentena: o provedor não
+       aprende nada sobre o estado interno.
+
+    Entrega "ao menos uma vez" do lado do Asaas: o mesmo evento pode chegar mais de uma vez. Os eventos
+    e o texto de cada transição estão em `../02-eventos-e-webhooks.md`; as chamadas que o backend faz
+    ao provedor, em `../03-integracoes-externas.md`.
+
+    **Webhook do Resend: Proposta.** Nenhum documento de produto ou arquitetura o exige; serve para
+    acompanhar a entrega de e-mails (por exemplo, falha de entrega do código de acesso). Só entra se o
+    Pedro aprovar.
+servers:
+  - url: https://api.example.invalid
+    description: Endereço público da API de cada ambiente (a definir; o webhook precisa de URL pública).
+tags:
+  - name: pagamentos
+    description: Confirmação de pagamento, reembolso e situação da subconta, vindos do gateway (módulo `pagamentos`).
+  - name: notificacoes
+    description: Eventos de entrega de e-mail, vindos do provedor (módulo `notificacoes`). Proposta.
+paths:
+  /webhooks/pagamentos/asaas:
+    post:
+      operationId: webhookAsaasReceberEvento
+      summary: Recebe um evento do Asaas
+      description: |
+        Recebe os eventos de cobrança do Asaas. O token do cabeçalho `asaas-access-token` é comparado em
+        tempo constante com o segredo do cofre antes de qualquer outro passo. O id do evento (`id`) é a
+        chave de idempotência: repetição responde `200` sem reprocessar (SEG-17, RN-FI-13).
+        Correlação inválida vai para quarentena e responde `200` (decisão de Pedro em 08/11/2026).
+        Tipo de evento não tratado é gravado e também responde `200`. Dados de cartão nunca aparecem
+        nem são guardados (SEG-12).
+
+        **Quando sai `400` (Proposta):** só com token válido e corpo que não é JSON ou sem `id` ou
+        `event`. A arquitetura 3.6 manda para quarentena apenas autenticação inválida, conta
+        desconhecida e transação desconhecida; corpo ilegível não está previsto. Para o Asaas, resposta
+        fora de 2xx é entrega falha e entra em nova tentativa; depois de 15 falhas consecutivas a fila
+        pode ser pausada (consulta de 10/11/2026). Como o corpo vem do próprio Asaas, o caso não deve
+        ocorrer; se o Pedro preferir `200` com quarentena também para corpo ilegível, o MER/DER 4.10
+        precisa de um motivo novo (ver `x-lacunas`).
+      tags: [pagamentos]
+      security:
+        - asaasAccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventoAsaas'
+            examples:
+              pagamentoConfirmado:
+                summary: PAYMENT_CONFIRMED (pagamento feito, saldo ainda não disponível)
+                value:
+                  id: evt_exemplo0001a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_CONFIRMED
+                  dateCreated: '2026-11-12 16:45:03'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000001
+                    status: CONFIRMED
+                    billingType: CREDIT_CARD
+                    value: 150
+                    netValue: 145.5
+                    externalReference: 9c1d2e3f-4a5b-4c6d-8e7f-0a1b2c3d4e5f
+              pagamentoRecebido:
+                summary: PAYMENT_RECEIVED (valor disponível na conta; Pix e liquidação de boleto)
+                value:
+                  id: evt_exemplo0002a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_RECEIVED
+                  dateCreated: '2026-11-12 16:46:10'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000002
+                    status: RECEIVED
+                    billingType: PIX
+                    value: 150
+                    netValue: 149.01
+                    externalReference: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+              cobrancaVencida:
+                summary: PAYMENT_OVERDUE (só registra; a rotina 16 marca o atraso)
+                value:
+                  id: evt_exemplo0003a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_OVERDUE
+                  dateCreated: '2026-11-11 00:05:41'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000003
+                    status: OVERDUE
+                    billingType: BOLETO
+                    value: 480
+                    dueDate: '2026-11-10'
+              reembolsoConcluido:
+                summary: PAYMENT_REFUNDED (cobrança estornada)
+                value:
+                  id: evt_exemplo0004a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_REFUNDED
+                  dateCreated: '2026-11-13 10:20:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000002
+                    status: REFUNDED
+                    billingType: PIX
+                    value: 150
+              reembolsoParcial:
+                summary: PAYMENT_PARTIALLY_REFUNDED (estorno parcial)
+                value:
+                  id: evt_exemplo0005a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_PARTIALLY_REFUNDED
+                  dateCreated: '2026-11-13 10:25:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000004
+                    billingType: PIX
+                    value: 150
+              reembolsoNegado:
+                summary: PAYMENT_REFUND_DENIED (estorno negado; só boleto)
+                value:
+                  id: evt_exemplo0006a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_REFUND_DENIED
+                  dateCreated: '2026-11-13 11:00:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000005
+                    billingType: BOLETO
+                    value: 480
+              chargeback:
+                summary: PAYMENT_CHARGEBACK_REQUESTED (só registra e alerta; regra de chargeback é lacuna)
+                value:
+                  id: evt_exemplo0007a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_CHARGEBACK_REQUESTED
+                  dateCreated: '2026-11-20 09:00:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000001
+                    billingType: CREDIT_CARD
+                    value: 150
+              cobrancaAtualizada:
+                summary: PAYMENT_UPDATED (vencimento ou valor alterado; busca de novo linha digitável e QR Pix). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0008a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_UPDATED
+                  dateCreated: '2026-11-14 08:00:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000003
+              capturaRecusada:
+                summary: PAYMENT_CREDIT_CARD_CAPTURE_REFUSED (falha na captura do cartão). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0009a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_CREDIT_CARD_CAPTURE_REFUSED
+                  dateCreated: '2026-11-12 16:50:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000006
+              cobrancaRemovida:
+                summary: PAYMENT_DELETED (cobrança removida; só ocorre por ação nossa, divergência abre alerta). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0010a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_DELETED
+                  dateCreated: '2026-11-14 09:10:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000007
+              reembolsoEmProcessamento:
+                summary: PAYMENT_REFUND_IN_PROGRESS (estorno em processamento). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0011a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_REFUND_IN_PROGRESS
+                  dateCreated: '2026-11-13 10:15:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000002
+              chargebackEmDisputa:
+                summary: PAYMENT_CHARGEBACK_DISPUTE (chargeback em disputa; só registra e alerta). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0012a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_CHARGEBACK_DISPUTE
+                  dateCreated: '2026-11-22 09:00:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000001
+              aguardandoReversaoDeChargeback:
+                summary: PAYMENT_AWAITING_CHARGEBACK_REVERSAL (disputa vencida, aguardando repasse da adquirente; só registra e alerta). Corpo mínimo, demais campos a confirmar
+                value:
+                  id: evt_exemplo0013a2b3c4d5e6f708192a3b4c
+                  event: PAYMENT_AWAITING_CHARGEBACK_REVERSAL
+                  dateCreated: '2026-12-05 09:00:00'
+                  payment:
+                    object: payment
+                    id: pay_exemplo0000001
+      responses:
+        '200':
+          description: |
+            Evento aceito. O corpo é o mesmo para evento novo, repetido ou em quarentena (com token
+            válido). O Asaas só considera entregue o que responde 2xx.
+          headers:
+            X-Request-Id:
+              $ref: './componentes/comum.yaml#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmacaoRecebimento'
+              examples:
+                novo:
+                  summary: Evento novo gravado
+                  value:
+                    recebido: true
+                repetido:
+                  summary: Mesmo id de evento já gravado, não reprocessado (mesmo corpo)
+                  value:
+                    recebido: true
+                quarentena:
+                  summary: Token válido, mas conta ou transação desconhecida, enviado à quarentena (mesmo corpo)
+                  value:
+                    recebido: true
+        '400':
+          $ref: './componentes/comum.yaml#/components/responses/Erro400'
+        '401':
+          $ref: '#/components/responses/WebhookNaoAutenticado'
+        '500':
+          $ref: './componentes/comum.yaml#/components/responses/Erro500'
+        '503':
+          $ref: './componentes/comum.yaml#/components/responses/Erro503'
+      x-rastreabilidade: [RF-FI-09, RF-PG-04, RN-FI-13, RN-FI-19, RN-FI-23, RN-PG-04, SEG-17, SEG-12]
+  /webhooks/email/resend:
+    post:
+      operationId: webhookResendReceberEvento
+      summary: Recebe um evento de entrega de e-mail do Resend (Proposta)
+      description: |
+        **Proposta: nenhum documento o exige.** Recebe os eventos de entrega do Resend e atualiza o
+        estado da entrega do e-mail (`entrega_notificacao`, MER/DER 4.12). A assinatura (cabeçalhos
+        `svix-id`, `svix-timestamp` e `svix-signature`) é verificada sobre o corpo bruto antes de
+        qualquer outro passo. O `svix-id` serve de chave de idempotência. A resposta de acesso
+        (`/v1/acesso/codigo`) continua igual para e-mail cadastrado ou não (RN-CD-02): falha de entrega
+        nunca é mostrada ao cliente da API.
+
+        Só dispara com **envio real**: em dev e staging a porta `Mailer` usa caixa de saída falsa e
+        nenhum e-mail sai (ADR-005, `01-backend.md` 6.3), então não há evento do Resend nesses ambientes.
+
+        **Quando sai `400` (Proposta):** só com assinatura válida e corpo que não é JSON ou sem `type`
+        ou `data.email_id`. Falha de entrega faz o Resend tentar de novo com recuo, e endpoint que falha
+        sempre é desativado pelo Resend (página de reenvios, consulta de 10/11/2026).
+      tags: [notificacoes]
+      security:
+        - resendSvix: []
+      parameters:
+        - name: svix-id
+          in: header
+          required: true
+          description: Identificador único da mensagem de webhook. Usado para idempotência.
+          schema:
+            type: string
+          example: msg_exemplo0000000000000000001
+        - name: svix-timestamp
+          in: header
+          required: true
+          description: Instante do envio, no formato do Svix. A unidade (segundos desde 1970, no Svix) e a tolerância de relógio não constam na documentação do Resend consultada (a confirmar).
+          schema:
+            type: string
+          example: '1794502800'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventoResend'
+            examples:
+              emailEntregue:
+                summary: email.delivered
+                value:
+                  type: email.delivered
+                  created_at: '2026-11-12T19:41:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce618
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Seu código de acesso
+              emailRejeitado:
+                summary: email.bounced (rejeição permanente)
+                value:
+                  type: email.bounced
+                  created_at: '2026-11-12T19:41:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce619
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Comprovante de pagamento
+                    bounce:
+                      type: Permanent
+                      subType: Suppressed
+                      message: O endereço do destinatário está na lista de supressão por rejeições anteriores.
+              emailAtrasado:
+                summary: email.delivery_delayed (problema temporário; sem corpo extra)
+                value:
+                  type: email.delivery_delayed
+                  created_at: '2026-11-12T19:45:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce620
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Seu código de acesso
+              emailMarcadoComoSpam:
+                summary: email.complained (destinatário marcou como spam)
+                value:
+                  type: email.complained
+                  created_at: '2026-11-12T20:10:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce621
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Comprovante de pagamento
+              emailFalhou:
+                summary: email.failed (falha no envio, por exemplo cota diária)
+                value:
+                  type: email.failed
+                  created_at: '2026-11-12T19:41:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce622
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Seu código de acesso
+                    failed:
+                      reason: reached_daily_quota
+              emailSuprimido:
+                summary: email.suppressed (Resend não enviou por lista de supressão da conta)
+                value:
+                  type: email.suppressed
+                  created_at: '2026-11-12T19:41:12.126Z'
+                  data:
+                    created_at: '2026-11-12T19:41:11.894Z'
+                    email_id: 56761188-7520-42d8-8898-ff6fc54ce623
+                    from: CondomiFacil <nao-responda@exemplo.invalid>
+                    to:
+                      - morador.exemplo@exemplo.invalid
+                    subject: Seu código de acesso
+                    suppressed:
+                      type: OnAccountSuppressionList
+                      message: Envio suprimido porque o endereço está na lista de supressão da conta.
+      responses:
+        '200':
+          description: Evento aceito (novo ou repetido). Mesmo corpo nos dois casos.
+          headers:
+            X-Request-Id:
+              $ref: './componentes/comum.yaml#/components/headers/XRequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmacaoRecebimento'
+              examples:
+                novo:
+                  summary: Evento novo gravado
+                  value:
+                    recebido: true
+                repetido:
+                  summary: Mesmo svix-id já gravado, não reprocessado (mesmo corpo)
+                  value:
+                    recebido: true
+        '400':
+          $ref: './componentes/comum.yaml#/components/responses/Erro400'
+        '401':
+          $ref: '#/components/responses/WebhookNaoAutenticado'
+        '500':
+          $ref: './componentes/comum.yaml#/components/responses/Erro500'
+        '503':
+          $ref: './componentes/comum.yaml#/components/responses/Erro503'
+      x-rastreabilidade: [RF-AC-01, RF-PG-04, RF-LG-01, RN-CD-02, SEG-04]
+components:
+  securitySchemes:
+    asaasAccessToken:
+      type: apiKey
+      in: header
+      name: asaas-access-token
+      description: |
+        Token que o backend define ao criar o webhook no Asaas (`authToken`, de 32 a 255 caracteres, sem
+        espaços, sem sequência simples, diferente de qualquer chave de API do Asaas). O Asaas o devolve
+        neste cabeçalho em cada entrega. **Não é assinatura HMAC do corpo.** O backend compara em tempo
+        constante com o segredo do cofre. O endereço não pode registrar este cabeçalho em log.
+    resendSvix:
+      type: apiKey
+      in: header
+      name: svix-signature
+      description: |
+        Assinatura Svix do corpo bruto, junto com `svix-id` e `svix-timestamp`. O segredo de assinatura
+        é próprio do endpoint e fica no cofre. Verificação sobre o corpo bruto, sem reserializar o JSON
+        (Proposta; o webhook do Resend é Proposta).
+  responses:
+    WebhookNaoAutenticado:
+      description: |
+        Autenticação do provedor ausente ou inválida (token do Asaas ou assinatura do Resend). O evento
+        não é processado; vai para a quarentena com o mínimo necessário (SEG-17). Não revela qual parte
+        falhou.
+      headers:
+        X-Request-Id:
+          $ref: './componentes/comum.yaml#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: './componentes/comum.yaml#/components/schemas/Erro'
+          examples:
+            naoAutenticado:
+              summary: Token ou assinatura inválidos (código e texto são Proposta)
+              value:
+                codigo: WEBHOOK_NAO_AUTENTICADO
+                mensagem: Requisição não autenticada.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+  schemas:
+    ConfirmacaoRecebimento:
+      type: object
+      description: Confirmação mínima. Igual para evento novo, repetido ou em quarentena.
+      required: [recebido]
+      properties:
+        recebido:
+          type: boolean
+          const: true
+    EventoAsaas:
+      type: object
+      description: |
+        Evento de cobrança do Asaas. Os campos `id`, `event`, `dateCreated` e `payment.object`/`payment.id`
+        são os do exemplo da documentação do Asaas. O restante de `payment` segue o objeto de cobrança do
+        Asaas e **muda conforme o evento**; o conjunto exato por evento é a confirmar no sandbox. Chaves
+        não listadas são aceitas e ignoradas.
+      required: [id, event, dateCreated]
+      properties:
+        id:
+          type: string
+          description: Identificador único do evento no Asaas. Chave de idempotência (única por provedor).
+        event:
+          type: string
+          description: |
+            Tipo do evento (lista oficial em `../02-eventos-e-webhooks.md`). **Eventos tratados no MVP**
+            (Proposta; cada um tem exemplo no endpoint): `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED`,
+            `PAYMENT_OVERDUE`, `PAYMENT_UPDATED`, `PAYMENT_CREDIT_CARD_CAPTURE_REFUSED`,
+            `PAYMENT_DELETED`, `PAYMENT_REFUNDED`, `PAYMENT_PARTIALLY_REFUNDED`,
+            `PAYMENT_REFUND_IN_PROGRESS`, `PAYMENT_REFUND_DENIED`, `PAYMENT_CHARGEBACK_REQUESTED`,
+            `PAYMENT_CHARGEBACK_DISPUTE` e `PAYMENT_AWAITING_CHARGEBACK_REVERSAL`.
+            **Eventos recebidos, gravados e ignorados** (sem exemplo; o webhook só pede os tratados, mas
+            qualquer outro tipo que chegue responde `200`): `PAYMENT_CREATED`, `PAYMENT_AUTHORIZED`,
+            `PAYMENT_AWAITING_RISK_ANALYSIS`, `PAYMENT_APPROVED_BY_RISK_ANALYSIS`,
+            `PAYMENT_REPROVED_BY_RISK_ANALYSIS`, `PAYMENT_ANTICIPATED`, `PAYMENT_RESTORED`,
+            `PAYMENT_RECEIVED_IN_CASH_UNDONE`, `PAYMENT_DUNNING_REQUESTED`, `PAYMENT_DUNNING_RECEIVED`,
+            `PAYMENT_BANK_SLIP_CANCELLED`, `PAYMENT_BANK_SLIP_VIEWED`, `PAYMENT_CHECKOUT_VIEWED` e os
+            quatro `PAYMENT_SPLIT_*`.
+          examples:
+            - PAYMENT_RECEIVED
+        dateCreated:
+          type: string
+          description: Instante de criação do evento, no formato do Asaas (`aaaa-mm-dd hh:mm:ss`). Fuso não documentado (a confirmar).
+          examples:
+            - '2026-11-12 16:45:03'
+        payment:
+          $ref: '#/components/schemas/CobrancaAsaas'
+      additionalProperties: true
+    CobrancaAsaas:
+      type: object
+      description: |
+        Objeto de cobrança dentro do evento. A correlação é pelo `id` (referência externa guardada em
+        `tentativa_pagamento.referencia_externa`) e, quando presente, por `externalReference` (o id da
+        tentativa, definido pelo backend ao criar a cobrança). O condomínio nunca é lido do corpo.
+      required: [id]
+      properties:
+        object:
+          type: string
+          const: payment
+        id:
+          type: string
+          description: Identificador da cobrança no Asaas (`pay_...`).
+        status:
+          type: string
+          description: Situação da cobrança no Asaas (por exemplo PENDING, CONFIRMED, RECEIVED, OVERDUE, REFUNDED).
+        billingType:
+          type: string
+          description: Forma de pagamento no Asaas (BOLETO, CREDIT_CARD, PIX, UNDEFINED, entre outras).
+        value:
+          type: number
+          description: Valor da cobrança em reais, como o Asaas envia. O backend converte para centavos inteiros na entrada e nunca usa ponto flutuante nas contas (arquitetura 3.6).
+        netValue:
+          type: number
+          description: Valor líquido, em reais, como o Asaas envia. A taxa do gateway sai daqui (RN-PG-05).
+        dueDate:
+          type: string
+          format: date
+        externalReference:
+          type: string
+          description: Texto livre definido na criação da cobrança. O backend grava aqui o id da tentativa de pagamento.
+      additionalProperties: true
+    EventoResend:
+      type: object
+      description: |
+        Evento do Resend (Proposta). **Eventos tratados** (cada um com exemplo no endpoint):
+        `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed`
+        e `email.suppressed`. **Eventos recebidos, gravados e ignorados** (sem exemplo): `email.sent`,
+        `email.opened`, `email.clicked`, `email.scheduled` e `email.received`.
+      required: [type, created_at, data]
+      properties:
+        type:
+          type: string
+          examples:
+            - email.delivered
+        created_at:
+          type: string
+          format: date-time
+        data:
+          type: object
+          required: [email_id]
+          properties:
+            email_id:
+              type: string
+              description: Identificador do e-mail no Resend, guardado em `entrega_notificacao.recibo_externo`.
+            created_at:
+              type: string
+              format: date-time
+            from:
+              type: string
+            to:
+              type: array
+              items:
+                type: string
+            subject:
+              type: string
+            bounce:
+              type: object
+              description: Detalhe da rejeição, nos eventos `email.bounced`.
+              properties:
+                type:
+                  type: string
+                subType:
+                  type: string
+                message:
+                  type: string
+            failed:
+              type: object
+              description: Detalhe da falha, nos eventos `email.failed`.
+              properties:
+                reason:
+                  type: string
+            suppressed:
+              type: object
+              description: Detalhe da supressão, nos eventos `email.suppressed` (aparece no exemplo da documentação, sem descrição formal).
+              properties:
+                type:
+                  type: string
+                message:
+                  type: string
+          additionalProperties: true
+      additionalProperties: true
+x-lacunas:
+  - Conjunto exato de campos de `payment` em cada evento do Asaas, formato e fuso de `dateCreated`: a confirmar no sandbox (a documentação traz só `object` e `id` no exemplo).
+  - Se o token do webhook é um só para a plataforma ou um por subconta (o Asaas permite configurar webhook por subconta, no `webhooks` da criação): a decidir no desenho do adaptador.
+  - Se os eventos de situação da subconta (`ACCOUNT_STATUS_*`) chegam neste mesmo endpoint e com qual formato: a confirmar. Sem isso, `conta_recebedora.estado_verificacao` só muda por consulta.
+  - Intervalos e número de tentativas de reenvio do Asaas: a documentação não informa. A fila pode ser pausada após 15 falhas consecutivas de entrega.
+  - Corpo ilegível com autenticação válida: o `400` é Proposta (a arquitetura 3.6 e o MER/DER 4.10 só preveem quarentena para autenticação inválida, conta e transação desconhecidas). Decidir entre `400` e `200` com quarentena, que exigiria motivo novo em `evento_gateway_quarentena`.
+  - Corpo dos eventos tratados sem exemplo completo (`PAYMENT_UPDATED`, `PAYMENT_CREDIT_CARD_CAPTURE_REFUSED`, `PAYMENT_DELETED`, `PAYMENT_REFUND_IN_PROGRESS`, `PAYMENT_CHARGEBACK_DISPUTE`, `PAYMENT_AWAITING_CHARGEBACK_REVERSAL`): exemplos só com `object` e `id`, os campos que a documentação do Asaas mostra; o resto a confirmar no sandbox.
+  - Retenção da quarentena de webhooks: lacuna (MER/DER P-09). Nenhum prazo é inventado.
+  - Limite de taxa deste endpoint e proteção contra volume de requisições com token inválido: lacuna (guia, seção 10).
+  - Webhook do Resend: Proposta, sem requisito de origem; critério de resposta que o Resend considera sucesso e tolerância de `svix-timestamp` não constam na documentação consultada.
+  - Textos e `codigo` `WEBHOOK_NAO_AUTENTICADO`: Proposta, sem origem em UF 15.

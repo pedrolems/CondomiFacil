@@ -1,0 +1,201 @@
+asyncapi: 3.0.0
+info:
+  title: CondomiFacil - tempo real da portaria (Socket.IO)
+  version: 0.1.0-proposta
+  description: |
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Sai do que a arquitetura 3.4 já fixa: WebSockets
+    para a lista da portaria (decidido no PRD seção 10); visitante cadastrado, editado ou cancelado
+    aparece em até 5 s (RNF-05); a portaria só vê os blocos que atende (RF-VI-03, RF-VI-04); edição de
+    entrega esperada aparece na hora, sem push (RN-EN-09). O resto (Socket.IO, handshake, nome das
+    salas, carga mínima) é Proposta da arquitetura 3.4.
+
+    **Regras (Proposta):**
+
+    - Servidor é o gateway Socket.IO do NestJS, no mesmo processo da API.
+    - **Autenticação no handshake** com o token de acesso (o mesmo JWT de 15 min do guia, seção 2),
+      enviado em `auth.token`. Token expirado ou inválido recusa a conexão. A renovação é tratada na
+      reconexão: o cliente renova o token em `POST /v1/acesso/renovar` e reconecta.
+    - **Sala definida pelo servidor.** `c:{condominio_id}:portaria:{portaria_id}`. O cliente não pede
+      sala: o servidor coloca o funcionário na sala da portaria a que ele pertence, depois de
+      conferir vínculo com o condomínio e com aquela portaria. Condomínio e portaria vêm do vínculo
+      no banco, não do cliente. Quem não é da portaria não entra.
+    - **Dados mínimos.** O evento leva só identificadores e o tipo da mudança. Nome do visitante,
+      documento, situação financeira e qualquer dado pessoal **nunca** vão no evento. O cliente relê
+      pela API (`GET` da lista da portaria), onde a RLS e os blocos atendidos valem.
+    - **Distribuição entre instâncias:** evento do outbox vira `NOTIFY` no PostgreSQL e cada instância
+      repassa aos seus sockets (ADR-006, Proposta).
+    - **Socket caiu:** o cliente faz `pull` incremental ao reconectar, pelo mesmo mecanismo do offline
+      (`GET /v1/sync`, cursor). Nenhum evento é fonte de verdade: o evento só avisa que algo mudou.
+      A consulta periódica da lista é o plano B que garante RNF-05 sem WebSocket.
+    - A primeira chegada e o resumo a cada 15 min para o morador (RN-VI-17) são do `notificacoes`
+      (push), não deste canal.
+
+    **Lacuna:** número de conexões por instância e escala (RNF-17): a medir no teste de carga.
+    Textos de erro de conexão recusada: sem origem em UF 15.
+  contact:
+    name: Pedro Lemos
+defaultContentType: application/json
+servers:
+  desenvolvimento:
+    host: api.example.invalid
+    protocol: wss
+    pathname: /socket.io
+    description: |
+      Mesmo serviço web da API. No Render gratuito o serviço dorme sem tráfego (inclusive sem mensagens
+      de WebSocket), então RNF-05 não é medido de forma válida neste ambiente (ADR-004). Endereço real
+      a definir.
+    security:
+      - $ref: '#/components/securitySchemes/tokenNoHandshake'
+channels:
+  salaPortaria:
+    address: 'c:{condominio_id}:portaria:{portaria_id}'
+    title: Sala da portaria
+    description: |
+      Sala Socket.IO de uma portaria de um condomínio. Entrada decidida pelo servidor (ver regras acima).
+      Só a portaria daquele condomínio recebe estas mensagens. Fora do prefixo `c:{condominio_id}` não
+      existe sala de dado de condomínio (isolamento de canais, arquitetura 4.6).
+    parameters:
+      condominio_id:
+        description: Identificador (UUID) do condomínio.
+        examples:
+          - 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+      portaria_id:
+        description: Identificador (UUID) da portaria dentro do condomínio.
+        examples:
+          - 5b0e8a14-2c3d-4e5f-8a9b-0c1d2e3f4a5b
+    messages:
+      visitanteCadastrado:
+        $ref: '#/components/messages/visitanteCadastrado'
+      visitanteEditado:
+        $ref: '#/components/messages/visitanteEditado'
+      visitanteCancelado:
+        $ref: '#/components/messages/visitanteCancelado'
+      entregaEsperadaEditada:
+        $ref: '#/components/messages/entregaEsperadaEditada'
+operations:
+  receberMudancasDaPortaria:
+    action: send
+    title: Servidor avisa a portaria de uma mudança
+    summary: O servidor emite à sala da portaria os eventos de visitante e de entrega esperada.
+    description: |
+      O servidor (aplicação) envia; a portaria, no app, recebe. Cada evento é consequência de uma
+      mudança já gravada, publicada pelo outbox (`evento_saida`, entrega ao menos uma vez), então o
+      cliente trata o aviso como idempotente: relê o item pelo identificador e ignora repetição.
+    channel:
+      $ref: '#/channels/salaPortaria'
+    messages:
+      - $ref: '#/channels/salaPortaria/messages/visitanteCadastrado'
+      - $ref: '#/channels/salaPortaria/messages/visitanteEditado'
+      - $ref: '#/channels/salaPortaria/messages/visitanteCancelado'
+      - $ref: '#/channels/salaPortaria/messages/entregaEsperadaEditada'
+components:
+  securitySchemes:
+    tokenNoHandshake:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Mesmo JWT de acesso do guia (seção 2: 15 min, só `sub` e `sid`, sem papéis). No Socket.IO vai
+        em `auth.token` do handshake, e não em cabeçalho de requisição de negócio. Conexão sem token ou
+        com token inválido é recusada; o papel e o vínculo são resolvidos no servidor.
+  messages:
+    visitanteCadastrado:
+      name: visitante.cadastrado
+      title: Visitante cadastrado
+      summary: Um morador cadastrou uma visita que esta portaria atende.
+      description: |
+        Nome de evento citado na arquitetura 3.3. Só chega à portaria que atende o bloco da unidade
+        (RF-VI-04). Aparece na lista em até 5 s (RNF-05). O app relê a visita pela API.
+      payload:
+        $ref: '#/components/schemas/AvisoDeVisita'
+      examples:
+        - name: cadastradoComum
+          payload:
+            evento: visitante.cadastrado
+            visita_id: 8d2e4f60-1a3b-4c5d-9e7f-102132435465
+            ocorrido_em: '2026-11-12T14:30:00-03:00'
+      x-rastreabilidade: [RF-VI-04, RNF-05]
+    visitanteEditado:
+      name: visitante.editado
+      title: Visitante editado
+      summary: Um morador editou uma visita; a portaria atualiza na hora.
+      description: A edição aparece na portaria na hora (RF-VI-03, RNF-05). Sem o conteúdo da edição.
+      payload:
+        $ref: '#/components/schemas/AvisoDeVisita'
+      examples:
+        - name: editadoComum
+          payload:
+            evento: visitante.editado
+            visita_id: 8d2e4f60-1a3b-4c5d-9e7f-102132435465
+            ocorrido_em: '2026-11-12T14:32:10-03:00'
+      x-rastreabilidade: [RF-VI-03, RNF-05]
+    visitanteCancelado:
+      name: visitante.cancelado
+      title: Visitante cancelado
+      summary: Um morador cancelou uma visita; ela sai da lista da portaria.
+      description: |
+        Cancelamento aparece na portaria na hora (RF-VI-03, RNF-05). Quem já entrou continua registrado
+        (RN-VI-15); só a visita cancelada some da lista. Divergência com registro offline é caso do
+        `sync` (RN-OF-04), não deste canal.
+      payload:
+        $ref: '#/components/schemas/AvisoDeVisita'
+      examples:
+        - name: canceladoComum
+          payload:
+            evento: visitante.cancelado
+            visita_id: 8d2e4f60-1a3b-4c5d-9e7f-102132435465
+            ocorrido_em: '2026-11-12T14:40:00-03:00'
+      x-rastreabilidade: [RF-VI-03, RNF-05, RN-VI-15]
+    entregaEsperadaEditada:
+      name: entrega_esperada.editada
+      title: Entrega esperada editada
+      summary: Uma entrega esperada foi editada, reagendada ou cancelada; a portaria vê na hora, sem push.
+      description: |
+        A portaria vê a edição na hora, sem push (RN-EN-09). Cobre editar, cancelar e reagendar
+        (reagendar volta a "Esperada"). O nome do evento é Proposta: os docs descrevem o comportamento,
+        não o nome. O app relê "Esperadas hoje" pela API.
+      payload:
+        $ref: '#/components/schemas/AvisoDeEntregaEsperada'
+      examples:
+        - name: entregaEditada
+          payload:
+            evento: entrega_esperada.editada
+            entrega_esperada_id: 0b1c2d3e-4f50-4162-8374-859697a8b9ca
+            ocorrido_em: '2026-11-12T10:05:00-03:00'
+      x-rastreabilidade: [RN-EN-09, RF-EN-08, RF-EN-07]
+  schemas:
+    AvisoDeVisita:
+      type: object
+      description: Carga mínima do aviso de visita. Nenhum dado pessoal (nome, documento, unidade) viaja aqui.
+      required: [evento, visita_id, ocorrido_em]
+      properties:
+        evento:
+          type: string
+          enum: [visitante.cadastrado, visitante.editado, visitante.cancelado]
+        visita_id:
+          type: string
+          format: uuid
+          description: Identificador da visita. O cliente relê os dados pela API.
+        ocorrido_em:
+          type: string
+          format: date-time
+          description: Instante da mudança, ISO 8601 com deslocamento.
+    AvisoDeEntregaEsperada:
+      type: object
+      description: Carga mínima do aviso de entrega esperada. Sem descrição, origem nem unidade.
+      required: [evento, entrega_esperada_id, ocorrido_em]
+      properties:
+        evento:
+          type: string
+          const: entrega_esperada.editada
+        entrega_esperada_id:
+          type: string
+          format: uuid
+        ocorrido_em:
+          type: string
+          format: date-time
+x-lacunas:
+  - Escala de conexões por instância e limite de conexões por usuário ou por portaria (arquitetura 3.4, 9.3).
+  - Nomes exatos dos eventos `entrega_esperada.editada` (Proposta) e de eventos de entrada e saída de visita para outras portarias do mesmo condomínio: os docs não os definem, por isso só os quatro acima entram.
+  - Mensagem de conexão recusada (token inválido, sem vínculo com a portaria): sem texto em UF 15.
+  - Forma de o servidor mandar o app apagar a cópia do dia (rotina 13) fica no protocolo de `sync`, não aqui (MER/DER 4.12, RN-OF-06).

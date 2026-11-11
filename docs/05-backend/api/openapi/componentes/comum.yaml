@@ -1,0 +1,395 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - componentes comuns
+  version: 0.1.0-proposta
+  summary: Componentes transversais reutilizados por `$ref` pelos arquivos OpenAPI de cada interface.
+  description: |
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Este arquivo não expõe operações: guarda
+    esquemas, parâmetros, cabeçalhos, respostas de erro e o esquema de segurança que os outros
+    arquivos de `docs/05-backend/api/openapi/` usam por
+    `$ref: './componentes/comum.yaml#/components/...'`.
+
+    As convenções que estes componentes materializam estão em `../../01-guia-da-api.md`.
+    Textos de erro com origem no User Flows seção 15 (UF 15) vêm de lá, palavra por palavra.
+    Os textos de `400`, `404`, `422` e `429` não existem em UF 15: são **Proposta** e ficam
+    marcados como tal no exemplo.
+paths: {}
+components:
+  securitySchemes:
+    bearerJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        `Authorization: Bearer <JWT>`. Token de acesso de 15 minutos com apenas `sub` (usuário) e
+        `sid` (sessão); **sem papéis nem condomínios** (ADR-007, Proposta). O papel efetivo é
+        resolvido no servidor a cada requisição. Renovação pelo refresh token opaco e rotativo em
+        `POST /v1/acesso/renovar`.
+
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+      description: Identificador UUID. Todo identificador da API é UUID (Proposta).
+      examples:
+        - 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+    DataHora:
+      type: string
+      format: date-time
+      description: Data e hora em ISO 8601 com deslocamento de fuso (Proposta).
+      examples:
+        - '2026-11-10T14:30:00-03:00'
+    Data:
+      type: string
+      format: date
+      description: Data em ISO 8601, sem hora (`aaaa-mm-dd`). Nos textos de interface vale dd/mm/aaaa.
+      examples:
+        - '2026-11-10'
+    Centavos:
+      type: integer
+      format: int64
+      description: |
+        Valor monetário em centavos, inteiro, em reais (BRL). Todo campo de dinheiro usa o sufixo
+        `_centavos` (Proposta; arquitetura 3.6, RN 12). Exemplo: R$ 150,00 é `15000`.
+      examples:
+        - 15000
+    Paginacao:
+      type: object
+      description: Bloco de paginação por cursor opaco devolvido em toda lista (Proposta).
+      required: [proximo_cursor, tem_mais]
+      properties:
+        proximo_cursor:
+          type:
+            - string
+            - 'null'
+          description: Cursor opaco para pedir a próxima página em `?cursor=`. Nulo quando `tem_mais` é falso.
+          examples:
+            - eyJpZCI6IjNmNmMxYTUyIn0
+        tem_mais:
+          type: boolean
+          description: Indica se há mais itens depois desta página.
+      examples:
+        - proximo_cursor: eyJpZCI6IjNmNmMxYTUyIn0
+          tem_mais: true
+    Erro:
+      type: object
+      description: |
+        Formato único de erro (Proposta; `01-backend.md` 4.5). O texto de `mensagem` é o que o
+        cliente pode mostrar ao usuário; os valores de `codigo` estão no guia, seção 8. O erro nunca
+        devolve corpo de reclamação, avaliação ou voto (ADR-010).
+      required: [codigo, mensagem, request_id]
+      properties:
+        codigo:
+          type: string
+          pattern: '^[A-Z][A-Z0-9_]*$'
+          description: Código estável em `SNAKE_MAIUSCULO`, definido em `shared-types`. O cliente decide por ele, não pela mensagem.
+          examples:
+            - SESSAO_EXPIRADA
+        mensagem:
+          type: string
+          description: Texto em português do Brasil, pronto para exibição.
+        detalhes:
+          type: array
+          description: Detalhes por campo ou por regra, quando houver (entrada inválida, faixa de parâmetro).
+          items:
+            type: object
+            required: [mensagem]
+            properties:
+              campo:
+                type: string
+                description: Nome do campo do corpo ou do parâmetro, em `snake_case`.
+              mensagem:
+                type: string
+              codigo:
+                type: string
+                pattern: '^[A-Z][A-Z0-9_]*$'
+        request_id:
+          type: string
+          description: Mesmo valor do cabeçalho `X-Request-Id` da resposta. Serve para suporte e para o Sentry.
+          examples:
+            - req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+
+  parameters:
+    CondominioId:
+      name: X-Condominio-Id
+      in: header
+      required: true
+      description: |
+        **Proposta.** Condomínio ativo da requisição. Obrigatório nas operações que o declaram;
+        não vale para `/v1/acesso/*` nem para `/v1/eu/*` (guia, seção 3). A API valida que o usuário tem vínculo válido com ele;
+        senão responde `403` (guard de contexto). Recurso de outro condomínio responde `404`.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    UnidadeId:
+      name: X-Unidade-Id
+      in: header
+      required: false
+      description: |
+        **Proposta.** Forma **opcional** do cabeçalho de unidade ativa: use onde a unidade não é
+        indispensável à operação. Onde a operação depende da unidade, use `UnidadeIdObrigatorio`.
+        Só existe nos perfis com unidade (morador, proprietário não residente e, quando agem como
+        morador, síndico, subsíndico e conselho fiscal). A API valida o vínculo do usuário com a unidade.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    UnidadeIdObrigatorio:
+      name: X-Unidade-Id
+      in: header
+      required: true
+      description: |
+        **Proposta.** Forma **obrigatória** do cabeçalho de unidade ativa, para as operações de
+        perfis com unidade (morador, proprietário não residente) que dependem da unidade, como as de
+        dono do dado por unidade (SEG-17). A API valida o vínculo do usuário com a unidade.
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    AppVersion:
+      name: X-App-Version
+      in: header
+      required: false
+      description: |
+        Versão do app que chama. Abaixo do mínimo, a API responde `426` (Proposta). A política de
+        versão mínima é lacuna: nenhum número está definido, e o comportamento quando o cabeçalho
+        falta também (lacuna).
+      schema:
+        type: string
+        examples:
+          - 1.0.0
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: |
+        Chave de idempotência por requisição, opcional, nos POST que cobram ou reservam
+        (**Proposta técnica, fora das RN**; `01-backend.md` 4.6). Repetir a mesma chave com o mesmo
+        corpo devolve a resposta original sem repetir o efeito. O tempo de guarda é lacuna.
+      schema:
+        type: string
+        minLength: 1
+        examples:
+          - 7d4b1c9e-2a51-4f7e-9c3a-0b6e8f1a2d34
+    Limite:
+      name: limite
+      in: query
+      required: false
+      description: Itens por página. Padrão 20, máximo 100 (Proposta).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Cursor opaco devolvido em `paginacao.proximo_cursor`. Não interpretar nem montar.
+      schema:
+        type: string
+    Ordenar:
+      name: ordenar
+      in: query
+      required: false
+      description: |
+        Ordenação **sem restrição de campos**; prefixo `-` para decrescente (`ordenar=-criado_em`).
+        Quando a operação aceita só alguns campos, ela declara `ordenar` inline com `enum` dos
+        valores aceitos (guia, seção 7) e não usa este componente. Campo fora da lista responde `400`.
+      schema:
+        type: string
+        examples:
+          - -criado_em
+
+  headers:
+    XRequestId:
+      description: Identificador da requisição, devolvido em toda resposta (Proposta). Igual a `request_id` do corpo de erro.
+      schema:
+        type: string
+        examples:
+          - req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    RetryAfter:
+      description: Segundos até a próxima tentativa, nas respostas `429` (e `503`, quando houver). Os valores de limite de taxa são lacuna.
+      schema:
+        type: integer
+        minimum: 0
+    Deprecation:
+      description: Presente em rota obsoleta (Proposta). Indica que a rota está obsoleta e desde quando.
+      schema:
+        type: string
+    Sunset:
+      description: Presente em rota obsoleta (Proposta). Data a partir da qual a rota deixa de responder (HTTP-date).
+      schema:
+        type: string
+
+  responses:
+    Erro400:
+      description: Entrada inválida (validação Zod). Corpo ou parâmetro fora do esquema.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            entradaInvalida:
+              summary: Campo fora do formato (texto Proposta, sem origem em UF 15)
+              value:
+                codigo: REQUISICAO_INVALIDA
+                mensagem: Confira os campos destacados e tente de novo.
+                detalhes:
+                  - campo: data_esperada
+                    mensagem: Informe uma data válida.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro401:
+      description: Sessão expirada, inválida ou revogada. O cliente volta ao login e depois à tela onde estava (UF 15).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            sessaoExpirada:
+              summary: Sessão expirada (texto de UF 15)
+              value:
+                codigo: SESSAO_EXPIRADA
+                mensagem: Por segurança, entre de novo na sua conta.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro403:
+      description: Sem vínculo com o condomínio ou a unidade, ou sem permissão para o papel efetivo (guards de contexto, papel e unidade).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            semPermissao:
+              summary: Permissão mudou com o app aberto (texto de UF 15)
+              value:
+                codigo: SEM_PERMISSAO
+                mensagem: Esta área é só para síndico.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro404:
+      description: |
+        Recurso não encontrado. Recurso de outro condomínio também responde `404`, indistinguível de
+        "não existe", nunca `403` que confirme a existência (arquitetura 4.11).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            naoEncontrado:
+              summary: Recurso inexistente ou de outro condomínio (texto Proposta, sem origem em UF 15)
+              value:
+                codigo: RECURSO_NAO_ENCONTRADO
+                mensagem: Não encontramos o que você procurou.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro409:
+      description: Conflito de estado ou de dado (horário já reservado, dado alterado por outra pessoa, voto repetido).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            dadoAlterado:
+              summary: Dado alterado por outra pessoa (texto de UF 15)
+              value:
+                codigo: CONFLITO_DADO_ALTERADO
+                mensagem: Estas informações mudaram. Atualizamos a tela.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro422:
+      description: |
+        Regra de negócio violada (por exemplo, reserva fora da antecedência). O código HTTP da regra
+        de negócio é Proposta. Cada operação acrescenta um exemplo com o código da regra do caso.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            regraDeNegocio:
+              summary: Regra violada, exemplo genérico (texto Proposta, sem origem em UF 15)
+              value:
+                codigo: REGRA_DE_NEGOCIO_VIOLADA
+                mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                detalhes:
+                  - campo: inicio
+                    codigo: RESERVA_FORA_DA_ANTECEDENCIA
+                    mensagem: O horário escolhido está fora da antecedência permitida para esta área.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro426:
+      description: Versão do app abaixo do mínimo (guard de versão, Proposta). O cliente mostra o link para a loja (UF 15).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            versaoObrigatoria:
+              summary: Nova versão obrigatória (texto de UF 15)
+              value:
+                codigo: VERSAO_DO_APP_NAO_SUPORTADA
+                mensagem: Atualize o app para continuar.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro429:
+      description: Limite de taxa excedido. Traz `Retry-After`. Os valores dos limites são lacuna.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            limiteExcedido:
+              summary: Muitas requisições (texto Proposta, sem origem em UF 15)
+              value:
+                codigo: LIMITE_DE_TAXA_EXCEDIDO
+                mensagem: Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro500:
+      description: Erro do servidor. Enviado ao Sentry com dados filtrados.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            erroDoServidor:
+              summary: Erro do servidor (texto de UF 15)
+              value:
+                codigo: ERRO_INTERNO
+                mensagem: Algo deu errado do nosso lado. Tente de novo em alguns minutos.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro503:
+      description: Serviço indisponível (manutenção, dependência fora do ar).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            servicoIndisponivel:
+              summary: Serviço indisponível (reaproveita o texto de erro do servidor; código Proposta)
+              value:
+                codigo: SERVICO_INDISPONIVEL
+                mensagem: Algo deu errado do nosso lado. Tente de novo em alguns minutos.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC

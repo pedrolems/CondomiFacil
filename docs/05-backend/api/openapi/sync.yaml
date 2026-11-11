@@ -1,0 +1,585 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - sincronização offline
+  version: 0.1.0-proposta
+  description: |-
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Interface transversal `/v1/sync`, usada pela portaria (visitantes, RN-OF-01 a RN-OF-06) e pela limpeza (conclusão de chamados, RN-CH-04). Os outros perfis são online-only.
+
+    **Decidido:** o escopo offline (só portaria e limpeza); `op_id` único, reenvio sem duplicar e carga diferente recusada (MER 4.12); divergência de portaria aplicada pelo servidor (arquitetura 3.1.1) e confirmada por interfone (RN-OF-04), sem aviso ao síndico (RN-OF-05); em conclusões do mesmo ciclo vale o menor horário registrado pelo celular, mesmo enviado depois (RN-CH-04, decisão de Pedro em 08/11/2026).
+
+    **Proposta (ADR-003 e ADR-014, ainda não aceitos):** o protocolo em lote com cursor, os nomes dos tipos de operação, o desempate exato por chegada ao servidor, o tratamento de relógio incorreto e o no-op com aviso para saída de visita já encerrada.
+tags:
+- name: sync
+  description: Fila de operações offline e delta por cursor.
+paths:
+  /v1/sync:
+    post:
+      operationId: syncEnviarOperacoes
+      summary: Envia o lote ordenado de operações feitas offline
+      description: 'Interface transversal de portaria e limpeza (ADR-003). Cada operação tem `op_id` único, tipo, carga e horário do aparelho; o lote é processado em ordem e uma operação recusada não derruba as demais (ADR-003, `POST /sync/push`). A resposta é HTTP 200 com resultado por operação: `aplicada`, `repetida` (mesmo `op_id`: não duplica), `divergente` (RN-OF-04) ou `recusada` (inclusive o mesmo `op_id` com carga diferente, `OP_ID_REUTILIZADO_COM_CARGA_DIFERENTE`, código Proposta para a recusa de MER 4.12; conflito por operação não gera `409` nem `422`). Divergência de portaria é aplicada, vira `divergencia_sync` e é notificação obrigatória ao porteiro (US-NO-01); nunca vai ao síndico (RN-OF-05). Na conclusão de chamado do mesmo ciclo vale o menor horário registrado pelo celular, mesmo enviada depois; a outra fica no histórico, sem efeito, com aviso aos envolvidos, e a ordem de chegada não substitui o critério (RN-CH-04). Desempate exato por chegada ao servidor e tratamento de relógio incorreto são Proposta do ADR-014 e não estão fechados. Operação de perfil sem permissão é `recusada` com `SEM_PERMISSAO` (Proposta, sem origem nos docs). Fotos de conclusão sobem antes, por `/v1/arquivos`. Não usa `Idempotency-Key`: a chave é o `op_id` (guia, seção 9).'
+      tags:
+      - sync
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoteSync'
+            examples:
+              portaria:
+                summary: Entradas e saída da portaria
+                value:
+                  dispositivo_id: 9e1b3d5f-7a8c-4e02-b4d6-8f0a2c4e6b18
+                  operacoes:
+                  - op_id: a3f1c2d4-5b6e-4f70-8192-a3b4c5d6e7f8
+                    sequencia: 1
+                    tipo: entrada_visita
+                    registrada_aparelho_em: '2026-11-10T14:10:03-03:00'
+                    carga:
+                      visita_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  - op_id: b4a2d3e5-6c7f-4081-92a3-b4c5d6e7f809
+                    sequencia: 2
+                    tipo: saida_visita
+                    registrada_aparelho_em: '2026-11-10T15:02:41-03:00'
+                    carga:
+                      visita_id: 7b9d1f35-2c4e-4a68-8e01-5d7f9b1c3e20
+                  - op_id: c5b3e4f6-7d80-4192-a3b4-c5d6e7f80a1b
+                    sequencia: 3
+                    tipo: entrada_visita
+                    registrada_aparelho_em: '2026-11-10T15:20:10-03:00'
+                    carga:
+                      visita_id: 1d3f5a7c-9b0e-4c24-8a46-6e8a0c2e4b13
+              limpeza:
+                summary: Conclusão com foto
+                value:
+                  dispositivo_id: 9e1b3d5f-7a8c-4e02-b4d6-8f0a2c4e6b18
+                  operacoes:
+                  - op_id: d6c4f5a7-8e91-42a3-b4c5-d6e7f80a1b2c
+                    sequencia: 1
+                    tipo: conclusao_chamado
+                    registrada_aparelho_em: '2026-11-10T10:05:00-03:00'
+                    carga:
+                      chamado_id: b9d1f3a5-7c2e-4084-96a8-4c6e8a0b2d57
+                      fotos:
+                      - e3b5d7f9-1a2c-4e64-8f06-0b2d4f6a8c91
+      responses:
+        '200':
+          description: Resultado por operação.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoLoteSync'
+              examples:
+                portaria:
+                  summary: 'Lote da portaria: aplicada, aplicada com aviso e divergente'
+                  value:
+                    resultados:
+                    - op_id: a3f1c2d4-5b6e-4f70-8192-a3b4c5d6e7f8
+                      sequencia: 1
+                      resultado: aplicada
+                      recebida_em: '2026-11-10T14:31:50-03:00'
+                    - op_id: b4a2d3e5-6c7f-4081-92a3-b4c5d6e7f809
+                      sequencia: 2
+                      resultado: aplicada
+                      recebida_em: '2026-11-10T14:31:50-03:00'
+                      aviso:
+                        codigo: SAIDA_JA_ENCERRADA_PELA_ROTINA
+                        mensagem: Esta visita já tinha sido encerrada pelo sistema.
+                    - op_id: c5b3e4f6-7d80-4192-a3b4-c5d6e7f80a1b
+                      sequencia: 3
+                      resultado: divergente
+                      recebida_em: '2026-11-10T14:31:50-03:00'
+                      divergencia:
+                        id: c4a8e1b6-3f72-4d59-a0c8-5b2d7e9f1a34
+                        motivo: visitante_cancelado
+                        visita_id: 1d3f5a7c-9b0e-4c24-8a46-6e8a0c2e4b13
+                    sincronizado_em: '2026-11-10T14:31:51-03:00'
+                repetidaERecusada:
+                  summary: 'Limpeza: aplicada; reenvio repetido; mesmo op_id com carga diferente recusado'
+                  value:
+                    resultados:
+                    - op_id: d6c4f5a7-8e91-42a3-b4c5-d6e7f80a1b2c
+                      sequencia: 1
+                      resultado: aplicada
+                      recebida_em: '2026-11-10T14:40:00-03:00'
+                      conclusao:
+                        id: 4a6c8e0b-2d4f-4a71-b3c5-7e9a1c3d5f82
+                        ciclo: 1
+                        efetiva: true
+                        superada_em: null
+                    - op_id: a3f1c2d4-5b6e-4f70-8192-a3b4c5d6e7f8
+                      sequencia: 2
+                      resultado: repetida
+                      resultado_original: aplicada
+                      recebida_em: '2026-11-10T14:40:00-03:00'
+                    - op_id: b4a2d3e5-6c7f-4081-92a3-b4c5d6e7f809
+                      sequencia: 3
+                      resultado: recusada
+                      recebida_em: '2026-11-10T14:40:00-03:00'
+                      recusa:
+                        codigo: OP_ID_REUTILIZADO_COM_CARGA_DIFERENTE
+                        mensagem: Este identificador de operação já foi usado com outro conteúdo.
+                    sincronizado_em: '2026-11-10T14:40:01-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-05
+      - RF-VI-06
+      - RF-VI-11
+      - RF-CH-03
+      - RN-OF-01
+      - RN-OF-03
+      - RN-OF-04
+      - RN-OF-05
+      - RN-CH-04
+      - RN-CH-14
+      - US-VI-04
+      - US-CH-02
+      - US-NO-01
+    get:
+      operationId: syncLerAlteracoes
+      summary: Lê o delta de alterações por cursor
+      description: 'Leitura incremental do escopo do perfil (RN-OF-01, RF-VI-05): para a portaria, o dia dos blocos que atende (visitas, listas, bloqueios, encomendas pendentes e divergências); para a limpeza, os chamados abertos do setor (RN-CH-04). Sem `cursor`, devolve a cópia do dia. Cada página traz `paginacao` e, sempre, `cursor_atual`, que o app guarda ao fim das páginas e envia na próxima leitura. É também a consulta incremental de recuperação quando o WebSocket da lista da portaria cai (arquitetura 3.4). A cópia local é apagada ao fim do dia e ao sair da conta (RN-OF-06, SEG-09). ADR-003 chama isto de `/sync/push` e `/sync/pull`; aqui são `POST` e `GET` em `/v1/sync` (Proposta).'
+      tags:
+      - sync
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: portaria_id
+        in: query
+        required: false
+        description: 'Portaria da cópia, só para o perfil de portaria. Padrão: as portarias do funcionário. Proposta.'
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        example: 1e4f6a73-2b95-4c08-a7d1-8f3c0e5b9d26
+      responses:
+        '200':
+          description: Página do delta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeltaSync'
+              example:
+                dados:
+                - entidade: visita
+                  acao: criar_ou_atualizar
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  atualizado_em: '2026-11-10T14:10:05-03:00'
+                  dados:
+                    id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                    estado: entrou
+                    dia: '2026-11-10'
+                    nome_visitante: Carlos Souza
+                    tipo: avulsa
+                    unidade:
+                      unidade_id: 9c1e7f20-4b3a-4d65-8a12-6e0f5b7c3d41
+                      bloco_id: 5a8d2e91-7c4b-4f13-b6a0-2d9e1c8f7a35
+                      bloco_nome: Bloco A
+                      identificacao: Apto 101
+                      rotulo: Bloco A · Apto 101
+                    inicio_faixa: '14:00'
+                    fim_faixa: '16:00'
+                    lista: null
+                    alerta_bloqueio: null
+                    fora_do_horario_cadastrado: false
+                    entrada_em: '2026-11-10T14:10:03-03:00'
+                    saida_em: null
+                - entidade: visita
+                  acao: remover
+                  id: 7b9d1f35-2c4e-4a68-8e01-5d7f9b1c3e20
+                  atualizado_em: '2026-11-10T14:12:00-03:00'
+                  dados: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+                cursor_atual: eyJhdCI6IjIwMjYtMTEtMTBUMTQ6MTI6MDAiLCJpZCI6IjdiOWQifQ
+                sincronizado_em: '2026-11-10T14:12:30-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-05
+      - RF-VI-04
+      - RF-CH-03
+      - RN-OF-01
+      - RN-OF-02
+      - RN-OF-06
+      - US-VI-04
+      - US-CH-02
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  schemas:
+    CargaEntradaVisitaSync:
+      type: object
+      description: Carga de `entrada_visita`. `decisao_bloqueio` quando a pessoa está na cópia local da lista de bloqueio (RN-VI-05).
+      required:
+      - visita_id
+      properties:
+        visita_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        decisao_bloqueio:
+          type: object
+          required:
+          - bloqueio_id
+          - decisao
+          - motivo
+          properties:
+            bloqueio_id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            decisao:
+              type: string
+              const: liberar
+            motivo:
+              type: string
+              minLength: 1
+    CargaSaidaVisitaSync:
+      type: object
+      required:
+      - visita_id
+      properties:
+        visita_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    CargaConclusaoChamadoSync:
+      type: object
+      required:
+      - chamado_id
+      properties:
+        chamado_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        fotos:
+          type: array
+          maxItems: 5
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Até 5 fotos, já enviadas por URL assinado antes da conclusão ser aplicada; o `op_id` é a chave de idempotência (arquitetura 3.1.1, RN-CH-14).
+    OperacaoEntradaVisitaSync:
+      type: object
+      description: 'Entrada de visitante registrada offline (RN-OF-03). Perfil: portaria.'
+      required:
+      - op_id
+      - sequencia
+      - tipo
+      - registrada_aparelho_em
+      - carga
+      properties:
+        op_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Gerado no aparelho. Único por condomínio (`operacao_sync.op_id`).
+        sequencia:
+          type: integer
+          description: Ordem sequencial na fila do aparelho.
+          minimum: 1
+        tipo:
+          type: string
+          const: entrada_visita
+        registrada_aparelho_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Horário do relógio do aparelho (`registrada_aparelho_em`).
+        carga:
+          $ref: '#/components/schemas/CargaEntradaVisitaSync'
+    OperacaoSaidaVisitaSync:
+      type: object
+      description: 'Saída de visitante registrada offline (RN-OF-03). Perfil: portaria.'
+      required:
+      - op_id
+      - sequencia
+      - tipo
+      - registrada_aparelho_em
+      - carga
+      properties:
+        op_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Gerado no aparelho. Único por condomínio (`operacao_sync.op_id`).
+        sequencia:
+          type: integer
+          description: Ordem sequencial na fila do aparelho.
+          minimum: 1
+        tipo:
+          type: string
+          const: saida_visita
+        registrada_aparelho_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Horário do relógio do aparelho (`registrada_aparelho_em`).
+        carga:
+          $ref: '#/components/schemas/CargaSaidaVisitaSync'
+    OperacaoConclusaoChamadoSync:
+      type: object
+      description: 'Conclusão de chamado de limpeza registrada offline (RN-CH-04). Perfil: limpeza.'
+      required:
+      - op_id
+      - sequencia
+      - tipo
+      - registrada_aparelho_em
+      - carga
+      properties:
+        op_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Gerado no aparelho. Único por condomínio (`operacao_sync.op_id`).
+        sequencia:
+          type: integer
+          description: Ordem sequencial na fila do aparelho.
+          minimum: 1
+        tipo:
+          type: string
+          const: conclusao_chamado
+        registrada_aparelho_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Horário do relógio do aparelho (`registrada_aparelho_em`).
+        carga:
+          $ref: '#/components/schemas/CargaConclusaoChamadoSync'
+    OperacaoSync:
+      oneOf:
+      - $ref: '#/components/schemas/OperacaoEntradaVisitaSync'
+      - $ref: '#/components/schemas/OperacaoSaidaVisitaSync'
+      - $ref: '#/components/schemas/OperacaoConclusaoChamadoSync'
+      discriminator:
+        propertyName: tipo
+        mapping:
+          entrada_visita: '#/components/schemas/OperacaoEntradaVisitaSync'
+          saida_visita: '#/components/schemas/OperacaoSaidaVisitaSync'
+          conclusao_chamado: '#/components/schemas/OperacaoConclusaoChamadoSync'
+      description: 'Operação da fila. Só os três tipos vindos das RN-OF e dos fluxos offline: `entrada_visita` e `saida_visita` (RN-OF-03) e `conclusao_chamado` (RN-CH-04). Os nomes dos tipos são Proposta.'
+    LoteSync:
+      type: object
+      required:
+      - dispositivo_id
+      - operacoes
+      properties:
+        dispositivo_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Dispositivo do aparelho, registrado em `comum.yaml` (`dispositivo`).
+        operacoes:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OperacaoSync'
+          description: 'Em ordem de `sequencia`. Tamanho máximo do lote: lacuna.'
+    ResultadoOperacaoSync:
+      type: object
+      required:
+      - op_id
+      - sequencia
+      - resultado
+      - recebida_em
+      properties:
+        op_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        sequencia:
+          type: integer
+          minimum: 1
+        resultado:
+          type: string
+          enum:
+          - aplicada
+          - repetida
+          - divergente
+          - recusada
+          description: '`aplicada`: efeito gravado. `repetida`: mesmo `op_id` já processado, sem duplicar. `divergente`: aplicada, mas diverge do cadastro (RN-OF-04). `recusada`: não aplicada; não derruba as demais.'
+        resultado_original:
+          oneOf:
+          - type: string
+            enum:
+            - aplicada
+            - divergente
+            description: 'Só em `repetida`: resultado do primeiro processamento.'
+          - type: 'null'
+        recebida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        aviso:
+          oneOf:
+          - type: object
+            description: Aviso informativo, sem diálogo bloqueante.
+            required:
+            - codigo
+            - mensagem
+            properties:
+              codigo:
+                type: string
+              mensagem:
+                type: string
+          - type: 'null'
+        divergencia:
+          oneOf:
+          - type: object
+            description: Presente em `divergente`. Gera notificação obrigatória ao porteiro (US-NO-01); nunca ao síndico (RN-OF-05).
+            required:
+            - id
+            - motivo
+            - visita_id
+            properties:
+              id:
+                $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+              motivo:
+                type: string
+                enum:
+                - visitante_cancelado
+                - visitante_editado
+                - visitante_removido
+              visita_id:
+                $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        conclusao:
+          oneOf:
+          - type: object
+            description: Só em `conclusao_chamado`.
+            required:
+            - id
+            - ciclo
+            - efetiva
+            properties:
+              id:
+                $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+              ciclo:
+                type: integer
+                minimum: 1
+              efetiva:
+                type: boolean
+                description: Verdadeiro se é a de menor horário registrado pelo celular no ciclo (RN-CH-04).
+              superada_em:
+                oneOf:
+                - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+                - type: 'null'
+          - type: 'null'
+        recusa:
+          oneOf:
+          - type: object
+            description: Presente em `recusada`.
+            required:
+            - codigo
+            - mensagem
+            properties:
+              codigo:
+                type: string
+              mensagem:
+                type: string
+          - type: 'null'
+    ResultadoLoteSync:
+      type: object
+      required:
+      - resultados
+      - sincronizado_em
+      properties:
+        resultados:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultadoOperacaoSync'
+          description: Um item por operação enviada, na mesma ordem.
+        sincronizado_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Hora da sincronização, para o indicador "última sincronização" (RN-OF-02).
+    AlteracaoSync:
+      type: object
+      required:
+      - entidade
+      - acao
+      - id
+      - atualizado_em
+      properties:
+        entidade:
+          type: string
+          enum:
+          - visita
+          - lista_visitantes
+          - bloqueio_entrada
+          - encomenda
+          - divergencia
+          - chamado
+          description: Entidade alterada. `visita`, `lista_visitantes`, `bloqueio_entrada`, `encomenda` e `divergencia` para portaria; `chamado` para limpeza. Encomendas pendentes para consulta são Proposta (arquitetura 3.1.1).
+        acao:
+          type: string
+          enum:
+          - criar_ou_atualizar
+          - remover
+          description: '`remover` quando o item sai do escopo do dia ou da portaria.'
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        atualizado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        dados:
+          oneOf:
+          - oneOf:
+            - $ref: ./portaria.yaml#/components/schemas/VisitaPortaria
+            - $ref: ./portaria.yaml#/components/schemas/ListaVisitantesPortaria
+            - $ref: ./portaria.yaml#/components/schemas/BloqueioPortaria
+            - $ref: ./portaria.yaml#/components/schemas/EncomendaPortaria
+            - $ref: ./portaria.yaml#/components/schemas/DivergenciaPortaria
+            - $ref: ./limpeza.yaml#/components/schemas/ChamadoLimpeza
+            description: DTO da entidade, o mesmo de `portaria.yaml` ou `limpeza.yaml`. Nulo em `remover`.
+          - type: 'null'
+    DeltaSync:
+      type: object
+      required:
+      - dados
+      - paginacao
+      - cursor_atual
+      - sincronizado_em
+      properties:
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlteracaoSync'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+        cursor_atual:
+          type: string
+          description: Posição a guardar ao fim das páginas e a enviar em `cursor` na próxima leitura. Sempre preenchido, diferente de `paginacao.proximo_cursor`, que é nulo na última página. Opaco.
+        sincronizado_em:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Hora da leitura (RN-OF-02).
+x-lacunas:
+- 'Tamanho máximo do lote e janela de reenvio em que a idempotência de efeito é mantida (MER 4.12): não definidos.'
+- 'Desempate de horários exatamente iguais e tratamento de relógio incorreto ou futuro (ADR-014): Proposta, sem limite de desvio aprovado.'
+- 'Validade do cursor: o que acontece com cursor antigo ou inválido (nova cópia completa ou `400`) não está definido.'
+- Retenção, no servidor, das operações ainda não enviadas versus a regra de apagar a cópia no fim do dia (MER P-07).
+- 'Sem tipo de operação offline para entrada por interfone, entrada negada, desfazer, iniciar atendimento de chamado nem confirmação de divergência: as RN-OF só citam entradas e saídas (RN-OF-03) e conclusão (RN-CH-04).'
+- 'Códigos de `motivo` de divergência, de `aviso` e de `recusa` (`OP_ID_REUTILIZADO_COM_CARGA_DIFERENTE`, `SEM_PERMISSAO` por operação): Proposta; os docs só dizem que a carga diferente é recusada (MER 4.12) e que a operação recusada não derruba as demais (ADR-003).'
+- 'Encomendas pendentes no delta da portaria: Proposta (arquitetura 3.1.1).'

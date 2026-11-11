@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - estados (enums)
+  version: 0.1.0-proposta
+  summary: Um esquema `Estado<Entidade>` por ciclo de vida, com os estados oficiais das regras de negócio.
+  description: |
+    **Proposta de 10/11/2026**, não aceita pelo Pedro.
+
+    Os estados são os nomes oficiais das telas, definidos em `03-regras-de-negocio.md` (seções 5.5,
+    7.4, 8.3, 9.1, 9.2, 12.2 e 12.4) e referidos pelo MER/DER (seção 2.2 e seção 7). O MER/DER diz
+    que, no banco, **códigos sem acento podem representar esses nomes e que os códigos não são
+    novos estados**. Estes enums usam esses códigos em `snake_case` sem acento (Proposta de
+    nomenclatura); a descrição de cada esquema traz a correspondência com o nome oficial.
+
+    Estado calculado não é estado: "Avaliação pendente" e "Avaliado" do chamado são marcação extra
+    (RN seção 9.2), e prazo esgotado e semáforo da reclamação são campos calculados (RN-RC-19).
+    Nenhum deles entra aqui.
+
+    Lacuna: o MER/DER cita os estados Encerrada, Sem quórum e Empate para `votacao` e Aberto e
+    Fechado para `mes_financeiro`, mas não lista o ciclo completo de `votacao`, `reuniao`,
+    `eleicao` nem os estados de integração de pagamento (`tentativa_pagamento`, `devolucao`,
+    "estados do provedor são proposta até escolher gateway"). Esses ciclos ficam de fora até a
+    fonte defini-los, para não inventar estados.
+paths: {}
+components:
+  schemas:
+    EstadoReserva:
+      type: string
+      description: |
+        Estado da reserva (RN 7.4). Correspondência: `aguardando_pagamento` Aguardando pagamento;
+        `confirmada` Confirmada; `em_andamento` Em andamento; `expirada` Expirada; `cancelada`
+        Cancelada; `cancelada_com_reembolso` Cancelada com reembolso; `cancelada_sem_reembolso`
+        Cancelada sem reembolso; `cancelada_pelo_condominio` Cancelada pelo condomínio; `cumprida`
+        Cumprida (antes chamada Realizada); `nao_comparecimento` Não comparecimento.
+      enum:
+        - aguardando_pagamento
+        - confirmada
+        - em_andamento
+        - expirada
+        - cancelada
+        - cancelada_com_reembolso
+        - cancelada_sem_reembolso
+        - cancelada_pelo_condominio
+        - cumprida
+        - nao_comparecimento
+      examples:
+        - confirmada
+    EstadoVisita:
+      type: string
+      description: |
+        Estado da visita (RN 8.3). Correspondência: `esperado` Esperado; `nao_compareceu` Não
+        compareceu; `autorizado_por_interfone` Autorizado por interfone; `entrou` Entrou; `saiu`
+        Saiu; `saida_nao_registrada` Saída não registrada; `cancelado` Cancelado.
+      enum:
+        - esperado
+        - nao_compareceu
+        - autorizado_por_interfone
+        - entrou
+        - saiu
+        - saida_nao_registrada
+        - cancelado
+      examples:
+        - esperado
+    EstadoEncomenda:
+      type: string
+      description: |
+        Estado da encomenda (RN 9.1). Correspondência: `recebida` Recebida; `prazo_vencido` Prazo
+        vencido; `retirada` Retirada; `devolvida` Devolvida.
+      enum:
+        - recebida
+        - prazo_vencido
+        - retirada
+        - devolvida
+      examples:
+        - recebida
+    EstadoEntregaEsperada:
+      type: string
+      description: |
+        Estado da entrega esperada (RN 9.1). Correspondência: `esperada` Esperada; `nao_chegou` Não
+        chegou; `chegou` Chegou; `cancelada` Cancelada; `encerrada` Encerrada (só origem
+        iFood/entregador, RN-EN-12).
+      enum:
+        - esperada
+        - nao_chegou
+        - chegou
+        - cancelada
+        - encerrada
+      examples:
+        - esperada
+    EstadoChamado:
+      type: string
+      description: |
+        Estado do chamado (RN 9.2). Correspondência: `aberto` Aberto; `em_atendimento` Em
+        atendimento (só limpeza); `orcamento` Orçamento (só manutenção); `agendado` Agendado (só
+        manutenção); `concluido` Concluído; `reaberto` Reaberto (até 48h após a conclusão,
+        RN-CH-07). A avaliação do atendimento não é estado.
+      enum:
+        - aberto
+        - em_atendimento
+        - orcamento
+        - agendado
+        - concluido
+        - reaberto
+      examples:
+        - aberto
+    EstadoReclamacao:
+      type: string
+      description: |
+        Estado da reclamação (RN 5.5). Correspondência: `pendente` Pendente; `aberta` Aberta;
+        `em_conversa_com_o_alvo` Em conversa com o alvo; `validada` Validada; `negada` Negada;
+        `em_recurso` Em recurso; `recurso_aceito` Recurso aceito; `encerrada` Encerrada. O semáforo
+        de prazo não é estado (RN-RC-19). Nenhum DTO de estado expõe a identidade do autor.
+      enum:
+        - pendente
+        - aberta
+        - em_conversa_com_o_alvo
+        - validada
+        - negada
+        - em_recurso
+        - recurso_aceito
+        - encerrada
+      examples:
+        - aberta
+    EstadoCobranca:
+      type: string
+      description: |
+        Estado da cobrança condominial (RN 12.2). Correspondência: `emitida` Emitida; `em_atraso`
+        Em atraso; `paga` Paga; `paga_com_atraso` Paga com atraso; `em_acordo` Em acordo (versão
+        2, fora do MVP); `cancelada` Cancelada. A situação "em atraso" nunca é exposta a outros
+        moradores (SEG-17).
+      enum:
+        - emitida
+        - em_atraso
+        - paga
+        - paga_com_atraso
+        - em_acordo
+        - cancelada
+      examples:
+        - emitida
+    EstadoLancamento:
+      type: string
+      description: |
+        Estado do lançamento financeiro (RN 12.4). Correspondência: `lancado` Lançado; `estornado`
+        Estornado; `estorno` Estorno.
+      enum:
+        - lancado
+        - estornado
+        - estorno
+      examples:
+        - lancado
+    EstadoMesFinanceiro:
+      type: string
+      description: |
+        Estado do mês financeiro (MER/DER 4.11, `mes_financeiro`: "aberto/fechado, sem reabertura";
+        RN-FI-28). Correspondência: `aberto` Aberto; `fechado` Fechado.
+      enum:
+        - aberto
+        - fechado
+      examples:
+        - aberto

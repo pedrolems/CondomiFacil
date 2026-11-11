@@ -1,6 +1,6 @@
 # Backend: CondomiFacil
 
-**Status:** Proposta, em 09/11/2026. Nenhuma decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
+**Status:** Proposta, em 09/11/2026; atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
 
 ## Índice
 
@@ -129,8 +129,8 @@ apps/api/
 
     rotinas/                       MECANISMO de jobs: agendador, catálogo das 21 rotinas, entrada do worker
     integracoes/                   ADAPTADORES de serviços externos (implementam portas)
-      pagamento/                   um adaptador por provedor; só um será implementado (ADR-002)
-      email/                       adaptador do provedor escolhido (ADR-005) e caixa de saída falsa
+      pagamento/                   adaptador do Asaas (`AdaptadorAsaas`), o único a implementar (ADR-002)
+      email/                       adaptador do Resend (ADR-005) e caixa de saída falsa
       push/                        Expo Push / FCM
       armazenamento/               S3 (e MinIO local)
       monitoramento/               Sentry
@@ -229,7 +229,7 @@ O PRD 3 lista **11 perfis**. A matriz de permissões tem 7 colunas (Morador, Sí
 3. **Síndico morador e síndico profissional dividem `sindico/`.** Mesmas funções de gestão; a diferença (morador x sem unidade) é de `morador/`, não de `sindico/`.
 4. **Suporte da plataforma divide `administradora/` com a administradora.** O PRD dá ao suporte as permissões da administradora naquele condomínio. `plataforma/` guarda só o que é do painel da plataforma: abrir contexto em condomínio do plano Gestão + Suporte e registrar o acesso (arq. 4.4, SEG-13). As restrições (sem reclamações nem scores) são aplicadas por guard e por RLS, não pela pasta.
 5. **`comum/` guarda o que não tem perfil dono:** acesso e sessão (`/acesso/*`), preferências de notificação e dispositivos, URL assinado de arquivos, cópia e exclusão LGPD, o **endpoint único de score** (ADR-010) e recurso de decisão, que várias colunas da matriz usam. Critério: ação aberta a três ou mais perfis com o mesmo DTO.
-6. **Interfaces transversais em pastas próprias:** `webhooks/` (sem sessão de usuário, assinatura do provedor), `websocket/` (autenticação no handshake, salas autorizadas pelo servidor, arq. 3.4) e `sync/` (lote ordenado, `op_id`, cursor, ADR-003).
+6. **Interfaces transversais em pastas próprias:** `webhooks/` (sem sessão de usuário, autenticação do provedor: no Asaas, token no cabeçalho), `websocket/` (autenticação no handshake, salas autorizadas pelo servidor, arq. 3.4) e `sync/` (lote ordenado, `op_id`, cursor, ADR-003).
 
 ### 3.4 Regra de ouro: a pasta organiza, não protege
 
@@ -308,7 +308,7 @@ Exemplos concretos, todos Proposta:
 | Idioma | Domínio em **português** (`reserva`, `cobranca`, `vinculo`), coerente com as RN e o MER/DER; termos técnicos já usados nos docs em inglês (`TenantContext`, `PaymentGateway`, `Mailer`, `outbox`) ficam como estão |
 | Pastas e arquivos | `kebab-case`, sem acento (`conselho-fiscal`, `criar-reserva.caso-de-uso.ts`) |
 | Sufixos | `.module.ts`, `.controller.ts`, `.guard.ts`, `.caso-de-uso.ts`, `.entidade.ts`, `.repositorio.ts` (porta) e `.repositorio-sql.ts` (implementação), `.porta.ts`, `.adaptador.ts`, `.rotina.ts`, `.evento.ts`, `.consumidor.ts`, `.dto.ts` (resposta por perfil), `.schema.ts` (Zod, em `shared-types`), `.spec.ts` (unidade, ao lado do arquivo) |
-| Classes | `PascalCase` (`CriarReservaCasoDeUso`, `AdaptadorAsaas` só se o provedor for escolhido) |
+| Classes | `PascalCase` (`CriarReservaCasoDeUso`, `AdaptadorAsaas`, provedor escolhido em 10/11/2026) |
 | Eventos | `<entidade>.<fato no passado>` (`visitante.cadastrado`, `pagamento.confirmado`, nomes dos docs) |
 | Parâmetros | Chaves do catálogo RN 13 exatamente como estão (`reserva.lembrete_antecedencia_horas`) |
 | Tabelas e colunas | As do MER/DER; o backend não renomeia |
@@ -334,6 +334,8 @@ Formato único de erro (Proposta): `{ codigo, mensagem, detalhes?, request_id }`
 | Erro do servidor | `500` e `503` | UF 15 ("Algo deu errado do nosso lado..."); enviado ao Sentry com dados filtrados |
 
 Resposta de acesso (`/acesso/codigo`) é a mesma para e-mail cadastrado ou não (RN-CD-02, SEG-04). Erro nunca devolve corpo de reclamação, avaliação ou voto (ADR-010).
+
+**Contrato da API (Proposta de 10/11/2026).** O formato de erro, os valores de `codigo`, a autenticação, o versionamento, a paginação e as demais convenções estão em [`api/01-guia-da-api.md`](api/01-guia-da-api.md); os endpoints, em [`api/README.md`](api/README.md) e `api/openapi/`.
 
 ### 4.6 Idempotência
 
@@ -379,7 +381,7 @@ A estratégia completa será escrita em `docs/08-qualidade/`; aqui ficam os nív
 
 | Item | Proposta | Origem |
 | --- | --- | --- |
-| Worker | Mesmo código da API, ponto de entrada `main.worker.ts`, sem HTTP, escalável separado | arq. 3.5, D12 |
+| Worker | Mesmo código da API, ponto de entrada `main.worker.ts`, sem HTTP, escalável separado. No plano gratuito do Render não há serviço de worker: em dev e staging o worker roda no mesmo serviço web da API, e as rotinas param quando o serviço dorme (ADR-004) | arq. 3.5, D12 |
 | Fila e agendador | `pg-boss` (fila e cron sobre o PostgreSQL, enfileiramento na mesma transação do outbox). Alternativa: BullMQ + Redis | ADR-006, estado Proposto |
 | Fan-out | Um agendador leve enumera os condomínios ativos e enfileira **um job por condomínio**, com `condominio_id` no payload; cada execução abre o `TenantContext` de **um** condomínio; falha e repete isolada | arq. 3.5, 4.7 |
 | Jobs globais | Só os de plataforma listados (ex.: rotina 1), com papel de job de políticas explícitas, ou enumerando condomínios | arq. 4.4, 4.7, D12 |
@@ -491,7 +493,7 @@ Cuidados: o job de atraso precisa ser **cancelável ou reconferido** na execuç�
 | Cobrança da taxa condominial | A rotina 15 gera a cobrança de cada unidade 15 dias antes do vencimento pelo gateway; o **boleto registrado já traz QR Code Pix**, e Pix e cartão são as outras formas, conforme `cobranca.formas_pagamento` (ao menos uma ativa) | RF-FI-07, RN-FI-02, RN-FI-05, rotina 15, PRD 10 |
 | Reserva paga | O morador paga por Pix (opção principal) ou cartão; o horário fica bloqueado até o prazo de pagamento (padrão 24 h); sem pagamento, a **rotina 1** expira a reserva e libera o horário. Pagamento recusado pode ser tentado de novo no prazo | RF-PG-01, RN-RE-03, RN-RE-04, rotina 1 |
 | Segunda via | Sempre sai com o valor **atualizado**, com multa e juros do dia, calculados no servidor | RN-FI-08, RF-FI-07, arq. 3.6 (valores em centavos) |
-| Confirmação | Webhook assinado grava `evento_gateway`; job processa; baixa automática, comprovante por e-mail e lançamento financeiro automático | RF-FI-09, RF-PG-04, arq. 3.6, RN-FI-13, RN-FI-23 |
+| Confirmação | Webhook autenticado (no Asaas, por token no cabeçalho `asaas-access-token`) grava `evento_gateway`; job processa; baixa automática, comprovante por e-mail e lançamento financeiro automático | RF-FI-09, RF-PG-04, arq. 3.6, RN-FI-13, RN-FI-23 |
 | Pagamento fora do app | Baixa manual com comprovante e motivo, auditada | RF-FI-10 |
 
 **Fluxo proposto de emissão e segunda via (Proposta).** O caso de uso (`modulos/cobranca` ou `modulos/pagamentos`) calcula o valor do dia, chama a porta `PaymentGateway.criarCobranca(...)` com a forma escolhida (Strategy por forma de pagamento) e guarda o identificador externo da cobrança. A segunda via é um caso de uso sob demanda (rota proposta na pasta `morador/` e `proprietario-nao-residente/`, para o responsável financeiro): recalcula multa e juros e pede ao gateway uma nova emissão ou uma atualização, conforme o que o provedor suportar.
@@ -500,7 +502,7 @@ Cuidados: o job de atraso precisa ser **cancelável ou reconferido** na execuç�
 
 **Proposta técnica (fora das RN): conciliação por consulta.** Além da conciliação diária de arq. 3.6 (SEG-17), um job consulta o gateway sobre pagamentos pendentes além do prazo esperado de confirmação, para os quais o webhook não chegou, e aplica a mesma máquina de estados monotônica do webhook, de modo que consultar e receber o webhook juntos não duplica a baixa (`evento_gateway` com a unicidade do MER/DER 4.10). Divergências persistentes abrem alerta para a administradora.
 
-**Pendente do ADR-002 (Em aberto):** validade do QR Pix, se o QR é estático ou dinâmico, API de consulta e listagem de recebimentos e prazos reais de confirmação de boleto e Pix. Os jobs acima ficam atrás da porta `PaymentGateway` (`consultar`) até a escolha do provedor.
+**Pendente do ADR-002 (Aceito com ressalvas; falta a prova de conceito no sandbox e os prazos reais):** validade do QR Pix, se o QR é estático ou dinâmico, API de consulta e listagem de recebimentos e prazos reais de confirmação de boleto e Pix. O provedor é o Asaas (decisão de Pedro em 10/11/2026); os jobs acima ficam atrás da porta `PaymentGateway` (`consultar`) e esses pontos se confirmam na prova de conceito no sandbox e no piloto.
 
 #### b) Lembretes de reserva
 
@@ -537,27 +539,28 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 
 | Serviço | Finalidade | Porta e adaptador | Estado da escolha | ADR |
 | --- | --- | --- | --- | --- |
-| Gateway de pagamento (Asaas, Mercado Pago ou Pagar.me) | Subconta, boleto com QR Pix, Pix, cartão, reembolso, webhook | `PaymentGateway` e `integracoes/pagamento/<provedor>` (só um adaptador) | **Em aberto** (candidato inicial Asaas, não decidido) | ADR-002 |
-| Webhooks do gateway | Confirmação de pagamento | `interfaces/webhooks/` e `modulos/pagamentos` | Mecanismo Proposta; provedor em aberto | ADR-002 |
-| E-mail transacional (Resend ou Amazon SES) | Código de acesso, comprovantes, cópia LGPD | `Mailer` e `integracoes/email/<provedor>` | **Em aberto** | ADR-005 |
+| Gateway de pagamento (Asaas) | Subconta, boleto com QR Pix, Pix, cartão, reembolso, webhook | `PaymentGateway` e `integracoes/pagamento/` (`AdaptadorAsaas`) | **Decidido** por Pedro em 10/11/2026 (aceito com ressalvas) | ADR-002 |
+| Webhooks do gateway | Confirmação de pagamento | `interfaces/webhooks/` e `modulos/pagamentos` | Mecanismo Proposta; provedor Asaas (autenticação por token) | ADR-002 |
+| E-mail transacional (Resend) | Código de acesso, comprovantes, cópia LGPD | `Mailer` e `integracoes/email/` (adaptador do Resend) | **Decidido** por Pedro em 10/11/2026 (aceito com ressalvas) | ADR-005 |
 | Push (Expo Push e FCM) | Notificações | `PushSender` e `integracoes/push/` | **Decidido** (PRD 10) | n/a |
-| Armazenamento de objetos (S3 ou equivalente) | Fotos, atas, comprovantes | `ArmazenamentoDeObjetos` e `integracoes/armazenamento/` | Tipo **decidido** (PRD 10); provedor depende da nuvem | ADR-004 |
+| Armazenamento de objetos (S3 ou equivalente) | Fotos, atas, comprovantes | `ArmazenamentoDeObjetos` e `integracoes/armazenamento/` | Tipo **decidido** (PRD 10); no MVP, Storage do Supabase por API compatível com S3 (dev e staging) | ADR-004 |
 | Sentry | Erros e monitoramento | `integracoes/monitoramento/` | **Decidido** (PRD 10) | n/a |
 | PostgreSQL com RLS | Dados, fila (pg-boss), outbox | Cliente encapsulado no `TenantContext` | **Decidido** (PRD 10); biblioteca de acesso Proposta | ADR-001, ADR-006, ADR-008 |
-| Nuvem e região | Hospedagem de API, worker, banco, objetos, cofre | Fora do código | **Em aberto** | ADR-004 |
+| Nuvem e região | Hospedagem de API, worker, banco, objetos, cofre | Fora do código | **Decidido** para construir o MVP (Supabase + Render, dev e staging, custo zero); nuvem do piloto **em aberto**, com revisão obrigatória antes do piloto | ADR-004 |
 
 ### 6.2 Gateway de pagamento e webhooks
 
 - **Porta (arq. 3.6, Proposta):** `criarSubconta`, `criarCobranca`, `consultar`, `reembolsar`, `validarWebhook`. Decisão do provedor isolada no adaptador.
-- **Webhook (SEG-17), Proposta:** (1) o endpoint recebe o **corpo bruto** e valida a assinatura antes de qualquer outra coisa; (2) grava `evento_gateway` com unicidade por provedor, conta recebedora e id do evento, ou só provedor e id quando o provedor o garante único (MER/DER 4.10); evento sem correlação válida (assinatura inválida, conta ou transação desconhecida) vai para `evento_gateway_quarentena`, global, fora do RLS dos condomínios, e ao correlacionar cria o `evento_gateway` no condomínio certo (decisão de Pedro em 08/11/2026); (3) responde `200` rápido; (4) o processamento em job resolve o condomínio pela cobrança referenciada e abre o `TenantContext`; (5) transições monotônicas; (6) confirmado, atualiza reserva ou cobrança, envia comprovante e cria o lançamento automático.
+- **Webhook (SEG-17), Proposta:** (1) o endpoint recebe o **corpo bruto** e valida a autenticação do provedor antes de qualquer outra coisa (no Asaas, o token do cabeçalho `asaas-access-token`, comparado em tempo constante; não há assinatura HMAC do corpo, ADR-002); (2) grava `evento_gateway` com unicidade por provedor, conta recebedora e id do evento, ou só provedor e id quando o provedor o garante único (MER/DER 4.10); evento sem correlação válida (autenticação inválida, conta ou transação desconhecida) vai para `evento_gateway_quarentena`, global, fora do RLS dos condomínios, e ao correlacionar cria o `evento_gateway` no condomínio certo (decisão de Pedro em 08/11/2026); (3) responde `200` rápido; (4) o processamento em job resolve o condomínio pela cobrança referenciada e abre o `TenantContext`; (5) transições monotônicas; (6) confirmado, atualiza reserva ou cobrança, envia comprovante e cria o lançamento automático.
 - **Falhas e retentativas:** gateway fora do ar mantém o horário da reserva até o fim do prazo e o vencimento da cobrança (UF 5.1, 13.1); tempo limite, nova tentativa com recuo e disjuntor; reembolso que falha vira estado "falhou" com push ao morador e alerta à administradora (arq. 3.6). O reenvio de webhook pelo provedor é coberto pela idempotência.
-- **Segredos:** chave de API do gateway e segredo de assinatura do webhook no cofre; cartão nunca passa pela API, banco nem logs (SEG-12): checkout hospedado ou tokenização no cliente.
+- **Segredos:** chave de API do gateway (e a `apiKey` de cada subconta, devolvida uma vez) e o token de autenticação do webhook no cofre; cartão nunca passa pela API, banco nem logs (SEG-12): checkout hospedado ou tokenização no cliente.
 - **Sandbox x produção (arq. 6.1, 6.3):** local, dev e staging só com credenciais de **sandbox**; produção com credenciais de produção inacessíveis aos outros ambientes. O adaptador valida o ambiente da credencial ao iniciar e **se recusa a subir em staging com chave de produção** (Proposta). Fluxos de erro simulados no sandbox e no dublê.
-- **Conta bancária:** titular pessoa física exige o termo SEG-15; subconta com estado (pendente, ativa, recusada) bloqueia a cobrança enquanto não estiver ativa; KYC é lacuna (arq. 3.6).
+- **Conta bancária:** titular pessoa física exige o termo SEG-15; subconta com estado (pendente, ativa, recusada) bloqueia a cobrança enquanto não estiver ativa; KYC é lacuna (arq. 3.6). A conta principal do Asaas precisa ser de pessoa jurídica (CNPJ).
+- **Detalhes por serviço:** chamadas, campos devolvidos ao cliente e lacunas em [`api/03-integracoes-externas.md`](api/03-integracoes-externas.md); eventos e webhooks em [`api/02-eventos-e-webhooks.md`](api/02-eventos-e-webhooks.md).
 
 ### 6.3 E-mail transacional
 
-- **Porta `Mailer` (Proposta, ADR-005).** Usos: código de 6 dígitos (RF-AC-01), comprovantes (RF-PG-04), cópia LGPD por link expirável em até 15 dias (RF-LG-01). Lembretes de cobrança: canal não especificado em RF-FI-11.
+- **Porta `Mailer` (ADR-005; adaptador do Resend decidido em 10/11/2026).** Usos: código de 6 dígitos (RF-AC-01), comprovantes (RF-PG-04), cópia LGPD por link expirável em até 15 dias (RF-LG-01). Lembretes de cobrança: canal não especificado em RF-FI-11.
 - **Falhas e retentativas:** envio pelo despacho do outbox, com nova tentativa com recuo; falha do código de acesso não revela se o e-mail existe (mesma resposta, RN-CD-02); reenvio pelo usuário após 60 s invalida o código anterior.
 - **Segredos:** chave da API do provedor no cofre.
 - **Ambientes:** local com captura (por exemplo Mailpit); dev e staging com **caixa de saída falsa**, nenhum e-mail real; produção com provedor real (arq. 6.1, 6.2). Domínio com SPF, DKIM e DMARC.
@@ -587,7 +590,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 ### 6.7 PostgreSQL com RLS e nuvem
 
 - **PostgreSQL:** `app_user` sem `BYPASSRLS`, não dono das tabelas, `FORCE ROW LEVEL SECURITY`; migrações pelo papel dono em etapa separada do deploy, somente para frente, no padrão expandir e contrair (arq. 4.3, 6.6). Biblioteca de acesso: Kysely ou Drizzle, com SQL explícito e controle da transação (ADR-008, Proposto). Falhas: transação com tempo limite; falha fecha (sem contexto, nenhuma linha).
-- **Nuvem e região (ADR-004, Em aberto):** define serviços gerenciados, cofre de segredos, CDN, bucket e a sugestão de e-mail (SES se AWS). O código do backend não deve depender dela: tudo passa por porta e por variáveis de ambiente validadas em `compartilhado/config/`.
+- **Nuvem e região (ADR-004, aceito com ressalvas):** para construir o MVP, Supabase (só PostgreSQL e Storage, região São Paulo) e Render (API, WebSocket e worker no mesmo serviço web no plano gratuito; o serviço dorme sem tráfego e as rotinas param junto), em dev e staging, sem custo. A nuvem do piloto com dados reais é revisão obrigatória antes do piloto. O código do backend não deve depender dela: tudo passa por porta e por variáveis de ambiente validadas em `compartilhado/config/`.
 - **Segredos do banco:** cadeia de conexão dos papéis `app_user` e dono no cofre, separadas.
 - **Ambientes:** contêiner local, instância pequena em dev, mesma configuração da produção em staging, gerenciado com backup e PITR em produção (arq. 6.1, 6.9).
 
@@ -595,9 +598,9 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 
 | Ponto | Efeito no backend | Origem |
 | --- | --- | --- |
-| Escolha do gateway (Asaas, Mercado Pago, Pagar.me) | Define adaptador, subconta (KYC), validade do QR Pix, API de consulta, reembolso e prazos; destrava os jobs propostos de renovação de QR e conciliação por consulta | ADR-002, UF 17 |
-| Provedor de nuvem e região | Serviços gerenciados, cofre, bucket, e-mail | ADR-004 |
-| E-mail transacional (Resend ou SES) | Adaptador do `Mailer` | ADR-005 |
+| Prazos reais de confirmação de boleto e Pix, KYC da subconta, chargeback e validade do QR Pix no Asaas (gateway decidido em 10/11/2026) | Definem prazos e erros, a API de consulta e os jobs propostos de renovação de QR e conciliação por consulta; verificados na prova de conceito no sandbox e no piloto (dono: produto e engenharia) | ADR-002, UF 17 |
+| Nuvem e região do piloto com dados reais | Serviços gerenciados, cofre, bucket, backup e PITR; revisão obrigatória do ADR-004 antes do piloto (dono: Pedro) | ADR-004, ADR-013 |
+| Saída de dados de e-mail do Brasil pelo Resend (LGPD) | Ponto de LGPD a tratar na revisão antes do piloto (dono: Pedro) | ADR-005 |
 | Fila e agendador (pg-boss ou BullMQ + Redis) e `NOTIFY` ou Redis pub/sub | Implementação de `RotinaBase`, do despacho do outbox e do tempo real | ADR-006 |
 | ORM ou query builder (Kysely ou Drizzle) | Repositórios em `infra/`, migrações | ADR-008 |
 | Fuso por condomínio (ADR-012) | Catálogo de rotinas; efeitos fora de hora | ADR-012 |
@@ -613,6 +616,16 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 | Formato das exportações CSV e PDF (finanças) | Job assíncrono de exportação | arq. 3.11, 9.3 |
 | Detalhes do painel da plataforma | Pasta `plataforma/` e módulo `plataforma` | arq. 9.3 |
 | Pasta de migrações e ferramenta de lint de fronteiras | Estrutura de `db/` e regras de 3.2 | Este documento |
+
+**Propostas novas do contrato da API (10/11/2026, a validar pelo Pedro).** Registradas em [`api/01-guia-da-api.md`](api/01-guia-da-api.md); nenhuma é requisito de produto.
+
+| Proposta | Resumo |
+| --- | --- |
+| Versão no caminho | Prefixo `/v1`; mudança compatível não cria versão; rota obsoleta responde com `Deprecation` e `Sunset`; webhooks ficam fora do prefixo (`/webhooks/...`) |
+| Caminho por perfil | `/v1/<perfil>/<recurso>`, com o perfil igual à pasta de interface; sem prefixo para o que é comum (`/v1/acesso`, `/v1/eu`, `/v1/arquivos`, `/v1/score`, `/v1/recursos`, `/v1/denuncias`, `/v1/notas-dos-setores`, `/v1/sync`) |
+| Paginação por cursor | Cursor opaco, `?limite=20&cursor=...`, padrão 20 e máximo 100; lista em `{ "dados", "paginacao" }` |
+| Cabeçalhos e erro | `X-Condominio-Id`, `X-Unidade-Id`, `X-App-Version`, `Idempotency-Key`, `X-Request-Id`; erro `{ codigo, mensagem, detalhes?, request_id }` |
+| Autenticação do webhook do Asaas | Token no cabeçalho `asaas-access-token`, não assinatura do corpo |
 
 **Inconsistências encontradas nas fontes (sem correção aqui).**
 
@@ -640,5 +653,5 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 | 5.5 a) QR Code Pix | RF-FI-07, RF-PG-01, RF-FI-09, RF-FI-10, RN-FI-02, RN-FI-05, RN-FI-08, RN-RE-03, RN-FI-13, RN-FI-23; arq. 3.6; ADR-002 |
 | 5.5 b) Lembretes de reserva | RN-RE-14, RF-RE-10, RN-RE-03, RN-RE-10; MER/DER 4.12 |
 | 5.5 c) Limpeza de dados | RN-OF-06, SEG-09, RN 8.4, SEG-10, SEG-08, SEG-11; RNF-13; arq. 3.7, 6.9; ADR-003, ADR-013; MER/DER 6.2, P-07, P-09 |
-| 6. Integrações | PRD 10; arq. 3.6 a 3.8, 4.5, 5.2, 6.1 a 6.6, 6.8; ADR-002, ADR-004, ADR-005, ADR-006, ADR-008; SEG-02, SEG-12, SEG-15, SEG-17; RF-AC-01, RF-PG-04, RF-LG-01 |
-| 7. Pontos em aberto | arq. 9.1 a 9.3; D (5.2 a 5.4); UF 17; MER/DER 9 |
+| 6. Integrações | `api/03-integracoes-externas.md`; `api/02-eventos-e-webhooks.md`; PRD 10; arq. 3.6 a 3.8, 4.5, 5.2, 6.1 a 6.6, 6.8; ADR-002, ADR-004, ADR-005, ADR-006, ADR-008; SEG-02, SEG-12, SEG-15, SEG-17; RF-AC-01, RF-PG-04, RF-LG-01 |
+| 7. Pontos em aberto | arq. 9.1 a 9.3; `api/README.md` (pendências consolidadas); D (5.2 a 5.4); UF 17; MER/DER 9 |

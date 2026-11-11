@@ -1,0 +1,2041 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface do conselho fiscal
+  version: 0.1.0-proposta
+  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do
+    PRD (caminhos, campos, códigos de erro, filtros) é Proposta; o guia `../01-guia-da-api.md` é a fonte das convenções.
+
+
+    Interface do **membro do conselho fiscal** (`/v1/conselho-fiscal/*`). Os membros também são moradores e usam
+    `morador.yaml` para o que é de morador (PRD 3). Aqui ficam:
+
+
+    - **Finanças do condomínio, só leitura, comentário e exportação** (Menu > Finanças do condomínio; RF-FI-17,
+    RF-FI-21, RF-FI-22, RF-FI-24, RN-FI-29). Nenhuma operação escreve em lançamento: quem lança, fecha e estorna
+    é a administradora, e mês fechado só muda por estorno (RN-FI-28). Telas e exportações não trazem unidade nem
+    responsável financeiro (RN-FI-30, SEG-17).
+
+    - **Julgamento de reclamações em primeira instância** nos casos em que o conselho julga: reclamação contra o
+    síndico quando o condomínio não tem subsíndico nem administradora (tabela 5.1, RN-RC-03). Vê identidade do reclamante
+    e do alvo e conversa com o alvo (PRD 3); o score vem do endpoint único `GET /v1/score` de `comum.yaml` (ADR-010).
+    O recurso (RN-RC-07, RN-RC-14) é criado, consultado e decidido por `/v1/recursos` de `comum.yaml`; decisão do
+    conselho não tem recurso no app (RN 5.3).
+
+
+    Conselho fiscal não envia comunicados (exceto a conversa com o alvo de reclamação, RN-CO-04), não convoca reunião
+    e não tem as demais funções de síndico.'
+tags:
+- name: financas
+  description: 'Finanças do condomínio: leitura, comentário e exportação.'
+- name: convivencia
+  description: Reclamações que o conselho fiscal julga em primeira instância.
+paths:
+  /v1/conselho-fiscal/reclamacoes:
+    get:
+      operationId: conselhoFiscalListarReclamacoes
+      summary: Lista as reclamações que você pode consultar como julgador
+      description: 'Painel do julgador com identidade do reclamante e semáforo de prazo (RF-RS-03, RF-RS-16); reclamação
+        contra você ou sua unidade nunca aparece (RN-RC-11, RN-RC-14). Conselho fiscal julga reclamação contra o
+        síndico ou a unidade dele só quando o condomínio não tem subsíndico nem administradora (tabela 5.1, RN-RC-03); fora desses
+        casos a lista vem vazia e o acesso direto responde `403`. O score do reclamante e do alvo não vem neste
+        DTO: o julgador o consulta no endpoint único `GET /v1/score` de `comum.yaml` com `escopo=reclamacao` (RF-RS-03,
+        ADR-010, RN-SC-02); o painel faz chamadas adicionais a `/v1/score`, e devolver em lote é ponto a avaliar.
+        O score é referência, não decide sozinho (RN-SC-11). `ordenar=score_reclamante` e `score_alvo` ordenam por
+        um valor que este DTO não mostra (o valor vem de `/v1/score`).'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - $ref: '#/components/parameters/EstadoReclamacaoFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/AlvoReclamacaoFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/SemaforoFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/ALulgarFiltroConselhoFiscal'
+      - name: de
+        in: query
+        required: false
+        description: Abertas a partir desta data, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Abertas até esta data, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação por data ou por score (RF-RS-03). Padrão `aberta_em`. Os campos de score ordenam
+          por valor que o DTO não mostra.
+        schema:
+          type: string
+          enum:
+          - aberta_em
+          - -aberta_em
+          - score_reclamante
+          - -score_reclamante
+          - score_alvo
+          - -score_alvo
+          default: aberta_em
+      responses:
+        '200':
+          description: Página de reclamações.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReclamacaoResumoConselhoFiscal'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000000c8-1111-4222-8333-0000000000c8
+                  categoria: Barulho
+                  gravidade_inicial: leve
+                  estado: aberta
+                  aberta_em: '2026-11-02T20:10:00-03:00'
+                  alvo:
+                    tipo: unidade
+                    rotulo: Bloco A, 101
+                  reclamante:
+                    tipo: pessoa
+                    vinculo_id: 0000012c-1111-4222-8333-00000000012c
+                    nome: Rafaela Duarte
+                    unidade_identificacao: Bloco A, 201
+                  voce_e_o_julgador: true
+                  semaforo:
+                    cor: amarelo
+                    texto: Prazo se esgotando
+                    vence_em: '2026-11-17'
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-03
+      - RF-RS-04
+      - RF-RS-16
+      - RN-RC-03
+      - RN-RC-08
+      - RN-RC-17
+      - RN-RC-19
+      - RN-SC-02
+      - US-RS-04
+      - US-RS-07
+      - US-RS-08
+  /v1/conselho-fiscal/reclamacoes/{reclamacao_id}:
+    get:
+      operationId: conselhoFiscalObterReclamacao
+      summary: Detalha uma reclamação
+      description: 'Mostra reclamante, alvo, conversa, decisão e semáforo ao julgador (RN-RC-08, RN-RC-17). Reclamação
+        em que você é parte responde `403` (RN-RC-11, RN-RC-14). Conselho fiscal julga reclamação contra o síndico ou a unidade dele
+        só quando o condomínio não tem subsíndico nem administradora (tabela 5.1, RN-RC-03); fora desses casos a
+        lista vem vazia e o acesso direto responde `403`. O score do reclamante e do alvo não vem neste DTO: o julgador
+        o consulta no endpoint único `GET /v1/score` de `comum.yaml` com `escopo=reclamacao` (RF-RS-03, ADR-010,
+        RN-SC-02); o painel faz chamadas adicionais a `/v1/score`, e devolver em lote é ponto a avaliar. O score
+        é referência, não decide sozinho (RN-SC-11).'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ReclamacaoIdConselhoFiscal'
+      responses:
+        '200':
+          description: Reclamação.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacaoConselhoFiscal'
+              example:
+                id: 000000c8-1111-4222-8333-0000000000c8
+                categoria: Barulho
+                gravidade_inicial: leve
+                estado: aberta
+                aberta_em: '2026-11-02T20:10:00-03:00'
+                alvo:
+                  tipo: unidade
+                  rotulo: Bloco A, 101
+                reclamante:
+                  tipo: pessoa
+                  vinculo_id: 0000012c-1111-4222-8333-00000000012c
+                  nome: Rafaela Duarte
+                  unidade_identificacao: Bloco A, 201
+                voce_e_o_julgador: true
+                semaforo:
+                  cor: amarelo
+                  texto: Prazo se esgotando
+                  vence_em: '2026-11-17'
+                descricao: Música alta depois da meia-noite.
+                data_ocorrencia: '2026-11-01'
+                alvo_respondeu: false
+                decisao_liberada: false
+                decisao_liberada_em: '2026-11-12T20:10:00-03:00'
+                mensagens: []
+                decisao: null
+                recurso_id: null
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403ConselhoNaoJulga'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-03
+      - RF-RS-05
+      - RF-RS-16
+      - RN-RC-01
+      - RN-RC-08
+      - RN-RC-17
+      - RN-SC-02
+      - US-RS-02
+      - US-RS-08
+  /v1/conselho-fiscal/reclamacoes/{reclamacao_id}/conversa:
+    post:
+      operationId: conselhoFiscalIniciarConversaReclamacao
+      summary: Inicia a conversa com o alvo
+      description: O julgador, seja quem for, inicia a conversa com o alvo antes de decidir; é um comunicado individual
+        vinculado e a única exceção a RN-CO-01 (RN-RC-04, RN-CO-04). Na unidade, a conversa é com o morador habilitado
+        e, na desocupada, com o proprietário. A mensagem ao alvo nunca revela o reclamante (RN-RC-10). Conselho
+        fiscal julga reclamação contra o síndico ou a unidade dele só quando o condomínio não tem subsíndico nem administradora (tabela
+        5.1, RN-RC-03); fora desses casos o acesso responde `403`. Em recurso, o conselho
+        julga só os casos de RN-RC-14 (quem é parte nunca julga o recurso), por `/v1/recursos` de `comum.yaml`.
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ReclamacaoIdConselhoFiscal'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IniciarConversaReclamacaoConselhoFiscal'
+            example:
+              texto: Recebemos uma reclamação sobre barulho. Pode nos contar o que houve?
+      responses:
+        '201':
+          description: Conversa iniciada; reclamação em conversa com o alvo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacaoConselhoFiscal'
+              example:
+                id: 000000c8-1111-4222-8333-0000000000c8
+                categoria: Barulho
+                gravidade_inicial: leve
+                estado: em_conversa_com_o_alvo
+                aberta_em: '2026-11-02T20:10:00-03:00'
+                alvo:
+                  tipo: unidade
+                  rotulo: Bloco A, 101
+                reclamante:
+                  tipo: pessoa
+                  vinculo_id: 0000012c-1111-4222-8333-00000000012c
+                  nome: Rafaela Duarte
+                  unidade_identificacao: Bloco A, 201
+                voce_e_o_julgador: true
+                semaforo:
+                  cor: amarelo
+                  texto: Prazo se esgotando
+                  vence_em: '2026-11-17'
+                descricao: Música alta depois da meia-noite.
+                data_ocorrencia: '2026-11-01'
+                alvo_respondeu: false
+                decisao_liberada: false
+                decisao_liberada_em: '2026-11-12T20:10:00-03:00'
+                mensagens:
+                - autor_papel: julgador
+                  texto: Recebemos uma reclamação sobre barulho. Pode nos contar o que houve?
+                  enviada_em: '2026-11-03T10:00:00-03:00'
+                decisao: null
+                recurso_id: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403ConselhoNaoJulga'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: '#/components/responses/Erro409ConversaConselhoFiscal'
+        '422':
+          $ref: '#/components/responses/Erro422ConversaConselhoFiscal'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-05
+      - RF-RS-07
+      - RN-RC-04
+      - RN-RC-10
+      - RN-RC-13
+      - RN-CO-04
+      - US-RS-02
+  /v1/conselho-fiscal/reclamacoes/{reclamacao_id}/decisao:
+    post:
+      operationId: conselhoFiscalDecidirReclamacao
+      summary: Valida ou nega a reclamação
+      description: Liberada com a resposta do alvo ou após 5 dias sem resposta ("alvo não respondeu"); negar exige
+        motivo da lista e, com penalidade, justificativa (RN-RC-04, RN-RC-05, RN-RC-09). Os pontos são aplicados
+        pelo sistema (RN 4.1) e abrem o prazo de recurso de 7 dias; decisão da administradora ou do conselho fiscal
+        não tem recurso no app (RN 5.3). O alvo é notificado sem a identidade do reclamante (RN-RC-10). Conselho
+        fiscal julga reclamação contra o síndico ou a unidade dele só quando o condomínio não tem subsíndico nem administradora (tabela
+        5.1, RN-RC-03); fora desses casos o acesso responde `403`. Em recurso, o conselho
+        julga só os casos de RN-RC-14 (quem é parte nunca julga o recurso), por `/v1/recursos` de `comum.yaml`.
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ReclamacaoIdConselhoFiscal'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecidirReclamacaoConselhoFiscal'
+            example:
+              resultado: negada
+              motivo_negativa: nao_procede_boa_fe
+      responses:
+        '200':
+          description: Reclamação decidida.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamacaoConselhoFiscal'
+              example:
+                id: 000000c8-1111-4222-8333-0000000000c8
+                categoria: Barulho
+                gravidade_inicial: leve
+                estado: negada
+                aberta_em: '2026-11-02T20:10:00-03:00'
+                alvo:
+                  tipo: unidade
+                  rotulo: Bloco A, 101
+                reclamante:
+                  tipo: pessoa
+                  vinculo_id: 0000012c-1111-4222-8333-00000000012c
+                  nome: Rafaela Duarte
+                  unidade_identificacao: Bloco A, 201
+                voce_e_o_julgador: true
+                semaforo: null
+                descricao: Música alta depois da meia-noite.
+                data_ocorrencia: '2026-11-01'
+                alvo_respondeu: true
+                decisao_liberada: true
+                decisao_liberada_em: '2026-11-12T20:10:00-03:00'
+                mensagens: []
+                decisao:
+                  resultado: negada
+                  motivo_negativa: nao_procede_boa_fe
+                  gravidade_final: null
+                  justificativa: null
+                  decidida_em: '2026-11-05T09:30:00-03:00'
+                recurso_id: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403ConselhoNaoJulga'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: '#/components/responses/Erro409DecisaoConselhoFiscal'
+        '422':
+          $ref: '#/components/responses/Erro422DecisaoConselhoFiscal'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-06
+      - RF-RS-07
+      - RF-RS-08
+      - RN-RC-04
+      - RN-RC-05
+      - RN-RC-09
+      - RN-RC-10
+      - RN-SC-05
+      - RN-SC-11
+      - US-RS-03
+  /v1/conselho-fiscal/financas/resumo:
+    get:
+      operationId: conselhoFiscalObterResumoFinanceiro
+      summary: Consulta o resumo financeiro do condomínio
+      description: 'Receitas, despesas e saldo do período, despesas por categoria e evolução (RF-FI-17, RN-FI-21).
+        Só leitura: o conselho fiscal não lança, edita, fecha nem estorna lançamentos (RN-FI-29). Receitas de cobrança
+        vêm agregadas, sem unidade nem responsável financeiro (RN-FI-30, SEG-17). **Perfil:** membro do conselho
+        fiscal, cadastrado pela administradora ou pelo suporte (PRD 3); morador comum, proprietário não residente
+        e funcionário recebem `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/MesReferenciaFinancasConselhoFiscal'
+      - $ref: '#/components/parameters/PeriodoMesesFinancasConselhoFiscal'
+      responses:
+        '200':
+          description: Resumo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumoFinanceiroConselhoFiscal'
+              example:
+                mes_referencia: 2026-10
+                periodo_meses: 1
+                receitas_centavos: 4180000
+                despesas_centavos: 3560000
+                saldo_centavos: 620000
+                comparacao_mes_anterior:
+                  receitas_centavos: 4100000
+                  despesas_centavos: 3700000
+                  saldo_centavos: 400000
+                receitas_por_categoria:
+                - categoria: taxa_condominial
+                  valor_centavos: 3900000
+                  quantidade_cobrancas_pagas: 117
+                - categoria: cobrancas_extras
+                  valor_centavos: 280000
+                  quantidade_cobrancas_pagas: 14
+                despesas_por_categoria:
+                - categoria: energia
+                  valor_centavos: 820000
+                  quantidade_cobrancas_pagas: null
+                - categoria: folha_de_funcionarios
+                  valor_centavos: 1900000
+                  quantidade_cobrancas_pagas: null
+                evolucao: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-17
+      - RN-FI-21
+      - RN-FI-29
+      - RN-FI-30
+      - SEG-17
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/lancamentos:
+    get:
+      operationId: conselhoFiscalListarLancamentosFinanceiros
+      summary: Lista os lançamentos financeiros do período
+      description: 'Filtra por período, categoria, tipo e texto (RF-FI-21). Só leitura: o conselho fiscal não lança,
+        edita, fecha nem estorna lançamentos (RN-FI-29). Receitas de cobrança vêm agregadas, sem unidade nem responsável
+        financeiro (RN-FI-30, SEG-17). **Perfil:** membro do conselho fiscal, cadastrado pela administradora ou
+        pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - $ref: '#/components/parameters/MesReferenciaFinancasConselhoFiscal'
+      - $ref: '#/components/parameters/PeriodoMesesFinancasConselhoFiscal'
+      - $ref: '#/components/parameters/CategoriaFinanceiraFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/TipoLancamentoFiltroConselhoFiscal'
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no fornecedor ou origem e na descrição.
+        schema:
+          type: string
+      - $ref: '#/components/parameters/EstadoLancamentoFiltroConselhoFiscal'
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-data_caixa`.
+        schema:
+          type: string
+          enum:
+          - data_caixa
+          - -data_caixa
+          - valor_centavos
+          - -valor_centavos
+          default: -data_caixa
+      responses:
+        '200':
+          description: Página de lançamentos.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LancamentoFinanceiroConselhoFiscal'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 00000320-1111-4222-8333-000000000320
+                  tipo: despesa
+                  categoria: energia
+                  subservico: null
+                  data_caixa: '2026-10-08'
+                  valor_centavos: 820000
+                  fornecedor_ou_origem: Companhia de Energia Paulista
+                  descricao: Conta de outubro
+                  origem: avulso
+                  estado: lancado
+                  quantidade_cobrancas_pagas: null
+                  tem_comprovante: true
+                  comprovante_arquivo_id: 0000004a-1111-4222-8333-00000000004a
+                  lancamento_original_id: null
+                  motivo_estorno: null
+                  mes_fechado: false
+                  quantidade_comentarios: 1
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-17
+      - RF-FI-21
+      - RN-FI-22
+      - RN-FI-29
+      - RN-FI-30
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/lancamentos/totais:
+    get:
+      operationId: conselhoFiscalObterTotaisLancamentosFinanceiros
+      summary: Consulta os totais do filtro de lançamentos
+      description: 'Os totais acompanham o filtro aplicado à lista (RF-FI-21). Só leitura: o conselho fiscal não
+        lança, edita, fecha nem estorna lançamentos (RN-FI-29). Receitas de cobrança vêm agregadas, sem unidade
+        nem responsável financeiro (RN-FI-30, SEG-17). **Perfil:** membro do conselho fiscal, cadastrado pela administradora
+        ou pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/MesReferenciaFinancasConselhoFiscal'
+      - $ref: '#/components/parameters/PeriodoMesesFinancasConselhoFiscal'
+      - $ref: '#/components/parameters/CategoriaFinanceiraFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/TipoLancamentoFiltroConselhoFiscal'
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre no fornecedor ou origem e na descrição.
+        schema:
+          type: string
+      - $ref: '#/components/parameters/EstadoLancamentoFiltroConselhoFiscal'
+      responses:
+        '200':
+          description: Totais.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotaisLancamentosFinanceirosConselhoFiscal'
+              example:
+                receitas_centavos: 280000
+                despesas_centavos: 820000
+                saldo_centavos: -540000
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-21
+      - RN-FI-21
+      - RN-FI-29
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/lancamentos/{lancamento_id}:
+    get:
+      operationId: conselhoFiscalObterLancamentoFinanceiro
+      summary: Detalha um lançamento financeiro
+      description: 'Mostra dados, comprovante e estado; o estornado continua visível com o link para o estorno (RN
+        12.4). Só leitura: o conselho fiscal não lança, edita, fecha nem estorna lançamentos (RN-FI-29). Receitas
+        de cobrança vêm agregadas, sem unidade nem responsável financeiro (RN-FI-30, SEG-17). **Perfil:** membro
+        do conselho fiscal, cadastrado pela administradora ou pelo suporte (PRD 3); morador comum, proprietário
+        não residente e funcionário recebem `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/LancamentoIdConselhoFiscal'
+      responses:
+        '200':
+          description: Lançamento.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LancamentoFinanceiroConselhoFiscal'
+              example:
+                id: 00000320-1111-4222-8333-000000000320
+                tipo: despesa
+                categoria: energia
+                subservico: null
+                data_caixa: '2026-10-08'
+                valor_centavos: 820000
+                fornecedor_ou_origem: Companhia de Energia Paulista
+                descricao: Conta de outubro
+                origem: avulso
+                estado: lancado
+                quantidade_cobrancas_pagas: null
+                tem_comprovante: true
+                comprovante_arquivo_id: 0000004a-1111-4222-8333-00000000004a
+                lancamento_original_id: null
+                motivo_estorno: null
+                mes_fechado: false
+                quantidade_comentarios: 1
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-17
+      - RN-FI-24
+      - RN-FI-28
+      - RN-FI-29
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/meses:
+    get:
+      operationId: conselhoFiscalListarMesesFinanceiros
+      summary: Lista os meses financeiros e seu estado
+      description: 'Mostra se cada mês está aberto ou fechado, para a faixa "Mês fechado" (RN-FI-28). Só leitura:
+        o conselho fiscal não lança, edita, fecha nem estorna lançamentos (RN-FI-29). Receitas de cobrança vêm agregadas,
+        sem unidade nem responsável financeiro (RN-FI-30, SEG-17). **Perfil:** membro do conselho fiscal, cadastrado
+        pela administradora ou pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem
+        `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-competencia`.
+        schema:
+          type: string
+          enum:
+          - competencia
+          - -competencia
+          default: -competencia
+      responses:
+        '200':
+          description: Página de meses.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MesFinanceiroConselhoFiscal'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - competencia: 2026-10
+                  estado: aberto
+                  fechado_em: null
+                  quantidade_comentarios: 0
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-23
+      - RN-FI-28
+      - RN-FI-29
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/comentarios:
+    get:
+      operationId: conselhoFiscalListarComentariosFinanceiros
+      summary: Lista os comentários de um lançamento ou de um mês
+      description: 'Comentários continuam liberados em mês fechado (RN-FI-31). Só leitura: o conselho fiscal não
+        lança, edita, fecha nem estorna lançamentos (RN-FI-29). Receitas de cobrança vêm agregadas, sem unidade
+        nem responsável financeiro (RN-FI-30, SEG-17). **Perfil:** membro do conselho fiscal, cadastrado pela administradora
+        ou pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - $ref: '#/components/parameters/LancamentoComentadoFiltroConselhoFiscal'
+      - $ref: '#/components/parameters/CompetenciaComentadaFiltroConselhoFiscal'
+      responses:
+        '200':
+          description: Página de comentários.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComentarioFinanceiroConselhoFiscal'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 0000032a-1111-4222-8333-00000000032a
+                  lancamento_id: 00000320-1111-4222-8333-000000000320
+                  competencia: null
+                  autor_nome: Carlos Menezes
+                  autor_papel: conselho_fiscal
+                  texto: Falta a nota fiscal deste serviço.
+                  criado_em: '2026-11-10T11:00:00-03:00'
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-24
+      - RN-FI-31
+      - RN-FI-29
+      - US-FI-10
+    post:
+      operationId: conselhoFiscalComentarFinancas
+      summary: Comenta um lançamento ou o mês
+      description: Comenta um lançamento ou um mês, inclusive depois do fechamento; a administradora é avisada e
+        o comentário não é editável (RN-FI-31, RF-FI-24). **Perfil:** membro do conselho fiscal, cadastrado pela
+        administradora ou pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem
+        `403`.
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarComentarioFinanceiroConselhoFiscal'
+            example:
+              lancamento_id: 00000320-1111-4222-8333-000000000320
+              competencia: null
+              texto: Falta a nota fiscal deste serviço.
+      responses:
+        '201':
+          description: Comentário registrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComentarioFinanceiroConselhoFiscal'
+              example:
+                id: 0000032a-1111-4222-8333-00000000032a
+                lancamento_id: 00000320-1111-4222-8333-000000000320
+                competencia: null
+                autor_nome: Carlos Menezes
+                autor_papel: conselho_fiscal
+                texto: Falta a nota fiscal deste serviço.
+                criado_em: '2026-11-10T11:00:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          $ref: '#/components/responses/Erro422ComentarioFinanceiroConselhoFiscal'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-24
+      - RN-FI-31
+      - RN-FI-29
+      - SEG-08
+      - US-FI-10
+  /v1/conselho-fiscal/financas/exportacoes:
+    post:
+      operationId: conselhoFiscalPedirExportacaoFinancas
+      summary: Pede a exportação das finanças em CSV ou PDF
+      description: 'Pedido assíncrono (arquitetura 3.11: job para meses grandes): responde `202` e o arquivo se
+        consulta em `GET /v1/conselho-fiscal/financas/exportacoes/{exportacao_id}`. CSV para a contabilidade; PDF
+        com resumo, categorias e lançamentos (RF-FI-22). **Perfil:** membro do conselho fiscal, cadastrado pela
+        administradora ou pelo suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem
+        `403`.'
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoExportacaoFinancasConselhoFiscal'
+            example:
+              formato: csv
+              mes_referencia: 2026-10
+              periodo_meses: 1
+      responses:
+        '202':
+          description: Exportação em preparo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportacaoFinancasConselhoFiscal'
+              example:
+                id: 00000334-1111-4222-8333-000000000334
+                formato: csv
+                solicitada_em: '2026-11-10T11:30:00-03:00'
+                concluida_em: null
+                nome_arquivo: null
+                url_download: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-22
+      - RN-FI-30
+      - RN-FI-29
+      - SEG-18
+      - US-FI-07
+  /v1/conselho-fiscal/financas/exportacoes/{exportacao_id}:
+    get:
+      operationId: conselhoFiscalObterExportacaoFinancas
+      summary: Consulta uma exportação das finanças
+      description: Enquanto o arquivo é preparado responde `202`; pronta, responde `200` com o URL assinado de curta
+        duração (arquitetura 3.8 e 3.11). Os estados internos do job não são definidos nos docs (lacuna), por isso
+        o contrato usa o código HTTP. **Perfil:** membro do conselho fiscal, cadastrado pela administradora ou pelo
+        suporte (PRD 3); morador comum, proprietário não residente e funcionário recebem `403`.
+      tags:
+      - financas
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ExportacaoIdConselhoFiscal'
+      responses:
+        '200':
+          description: Exportação pronta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportacaoFinancasConselhoFiscal'
+              example:
+                id: 00000334-1111-4222-8333-000000000334
+                formato: csv
+                solicitada_em: '2026-11-10T11:30:00-03:00'
+                concluida_em: '2026-11-10T11:30:08-03:00'
+                nome_arquivo: financeiro-2026-10.csv
+                url_download: https://armazenamento.exemplo.invalid/assinado/financeiro-2026-10.csv
+        '202':
+          description: Exportação ainda em preparo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportacaoFinancasConselhoFiscal'
+              example:
+                id: 00000334-1111-4222-8333-000000000334
+                formato: csv
+                solicitada_em: '2026-11-10T11:30:00-03:00'
+                concluida_em: null
+                nome_arquivo: null
+                url_download: null
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: '#/components/responses/Erro403FinancasConselho'
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-22
+      - RN-FI-30
+      - SEG-18
+      - US-FI-07
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  parameters:
+    EstadoReclamacaoFiltroConselhoFiscal:
+      name: estado
+      in: query
+      required: false
+      description: Um ou mais estados, separados por vírgula.
+      schema:
+        type: array
+        items:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReclamacao
+      style: form
+      explode: false
+    AlvoReclamacaoFiltroConselhoFiscal:
+      name: alvo_tipo
+      in: query
+      required: false
+      description: Um ou mais tipos de alvo, separados por vírgula.
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+          - funcionario
+          - unidade
+          - sindico
+          - subsindico
+      style: form
+      explode: false
+    SemaforoFiltroConselhoFiscal:
+      name: semaforo
+      in: query
+      required: false
+      description: Uma ou mais cores do semáforo, separadas por vírgula.
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+          - verde
+          - amarelo
+          - vermelho
+      style: form
+      explode: false
+    ALulgarFiltroConselhoFiscal:
+      name: a_julgar
+      in: query
+      required: false
+      description: 'Verdadeiro: só as reclamações em que você é o julgador.'
+      schema:
+        type: boolean
+    ReclamacaoIdConselhoFiscal:
+      name: reclamacao_id
+      in: path
+      required: true
+      description: Identificador da reclamação.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    MesReferenciaFinancasConselhoFiscal:
+      name: mes_referencia
+      in: query
+      required: false
+      description: 'Último mês do período, aaaa-mm. Padrão: o mês corrente.'
+      schema:
+        type: string
+        pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        description: Mês no formato aaaa-mm.
+        examples:
+        - 2026-10
+    PeriodoMesesFinancasConselhoFiscal:
+      name: periodo_meses
+      in: query
+      required: false
+      description: 'Período: 1, 3, 6 ou 12 meses (RN-FI-21, RF-FI-21). Padrão 1.'
+      schema:
+        type: integer
+        enum:
+        - 1
+        - 3
+        - 6
+        - 12
+        default: 1
+    CategoriaFinanceiraFiltroConselhoFiscal:
+      name: categoria
+      in: query
+      required: false
+      description: Uma ou mais categorias, separadas por vírgula.
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/CategoriaFinanceiraConselhoFiscal'
+      style: form
+      explode: false
+    TipoLancamentoFiltroConselhoFiscal:
+      name: tipo
+      in: query
+      required: false
+      description: Receita ou despesa.
+      schema:
+        type: string
+        enum:
+        - receita
+        - despesa
+    EstadoLancamentoFiltroConselhoFiscal:
+      name: estado
+      in: query
+      required: false
+      description: Um ou mais estados, separados por vírgula.
+      schema:
+        type: array
+        items:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoLancamento
+      style: form
+      explode: false
+    LancamentoIdConselhoFiscal:
+      name: lancamento_id
+      in: path
+      required: true
+      description: Identificador do lançamento.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    LancamentoComentadoFiltroConselhoFiscal:
+      name: lancamento_id
+      in: query
+      required: false
+      description: Comentários deste lançamento. Informe este ou `competencia`.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    CompetenciaComentadaFiltroConselhoFiscal:
+      name: competencia
+      in: query
+      required: false
+      description: Comentários deste mês, aaaa-mm.
+      schema:
+        type: string
+        pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        description: Mês no formato aaaa-mm.
+        examples:
+        - 2026-10
+    ExportacaoIdConselhoFiscal:
+      name: exportacao_id
+      in: path
+      required: true
+      description: Identificador da exportação.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+  responses:
+    Erro403ConselhoNaoJulga:
+      description: Conselho fiscal fora dos casos em que julga, ou parte da reclamação.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            naoEhJulgador:
+              summary: Reclamação que o conselho não julga (tabela 5.1; código Proposta, texto Proposta)
+              value:
+                codigo: SEM_PERMISSAO
+                mensagem: Esta reclamação não é do conselho fiscal.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+            impedido:
+              summary: Quem é parte nunca julga (RN-RC-14; código Proposta)
+              value:
+                codigo: RECLAMACAO_JULGADOR_IMPEDIDO
+                mensagem: Você não pode julgar esta reclamação porque faz parte dela.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro403FinancasConselho:
+      description: 'Quem não é membro do conselho fiscal (RN-FI-29): morador, proprietário não residente e funcionário.'
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            naoEhConselho:
+              summary: Texto de UF 15 com o perfil (RN-FI-29)
+              value:
+                codigo: SEM_PERMISSAO
+                mensagem: Esta área é só para conselho fiscal.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro409ConversaConselhoFiscal:
+      description: Conversa já iniciada.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            jaIniciada:
+              summary: Uma conversa por reclamação (MER/DER 4.8; código Proposta)
+              value:
+                codigo: RECLAMACAO_CONVERSA_JA_INICIADA
+                mensagem: A conversa com o alvo já foi iniciada.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+            pendente:
+              summary: Reclamação Pendente, sem julgador (tabela 5.1; código Proposta)
+              value:
+                codigo: RECLAMACAO_PENDENTE_SEM_JULGADOR
+                mensagem: Esta reclamação aguarda um julgador disponível.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro422ConversaConselhoFiscal:
+      description: Conversa fora da regra.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            textoOfensivo:
+              summary: Filtro de ofensas (RN-RC-13; código Proposta)
+              value:
+                codigo: COMUNICADO_TEXTO_OFENSIVO
+                mensagem: Reescreva o trecho destacado.
+                detalhes:
+                - campo: texto
+                  mensagem: Texto com ofensa.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro422DecisaoConselhoFiscal:
+      description: Decisão fora da regra.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            aguardandoAlvo:
+              summary: Decidir antes de ouvir o alvo (UF 9.2, RN-RC-04; código Proposta)
+              value:
+                codigo: RECLAMACAO_DECISAO_BLOQUEADA
+                mensagem: Converse com o alvo antes de decidir. Liberado em 12/11/2026 se não houver resposta.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+            semJustificativa:
+              summary: Negar com penalidade ou mudar a gravidade sem justificativa (RN-RC-05, RN-RC-09; código Proposta)
+              value:
+                codigo: RECLAMACAO_JUSTIFICATIVA_OBRIGATORIA
+                mensagem: Explique por que esta reclamação foi considerada desproporcional.
+                detalhes:
+                - campo: justificativa
+                  mensagem: Informe a justificativa.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro409DecisaoConselhoFiscal:
+      description: Reclamação já decidida.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            jaDecidida:
+              summary: Decisão única por reclamação (MER/DER 4.8; código Proposta)
+              value:
+                codigo: RECLAMACAO_JA_DECIDIDA
+                mensagem: Esta reclamação já foi decidida.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+            pendente:
+              summary: Reclamação Pendente, sem julgador (tabela 5.1; código Proposta)
+              value:
+                codigo: RECLAMACAO_PENDENTE_SEM_JULGADOR
+                mensagem: Esta reclamação aguarda um julgador disponível.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro422ComentarioFinanceiroConselhoFiscal:
+      description: Comentário fora da regra.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
+            alvoInvalido:
+              summary: Zero ou dois alvos (MER/DER 4.11; código Proposta)
+              value:
+                codigo: COMENTARIO_ALVO_INVALIDO
+                mensagem: Comente um lançamento ou um mês, não os dois.
+                detalhes:
+                - campo: competencia
+                  mensagem: Informe só um alvo.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+  schemas:
+    ReclamanteReclamacaoConselhoFiscal:
+      type: object
+      description: Identidade do reclamante, entregue só ao julgador (RN-SC-02, ADR-010).
+      required:
+      - tipo
+      - vinculo_id
+      - nome
+      - unidade_identificacao
+      properties:
+        tipo:
+          type: string
+          enum:
+          - pessoa
+          - condominio
+          description: '`condominio` na reclamação gerada por vistoria (RN-RC-12), sem reclamante pessoa.'
+        vinculo_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        nome:
+          type:
+          - string
+          - 'null'
+        unidade_identificacao:
+          type:
+          - string
+          - 'null'
+    AlvoReclamacaoConselhoFiscal:
+      type: object
+      required:
+      - tipo
+      - rotulo
+      properties:
+        tipo:
+          type: string
+          enum:
+          - funcionario
+          - unidade
+          - sindico
+          - subsindico
+        rotulo:
+          type: string
+          description: Nome do funcionário, identificação da unidade ou do mandatário.
+    SemaforoPrazoReclamacaoConselhoFiscal:
+      type: object
+      description: Semáforo do prazo de decisão (RN-RC-17 a RN-RC-19). Só no DTO do julgador e só em Aberta e Em
+        conversa com o alvo; é informação, não bloqueia a decisão.
+      required:
+      - cor
+      - texto
+      - vence_em
+      properties:
+        cor:
+          type: string
+          enum:
+          - verde
+          - amarelo
+          - vermelho
+        texto:
+          type: string
+          description: Texto sempre junto da cor, por exemplo "No prazo", "Prazo se esgotando" ou "Prazo esgotado"
+            (RN-RC-17).
+        vence_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+    ReclamacaoResumoConselhoFiscal:
+      type: object
+      required:
+      - id
+      - categoria
+      - gravidade_inicial
+      - estado
+      - aberta_em
+      - alvo
+      - reclamante
+      - voce_e_o_julgador
+      - semaforo
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        categoria:
+          type: string
+        gravidade_inicial:
+          type: string
+          enum:
+          - leve
+          - media
+          - grave
+          description: Gravidade (RN 5.4).
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReclamacao
+        aberta_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        alvo:
+          $ref: '#/components/schemas/AlvoReclamacaoConselhoFiscal'
+        reclamante:
+          $ref: '#/components/schemas/ReclamanteReclamacaoConselhoFiscal'
+        voce_e_o_julgador:
+          type: boolean
+          description: Verdadeiro quando você é o julgador vigente desta reclamação.
+        semaforo:
+          oneOf:
+          - $ref: '#/components/schemas/SemaforoPrazoReclamacaoConselhoFiscal'
+          - type: 'null'
+    MensagemReclamacaoConselhoFiscal:
+      type: object
+      description: Mensagem da conversa com o alvo (comunicado individual vinculado, RN-CO-04). Nunca traz o nome
+        do reclamante ao alvo.
+      required:
+      - autor_papel
+      - texto
+      - enviada_em
+      properties:
+        autor_papel:
+          type: string
+          enum:
+          - julgador
+          - alvo
+        texto:
+          type: string
+        enviada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    DecisaoReclamacaoConselhoFiscal:
+      type: object
+      required:
+      - resultado
+      - motivo_negativa
+      - gravidade_final
+      - justificativa
+      - decidida_em
+      properties:
+        resultado:
+          type: string
+          enum:
+          - validada
+          - negada
+        motivo_negativa:
+          type:
+          - string
+          - 'null'
+          enum:
+          - nao_procede_boa_fe
+          - desproporcional
+          - falsa_ma_fe
+          - duplicada
+          - null
+        gravidade_final:
+          oneOf:
+          - type: string
+            enum:
+            - leve
+            - media
+            - grave
+            description: Gravidade (RN 5.4).
+          - type: 'null'
+        justificativa:
+          type:
+          - string
+          - 'null'
+        decidida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    ReclamacaoConselhoFiscal:
+      type: object
+      description: 'Detalhe para o julgador. O score do reclamante e do alvo não vem neste DTO: o julgador o consulta
+        no endpoint único `GET /v1/score` de `comum.yaml` com `escopo=reclamacao` (RF-RS-03, ADR-010, RN-SC-02);
+        o painel faz chamadas adicionais a `/v1/score`, e devolver em lote é ponto a avaliar. O score é referência,
+        não decide sozinho (RN-SC-11). O recurso é criado, consultado e decidido por `/v1/recursos` de `comum.yaml`
+        (RN-RC-07).'
+      required:
+      - id
+      - categoria
+      - gravidade_inicial
+      - estado
+      - aberta_em
+      - alvo
+      - reclamante
+      - voce_e_o_julgador
+      - semaforo
+      - descricao
+      - data_ocorrencia
+      - alvo_respondeu
+      - decisao_liberada
+      - decisao_liberada_em
+      - mensagens
+      - decisao
+      - recurso_id
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        categoria:
+          type: string
+        gravidade_inicial:
+          type: string
+          enum:
+          - leve
+          - media
+          - grave
+          description: Gravidade (RN 5.4).
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReclamacao
+        aberta_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        alvo:
+          $ref: '#/components/schemas/AlvoReclamacaoConselhoFiscal'
+        reclamante:
+          $ref: '#/components/schemas/ReclamanteReclamacaoConselhoFiscal'
+        voce_e_o_julgador:
+          type: boolean
+          description: Verdadeiro quando você é o julgador vigente desta reclamação.
+        semaforo:
+          oneOf:
+          - $ref: '#/components/schemas/SemaforoPrazoReclamacaoConselhoFiscal'
+          - type: 'null'
+        descricao:
+          type: string
+        data_ocorrencia:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        alvo_respondeu:
+          type: boolean
+        decisao_liberada:
+          type: boolean
+          description: Decisão liberada com a resposta do alvo ou após o prazo sem resposta (RN-RC-04).
+        decisao_liberada_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        mensagens:
+          type: array
+          items:
+            $ref: '#/components/schemas/MensagemReclamacaoConselhoFiscal'
+        decisao:
+          oneOf:
+          - $ref: '#/components/schemas/DecisaoReclamacaoConselhoFiscal'
+          - type: 'null'
+        recurso_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    IniciarConversaReclamacaoConselhoFiscal:
+      type: object
+      required:
+      - texto
+      properties:
+        texto:
+          type: string
+    DecidirReclamacaoConselhoFiscal:
+      type: object
+      required:
+      - resultado
+      properties:
+        resultado:
+          type: string
+          enum:
+          - validada
+          - negada
+        gravidade_final:
+          type:
+          - string
+          - 'null'
+          enum:
+          - leve
+          - media
+          - grave
+          - null
+          description: Só para mudar a gravidade ao validar; exige justificativa (RN-RC-09).
+        motivo_negativa:
+          type:
+          - string
+          - 'null'
+          enum:
+          - nao_procede_boa_fe
+          - desproporcional
+          - falsa_ma_fe
+          - duplicada
+          - null
+          description: Obrigatório ao negar (RN-RC-05).
+        justificativa:
+          type:
+          - string
+          - 'null'
+    CategoriaFinanceiraConselhoFiscal:
+      type: string
+      enum:
+      - energia
+      - agua_e_esgoto
+      - gas
+      - servicos_terceirizados
+      - folha_de_funcionarios
+      - manutencao_e_obras
+      - seguros
+      - administracao
+      - outros
+      - taxa_condominial
+      - cobrancas_extras
+      - multas_e_juros_por_atraso
+      - multas_por_infracao
+      - aluguel_de_areas
+      - outras_receitas
+      description: 'Categoria fixa de RN-FI-32 (códigos sem acento são Proposta de nomenclatura). Despesas: energia,
+        agua_e_esgoto, gas, servicos_terceirizados, folha_de_funcionarios, manutencao_e_obras, seguros, administracao,
+        outros. Receitas: taxa_condominial, cobrancas_extras, multas_e_juros_por_atraso, multas_por_infracao, aluguel_de_areas,
+        outras_receitas.'
+    ValorPorCategoriaFinancasConselhoFiscal:
+      type: object
+      required:
+      - categoria
+      - valor_centavos
+      - quantidade_cobrancas_pagas
+      properties:
+        categoria:
+          $ref: '#/components/schemas/CategoriaFinanceiraConselhoFiscal'
+        valor_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        quantidade_cobrancas_pagas:
+          type:
+          - integer
+          - 'null'
+          description: Só nas receitas de cobrança agregadas (por exemplo, 117 cobranças pagas).
+    ResumoFinanceiroConselhoFiscal:
+      type: object
+      description: 'Regime de caixa: vale a data do pagamento, não a do vencimento (RN-FI-21).'
+      required:
+      - mes_referencia
+      - periodo_meses
+      - receitas_centavos
+      - despesas_centavos
+      - saldo_centavos
+      - comparacao_mes_anterior
+      - receitas_por_categoria
+      - despesas_por_categoria
+      - evolucao
+      properties:
+        mes_referencia:
+          type: string
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          description: Mês no formato aaaa-mm.
+          examples:
+          - 2026-10
+        periodo_meses:
+          type: integer
+          enum:
+          - 1
+          - 3
+          - 6
+          - 12
+        receitas_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        despesas_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        saldo_centavos:
+          type: integer
+          format: int64
+          description: Receitas menos despesas, em centavos; pode ser negativo (RN-FI-21).
+        comparacao_mes_anterior:
+          oneOf:
+          - type: object
+            description: Valores do mês anterior; só para período de 1 mês (RN-FI-21).
+            required:
+            - receitas_centavos
+            - despesas_centavos
+            - saldo_centavos
+            properties:
+              receitas_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+              despesas_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+              saldo_centavos:
+                type: integer
+                format: int64
+          - type: 'null'
+        receitas_por_categoria:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValorPorCategoriaFinancasConselhoFiscal'
+          description: Cobranças extras (fundo de reserva e obras) discriminadas (RN-FI-21).
+        despesas_por_categoria:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValorPorCategoriaFinancasConselhoFiscal'
+        evolucao:
+          type:
+          - array
+          - 'null'
+          description: Evolução mês a mês; só para períodos de 3, 6 ou 12 meses. Todo gráfico tem esta tabela equivalente
+            (RN-FI-21).
+          items:
+            type: object
+            required:
+            - mes
+            - receitas_centavos
+            - despesas_centavos
+            - saldo_centavos
+            properties:
+              mes:
+                type: string
+                pattern: ^\d{4}-(0[1-9]|1[0-2])$
+                description: Mês no formato aaaa-mm.
+                examples:
+                - 2026-10
+              receitas_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+              despesas_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+              saldo_centavos:
+                type: integer
+                format: int64
+    LancamentoFinanceiroConselhoFiscal:
+      type: object
+      description: Lançamento em leitura. Sem unidade nem responsável financeiro (RN-FI-30). O comprovante se lê
+        por URL assinado em `/v1/arquivos/*`.
+      required:
+      - id
+      - tipo
+      - categoria
+      - subservico
+      - data_caixa
+      - valor_centavos
+      - fornecedor_ou_origem
+      - descricao
+      - origem
+      - estado
+      - quantidade_cobrancas_pagas
+      - tem_comprovante
+      - comprovante_arquivo_id
+      - lancamento_original_id
+      - motivo_estorno
+      - mes_fechado
+      - quantidade_comentarios
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - receita
+          - despesa
+        categoria:
+          $ref: '#/components/schemas/CategoriaFinanceiraConselhoFiscal'
+        subservico:
+          type:
+          - string
+          - 'null'
+          enum:
+          - portaria
+          - limpeza
+          - elevador
+          - jardinagem
+          - outro
+          - null
+          description: Só em serviços terceirizados (RN-FI-32).
+        data_caixa:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        valor_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        fornecedor_ou_origem:
+          type:
+          - string
+          - 'null'
+        descricao:
+          type:
+          - string
+          - 'null'
+        origem:
+          type: string
+          enum:
+          - automatico
+          - avulso
+          description: '`automatico` vem de cobrança ou reserva paga e não se edita (RN-FI-22).'
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoLancamento
+        quantidade_cobrancas_pagas:
+          type:
+          - integer
+          - 'null'
+        tem_comprovante:
+          type: boolean
+          description: Falso nas despesas sem comprovante ("Não anexado", RN-FI-24).
+        comprovante_arquivo_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        lancamento_original_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        motivo_estorno:
+          type:
+          - string
+          - 'null'
+        mes_fechado:
+          type: boolean
+        quantidade_comentarios:
+          type: integer
+    TotaisLancamentosFinanceirosConselhoFiscal:
+      type: object
+      description: Totais do mesmo filtro da lista (RF-FI-21).
+      required:
+      - receitas_centavos
+      - despesas_centavos
+      - saldo_centavos
+      properties:
+        receitas_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        despesas_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        saldo_centavos:
+          type: integer
+          format: int64
+    MesFinanceiroConselhoFiscal:
+      type: object
+      description: Mês fechado só se altera por estorno, que é da administradora (RN-FI-28).
+      required:
+      - competencia
+      - estado
+      - fechado_em
+      - quantidade_comentarios
+      properties:
+        competencia:
+          type: string
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          description: Mês no formato aaaa-mm.
+          examples:
+          - 2026-10
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoMesFinanceiro
+        fechado_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        quantidade_comentarios:
+          type: integer
+    ComentarioFinanceiroConselhoFiscal:
+      type: object
+      description: Comentário imutável, com autor e data; não altera valores nem aprova o mês (RN-FI-31).
+      required:
+      - id
+      - lancamento_id
+      - competencia
+      - autor_nome
+      - autor_papel
+      - texto
+      - criado_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        lancamento_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        competencia:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        autor_nome:
+          type: string
+        autor_papel:
+          type: string
+          enum:
+          - conselho_fiscal
+        texto:
+          type: string
+        criado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    CriarComentarioFinanceiroConselhoFiscal:
+      type: object
+      description: 'Exatamente um alvo: `lancamento_id` ou `competencia`.'
+      required:
+      - texto
+      properties:
+        lancamento_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        competencia:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        texto:
+          type: string
+    PedidoExportacaoFinancasConselhoFiscal:
+      type: object
+      description: Mesmo filtro da lista de lançamentos; o arquivo respeita o filtro (RN-FI-30).
+      required:
+      - formato
+      properties:
+        formato:
+          type: string
+          enum:
+          - csv
+          - pdf
+        mes_referencia:
+          oneOf:
+          - type: string
+            pattern: ^\d{4}-(0[1-9]|1[0-2])$
+            description: Mês no formato aaaa-mm.
+            examples:
+            - 2026-10
+          - type: 'null'
+        periodo_meses:
+          type: integer
+          enum:
+          - 1
+          - 3
+          - 6
+          - 12
+          default: 1
+        categoria:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoriaFinanceiraConselhoFiscal'
+        tipo:
+          type:
+          - string
+          - 'null'
+          enum:
+          - receita
+          - despesa
+          - null
+        busca:
+          type:
+          - string
+          - 'null'
+    ExportacaoFinancasConselhoFiscal:
+      type: object
+      description: Exportação do resumo e dos lançamentos filtrados, sem dados de unidade nem de responsável (RN-FI-30).
+      required:
+      - id
+      - formato
+      - solicitada_em
+      - concluida_em
+      - nome_arquivo
+      - url_download
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        formato:
+          type: string
+          enum:
+          - csv
+          - pdf
+        solicitada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        concluida_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        nome_arquivo:
+          type:
+          - string
+          - 'null'
+        url_download:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: URL assinado de curta duração, só quando pronta.
+x-lacunas:
+- 'Formato da exportação de finanças: a arquitetura 3.11 chama de lacuna; modelada como pedido assíncrono (202)
+  com consulta, e o limite de "meses grandes" e a duração do URL não são definidos.'
+- Códigos sem acento das categorias financeiras, de `autor_papel` e de `origem` são Proposta de nomenclatura; os
+  nomes oficiais são os de RN-FI-32 e RN 12.4.
+- Totais do filtro de lançamentos têm operação própria (`/financas/lancamentos/totais`) para manter o envelope de
+  lista do guia; é Proposta.
+- RF-RC e RF-SC citados no pedido da tarefa não existem no PRD; os IDs reais são RF-RS.
+- 'Score no painel (RF-RS-03, ADR-010): o DTO não traz score; o painel faz chamadas adicionais a `GET /v1/score`
+  com `escopo=reclamacao` (`comum.yaml`). Devolver em lote é ponto a avaliar.'
+- Código `RECLAMACAO_JULGADOR_IMPEDIDO` e o texto do 403 do conselho fiscal em reclamação são Proposta.
+- Decisão de recurso e criação de recurso são de `comum.yaml` (`/v1/recursos`).
+- 'Reclamação contra o subsíndico com síndico ausente e sem administradora fica pendente até o fim da substituição
+  (tabela 5.1): o conselho não a julga.'

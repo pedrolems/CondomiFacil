@@ -1,0 +1,3231 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface comum
+  version: 0.1.0-proposta
+  summary: Acesso e sessão, perfil próprio, notificações, arquivos, LGPD, score e recurso de decisão.
+  description: |-
+    **Proposta de 10/11/2026**, não aceita pelo Pedro. Interface `comum/` do backend (`01-backend.md` 3.3, decisão de agrupamento 5): rotas sem perfil dono, usadas por três ou mais perfis com o mesmo DTO. Convenções no `01-guia-da-api.md`.
+
+    **Decidido (PRD e regras de negócio):** ninguém se cadastra sozinho; primeiro acesso por código de 6 dígitos no e-mail, 15 minutos, 5 tentativas, reenvio após 60 segundos, mesma resposta para e-mail cadastrado ou não, senha com no mínimo 8 caracteres e pausa de 15 minutos após 5 senhas erradas (RF-AC-01, RN-CD-02, SEG-04).
+
+    **Proposta (não vem de decisão do Pedro nem do PRD):**
+    - Os caminhos `/v1/acesso/codigo`, `/ativar`, `/aceites` e `/renovar` vêm da arquitetura 3.3.1; os caminhos de **login (`/entrar`), recuperação (`/redefinir-senha`) e sair (`/sair`) não estão nos docs** e são Proposta.
+    - Caminhos `/v1/eu/*`, `/v1/arquivos/*`, `/v1/score` e `/v1/recursos`. `/v1/score` e `/v1/recursos` exigem `X-Condominio-Id`, por isso ficam fora de `/v1/eu`, que não leva cabeçalhos de contexto (guia, seção 3).    - Tokens, rotação do refresh e cookie na web seguem o ADR-007 (Proposta).
+    - Nomes de papéis, de tipos de notificação, de módulos de arquivo e de códigos de erro de regra de negócio.
+
+    **Autenticação por grupo de rota** (guia, seção 3): `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha` e `/renovar` não levam `Authorization` nem cabeçalhos de contexto. `/v1/acesso/sair`, `/v1/acesso/aceites` e todo `/v1/eu/*` levam `Authorization` sem cabeçalhos de contexto. `/v1/arquivos/*`, `/v1/score` e `/v1/recursos` levam `Authorization` e `X-Condominio-Id`.
+
+    **Privacidade:** nenhum exemplo expõe quem reclamou, quem avaliou, voto ou score de terceiros fora de RN-SC-02. O score é só número e texto, nunca verde ou vermelho. Dados de cartão nunca passam pela API (SEG-12). Limites de taxa: lacuna (guia, seção 10).
+servers:
+- url: /
+  description: Endereço base ainda não definido (lacuna de infraestrutura).
+tags:
+- name: acesso
+  description: 'Módulo `acesso`: código, ativação, login, sessão, aceites e perfil próprio.'
+- name: condominio
+  description: 'Módulo `condominio`: vínculos, unidades e papéis efetivos do usuário.'
+- name: notificacoes
+  description: 'Módulo `notificacoes`: preferências, dispositivos de push e lista de notificações.'
+- name: arquivos
+  description: 'Módulo `arquivos`: URL assinado de envio e de leitura.'
+- name: lgpd
+  description: 'Módulo `lgpd`: cópia dos dados e exclusão da conta.'
+- name: convivencia
+  description: 'Módulo `convivencia`: endpoint único de score e recurso de decisão de reclamação.'
+paths:
+  /v1/acesso/codigo:
+    post:
+      operationId: comumPedirCodigo
+      summary: Pede um código de acesso por e-mail
+      description: Envia um código de 6 dígitos, válido por 15 minutos, ao e-mail pré-cadastrado (RN-CD-02). A resposta é a mesma para e-mail cadastrado ou não, para não revelar quem tem conta; o código só sai quando o e-mail está pré-cadastrado e ativo. Um novo código só pode ser pedido após 60 segundos e invalida o anterior. O mesmo caminho serve ao primeiro acesso e à recuperação de senha (`finalidade`). Sem `Authorization` nem cabeçalhos de contexto.
+      tags:
+      - acesso
+      security: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedirCodigoComum'
+            examples:
+              primeiroAcesso:
+                summary: Primeiro acesso
+                value:
+                  email: ana.exemplo@example.com
+                  finalidade: primeiro_acesso
+              recuperacao:
+                summary: Recuperação de senha
+                value:
+                  email: ana.exemplo@example.com
+                  finalidade: recuperacao_senha
+      responses:
+        '202':
+          description: Pedido aceito. Corpo idêntico exista ou não conta com esse e-mail.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespostaCodigoComum'
+              example:
+                mensagem: Se o e-mail estiver cadastrado, enviamos um código. Se não chegar, confira o e-mail digitado ou procure a administradora ou o síndico.
+                pode_pedir_novo_codigo_em: '2026-11-10T14:31:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          description: Reenvio antes de 60 segundos ou limite de taxa por IP e por e-mail. A resposta vale igual para qualquer e-mail, cadastrado ou não, para não revelar quem tem conta. Traz `Retry-After`.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                reenvioAntecipado:
+                  summary: Novo código pedido antes de 60 s (código e texto Proposta, sem origem em UF)
+                  value:
+                    codigo: CODIGO_REENVIO_ANTECIPADO
+                    mensagem: Você poderá pedir um novo código em instantes.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                limiteDeTaxa:
+                  summary: Excesso de pedidos por IP ou e-mail (texto Proposta)
+                  value:
+                    codigo: LIMITE_DE_TAXA_EXCEDIDO
+                    mensagem: Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-01
+      - RF-AC-03
+      - RN-CD-01
+      - RN-CD-02
+      - SEG-04
+      - US-AC-01
+      - US-AC-04
+  /v1/acesso/ativar:
+    post:
+      operationId: comumAtivar
+      summary: Ativa a conta com o código e cria a senha
+      description: Valida o código recebido por e-mail e grava a senha (mínimo de 8 caracteres) na mesma chamada; devolve a sessão (RF-AC-01, RN-CD-02). Código errado conta uma das 5 tentativas; na quinta o código é invalidado e é preciso pedir outro. As respostas de erro são as mesmas para e-mail não cadastrado, inclusive a contagem de tentativas restantes, que o servidor simula (Proposta). Antes de usar o app, o usuário ainda precisa aceitar os documentos (`aceites_pendentes`, RN-CD-03). Sem `Authorization` nem cabeçalhos de contexto.
+      tags:
+      - acesso
+      security: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtivarComum'
+            example:
+              email: ana.exemplo@example.com
+              codigo: '483920'
+              nova_senha: senha-de-exemplo-123
+              dispositivo:
+                identificador_instalacao: inst-8f3a2c1d-aparelho-exemplo
+                plataforma: android
+      responses:
+        '200':
+          description: Conta ativa e sessão aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Set-Cookie:
+              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). Nesse caso `refresh_token` não vai no corpo.'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessaoAbertaComum'
+              example:
+                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
+                refresh_token: rt_9Zk2Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E
+                aceites_pendentes: true
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '422':
+          description: Código incorreto, vencido ou invalidado (RN-CD-02). Mesmas respostas para e-mail não cadastrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                codigoIncorreto:
+                  summary: Código errado, ainda com tentativas (texto de UF 3.1)
+                  value:
+                    codigo: CODIGO_INCORRETO
+                    mensagem: Código incorreto. Você tem mais 3 tentativas.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                codigoInvalidado:
+                  summary: 5 erros ou código vencido (texto de UF 3.1)
+                  value:
+                    codigo: CODIGO_INVALIDO_OU_VENCIDO
+                    mensagem: Este código não vale mais. Peça um novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-01
+      - RN-CD-01
+      - RN-CD-02
+      - RN-CD-03
+      - SEG-04
+      - US-AC-01
+  /v1/acesso/entrar:
+    post:
+      operationId: comumEntrar
+      summary: Entra com e-mail e senha
+      description: '**Proposta:** caminho não definido nos docs (a arquitetura 3.3.1 só cita código, ativação, aceites e renovação). Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). **Proposta, para não revelar quem tem conta (SEG-04, RN-CD-02):** o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Sem `Authorization` nem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntrarComum'
+            example:
+              email: ana.exemplo@example.com
+              senha: senha-de-exemplo-123
+              dispositivo:
+                identificador_instalacao: inst-8f3a2c1d-aparelho-exemplo
+                plataforma: android
+      responses:
+        '200':
+          description: Sessão aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Set-Cookie:
+              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessaoAbertaComum'
+              example:
+                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
+                refresh_token: rt_Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E9Zk2
+                aceites_pendentes: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          description: E-mail ou senha incorretos, sem dizer qual dos dois. Mesma resposta para e-mail não cadastrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                credenciaisInvalidas:
+                  summary: Erro de login (texto de UF 3.2)
+                  value:
+                    codigo: CREDENCIAIS_INVALIDAS
+                    mensagem: E-mail ou senha incorretos.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '403':
+          description: Conta desativada por mudança de morador ou desligamento (RN-CD-07). Só sai depois de credenciais corretas (Proposta).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                acessoEncerrado:
+                  summary: Acesso encerrado (texto de UF 3.2)
+                  value:
+                    codigo: ACESSO_ENCERRADO
+                    mensagem: Seu acesso a este condomínio foi encerrado. Se for um engano, fale com a administradora.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          description: Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (Proposta). Traz `Retry-After`.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                acessoPausado:
+                  summary: 5 senhas erradas (texto de UF 3.2; código Proposta)
+                  value:
+                    codigo: ACESSO_PAUSADO
+                    mensagem: Por segurança, o acesso foi pausado por 15 minutos. Você pode redefinir a senha agora.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - SEG-04
+      - RN-CD-02
+      - RN-CD-03
+      - RN-CD-07
+      - US-AC-04
+  /v1/acesso/redefinir-senha:
+    post:
+      operationId: comumRedefinirSenha
+      summary: Redefine a senha com o código recebido
+      description: '**Proposta:** caminho não definido nos docs. Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Sem `Authorization` nem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedefinirSenhaComum'
+            example:
+              email: ana.exemplo@example.com
+              codigo: '102938'
+              nova_senha: outra-senha-de-exemplo-456
+              dispositivo:
+                identificador_instalacao: inst-8f3a2c1d-aparelho-exemplo
+                plataforma: android
+      responses:
+        '200':
+          description: Senha trocada, outras sessões encerradas e nova sessão aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Set-Cookie:
+              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessaoAbertaComum'
+              example:
+                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
+                refresh_token: rt_Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5Wc8
+                aceites_pendentes: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '422':
+          description: Código incorreto, vencido ou invalidado (RN-CD-02). Mesmas respostas para e-mail não cadastrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                codigoIncorreto:
+                  summary: Código errado, ainda com tentativas (texto de UF 3.1)
+                  value:
+                    codigo: CODIGO_INCORRETO
+                    mensagem: Código incorreto. Você tem mais 2 tentativas.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                codigoInvalidado:
+                  summary: 5 erros ou código vencido (texto de UF 3.1)
+                  value:
+                    codigo: CODIGO_INVALIDO_OU_VENCIDO
+                    mensagem: Este código não vale mais. Peça um novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-03
+      - RN-CD-02
+      - SEG-04
+      - US-AC-04
+  /v1/acesso/renovar:
+    post:
+      operationId: comumRenovar
+      summary: Renova o token de acesso
+      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e o reuso de um já usado revoga a sessão (ADR-007, Proposta). No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
+      tags:
+      - acesso
+      security: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenovarComum'
+            example:
+              refresh_token: rt_9Zk2Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E
+      responses:
+        '200':
+          description: Novo par de tokens.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Set-Cookie:
+              description: 'Só na web: novo refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessaoAbertaComum'
+              example:
+                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso_expira_em: '2026-11-10T15:00:00-03:00'
+                refresh_token: rt_Wc8Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5
+                aceites_pendentes: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          description: Refresh token inválido, expirado, revogado ou reutilizado. O cliente volta ao login e depois à tela onde estava (UF 15).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                refreshReutilizado:
+                  summary: 'Refresh já usado: a sessão foi revogada (texto de UF 15)'
+                  value:
+                    codigo: SESSAO_EXPIRADA
+                    mensagem: Por segurança, entre de novo na sua conta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: []
+  /v1/acesso/sair:
+    post:
+      operationId: comumSair
+      summary: Sai da conta neste aparelho
+      description: '**Proposta:** caminho não definido nos docs; origem no ADR-007 e na arquitetura 3.7, sem ID de produto. Revoga a sessão atual (ADR-007) e, se `dispositivo_id` vier, remove o token de push do aparelho (arquitetura 3.7). O app apaga a cópia offline ao sair da conta (SEG-09). Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SairComum'
+            example:
+              dispositivo_id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+      responses:
+        '204':
+          description: Sessão encerrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: []
+  /v1/acesso/aceites:
+    get:
+      operationId: comumListarAceitesPendentes
+      summary: Lista os documentos que faltam aceitar
+      description: Devolve as versões vigentes de termos de uso, política de privacidade, regimento do condomínio e "Como funciona" que o usuário ainda não aceitou. Nova versão de qualquer um exige novo aceite antes de continuar; quem tem vínculo com mais de um condomínio aceita o regimento de cada um (RN-CD-03). Exige `Authorization`, sem cabeçalhos de contexto (o `condominio_id` vem em cada item).
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de documentos pendentes.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DocumentoPendenteComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - documento_versao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  documento_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  tipo: termos_de_uso
+                  titulo: Termos de uso
+                  numero: 3
+                  condominio_id: null
+                  publicado_em: '2026-11-01T09:00:00-03:00'
+                  vigente_desde: '2026-11-05T00:00:00-03:00'
+                  conteudo_texto: Texto de exemplo dos termos de uso.
+                  arquivo_id: null
+                - documento_versao_id: b2e4f6a8-1c3d-4e5f-8a7b-9c0d1e2f3a4b
+                  documento_id: c9d8e7f6-a5b4-4c3d-9e2f-1a0b9c8d7e6f
+                  tipo: regimento
+                  titulo: Regimento interno
+                  numero: 2
+                  condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                  publicado_em: '2026-10-20T09:00:00-03:00'
+                  vigente_desde: '2026-11-01T00:00:00-03:00'
+                  conteudo_texto: null
+                  arquivo_id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-02
+      - RF-AC-07
+      - RN-CD-03
+      - SEG-03
+      - US-AC-02
+    post:
+      operationId: comumRegistrarAceites
+      summary: Registra o aceite de documentos
+      description: Grava o aceite de uma ou mais versões, com a data. Só vale a versão vigente; o aceite é único por usuário e versão e o regimento é aceito separadamente em cada condomínio (RN-CD-03, SEG-03). Exige `Authorization`, sem cabeçalhos de contexto.
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarAceitesComum'
+            example:
+              documento_versao_ids:
+              - 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+              - b2e4f6a8-1c3d-4e5f-8a7b-9c0d1e2f3a4b
+      responses:
+        '201':
+          description: Aceites registrados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AceitesRegistradosComum'
+              example:
+                aceitos:
+                - documento_versao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  aceito_em: '2026-11-10T14:35:00-03:00'
+                - documento_versao_id: b2e4f6a8-1c3d-4e5f-8a7b-9c0d1e2f3a4b
+                  aceito_em: '2026-11-10T14:35:00-03:00'
+                pendentes_restantes: 0
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: A versão enviada não é mais a vigente (RN-CD-03).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                versaoDesatualizada:
+                  summary: Documento atualizado depois de o usuário abrir a tela (código e texto Proposta)
+                  value:
+                    codigo: ACEITE_VERSAO_DESATUALIZADA
+                    mensagem: Este documento foi atualizado. Leia a nova versão para aceitar.
+                    detalhes:
+                    - campo: documento_versao_ids
+                      mensagem: Versão não vigente.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-02
+      - RF-AC-07
+      - RN-CD-03
+      - SEG-03
+      - US-AC-02
+  /v1/eu:
+    get:
+      operationId: comumObterPerfil
+      summary: Obtém o perfil do próprio usuário
+      description: 'Devolve nome, e-mail e a preferência de tema do usuário autenticado. Não traz condomínios, unidades nem papéis: para isso, `GET /v1/eu/contextos`. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Perfil do usuário.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerfilComum'
+              example:
+                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                nome: Ana Exemplo
+                email: ana.exemplo@example.com
+                tema_preferido: aparelho
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-05
+      - US-AC-06
+    patch:
+      operationId: comumAtualizarPerfil
+      summary: Atualiza a preferência de tema
+      description: 'Guarda a escolha de tema: "Igual ao aparelho" (padrão), "Claro" ou "Escuro" (RF-AC-05). A escolha fica salva e vale em qualquer aparelho. Só a preferência de tema é editável por aqui: cadastro de pessoas é da administradora (RN-CD-01). Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarPerfilComum'
+            example:
+              tema_preferido: escuro
+      responses:
+        '200':
+          description: Perfil atualizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerfilComum'
+              example:
+                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                nome: Ana Exemplo
+                email: ana.exemplo@example.com
+                tema_preferido: escuro
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-05
+      - US-AC-06
+  /v1/eu/contextos:
+    get:
+      operationId: comumListarContextos
+      summary: Lista os contextos disponíveis do usuário
+      description: 'Devolve, por condomínio, os papéis efetivos hoje (mandatos e substituição vigentes são dado, RN-CD-12 e RN-CD-28) e as unidades vinculadas, para o cliente montar o seletor de condomínio e de unidade e saber quais cabeçalhos `X-Condominio-Id` e `X-Unidade-Id` enviar. Quem tem uma única unidade não vê seletor (RN-CD-05). A lista é informativa: a autorização é validada a cada requisição pelos guards e pela RLS, nunca por esta resposta. Exige `Authorization`, sem cabeçalhos de contexto. O contexto do suporte e do admin da plataforma abre pelas rotas de `plataforma`.'
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de contextos.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContextoComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                  condominio_nome: Residencial Jardim das Acácias
+                  vinculo_condominio_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  papeis:
+                  - papel: morador
+                    interface: morador
+                    funcao_mandato: null
+                    em_substituicao: null
+                  - papel: subsindico
+                    interface: sindico
+                    funcao_mandato: subsindico
+                    em_substituicao: false
+                  unidades:
+                  - unidade_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                    identificacao: '302'
+                    bloco_nome: Bloco B
+                    tipo_vinculo: proprietario_representante
+                    morador_habilitado: true
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-04
+      - RN-CD-05
+      - RN-CD-12
+      - RN-CD-28
+      - US-AC-05
+      - SEG-05
+  /v1/eu/sessoes:
+    get:
+      operationId: comumListarSessoes
+      summary: Lista as sessões do usuário
+      description: '**Proposta:** origem no ADR-007, sem ID de produto; listagem não prevista em RF, extensão do modelo de sessão do ADR-007 (tabela `sessao`). Lista as sessões não revogadas, com o aparelho de cada uma, para o usuário encerrar as que não reconhece. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de sessões.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SessaoComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: b2e4f6a8-1c3d-4e5f-8a7b-9c0d1e2f3a4b
+                  dispositivo_identificador: inst-8f3a2c1d-aparelho-exemplo
+                  expira_em: '2026-12-10T14:30:00-03:00'
+                  atual: true
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: []
+  /v1/eu/sessoes/{sessao_id}:
+    delete:
+      operationId: comumEncerrarSessao
+      summary: Encerra uma sessão
+      description: '**Proposta:** origem no ADR-007, sem ID de produto. Revoga a sessão informada (o refresh token dela deixa de valer); o token de acesso já emitido vale até expirar, no máximo 15 minutos. Só sessões do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: sessao_id
+        in: path
+        required: true
+        description: Identificador da sessão.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '204':
+          description: Sessão encerrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: []
+  /v1/eu/dispositivos:
+    post:
+      operationId: comumRegistrarDispositivo
+      summary: Registra o aparelho e o token de push
+      description: 'Registra ou atualiza, pelo `identificador_instalacao`, o aparelho do usuário e o token do Expo Push (arquitetura 3.7). Push e credencial de sessão são coisas diferentes: este registro não abre sessão. Tokens inválidos devolvidos pelo Expo (`DeviceNotRegistered`) são removidos pelo servidor. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - notificacoes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrarDispositivoComum'
+            example:
+              identificador_instalacao: inst-8f3a2c1d-aparelho-exemplo
+              plataforma: android
+              token_push: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+      responses:
+        '200':
+          description: Aparelho registrado ou atualizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DispositivoComum'
+              example:
+                id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                identificador_instalacao: inst-8f3a2c1d-aparelho-exemplo
+                plataforma: android
+                ultima_atividade: '2026-11-10T14:30:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-NO-01
+      - US-NO-01
+  /v1/eu/dispositivos/{dispositivo_id}:
+    delete:
+      operationId: comumRemoverDispositivo
+      summary: Remove o token de push de um aparelho
+      description: 'Revoga a associação e o token de push do aparelho, que deixa de receber notificações (arquitetura 3.7). A sessão não é encerrada: para isso, `POST /v1/acesso/sair`. Só aparelhos do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - notificacoes
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: dispositivo_id
+        in: path
+        required: true
+        description: Identificador do aparelho.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '204':
+          description: Token removido.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-NO-01
+      - US-NO-01
+  /v1/eu/preferencias-notificacao:
+    get:
+      operationId: comumListarPreferenciasNotificacao
+      summary: Lista as preferências de notificação
+      description: 'Devolve cada tipo de notificação com a opção de ligar ou desligar, no vínculo do usuário com o condomínio informado (preferência é por vínculo). Os tipos obrigatórios vêm com `obrigatoria: true`, interruptor travado e o motivo: decisão de reclamação contra a pessoa e divergência de sincronização para o porteiro (RF-NO-01, US-NO-01). "Lembrete de reserva" é opcional e vem ligado por padrão (RN-RE-14). Exige `Authorization`, sem cabeçalhos de contexto (o condomínio vai em `condominio_id`).'
+      tags:
+      - notificacoes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: condominio_id
+        in: query
+        required: true
+        description: Condomínio cujas preferências se quer ver.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      responses:
+        '200':
+          description: Preferências do vínculo (lista completa, sem paginação).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferenciasNotificacaoComum'
+              example:
+                preferencias:
+                - tipo: visitante
+                  habilitada: true
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: reserva
+                  habilitada: true
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: lembrete_reserva
+                  habilitada: true
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: decisao_reclamacao
+                  habilitada: true
+                  obrigatoria: true
+                  motivo_obrigatoria: Você precisa ser avisado das decisões de reclamações contra você.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-NO-01
+      - RN-RE-14
+      - US-NO-01
+    put:
+      operationId: comumAtualizarPreferenciasNotificacao
+      summary: Atualiza as preferências de notificação
+      description: Liga ou desliga os tipos opcionais no vínculo com o condomínio. Tentar desligar um tipo obrigatório responde `422` e nada é gravado (US-NO-01). Tipos fora do corpo ficam como estão. Exige `Authorization`, sem cabeçalhos de contexto.
+      tags:
+      - notificacoes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarPreferenciasNotificacaoComum'
+            example:
+              condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+              preferencias:
+              - tipo: visitante
+                habilitada: false
+              - tipo: lembrete_reserva
+                habilitada: true
+      responses:
+        '200':
+          description: Preferências atualizadas (lista completa, sem paginação).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferenciasNotificacaoComum'
+              example:
+                preferencias:
+                - tipo: visitante
+                  habilitada: false
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: reserva
+                  habilitada: true
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: lembrete_reserva
+                  habilitada: true
+                  obrigatoria: false
+                  motivo_obrigatoria: null
+                - tipo: decisao_reclamacao
+                  habilitada: true
+                  obrigatoria: true
+                  motivo_obrigatoria: Você precisa ser avisado das decisões de reclamações contra você.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Tipo obrigatório não pode ser desligado (RF-NO-01, US-NO-01).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                notificacaoObrigatoria:
+                  summary: Tentativa de desligar decisão de reclamação (código e texto Proposta)
+                  value:
+                    codigo: NOTIFICACAO_OBRIGATORIA
+                    mensagem: Esta notificação é obrigatória e não pode ser desligada.
+                    detalhes:
+                    - campo: preferencias[0].tipo
+                      codigo: NOTIFICACAO_OBRIGATORIA
+                      mensagem: Tipo obrigatório.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-NO-01
+      - RN-RE-14
+      - US-NO-01
+  /v1/eu/notificacoes:
+    get:
+      operationId: comumListarNotificacoes
+      summary: Lista as notificações do usuário
+      description: 'Lista as notificações internas, da mais recente para a mais antiga. O texto é seguro: nunca expõe situação financeira nem quem reclamou (RN-RC-10, DS 15), e o detalhe só aparece dentro do app autenticado; a referência de navegação não concede autorização. Exige `Authorization`, sem cabeçalhos de contexto; filtra por condomínio com `condominio_id`.'
+      tags:
+      - notificacoes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: condominio_id
+        in: query
+        required: false
+        description: Só as notificações deste condomínio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: tipo
+        in: query
+        required: false
+        description: Um ou mais tipos, separados por vírgula.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/TipoNotificacaoComum'
+        style: form
+        explode: false
+      - name: nao_lidas
+        in: query
+        required: false
+        description: Se verdadeiro, só as ainda não lidas. A marcação como lida ainda não tem operação (lacuna).
+        schema:
+          type: boolean
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-criada_em`.
+        schema:
+          type: string
+          enum:
+          - criada_em
+          - -criada_em
+          default: -criada_em
+      responses:
+        '200':
+          description: Página de notificações.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NotificacaoComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: c9d8e7f6-a5b4-4c3d-9e2f-1a0b9c8d7e6f
+                  condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                  tipo: visitante
+                  texto_seguro: Você tem uma atualização.
+                  criada_em: '2026-11-10T14:20:00-03:00'
+                  lida_em: null
+                  referencia:
+                    entidade: visita
+                    id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-NO-01
+      - US-NO-01
+      - RN-RC-10
+  /v1/eu/pedidos-lgpd:
+    post:
+      operationId: comumCriarPedidoLgpd
+      summary: Pede cópia dos dados ou exclusão da conta
+      description: 'Cópia dos dados: o arquivo é enviado por e-mail em até 15 dias e não inclui a identidade de quem reclamou do titular (RF-LG-01, ADR-010). Exclusão da conta: exige a senha; o histórico é anonimizado e votos e reclamações continuam contando, sem identificação (RF-LG-02, SEG-11). Se a pessoa é morador habilitado, proprietário ou responsável financeiro, a administradora é avisada para definir o substituto (RN-CD-18). O pedido de exclusão revoga as sessões ao concluir (ADR-007). Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - lgpd
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarPedidoLgpdComum'
+            examples:
+              copia:
+                summary: Cópia dos dados
+                value:
+                  tipo: copia_dados
+              exclusao:
+                summary: Exclusão da conta
+                value:
+                  tipo: exclusao_conta
+                  senha: senha-de-exemplo-123
+      responses:
+        '202':
+          description: Pedido recebido; o processamento é assíncrono.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoLgpdComum'
+              example:
+                id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                tipo: copia_dados
+                estado: solicitado
+                solicitado_em: '2026-11-10T14:30:00-03:00'
+                concluido_em: null
+                prazo_envio_ate: '2026-11-25T14:30:00-03:00'
+                administradora_avisada: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Confirmação com a senha falhou (UF 14.1).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                senhaIncorreta:
+                  summary: Exclusão com senha errada (código e texto Proposta)
+                  value:
+                    codigo: CONFIRMACAO_DE_SENHA_INCORRETA
+                    mensagem: A senha não confere. Confira e tente de novo.
+                    detalhes:
+                    - campo: senha
+                      mensagem: Senha incorreta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-LG-01
+      - RF-LG-02
+      - SEG-11
+      - RN-CD-18
+      - US-LG-01
+    get:
+      operationId: comumListarPedidosLgpd
+      summary: Lista os pedidos de LGPD do usuário
+      description: '**Proposta:** listagem sem RF dedicado (ver lacunas). Lista os pedidos de cópia e de exclusão do próprio usuário, com o estado, para acompanhamento (SEG-11). Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - lgpd
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de pedidos.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PedidoLgpdComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  tipo: copia_dados
+                  estado: solicitado
+                  solicitado_em: '2026-11-10T14:30:00-03:00'
+                  concluido_em: null
+                  prazo_envio_ate: '2026-11-25T14:30:00-03:00'
+                  administradora_avisada: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - SEG-11
+  /v1/arquivos/envios:
+    post:
+      operationId: comumPedirEnvioArquivo
+      summary: Pede o URL assinado de envio
+      description: 'O arquivo nunca passa pela API de negócio: a API autoriza a ação (por exemplo, anexar foto neste chamado), registra o arquivo pendente e devolve um URL assinado de envio (PUT, expira em minutos), em bucket privado com chave `c/{condominio_id}/{modulo}/{uuid}` (arquitetura 3.8). Limites já decididos: comprovante de lançamento financeiro, foto ou PDF, até 10 MB (RN-FI-24); até 5 fotos na conclusão de chamado (RN-CH-14). Alvo de outro condomínio ou inexistente responde `404`. Depois do PUT, o cliente chama a confirmação. Na fila offline, as fotos sobem antes de a conclusão ser aplicada (RN-OF-01 a RN-OF-06 e ADR-003, na interface `sync`).'
+      tags:
+      - arquivos
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedirEnvioArquivoComum'
+            example:
+              modulo: comprovante_lancamento
+              tipo_midia: application/pdf
+              tamanho_bytes: 482113
+              hash_conteudo: sha256:9f2c1ab4d7e3
+              alvo: null
+      responses:
+        '201':
+          description: URL assinado de envio.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioArquivoComum'
+              example:
+                arquivo_id: c9d8e7f6-a5b4-4c3d-9e2f-1a0b9c8d7e6f
+                metodo: PUT
+                url_envio: https://armazenamento.exemplo.invalid/c/envio-assinado?assinatura=exemplo
+                cabecalhos:
+                  Content-Type: application/pdf
+                expira_em: '2026-11-10T14:40:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Tipo ou tamanho fora do limite do módulo.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                tamanhoExcedido:
+                  summary: Comprovante de lançamento acima de 10 MB (RN-FI-24; código e texto Proposta)
+                  value:
+                    codigo: ARQUIVO_TAMANHO_EXCEDIDO
+                    mensagem: O comprovante deve ter até 10 MB.
+                    detalhes:
+                    - campo: tamanho_bytes
+                      mensagem: Acima de 10 MB.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-FI-24
+      - RN-CH-14
+      - RF-RE-08
+      - RF-VO-09
+      - RF-FI-10
+      - SEG-05
+  /v1/arquivos/{arquivo_id}/confirmacao:
+    post:
+      operationId: comumConfirmarEnvioArquivo
+      summary: Confirma o envio do arquivo
+      description: Depois do PUT no URL assinado, a API confere que o objeto existe, valida o tipo pelo conteúdo (não só pela extensão), o tamanho e o hash, e registra o arquivo (condomínio, dono, módulo, tamanho, tipo, hash) com RLS (arquitetura 3.8). Só depois disso o `arquivo_id` pode ser usado por uma operação de domínio. Só quem pediu o envio confirma.
+      tags:
+      - arquivos
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: arquivo_id
+        in: path
+        required: true
+        description: Identificador devolvido no pedido de envio.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Arquivo registrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArquivoComum'
+              example:
+                id: c9d8e7f6-a5b4-4c3d-9e2f-1a0b9c8d7e6f
+                modulo: comprovante_lancamento
+                tipo_midia: application/pdf
+                tamanho_bytes: 482113
+                hash_conteudo: sha256:9f2c1ab4d7e3
+                criado_em: '2026-11-10T14:33:00-03:00'
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: O objeto não foi enviado ou o conteúdo não confere com o pedido.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                naoEnviado:
+                  summary: Confirmação sem o PUT (código e texto Proposta)
+                  value:
+                    codigo: ARQUIVO_NAO_ENVIADO
+                    mensagem: Não recebemos o arquivo. Envie de novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                conteudoInvalido:
+                  summary: Tipo por conteúdo diferente do declarado (código e texto Proposta)
+                  value:
+                    codigo: ARQUIVO_CONTEUDO_INVALIDO
+                    mensagem: Este arquivo não é de um tipo aceito.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RN-FI-24
+      - RN-CH-14
+      - SEG-05
+  /v1/arquivos/{arquivo_id}/leituras:
+    post:
+      operationId: comumPedirLeituraArquivo
+      summary: Pede o URL assinado de leitura
+      description: A API checa a permissão sobre o arquivo (ele herda a restrição do alvo, não só a do dono do envio) e devolve um URL assinado de leitura de curta duração; nunca há URL permanente (arquitetura 3.8). Documento do visitante só vai à portaria e ao morador que o cadastrou, nunca em notificação. Arquivo de outro condomínio responde `404`.
+      tags:
+      - arquivos
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: arquivo_id
+        in: path
+        required: true
+        description: Identificador do arquivo.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: URL assinado de leitura.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeituraArquivoComum'
+              example:
+                arquivo_id: c9d8e7f6-a5b4-4c3d-9e2f-1a0b9c8d7e6f
+                url_leitura: https://armazenamento.exemplo.invalid/c/leitura-assinada?assinatura=exemplo
+                expira_em: '2026-11-10T14:38:00-03:00'
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - SEG-05
+      - RN-FI-24
+      - RN-CH-14
+  /v1/score:
+    get:
+      operationId: comumObterScore
+      summary: Obtém um score, conforme a visibilidade do chamador
+      description: 'Endpoint único de score: nenhum outro endpoint devolve score (ADR-010, SEG-07). O servidor aplica a tabela de visibilidade e recusa o que o chamador não pode ver. `proprio`: o próprio score, do vínculo da unidade ativa para moradores (exige `X-Unidade-Id`) e funcional por condomínio para funcionário e síndico profissional sem unidade (RN-SC-13, RN-SC-14). `sindico`: o score público do síndico, aberto a todos ("ver score do síndico", matriz do PRD 3, RF-RS-12); do vínculo da unidade de referência do mandato quando morador, funcional quando profissional (RN-SC-02); nesse escopo `unidade` vem nula, porque RF-RS-11 só autoriza identificar a unidade no próprio score. `funcionario`: o score de um funcionário, só para a administradora ou, sem administradora, síndico e subsíndico (RN-SC-02). `funcionarios` (Proposta): a lista paginada dos scores funcionais dos funcionários do condomínio, com as mesmas permissões de `funcionario` (administradora ou, sem administradora, síndico e subsíndico; matriz do PRD 3, "Ver score dos funcionários", RN-SC-02); responde `403` ao suporte da plataforma (não vê scores, PRD 3 e ADR-010) e a qualquer outro perfil que a matriz não autoriza, inclusive síndico e subsíndico quando o condomínio tem administradora. A lista não traz nome, só `funcionario_id`, saldo e situação, e nenhum dado de quem reclamou ou avaliou (RN-SC-12, SEG-07); a forma do `200` é `oneOf` (objeto único nos demais escopos, lista nesse). `reclamacao`: o score do reclamante ou do alvo no contexto de uma reclamação, só para quem julga e a administradora (RN-SC-02, RN-RC-08); a resposta traz só o saldo, nunca a identidade do reclamante. `404` se `funcionario_id` ou `reclamacao_id` não existe ou é de outro condomínio. Sem score: visitantes, administradora, suporte, admin da plataforma, proprietário não residente e empresas de manutenção (RN-SC-01); o suporte não recebe score nem reclamação. O estado vai em texto, nunca por cor.'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: escopo
+        in: query
+        required: true
+        description: Qual score se quer ver.
+        schema:
+          type: string
+          enum:
+          - proprio
+          - sindico
+          - funcionario
+          - funcionarios
+          - reclamacao
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: funcionario_id
+        in: query
+        required: false
+        description: Obrigatório em `escopo=funcionario`.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: reclamacao_id
+        in: query
+        required: false
+        description: Obrigatório em `escopo=reclamacao`.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - name: parte
+        in: query
+        required: false
+        description: 'Obrigatório em `escopo=reclamacao`: de quem é o score.'
+        schema:
+          type: string
+          enum:
+          - reclamante
+          - alvo
+      responses:
+        '200':
+          description: Score do escopo pedido (objeto único) ou, em `escopo=funcionarios`, página de scores de funcionários.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/ScoreComum'
+                - $ref: '#/components/schemas/ListaScoresFuncionariosComum'
+              examples:
+                proprio:
+                  summary: Escopo `proprio`
+                  value:
+                    escopo: proprio
+                    titular_tipo: moradia
+                    condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                    unidade:
+                      unidade_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                      identificacao: '302'
+                      bloco_nome: Bloco B
+                    saldo: 85
+                    proxima_recuperacao_em: '2027-01-02'
+                    reservas_gratuitas_liberadas: true
+                    situacao_texto: Reservas gratuitas liberadas nesta unidade.
+                    funcionario_id: null
+                    reclamacao_id: null
+                    parte: null
+                funcionarios:
+                  summary: Escopo `funcionarios` (Proposta)
+                  value:
+                    dados:
+                    - escopo: funcionario
+                      titular_tipo: funcional
+                      condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                      unidade: null
+                      saldo: 92
+                      proxima_recuperacao_em: null
+                      reservas_gratuitas_liberadas: null
+                      situacao_texto: Sem perdas recentes.
+                      funcionario_id: 9c2d4e6f-1a3b-4c5d-8e7f-0a1b2c3d4e5f
+                      reclamacao_id: null
+                      parte: null
+                    - escopo: funcionario
+                      titular_tipo: funcional
+                      condominio_id: e6f7a8b9-c0d1-4e2f-a3b4-c5d6e7f8a9b0
+                      unidade: null
+                      saldo: 78
+                      proxima_recuperacao_em: null
+                      reservas_gratuitas_liberadas: null
+                      situacao_texto: Uma perda por média mensal baixa.
+                      funcionario_id: 5b6c7d8e-9f0a-4b1c-a2d3-e4f5a6b7c8d9
+                      reclamacao_id: null
+                      parte: null
+                    paginacao:
+                      proximo_cursor: null
+                      tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: O perfil do chamador ou do titular não tem score (RN-SC-01).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semScore:
+                  summary: Administradora pedindo `escopo=proprio` (código e texto Proposta)
+                  value:
+                    codigo: SCORE_INEXISTENTE_PARA_O_PERFIL
+                    mensagem: Este perfil não tem score.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-11
+      - RF-RS-12
+      - RF-RS-03
+      - RF-RS-13
+      - RN-SC-01
+      - RN-SC-02
+      - RN-SC-09
+      - RN-SC-13
+      - RN-SC-14
+      - SEG-07
+      - US-RS-06
+      - US-RS-07
+  /v1/score/movimentos:
+    get:
+      operationId: comumListarMovimentosScore
+      summary: Lista o histórico de ganhos e perdas do próprio score
+      description: Histórico do próprio score, cada ganho e perda com data, motivo e pontos, do vínculo da unidade ativa (moradores, `X-Unidade-Id`) ou funcional do condomínio; perdas e bloqueios não acompanham a pessoa para os outros imóveis (RN-SC-13, RN-SC-14). Nunca aparece quem reclamou (RN-SC-12, SEG-07). Só o dono vê; é parte da política única de visibilidade de `GET /v1/score`.
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: de
+        in: query
+        required: false
+        description: Data inicial, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Data final, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-registrado_em`.
+        schema:
+          type: string
+          enum:
+          - registrado_em
+          - -registrado_em
+          default: -registrado_em
+      responses:
+        '200':
+          description: Página de movimentos.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MovimentoScoreComum'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  registrado_em: '2026-11-02T00:10:00-03:00'
+                  origem_tipo: reclamacao_validada
+                  pontos_efetivos: -10
+                  saldo_depois: 85
+                  motivo: 'Reclamação validada: barulho após o horário permitido.'
+                - id: b2e4f6a8-1c3d-4e5f-8a7b-9c0d1e2f3a4b
+                  registrado_em: '2026-09-14T00:10:00-03:00'
+                  origem_tipo: recuperacao
+                  pontos_efetivos: 5
+                  saldo_depois: 95
+                  motivo: Dois meses de regularidade.
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-11
+      - RF-RS-10
+      - RN-SC-12
+      - RN-SC-13
+      - RN-SC-14
+      - SEG-07
+      - US-RS-06
+  /v1/recursos:
+    post:
+      operationId: comumCriarRecurso
+      summary: Recorre de uma decisão que tirou pontos
+      description: 'Quem perdeu pontos (morador, síndico, subsíndico, limpeza ou portaria) recorre uma vez, em até 7 dias da decisão (RN-RC-07). Decisão da administradora ou do conselho fiscal não tem recurso no app. Quem julga o recurso (tabela 5.3): decisão do síndico, o subsíndico; sem subsíndico, a administradora; sem administradora, o conselho fiscal. Decisão do subsíndico, o síndico; se o síndico for parte da reclamação ou estiver em substituição, a administradora; sem ela, o conselho fiscal. Quem é parte da reclamação nunca julga o recurso; nesse caso o recurso vai à administradora e, sem ela, ao conselho fiscal; sem nenhum dos dois, fica pendente (RN-RC-14). Sem recurso em 7 dias, a rotina encerra a reclamação (RN-RC-15). A resposta nunca traz quem reclamou (RN-RC-01).'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarRecursoComum'
+            example:
+              reclamacao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+              justificativa: O ruído registrado foi de uma obra autorizada pelo condomínio.
+      responses:
+        '201':
+          description: Recurso registrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecursoComum'
+              example:
+                id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                reclamacao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                solicitado_em: '2026-11-10T14:30:00-03:00'
+                justificativa: O ruído registrado foi de uma obra autorizada pelo condomínio.
+                julgador_papel: subsindico
+                resultado: null
+                decidido_em: null
+                fundamentacao: null
+                estado_reclamacao: em_recurso
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: 'Já existe recurso para esta decisão (RN-RC-07: uma vez).'
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                recursoJaRegistrado:
+                  summary: Segundo recurso à mesma decisão (código e texto Proposta)
+                  value:
+                    codigo: RECURSO_JA_REGISTRADO
+                    mensagem: Você já recorreu desta decisão.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Recurso fora do prazo ou não admitido (RN-RC-07, tabela 5.3).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                prazoEncerrado:
+                  summary: Mais de 7 dias da decisão (código e texto Proposta)
+                  value:
+                    codigo: RECURSO_PRAZO_ENCERRADO
+                    mensagem: O prazo de 7 dias para recorrer terminou.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semRecurso:
+                  summary: Decisão da administradora ou do conselho fiscal (código e texto Proposta)
+                  value:
+                    codigo: RECURSO_NAO_ADMITIDO
+                    mensagem: Esta decisão não tem recurso no app.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-09
+      - RN-RC-07
+      - RN-RC-14
+      - RN-RC-15
+      - RN-RC-01
+      - US-RS-05
+  /v1/recursos/{recurso_id}:
+    get:
+      operationId: comumObterRecurso
+      summary: Obtém um recurso
+      description: Visível só a quem recorreu e a quem julga o recurso. Traz o resultado e a fundamentação depois de decidido; recurso aceito devolve os pontos e a perda deixa de contar para a regularidade (RN-RC-07, RN-SC-08). Nunca traz a identidade do reclamante (RN-RC-01, RN-RC-10). Recurso de outro condomínio ou de outra pessoa responde `404`.
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: recurso_id
+        in: path
+        required: true
+        description: Identificador do recurso.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Recurso.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecursoComum'
+              example:
+                id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                reclamacao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                solicitado_em: '2026-11-10T14:30:00-03:00'
+                justificativa: O ruído registrado foi de uma obra autorizada pelo condomínio.
+                julgador_papel: subsindico
+                resultado: aceito
+                decidido_em: '2026-11-12T10:00:00-03:00'
+                fundamentacao: A obra tinha autorização registrada.
+                estado_reclamacao: recurso_aceito
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-09
+      - RN-RC-07
+      - RN-RC-01
+      - US-RS-05
+  /v1/recursos/{recurso_id}/decisoes:
+    post:
+      operationId: comumDecidirRecurso
+      summary: Julga um recurso
+      description: 'Aceita ou nega o recurso. Aceito devolve os pontos; negado mantém a decisão e encerra a reclamação (RN-RC-07). Quem é parte da reclamação nunca julga o recurso (RN-RC-14). Quem julga (tabela 5.3): decisão do síndico, o subsíndico; sem subsíndico, a administradora; sem administradora, o conselho fiscal. Decisão do subsíndico, o síndico; se o síndico for parte da reclamação ou estiver em substituição, a administradora; sem ela, o conselho fiscal. Decisão da administradora ou do conselho fiscal não tem recurso no app. Quem não é o julgador da vez nessa ordem responde `403`; o papel por mandato é dado (RN-CD-12, RN-CD-28).'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - name: recurso_id
+        in: path
+        required: true
+        description: Identificador do recurso.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecidirRecursoComum'
+            example:
+              resultado: negado
+              fundamentacao: 'Decisão mantida: a autorização não cobria o horário.'
+      responses:
+        '200':
+          description: Recurso decidido.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecursoComum'
+              example:
+                id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                reclamacao_id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                solicitado_em: '2026-11-10T14:30:00-03:00'
+                justificativa: O ruído registrado foi de uma obra autorizada pelo condomínio.
+                julgador_papel: subsindico
+                resultado: negado
+                decidido_em: '2026-11-12T10:00:00-03:00'
+                fundamentacao: 'Decisão mantida: a autorização não cobria o horário.'
+                estado_reclamacao: encerrada
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem permissão para julgar este recurso, por papel ou por ser parte da reclamação (RN-RC-14).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                julgadorParte:
+                  summary: Julgador é parte da reclamação (código e texto Proposta)
+                  value:
+                    codigo: RECURSO_JULGADOR_IMPEDIDO
+                    mensagem: Quem é parte da reclamação não pode julgar o recurso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semPermissao:
+                  summary: Papel sem permissão (código de UF 15; texto genérico Proposta)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Você não tem permissão para julgar este recurso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: O recurso já foi decidido.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaDecidido:
+                  summary: Segunda decisão do mesmo recurso (código e texto Proposta)
+                  value:
+                    codigo: RECURSO_JA_DECIDIDO
+                    mensagem: Este recurso já foi decidido.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-09
+      - RN-RC-07
+      - RN-RC-14
+      - RN-CD-12
+      - RN-CD-28
+      - RN-SC-12
+      - US-RS-05
+  /v1/denuncias:
+    post:
+      operationId: comumDenunciarConteudo
+      summary: Denuncia um conteúdo ofensivo
+      description: Qualquer usuário do condomínio pode denunciar um conteúdo a que tem acesso (RF-RS-14, RN-RC-13), pelo menu "Denunciar" de qualquer texto (UF 9.4). A denúncia vai ao síndico; se o conteúdo foi escrito pelo síndico, vai a quem julgaria uma reclamação contra ele (RN-RC-13, tabela 5.1). O destinatário é decidido pelo servidor e não aparece na resposta, nem quem escreveu o conteúdo. O conteúdo precisa ser de um tipo denunciável e estar acessível ao denunciante; de outro condomínio ou fora do alcance responde `404`. A resposta nunca devolve autor do conteúdo, destinatário nem estado. O que o destinatário pode fazer com a denúncia e o que ele vê do conteúdo denunciado não estão definidos nos docs (lacuna).
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarDenunciaComum'
+            example:
+              origem:
+                tipo: mensagem_comunicado
+                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+              motivo: Texto ofensivo em resposta a comunicado.
+      responses:
+        '201':
+          description: Denúncia registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DenunciaComum'
+              example:
+                id: d1a2b3c4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+                origem:
+                  tipo: mensagem_comunicado
+                  id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                motivo: Texto ofensivo em resposta a comunicado.
+                criada_em: '2026-11-10T14:30:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Conteúdo de tipo válido que não pode ser denunciado por este usuário ou neste estado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                naoDenunciavel:
+                  summary: Conteúdo não denunciável pelo usuário (código e texto Proposta)
+                  value:
+                    codigo: CONTEUDO_NAO_DENUNCIAVEL
+                    mensagem: Este conteúdo não pode ser denunciado.
+                    detalhes:
+                    - campo: origem.id
+                      mensagem: Conteúdo não denunciável.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-14
+      - RN-RC-13
+      - US-RS-07
+  /v1/notas-dos-setores:
+    get:
+      operationId: comumConsultarNotasDosSetores
+      summary: Consulta a nota de cada setor
+      description: 'Nota do setor = média das médias dos funcionários avaliados, publicada só com 2 ou mais avaliados no mês (RN-PE-07, RN-PE-08, RF-PE-04); abaixo disso a nota não é publicada e vem o rótulo. Aberta a todos os perfis do condomínio. Notas individuais ficam só com o próprio funcionário (RN-PE-09). Rota única para todos os perfis do condomínio. O score do síndico, também aberto a todos (matriz do PRD 3; RF-RS-12, RN-SC-02), não é daqui: vem de `GET /v1/score` com `escopo=sindico` (`comumObterScore`).'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: competencia
+        in: query
+        required: false
+        description: '**Proposta.** Mês no formato aaaa-mm; padrão: último mês fechado. Mês futuro ou ainda não fechado: comportamento é lacuna.'
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-(0[1-9]|1[0-2])$
+      responses:
+        '200':
+          description: Notas dos setores.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotasSetoresComum'
+              example:
+                competencia: 2026-10
+                setores:
+                - setor: Limpeza
+                  publicada: true
+                  nota: 3.7
+                  rotulo: null
+                - setor: Portaria
+                  publicada: false
+                  nota: null
+                  rotulo: 'Nota não publicada este mês: poucas avaliações.'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-PE-03
+      - RF-PE-04
+      - RN-PE-07
+      - RN-PE-08
+      - RN-PE-09
+      - RF-RS-12
+      - RN-SC-02
+      - US-PE-02
+      - US-RS-07
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  schemas:
+    DispositivoInfoComum:
+      type: object
+      description: Aparelho que abre a sessão; a sessão fica ligada a ele (ADR-007).
+      required:
+      - identificador_instalacao
+      - plataforma
+      properties:
+        identificador_instalacao:
+          type: string
+          description: Identificador da instalação do app no aparelho (Proposta).
+          examples:
+          - inst-8f3a2c1d-aparelho-exemplo
+        plataforma:
+          type: string
+          enum:
+          - android
+          - ios
+          - web
+          description: Plataforma do cliente (Proposta; a web aparece em RF-AC-06).
+    PedirCodigoComum:
+      type: object
+      required:
+      - email
+      - finalidade
+      properties:
+        email:
+          type: string
+          format: email
+          examples:
+          - ana.exemplo@example.com
+        finalidade:
+          type: string
+          enum:
+          - primeiro_acesso
+          - recuperacao_senha
+          description: Finalidade do desafio de acesso (MER `desafio_acesso.finalidade`; valores Proposta).
+    RespostaCodigoComum:
+      type: object
+      required:
+      - mensagem
+      - pode_pedir_novo_codigo_em
+      properties:
+        mensagem:
+          type: string
+          description: Mensagem única, igual para e-mail cadastrado ou não (RN-CD-02).
+        pode_pedir_novo_codigo_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Instante em que um novo código pode ser pedido (60 s depois). Calculado igual para qualquer e-mail.
+    AtivarComum:
+      type: object
+      required:
+      - email
+      - codigo
+      - nova_senha
+      - dispositivo
+      properties:
+        email:
+          type: string
+          format: email
+        codigo:
+          type: string
+          pattern: ^[0-9]{6}$
+          description: Código de 6 dígitos (RN-CD-02).
+          examples:
+          - '483920'
+        nova_senha:
+          type: string
+          minLength: 8
+          writeOnly: true
+          description: Senha com no mínimo 8 caracteres (RF-AC-01). Nunca é devolvida.
+        dispositivo:
+          $ref: '#/components/schemas/DispositivoInfoComum'
+    RedefinirSenhaComum:
+      type: object
+      required:
+      - email
+      - codigo
+      - nova_senha
+      - dispositivo
+      properties:
+        email:
+          type: string
+          format: email
+        codigo:
+          type: string
+          pattern: ^[0-9]{6}$
+          examples:
+          - '102938'
+        nova_senha:
+          type: string
+          minLength: 8
+          writeOnly: true
+        dispositivo:
+          $ref: '#/components/schemas/DispositivoInfoComum'
+    EntrarComum:
+      type: object
+      required:
+      - email
+      - senha
+      - dispositivo
+      properties:
+        email:
+          type: string
+          format: email
+        senha:
+          type: string
+          writeOnly: true
+        dispositivo:
+          $ref: '#/components/schemas/DispositivoInfoComum'
+    RenovarComum:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token opaco. Obrigatório no app; na web vem do cookie `httpOnly` e o campo é omitido.
+    SairComum:
+      type: object
+      properties:
+        dispositivo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Aparelho cujo token de push deve ser removido junto com a sessão (opcional).
+    SessaoAbertaComum:
+      type: object
+      required:
+      - token_acesso
+      - token_acesso_expira_em
+      - aceites_pendentes
+      properties:
+        token_acesso:
+          type: string
+          description: JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007, Proposta).
+        token_acesso_expira_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        refresh_token:
+          type:
+          - string
+          - 'null'
+          description: 'Opaco e rotativo. Nulo na web: nesse caso vai no cookie `httpOnly`.'
+        aceites_pendentes:
+          type: boolean
+          description: Verdadeiro se há documento a aceitar antes de usar o app (RN-CD-03); ver `GET /v1/acesso/aceites`.
+    DocumentoPendenteComum:
+      type: object
+      required:
+      - documento_versao_id
+      - documento_id
+      - tipo
+      - titulo
+      - numero
+      - vigente_desde
+      properties:
+        documento_versao_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        documento_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          description: 'Tipo do documento: termos de uso, política de privacidade, regimento do condomínio e "Como funciona" (RN-CD-03). Os códigos exatos são Proposta.'
+          examples:
+          - termos_de_uso
+          - politica_de_privacidade
+          - regimento
+          - como_funciona
+        titulo:
+          type: string
+        numero:
+          type: integer
+          description: Número da versão (MER `documento_versao.numero`).
+        condominio_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Nulo nos documentos globais; preenchido no regimento do condomínio.
+        publicado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        vigente_desde:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        conteudo_texto:
+          type:
+          - string
+          - 'null'
+          description: Texto da versão; exatamente um entre `conteudo_texto` e `arquivo_id` (MER).
+        arquivo_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Arquivo da versão, lido por `POST /v1/arquivos/{arquivo_id}/leituras`.
+    RegistrarAceitesComum:
+      type: object
+      required:
+      - documento_versao_ids
+      properties:
+        documento_versao_ids:
+          type: array
+          minItems: 1
+          items:
+            $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Versões vigentes que o usuário aceita agora.
+    AceitesRegistradosComum:
+      type: object
+      required:
+      - aceitos
+      - pendentes_restantes
+      properties:
+        aceitos:
+          type: array
+          items:
+            type: object
+            required:
+            - documento_versao_id
+            - aceito_em
+            properties:
+              documento_versao_id:
+                $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+              aceito_em:
+                $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        pendentes_restantes:
+          type: integer
+          minimum: 0
+    TemaComum:
+      type: string
+      enum:
+      - aparelho
+      - claro
+      - escuro
+      description: '"Igual ao aparelho" (`aparelho`, padrão), "Claro" (`claro`) e "Escuro" (`escuro`) (RF-AC-05). Códigos Proposta.'
+    PerfilComum:
+      type: object
+      required:
+      - id
+      - nome
+      - email
+      - tema_preferido
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        tema_preferido:
+          $ref: '#/components/schemas/TemaComum'
+    AtualizarPerfilComum:
+      type: object
+      required:
+      - tema_preferido
+      properties:
+        tema_preferido:
+          $ref: '#/components/schemas/TemaComum'
+    PapelEfetivoComum:
+      type: object
+      required:
+      - papel
+      - interface
+      properties:
+        papel:
+          type: string
+          enum:
+          - morador
+          - proprietario_nao_residente
+          - sindico
+          - subsindico
+          - conselho_fiscal
+          - portaria
+          - limpeza
+          - administradora
+          - suporte
+          - admin_plataforma
+          description: Papel efetivo hoje naquele condomínio (Proposta de nomenclatura; perfis do PRD 3). Síndico morador e profissional se distinguem em `funcao_mandato`.
+        interface:
+          type: string
+          enum:
+          - morador
+          - proprietario-nao-residente
+          - sindico
+          - conselho-fiscal
+          - portaria
+          - limpeza
+          - administradora
+          - plataforma
+          description: Prefixo de caminho que o cliente usa para este papel (`/v1/<interface>/...`; guia, seção 4).
+        funcao_mandato:
+          type:
+          - string
+          - 'null'
+          description: Função do mandato vigente, quando houver (MER `mandato.funcao`).
+        em_substituicao:
+          type:
+          - boolean
+          - 'null'
+          description: 'Para o subsíndico: verdadeiro durante a substituição do síndico (RN-CD-12, RN-CD-28).'
+    UnidadeContextoComum:
+      type: object
+      required:
+      - unidade_id
+      - identificacao
+      - tipo_vinculo
+      properties:
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        identificacao:
+          type: string
+        bloco_nome:
+          type:
+          - string
+          - 'null'
+        tipo_vinculo:
+          type: string
+          enum:
+          - proprietario_representante
+          - inquilino
+          - dependente
+          description: MER `vinculo_unidade.tipo` (códigos Proposta).
+        morador_habilitado:
+          type: boolean
+          description: Verdadeiro se é o morador habilitado da unidade (RN-CD-04).
+    ContextoComum:
+      type: object
+      description: Um condomínio onde o usuário tem vínculo vigente, com papéis e unidades.
+      required:
+      - condominio_id
+      - condominio_nome
+      - vinculo_condominio_id
+      - papeis
+      - unidades
+      properties:
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        condominio_nome:
+          type: string
+        vinculo_condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        papeis:
+          type: array
+          items:
+            $ref: '#/components/schemas/PapelEfetivoComum'
+        unidades:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnidadeContextoComum'
+          description: Vazia para quem não tem unidade (funcionário, síndico profissional, administradora).
+    SessaoComum:
+      type: object
+      required:
+      - id
+      - expira_em
+      - atual
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        dispositivo_identificador:
+          type:
+          - string
+          - 'null'
+        expira_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        atual:
+          type: boolean
+          description: Verdadeiro para a sessão que fez esta chamada.
+    RegistrarDispositivoComum:
+      type: object
+      required:
+      - identificador_instalacao
+      - plataforma
+      - token_push
+      properties:
+        identificador_instalacao:
+          type: string
+        plataforma:
+          type: string
+          enum:
+          - android
+          - ios
+          description: Push só no app (Expo Push e FCM); a web não registra token (Proposta).
+        token_push:
+          type: string
+          writeOnly: true
+          description: Token do Expo Push. Guardado protegido; nunca devolvido.
+    DispositivoComum:
+      type: object
+      required:
+      - id
+      - identificador_instalacao
+      - plataforma
+      - ultima_atividade
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        identificador_instalacao:
+          type: string
+        plataforma:
+          type: string
+          enum:
+          - android
+          - ios
+        ultima_atividade:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    TipoNotificacaoComum:
+      type: string
+      enum:
+      - visitante
+      - encomenda
+      - reserva
+      - lembrete_reserva
+      - chamado
+      - comunicado
+      - votacao
+      - reclamacao
+      - decisao_reclamacao
+      - divergencia_sincronizacao
+      description: Os sete tipos de RF-NO-01 (visitante, encomenda, reserva, chamado, comunicado, votação, reclamação), o lembrete de reserva (RN-RE-14, opcional) e os dois obrigatórios (`decisao_reclamacao` e `divergencia_sincronizacao`, US-NO-01). Códigos Proposta.
+    PreferenciaNotificacaoComum:
+      type: object
+      required:
+      - tipo
+      - habilitada
+      - obrigatoria
+      properties:
+        tipo:
+          $ref: '#/components/schemas/TipoNotificacaoComum'
+        habilitada:
+          type: boolean
+        obrigatoria:
+          type: boolean
+          description: Verdadeiro nos tipos que não podem ser desligados (US-NO-01). A lista é fixa em código no servidor.
+        motivo_obrigatoria:
+          type:
+          - string
+          - 'null'
+          description: Texto do motivo exibido no interruptor travado (UF 14.1; texto Proposta).
+    PreferenciasNotificacaoComum:
+      type: object
+      required:
+      - preferencias
+      properties:
+        preferencias:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreferenciaNotificacaoComum'
+          description: Lista completa e fixa de tipos; não é paginada.
+    AtualizarPreferenciasNotificacaoComum:
+      type: object
+      required:
+      - condominio_id
+      - preferencias
+      properties:
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        preferencias:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - tipo
+            - habilitada
+            properties:
+              tipo:
+                $ref: '#/components/schemas/TipoNotificacaoComum'
+              habilitada:
+                type: boolean
+    NotificacaoComum:
+      type: object
+      required:
+      - id
+      - condominio_id
+      - tipo
+      - texto_seguro
+      - criada_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          $ref: '#/components/schemas/TipoNotificacaoComum'
+        texto_seguro:
+          type: string
+          description: Texto sem dados sensíveis (arquitetura 3.7). Nunca traz situação financeira nem quem reclamou.
+        criada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        lida_em:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        referencia:
+          type:
+          - object
+          - 'null'
+          description: Referência de navegação; não concede autorização (MER `referencia_restrita`).
+          properties:
+            entidade:
+              type: string
+            id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    CriarPedidoLgpdComum:
+      type: object
+      required:
+      - tipo
+      properties:
+        tipo:
+          type: string
+          enum:
+          - copia_dados
+          - exclusao_conta
+          description: Valores Proposta (MER `pedido_lgpd.tipo`).
+        senha:
+          type: string
+          writeOnly: true
+          description: 'Obrigatória em `exclusao_conta`: confirmação com a senha (UF 14.1).'
+    PedidoLgpdComum:
+      type: object
+      required:
+      - id
+      - tipo
+      - estado
+      - solicitado_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - copia_dados
+          - exclusao_conta
+        estado:
+          type: string
+          description: 'Estado do pedido (MER `pedido_lgpd.estado`). Os valores não estão definidos nos docs: lacuna.'
+          examples:
+          - solicitado
+        solicitado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        concluido_em:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        prazo_envio_ate:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'Na cópia: limite de 15 dias para o envio por e-mail (RF-LG-01).'
+        administradora_avisada:
+          type:
+          - boolean
+          - 'null'
+          description: 'Na exclusão: verdadeiro se a pessoa era morador habilitado, proprietário ou responsável financeiro e a administradora foi avisada (RN-CD-18).'
+    ModuloArquivoComum:
+      type: string
+      enum:
+      - etiqueta_encomenda
+      - foto_chamado
+      - foto_conclusao_chamado
+      - checklist_vistoria
+      - comprovante_lancamento
+      - ata_reuniao
+      - lista_presenca
+      - comprovante_pagamento
+      - foto_area
+      - documento_visitante
+      description: Usos de arquivo da arquitetura 3.8 (etiqueta de encomenda, foto de chamado, fotos de conclusão, checklist de vistoria RF-RE-08, comprovante de lançamento RN-FI-24, ata e lista de presença RF-VO-09, comprovante de pagamento externo RF-FI-10, fotos de áreas) mais o documento do visitante. Códigos Proposta.
+    PedirEnvioArquivoComum:
+      type: object
+      required:
+      - modulo
+      - tipo_midia
+      - tamanho_bytes
+      properties:
+        modulo:
+          $ref: '#/components/schemas/ModuloArquivoComum'
+        tipo_midia:
+          type: string
+          description: Tipo de mídia declarado; a API valida pelo conteúdo na confirmação. A lista de tipos aceitos é lacuna.
+          examples:
+          - application/pdf
+          - image/jpeg
+        tamanho_bytes:
+          type: integer
+          minimum: 1
+        hash_conteudo:
+          type:
+          - string
+          - 'null'
+          description: 'Hash do conteúdo, conferido na confirmação. Formato do hash: lacuna.'
+        alvo:
+          type:
+          - object
+          - 'null'
+          description: Objeto ao qual o arquivo será anexado, para a API autorizar a ação (MER `anexo_dominio`). Os demais usos ligam o arquivo pela operação de domínio.
+          required:
+          - tipo
+          - id
+          properties:
+            tipo:
+              type: string
+              enum:
+              - reserva
+              - vistoria
+              - reclamacao
+              - chamado
+            id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    EnvioArquivoComum:
+      type: object
+      required:
+      - arquivo_id
+      - metodo
+      - url_envio
+      - expira_em
+      properties:
+        arquivo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        metodo:
+          type: string
+          enum:
+          - PUT
+        url_envio:
+          type: string
+          format: uri
+          description: 'URL assinado de envio. Expira em minutos (número: lacuna).'
+        cabecalhos:
+          type: object
+          additionalProperties:
+            type: string
+          description: Cabeçalhos que o cliente deve repetir no PUT.
+        expira_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    ArquivoComum:
+      type: object
+      required:
+      - id
+      - modulo
+      - tipo_midia
+      - tamanho_bytes
+      - criado_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        modulo:
+          $ref: '#/components/schemas/ModuloArquivoComum'
+        tipo_midia:
+          type: string
+        tamanho_bytes:
+          type: integer
+        hash_conteudo:
+          type:
+          - string
+          - 'null'
+        criado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    LeituraArquivoComum:
+      type: object
+      required:
+      - arquivo_id
+      - url_leitura
+      - expira_em
+      properties:
+        arquivo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        url_leitura:
+          type: string
+          format: uri
+          description: URL assinado de curta duração; nunca permanente.
+        expira_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    ScoreComum:
+      type: object
+      required:
+      - escopo
+      - titular_tipo
+      - condominio_id
+      - saldo
+      properties:
+        escopo:
+          type: string
+          enum:
+          - proprio
+          - sindico
+          - funcionario
+          - reclamacao
+        titular_tipo:
+          type: string
+          enum:
+          - moradia
+          - funcional
+          description: Score de moradia (por pessoa e vínculo de unidade) ou funcional (por pessoa e condomínio) (RN-SC-13, RN-SC-14).
+        condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidade:
+          type:
+          - object
+          - 'null'
+          description: Unidade do score de moradia, identificada, só em `escopo=proprio` (RF-RS-11). Nula no score funcional e nos escopos `sindico`, `funcionario` e `reclamacao` (Proposta; ver lacunas).
+          required:
+          - unidade_id
+          - identificacao
+          properties:
+            unidade_id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            identificacao:
+              type: string
+            bloco_nome:
+              type:
+              - string
+              - 'null'
+        saldo:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 'De 0 a 100 (RN-SC-01). Só o número: sem cor de verde ou vermelho; o score é referência, não julgamento público.'
+        proxima_recuperacao_em:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Data da próxima recuperação de +5 pontos (RN-SC-08). Só no escopo `proprio`.
+        reservas_gratuitas_liberadas:
+          type:
+          - boolean
+          - 'null'
+          description: 'Só no score de moradia do próprio: falso com saldo igual ou menor que o limite configurável (padrão 60), só naquela unidade (RN-SC-09).'
+        situacao_texto:
+          type:
+          - string
+          - 'null'
+          description: Explicação em texto da situação, sem depender de cor (WCAG 1.4.1).
+        funcionario_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Eco do pedido em `escopo=funcionario`.
+        reclamacao_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Eco do pedido em `escopo=reclamacao`.
+        parte:
+          type:
+          - string
+          - 'null'
+          enum:
+          - reclamante
+          - alvo
+          - null
+          description: Eco do pedido em `escopo=reclamacao`. Não traz a identidade do reclamante.
+    ListaScoresFuncionariosComum:
+      type: object
+      description: Página de scores funcionais, em `GET /v1/score` com `escopo=funcionarios` (Proposta). Cada item é um `ScoreComum` com `escopo=funcionario` e `funcionario_id`. Sem nome, sem autor de reclamação nem de avaliação.
+      required:
+      - dados
+      - paginacao
+      properties:
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreComum'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+    MovimentoScoreComum:
+      type: object
+      required:
+      - id
+      - registrado_em
+      - origem_tipo
+      - pontos_efetivos
+      - saldo_depois
+      - motivo
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        registrado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        origem_tipo:
+          type: string
+          description: 'Origem do movimento (MER `movimento_score.origem_tipo`: decisão, recurso, pesquisa, apuração de faltas, recuperação). Os códigos não estão definidos nos docs: lacuna.'
+          examples:
+          - reclamacao_validada
+          - recuperacao
+        pontos_efetivos:
+          type: integer
+          description: Pontos que valeram depois do limite de 0 a 100.
+        saldo_depois:
+          type: integer
+          minimum: 0
+          maximum: 100
+        motivo:
+          type: string
+          description: Motivo exibido ao dono. Nunca revela quem reclamou (RN-SC-12).
+    CriarDenunciaComum:
+      type: object
+      required:
+      - origem
+      - motivo
+      properties:
+        origem:
+          type: object
+          required:
+          - tipo
+          - id
+          properties:
+            tipo:
+              type: string
+              enum:
+              - mensagem_comunicado
+              - reclamacao
+              - avaliacao_atendimento
+              - resposta_pesquisa
+              description: 'Tipo do conteúdo denunciado (MER `denuncia_conteudo`: exatamente uma origem acessível ao denunciante). Códigos Proposta; a lista acompanha novos tipos.'
+            id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        motivo:
+          type: string
+          minLength: 1
+          description: Motivo da denúncia (MER `motivo`).
+    DenunciaComum:
+      type: object
+      description: 'Não traz destinatário, estado nem autor do conteúdo (estado e ações do destinatário: lacuna).'
+      required:
+      - id
+      - origem
+      - motivo
+      - criada_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        origem:
+          type: object
+          required:
+          - tipo
+          - id
+          properties:
+            tipo:
+              type: string
+            id:
+              $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        motivo:
+          type: string
+        criada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    NotasSetoresComum:
+      type: object
+      required:
+      - competencia
+      - setores
+      properties:
+        competencia:
+          type: string
+          description: Mês no formato aaaa-mm.
+        setores:
+          type: array
+          items:
+            type: object
+            required:
+            - setor
+            - publicada
+            properties:
+              setor:
+                type: string
+              publicada:
+                type: boolean
+                description: Falso com menos de 2 funcionários avaliados (RN-PE-08).
+              nota:
+                type:
+                - number
+                - 'null'
+                description: 'Média das médias dos funcionários avaliados (RN-PE-07). Nula se não publicada. Casas decimais e arredondamento: lacuna.'
+              rotulo:
+                type:
+                - string
+                - 'null'
+                description: Texto exibido quando a nota não é publicada (UF 9.4).
+    CriarRecursoComum:
+      type: object
+      required:
+      - reclamacao_id
+      - justificativa
+      properties:
+        reclamacao_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Reclamação decidida; o recurso liga-se à decisão dela (MER `recurso_reclamacao.decisao_id`, UQ por decisão).
+        justificativa:
+          type: string
+          minLength: 1
+    RecursoComum:
+      type: object
+      description: Nunca traz a identidade do reclamante nem o corpo da reclamação (ADR-010).
+      required:
+      - id
+      - reclamacao_id
+      - solicitado_em
+      - justificativa
+      - estado_reclamacao
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        reclamacao_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        solicitado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        justificativa:
+          type: string
+        julgador_papel:
+          type:
+          - string
+          - 'null'
+          enum:
+          - sindico
+          - subsindico
+          - administradora
+          - conselho_fiscal
+          - null
+          description: Papel de quem julga, pela tabela 5.3; nulo se o recurso está pendente por falta de julgador (RN-RC-14).
+        resultado:
+          type:
+          - string
+          - 'null'
+          enum:
+          - aceito
+          - negado
+          - null
+        decidido_em:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        fundamentacao:
+          type:
+          - string
+          - 'null'
+        estado_reclamacao:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoReclamacao
+    DecidirRecursoComum:
+      type: object
+      required:
+      - resultado
+      - fundamentacao
+      properties:
+        resultado:
+          type: string
+          enum:
+          - aceito
+          - negado
+        fundamentacao:
+          type: string
+          minLength: 1
+x-lacunas:
+- 'Denúncia de conteúdo (`POST /v1/denuncias`): os docs não definem o que o destinatário vê do conteúdo denunciado nem como a anonimidade de avaliador (RN-PE-09) e de reclamante (RN-SC-12, RN-RC-08) é preservada quando a denúncia de avaliação, resposta de pesquisa ou reclamação chega ao síndico (RN-RC-13); também não definem estados da denúncia, ações do síndico sobre ela, nem consulta pelo destinatário; o MER tem `denuncia_conteudo` com `estado` e `encaminhado_vinculo_id`, sem valores. Sem listagem nem tratamento aqui.'
+- 'Nota dos setores: casas decimais e arredondamento da nota não estão definidos; a lista de setores não tem fonte (`setor` é texto livre); parâmetro `competencia` e padrão "último mês fechado" são Proposta, e o comportamento para mês futuro ou não fechado é lacuna.'
+- 'Tipos denunciáveis: o MER cita mensagem de comunicado, reclamação, avaliação de atendimento e resposta de pesquisa; a ordem e o alcance por perfil não estão nos docs.'
+- 'Limites de taxa (requisições e janela) nos endpoints de acesso: lacuna do guia (seção 10); nenhum número aparece neste arquivo.'
+- 'Tempo de expiração dos URLs assinados de envio e de leitura ("minutos" e "curta duração"): lacuna (arquitetura 3.8).'
+- 'Lista de tipos de mídia aceitos, formato do hash, verificação de vírus e retenção de arquivos: lacuna (arquitetura 3.8).'
+- 'Estados de `pedido_lgpd` e códigos de `origem_tipo` de `movimento_score`: o MER/DER não os lista; ficam como texto livre com exemplo.'
+- 'Tolerância da rotação do refresh em rede instável (uma renovação perdida derruba a sessão legítima): em aberto no ADR-007.'
+- 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem ID de produto que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`) e são Proposta. O guia só aceita IDs RF, RN, US e SEG em `x-rastreabilidade`, por isso a lista dessas operações fica vazia.'
+- 'Lista de notificações (`GET /v1/eu/notificacoes`): RF-NO-01 só trata da escolha de tipos; a lista vem do MER (`notificacao`) e da arquitetura 3.7. Marcar como lida (`lida_em`) ficou fora por falta de RF.'
+- 'Primeira unidade ativa lembrada entre sessões e ordem do seletor de unidade: sem regra nos docs; o cliente decide.'
+- 'Cobrança em atraso como notificação obrigatória: proposta de produto fora das RN (UF 17); não consta como tipo obrigatório.'
+- 'Comportamento de `X-App-Version` ausente: lacuna do guia (seção 3).'
+- Julgamento de recurso por papéis variados está aqui (`/v1/recursos/{recurso_id}/decisoes`) por ser comum a síndico, subsíndico, administradora e conselho fiscal; as listas e telas de julgamento de reclamação ficam nos arquivos de `sindico`, `conselho-fiscal` e `administradora`.
+- 'Listagem de pedidos de LGPD (`GET /v1/eu/pedidos-lgpd`): sem RF dedicado; Proposta, sustentada só por SEG-11.'
+- 'Unidade em `escopo=sindico`: RF-RS-11 só autoriza identificar a unidade no próprio score; RN-SC-02 e UF 9.4 pedem a referência do mandato na Transparência. Aqui `unidade` vem nula fora do próprio; dúvida para o Pedro.'
+- 'Mapeamento API x MER/DER no recurso: `reclamacao_id` (API) liga-se a `recurso_reclamacao.decisao_id` por `decisao_reclamacao` (UQ por reclamação); `resultado` e `decidido_em` (API) correspondem ao `estado`, `decidido_em` e `fundamentacao` do MER, cujos valores de `estado` não estão definidos.'

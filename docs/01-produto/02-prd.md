@@ -444,7 +444,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-14 | Contrato com o condomínio | Contrato padrão definindo condomínio como controlador e plataforma como operadora |
 | SEG-15 | Termos para conta bancária de pessoa física | Termo de responsabilidade pelo valor recebido, com texto revisado por advogado, aceito pelo titular no cadastro da conta |
 | SEG-16 | Parecer jurídico antes do lançamento | Advogado avalia score, reclamações, penalidades, eleições e termos; o lançamento só acontece com o parecer aprovado |
-| SEG-17 | Dados financeiros e inadimplência | Situação financeira de uma unidade visível só ao responsável financeiro, à administradora e ao síndico; nunca exposta a outros moradores. Webhooks do gateway validados por assinatura e conciliação diária entre cobranças e pagamentos |
+| SEG-17 | Dados financeiros e inadimplência | Situação financeira de uma unidade visível só ao responsável financeiro, à administradora e ao síndico; nunca exposta a outros moradores. Webhooks do gateway validados por assinatura e conciliação diária entre cobranças e pagamentos (nota de 10/11/2026: no Asaas, o gateway escolhido, a autenticação do webhook é por token no cabeçalho `asaas-access-token`, não por assinatura do corpo; ver ADR-002) |
 | SEG-18 | Finanças do condomínio | Receitas e despesas visíveis só à administradora, ao síndico (ou subsíndico em substituição) e ao conselho fiscal; receitas de cobrança sempre agregadas, sem unidade nem responsável; folha de pagamento só pelo total; mês fechado imutável, com estornos e comentários auditados |
 
 ## 9. Design e identidade visual
@@ -491,9 +491,9 @@ App em React Native com TypeScript, publicado para Android, iOS e web (React Nat
 | Tempo real (lista da portaria) | WebSockets |
 | Armazenamento offline | Banco local no aparelho (SQLite ou WatermelonDB) com fila de sincronização |
 | Autenticação | E-mail + código + senha, com tokens JWT no armazenamento seguro do aparelho |
-| Pagamentos | Gateway brasileiro com subconta ou split (ex.: Asaas, Mercado Pago, Pagar.me): boleto registrado com QR Code Pix, Pix e cartão, com confirmação por webhook |
+| Pagamentos | Gateway brasileiro com subconta ou split: **Asaas** (decisão de Pedro em 10/11/2026, ADR-002, aceito com ressalvas): boleto registrado com QR Code Pix, Pix e cartão, com confirmação por webhook |
 | Notificações | Expo Push / Firebase Cloud Messaging |
 | Rotinas agendadas | Jobs no backend: recuperação de score, saída não registrada, prazos de pagamento, fechamento da pesquisa, lembretes de encomenda, entregas esperadas que não chegaram, lançamentos recorrentes e fechamento do mês financeiro |
 | Arquivos (fotos, atas) | Armazenamento de objetos (S3 ou equivalente), com fotos comprimidas no aparelho |
-| E-mail transacional | Resend ou Amazon SES |
+| E-mail transacional | **Resend** (decisão de Pedro em 10/11/2026, ADR-005, aceito com ressalvas) |
 | Monitoramento | Sentry + logs |

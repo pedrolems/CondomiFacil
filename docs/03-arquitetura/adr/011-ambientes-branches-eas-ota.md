@@ -80,7 +80,7 @@ Opção **A**, com ambiente de preview por PR só para web e OTA, e API efêmera
 ## Critérios de validação e o que falta para aceitar
 
 - Confirmação da equipe e de quem aprova deploy em produção.
-- Estimativa de custo dos três ambientes e de EAS contra RNF-18, depois da [ADR-004](004-nuvem-regiao-residencia-dados.md).
+- Estimativa de custo dos três ambientes e de EAS contra RNF-18. A [ADR-004](004-nuvem-regiao-residencia-dados.md) (Aceito com ressalvas em 10/11/2026) fixa Supabase e Render, gratuitos, para dev e staging; a estimativa vale para produção e entra na revisão do ADR-004 antes do piloto.
 - Teste do fluxo completo com um app mínimo: build `development`, `preview`, OTA por canal, rollback.
 - Aprovação do Pedro, mantida a regra de que nenhum commit vai para uma branch sem validação dele.
 

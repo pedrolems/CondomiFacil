@@ -1,0 +1,2469 @@
+openapi: 3.1.0
+info:
+  title: CondomiFacil API - interface do proprietário não residente
+  version: 0.1.0-proposta
+  summary: Rotas /v1/proprietario-nao-residente/*.
+  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do PRD é Proposta.
+
+
+    Conjunto restrito do proprietário que não mora na unidade, alugada ou desocupada (PRD 3, "Perfis fora da matriz"; `01-backend.md` 3.3, decisão 1; RN-CD-19): vota e indica procurador, vê e paga as cobranças de que é responsável financeiro e vê a situação das demais da unidade, acompanha o contrato de locação, as multas e as reclamações validadas contra a unidade (RN-RC-16) e lê comunicados gerais. Não reserva, não abre chamado, não reclama, não avalia funcionários, não tem score e nunca vê visitantes, chamados, reservas, encomendas nem o score do inquilino. O proprietário que mora na unidade é morador e usa `morador.yaml`.
+
+
+    Fora deste arquivo: `/v1/eu/*`, `/v1/acesso/*`, `/v1/arquivos/*`, `/v1/sync` e `/v1/score` em `comum.yaml`. Recurso de decisão de reclamação: `/v1/recursos` em `comum.yaml`. Convenções em `../01-guia-da-api.md`.
+
+
+    Dados de cartão nunca passam pela API (SEG-12). Nenhum DTO devolve o autor de reclamação, a conversa, o conteúdo de voto ou pontos de score.'
+servers:
+- url: https://api.condomifacil.exemplo
+  description: Endereço de exemplo (Proposta; sem ambiente definido)
+tags:
+- name: condominio
+  description: Dados do condomínio, da unidade e do contrato de locação.
+- name: convivencia
+  description: Reclamações validadas contra a unidade (visão limitada).
+- name: comunicados
+  description: Comunicados gerais.
+- name: visitantes
+  description: Hóspede de temporada em unidade desocupada.
+- name: governanca
+  description: Reuniões, pautas, votações, eleições e procuração.
+- name: cobranca
+  description: Cobrança da taxa condominial e de cobranças extras.
+- name: pagamentos
+  description: Pagamento de cobrança pelo gateway (Asaas).
+paths:
+  /v1/proprietario-nao-residente/condominio:
+    get:
+      operationId: proprietarioNaoResidenteConsultarCondominio
+      summary: Consulta os dados do condomínio ativo
+      description: Nome, formas de pagamento aceitas e se o condomínio permite hóspede de temporada (a opção só aparece com a temporada ligada, UF 4.5).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Dados do condomínio.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CondominioProprietarioNaoResidente'
+              example:
+                id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                nome: Residencial Jardim das Acácias
+                cobranca_ativa: true
+                meios_cobranca_aceitos:
+                - boleto
+                - pix
+                - cartao
+                temporada_permitida: false
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-01
+      - RF-FI-02
+      - RN-FI-01
+      - RN-VI-10
+      - US-AD-11
+  /v1/proprietario-nao-residente/unidade:
+    get:
+      operationId: proprietarioNaoResidenteConsultarUnidade
+      summary: Consulta a unidade acompanhada
+      description: Unidade do cabeçalho `X-Unidade-Id` (obrigatório), alugada ou desocupada. Quando o proprietário volta a morar, a administradora muda o vínculo e ele passa a usar as rotas de `morador` (RN-CD-25).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Unidade.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnidadeProprietarioNaoResidente'
+              example:
+                id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                identificacao: Apto 101
+                bloco: Bloco A
+                situacao_ocupacao: alugada
+                contrato_fim: '2027-06-30'
+                contrato_vence_em_dias: 232
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-19
+      - RN-CD-19
+      - RN-CD-24
+      - RN-CD-25
+      - US-AD-11
+  /v1/proprietario-nao-residente/contrato-locacao:
+    get:
+      operationId: proprietarioNaoResidenteConsultarContratoDeLocacao
+      summary: Consulta o contrato de locação da unidade
+      description: Datas de início e fim do contrato vigente e das renovações; fim nulo é prazo indeterminado (RN-CD-20). Aviso 30 dias antes do fim (RN-CD-21). Unidade desocupada responde 404.
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      responses:
+        '200':
+          description: Contrato.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContratoLocacaoProprietarioNaoResidente'
+              example:
+                estado: ativo
+                inicio: '2026-07-01'
+                encerrado_em: null
+                versao_atual:
+                  numero: 1
+                  inicio_contratual: '2026-07-01'
+                  fim_contratual: '2027-06-30'
+                versoes:
+                - numero: 1
+                  inicio_contratual: '2026-07-01'
+                  fim_contratual: '2027-06-30'
+                  registrado_em: '2026-07-01T10:00:00-03:00'
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-18
+      - RF-AD-20
+      - RN-CD-19
+      - RN-CD-20
+      - RN-CD-21
+      - US-AD-11
+  /v1/proprietario-nao-residente/solicitacoes-de-locacao:
+    post:
+      operationId: proprietarioNaoResidenteSolicitarCadastroRenovacaoOuEncerramento
+      summary: Pede cadastro, renovação ou encerramento do inquilino
+      description: Entra na mesma fila de solicitações da administradora; ela atende ou recusa com motivo, e o proprietário é avisado do resultado (RN-CD-23, RF-AD-19). No plano Gestão + Suporte o pedido atendido conta como solicitação (RN-PL-03).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - tipo
+              properties:
+                tipo:
+                  type: string
+                  enum:
+                  - cadastro_inquilino
+                  - renovacao_contrato
+                  - encerramento_contrato
+                descricao:
+                  type: string
+                nova_data_fim:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Data
+            example:
+              tipo: renovacao_contrato
+              descricao: Renovar por mais 12 meses.
+              nova_data_fim: '2028-06-30'
+      responses:
+        '201':
+          description: Pedido enviado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitacaoLocacaoProprietarioNaoResidente'
+              example:
+                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                tipo: renovacao_contrato
+                descricao: Renovar por mais 12 meses.
+                nova_data_fim: '2028-06-30'
+                estado: pendente
+                enviada_em: '2026-11-10T09:00:00-03:00'
+                atendida_em: null
+                motivo_recusa: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                semcontrato:
+                  summary: Unidade sem contrato ativo (renovação ou encerramento)
+                  value:
+                    codigo: SOLICITACAO_SEM_CONTRATO_ATIVO
+                    mensagem: Esta unidade não tem contrato de locação ativo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                regraDeNegocio:
+                  summary: Regra violada, exemplo genérico (texto Proposta)
+                  value:
+                    codigo: REGRA_DE_NEGOCIO_VIOLADA
+                    mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-19
+      - RN-CD-23
+      - RN-PL-03
+      - US-AD-11
+    get:
+      operationId: proprietarioNaoResidenteListarSolicitacoesDeLocacao
+      summary: Acompanha os pedidos feitos à administradora
+      description: Pedidos do proprietário com status e motivo de recusa (RF-AD-02, RN-CD-23).
+      tags:
+      - condominio
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais status, separados por vírgula.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - pendente
+            - concluida
+            - recusada
+        style: form
+        explode: false
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - enviada_em
+          - -enviada_em
+          default: -enviada_em
+      responses:
+        '200':
+          description: Página de pedidos.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SolicitacaoLocacaoProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  tipo: renovacao_contrato
+                  descricao: Renovar por mais 12 meses.
+                  nova_data_fim: '2028-06-30'
+                  estado: recusada
+                  enviada_em: '2026-11-10T09:00:00-03:00'
+                  atendida_em: '2026-11-11T10:00:00-03:00'
+                  motivo_recusa: Contrato ainda não foi assinado.
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AD-02
+      - RF-AD-19
+      - RN-CD-23
+      - US-AD-11
+  /v1/proprietario-nao-residente/reclamacoes-validadas:
+    get:
+      operationId: proprietarioNaoResidenteListarReclamacoesValidadasDaUnidade
+      summary: Lista as reclamações validadas contra a unidade
+      description: 'Reclamações contra a unidade alugada ou desocupada que foram validadas: categoria, data, decisão e multa. O proprietário não vê a conversa nem quem reclamou e não perde pontos (RN-RC-16, RN-SC-13). Não registra reclamação (RN-CD-19). Recurso, se houver, é de `/v1/recursos` em `comum.yaml`.'
+      tags:
+      - convivencia
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: de
+        in: query
+        required: false
+        description: Data inicial, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Data final, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - decidida_em
+          - -decidida_em
+          default: -decidida_em
+      responses:
+        '200':
+          description: Página de reclamações validadas.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReclamacaoValidadaProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  categoria: Barulho
+                  data_ocorrencia: '2026-11-07'
+                  decidida_em: '2026-11-20T14:00:00-03:00'
+                  decisao: validada
+                  multa:
+                    cobranca_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                    valor_centavos: 20000
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-RS-15
+      - RN-RC-16
+      - RN-CD-19
+      - RN-SC-13
+      - US-AD-11
+  /v1/proprietario-nao-residente/hospedes-de-temporada:
+    post:
+      operationId: proprietarioNaoResidenteCadastrarHospedeDeTemporada
+      summary: Cadastra hóspede de temporada
+      description: Só em unidade desocupada e se o condomínio permitir a temporada (desligado por padrão). A portaria vê o hóspede marcado como "hóspede de temporada"; ele não tem login nem score (RN-VI-10). Única operação de visitante deste perfil (RN-CD-19).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - nome
+              - data_entrada
+              - data_saida
+              properties:
+                nome:
+                  type: string
+                  minLength: 1
+                documento:
+                  type: string
+                data_entrada:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Data
+                data_saida:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Data
+            example:
+              nome: Fernanda Dias
+              data_entrada: '2026-12-20'
+              data_saida: '2026-12-27'
+      responses:
+        '201':
+          description: Hóspede cadastrado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HospedeTemporadaProprietarioNaoResidente'
+              example:
+                id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                nome: Fernanda Dias
+                documento: null
+                data_entrada: '2026-12-20'
+                data_saida: '2026-12-27'
+                estado: esperado
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                desligada:
+                  summary: Temporada desligada no condomínio (RN-VI-10)
+                  value:
+                    codigo: TEMPORADA_NAO_PERMITIDA
+                    mensagem: Este condomínio não permite aluguel por temporada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                ocupada:
+                  summary: Unidade não está desocupada (RN-VI-10)
+                  value:
+                    codigo: UNIDADE_NAO_DESOCUPADA
+                    mensagem: Hóspede de temporada só vale em unidade desocupada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                regraDeNegocio:
+                  summary: Regra violada, exemplo genérico (texto Proposta)
+                  value:
+                    codigo: REGRA_DE_NEGOCIO_VIOLADA
+                    mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-13
+      - RN-VI-10
+      - RN-CD-19
+      - RN-CD-24
+      - US-AD-11
+    get:
+      operationId: proprietarioNaoResidenteListarHospedesDeTemporada
+      summary: Lista os hóspedes de temporada cadastrados
+      description: Hóspedes que o proprietário cadastrou na unidade (RN-VI-10).
+      tags:
+      - visitantes
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: de
+        in: query
+        required: false
+        description: Data inicial, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Data final, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - data_entrada
+          - -data_entrada
+          default: -data_entrada
+      responses:
+        '200':
+          description: Página de hóspedes.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HospedeTemporadaProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                  nome: Fernanda Dias
+                  documento: null
+                  data_entrada: '2026-12-20'
+                  data_saida: '2026-12-27'
+                  estado: esperado
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VI-13
+      - RN-VI-10
+      - US-AD-11
+  /v1/proprietario-nao-residente/comunicados:
+    get:
+      operationId: proprietarioNaoResidenteListarComunicadosGerais
+      summary: Lista os comunicados gerais
+      description: Comunicados gerais para moradores ou para todos (RN-CD-19, RN-CO-02).
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: lido
+        in: query
+        required: false
+        description: Filtra por lidos ou não lidos.
+        schema:
+          type: boolean
+      - name: de
+        in: query
+        required: false
+        description: Data inicial, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Data final, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - enviado_em
+          - -enviado_em
+          default: -enviado_em
+      responses:
+        '200':
+          description: Página de comunicados.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ComunicadoProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                  titulo: Assembleia ordinária
+                  autor:
+                    nome: Marta Nunes
+                    papel: síndico
+                  enviado_em: '2026-11-01T09:00:00-03:00'
+                  lido_em: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-01
+      - RN-CD-19
+      - RN-CO-02
+      - US-CO-01
+  /v1/proprietario-nao-residente/comunicados/{comunicado_id}:
+    get:
+      operationId: proprietarioNaoResidenteConsultarComunicadoGeral
+      summary: Consulta um comunicado geral
+      description: Detalhe de comunicado geral.
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ComunicadoId'
+      responses:
+        '200':
+          description: Comunicado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComunicadoProprietarioNaoResidente'
+              example:
+                id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                titulo: Assembleia ordinária
+                autor:
+                  nome: Marta Nunes
+                  papel: síndico
+                enviado_em: '2026-11-01T09:00:00-03:00'
+                lido_em: null
+                texto: A assembleia será no salão de festas.
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-01
+      - RN-CD-19
+  /v1/proprietario-nao-residente/comunicados/{comunicado_id}/leituras:
+    post:
+      operationId: proprietarioNaoResidenteConfirmarLeituraComunicadoGeral
+      summary: Confirma a leitura de um comunicado geral
+      description: Registra a leitura; o envio guarda quem leu (RN-CO-02).
+      tags:
+      - comunicados
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ComunicadoId'
+      responses:
+        '204':
+          description: Leitura registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-CO-01
+      - RN-CO-02
+      - US-CO-01
+  /v1/proprietario-nao-residente/reunioes:
+    get:
+      operationId: proprietarioNaoResidenteListarReunioes
+      summary: Lista as reuniões do condomínio
+      description: Reuniões convocadas, com ata e lista de presença anexadas depois do encerramento (RN-VO-02, RN-VO-12). A votação online fica aberta da convocação ao encerramento da reunião (RN-VO-10).
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: de
+        in: query
+        required: false
+        description: Data inicial, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Data final, inclusive (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - inicio_previsto
+          - -inicio_previsto
+          default: -inicio_previsto
+      responses:
+        '200':
+          description: Página de reuniões.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReuniaoResumoProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  titulo: Assembleia ordinária
+                  convocada_em: '2026-11-01T09:00:00-03:00'
+                  inicio_previsto: '2026-11-25T19:00:00-03:00'
+                  fim_efetivo: null
+                  local: Salão de festas
+                  estado: aberta
+                  ata_arquivo_id: null
+                  presenca_arquivo_id: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-01
+      - RF-VO-09
+      - RN-VO-02
+      - RN-VO-10
+      - RN-VO-12
+      - US-VO-01
+  /v1/proprietario-nao-residente/reunioes/{reuniao_id}:
+    get:
+      operationId: proprietarioNaoResidenteConsultarReuniao
+      summary: Consulta uma reunião com as pautas e as votações
+      description: 'Pautas informativas ou com votação, com a minha situação de voto: só o proprietário vota pela unidade; o inquilino vota só em pauta sem despesa extraordinária e só vale se o proprietário não votar (RN-VO-01, RN-VO-18). Resultado só após o encerramento, com contagem por opção e sem identificar votos (RN-VO-03, RN-VO-17). Unidade em atraso não vota (RN-VO-16).'
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/ReuniaoId'
+      responses:
+        '200':
+          description: Reunião com pautas.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReuniaoProprietarioNaoResidente'
+              example:
+                id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                titulo: Assembleia ordinária
+                convocada_em: '2026-11-01T09:00:00-03:00'
+                inicio_previsto: '2026-11-25T19:00:00-03:00'
+                fim_efetivo: null
+                local: Salão de festas
+                estado: aberta
+                ata_arquivo_id: null
+                presenca_arquivo_id: null
+                pautas:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  ordem: 1
+                  titulo: Troca do portão da garagem
+                  descricao: Orçamento de três empresas.
+                  tipo: com_votacao
+                  envolve_despesa_extraordinaria: true
+                  votacao:
+                    id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                    estado: aberta
+                    quorum_regra: null
+                    abre_em: '2026-11-01T09:00:00-03:00'
+                    encerra_em: null
+                    opcoes:
+                    - id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                      texto: Aprovar
+                      ordem: 1
+                    - id: 5b2c7e90-1a4d-4e3f-8c6b-0d9f2a7e1c34
+                      texto: Rejeitar
+                      ordem: 2
+                    minha_situacao:
+                      pode_votar: false
+                      qualidade: null
+                      motivo: nao_vota_pela_unidade
+                      mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
+                      aviso: null
+                      unidade_representada_id: null
+                    resultado: null
+                    resultado_rotulo: O resultado aparece quando a reunião for encerrada.
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-01
+      - RF-VO-02
+      - RF-VO-07
+      - RF-VO-10
+      - RF-VO-11
+      - RN-VO-01
+      - RN-VO-03
+      - RN-VO-16
+      - RN-VO-17
+      - RN-VO-18
+      - SEG-06
+      - US-VO-02
+  /v1/proprietario-nao-residente/votacoes/{votacao_id}/votos:
+    post:
+      operationId: proprietarioNaoResidenteVotar
+      summary: Vota pela unidade
+      description: Um voto por unidade, dado pelo proprietário ou por procurador dele (RN-VO-01); voto secreto (RN-VO-03). A resposta confirma só a participação, nunca a opção escolhida, e o corpo não vai a log nem ao Sentry (ADR-009, SEG-06). Vale para pauta e para eleição. Substituição do voto do inquilino pelo do proprietário (RN-VO-18) é aplicada pelo servidor; o desenho está bloqueado no MER/DER (P-03).
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/VotacaoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VotarRequisicaoProprietarioNaoResidente'
+            example:
+              opcao_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+      responses:
+        '201':
+          description: Participação registrada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Sem a opção votada.
+                required:
+                - votacao_id
+                - unidade_id
+                - canal
+                - registrado_em
+                properties:
+                  votacao_id:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                  unidade_id:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                  canal:
+                    type: string
+                    enum:
+                    - online
+                  qualidade_votante:
+                    type: string
+                    enum:
+                    - proprietario
+                    - inquilino
+                    - procurador
+                  registrado_em:
+                    $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+              example:
+                votacao_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                unidade_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                canal: online
+                qualidade_votante: proprietario
+                registrado_em: '2026-11-10T20:15:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Conflito de estado ou de dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                ja:
+                  summary: Unidade já votou (RN-VO-01)
+                  value:
+                    codigo: VOTO_UNIDADE_JA_VOTOU
+                    mensagem: Esta unidade já votou nesta pauta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                atraso:
+                  summary: Unidade em atraso (RN-VO-16, texto de UF 11.1)
+                  value:
+                    codigo: VOTO_UNIDADE_EM_ATRASO
+                    mensagem: Sua unidade tem cobrança em atraso e não pode votar (Código Civil, art. 1.335, III). Pague para votar nas próximas pautas.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                inquilino:
+                  summary: Inquilino em pauta com despesa extraordinária (RN-VO-18)
+                  value:
+                    codigo: VOTO_INQUILINO_PAUTA_COM_DESPESA_EXTRAORDINARIA
+                    mensagem: Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                outro:
+                  summary: Quem não vota pela unidade (RN-VO-01)
+                  value:
+                    codigo: VOTO_NAO_VOTA_PELA_UNIDADE
+                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                encerrada:
+                  summary: Votação encerrada (RN-VO-10)
+                  value:
+                    codigo: VOTACAO_ENCERRADA
+                    mensagem: Esta votação já foi encerrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                regraDeNegocio:
+                  summary: Regra violada, exemplo genérico (texto Proposta)
+                  value:
+                    codigo: REGRA_DE_NEGOCIO_VIOLADA
+                    mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-02
+      - RF-VO-03
+      - RF-VO-11
+      - RN-VO-01
+      - RN-VO-03
+      - RN-VO-08
+      - RN-VO-10
+      - RN-VO-16
+      - RN-VO-18
+      - SEG-06
+      - US-VO-02
+      - US-VO-03
+  /v1/proprietario-nao-residente/procuracoes:
+    get:
+      operationId: proprietarioNaoResidenteListarProcuracoes
+      summary: Lista as procurações da unidade
+      description: Procurações que o usuário outorgou e as que recebeu como procurador (RN-VO-08).
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página de procurações.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcuracaoProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  unidade_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                  reuniao_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  eleicao_id: null
+                  outorgante_nome: Paulo Ribeiro
+                  procurador_vinculo_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                  procurador_nome: Ana Teles
+                  inicio: '2026-11-10T20:00:00-03:00'
+                  fim: null
+                  papel: outorgante
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-03
+      - RN-VO-08
+      - US-VO-02
+    post:
+      operationId: proprietarioNaoResidenteNomearProcurador
+      summary: Indica um procurador
+      description: Só o proprietário indica, antes de a unidade votar, para uma reunião ou uma eleição (exatamente um dos dois). O procurador é usuário do mesmo condomínio, pode ser o inquilino, e representa no máximo 1 unidade além das suas (RN-VO-08). Escopo por reunião ou eleição é proposta do MER/DER 4.9.
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Informe `reuniao_id` ou `eleicao_id`, nunca os dois.
+              required:
+              - procurador_vinculo_id
+              properties:
+                procurador_vinculo_id:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                reuniao_id:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                eleicao_id:
+                  $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+            example:
+              reuniao_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+              procurador_vinculo_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+      responses:
+        '201':
+          description: Procuração criada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcuracaoProprietarioNaoResidente'
+              example:
+                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                unidade_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                reuniao_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                eleicao_id: null
+                outorgante_nome: Paulo Ribeiro
+                procurador_vinculo_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                procurador_nome: Ana Teles
+                inicio: '2026-11-10T20:00:00-03:00'
+                fim: null
+                papel: outorgante
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem vínculo, sem permissão para o papel efetivo ou sem acesso ao dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                inquilino:
+                  summary: Só o proprietário indica (RN-VO-01)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semPermissao:
+                  summary: Permissão mudou com o app aberto (texto de UF 15)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para síndico.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                outra:
+                  summary: Procurador já representa outra unidade (RN-VO-08)
+                  value:
+                    codigo: PROCURADOR_JA_REPRESENTA_OUTRA_UNIDADE
+                    mensagem: Ana Teles já representa outra unidade. Escolha outra pessoa.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                votou:
+                  summary: Unidade já votou (RN-VO-08)
+                  value:
+                    codigo: PROCURACAO_UNIDADE_JA_VOTOU
+                    mensagem: Esta unidade já votou. A procuração precisa ser anterior ao voto.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                regraDeNegocio:
+                  summary: Regra violada, exemplo genérico (texto Proposta)
+                  value:
+                    codigo: REGRA_DE_NEGOCIO_VIOLADA
+                    mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-03
+      - RN-VO-01
+      - RN-VO-08
+      - US-VO-02
+  /v1/proprietario-nao-residente/possiveis-procuradores:
+    get:
+      operationId: proprietarioNaoResidenteBuscarPossiveisProcuradores
+      summary: Busca usuários do condomínio para indicar como procurador
+      description: Devolve só nome e identificador de vínculo de usuários do mesmo condomínio, para a tela de indicação (UF 11.1). Proposta de apoio a RF-VO-03; não expõe unidade, score nem situação financeira.
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: busca
+        in: query
+        required: false
+        description: Texto livre, no nome.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Página de usuários.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PossivelProcuradorProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - vinculo_condominio_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                  nome: Ana Teles
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-03
+      - RN-VO-08
+      - US-VO-02
+  /v1/proprietario-nao-residente/cobrancas:
+    get:
+      operationId: proprietarioNaoResidenteListarCobrancas
+      summary: Lista as cobranças da unidade
+      description: Devolve cobranças de que é responsável financeiro e a situação das demais da unidade (RN-CD-19, RN-FI-10). Só com o módulo de cobrança ativo (RN-FI-01). Quem não é responsável financeiro e não é proprietário recebe 403; outros moradores nunca veem a situação financeira (SEG-17).
+      tags:
+      - cobranca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: estado
+        in: query
+        required: false
+        description: Um ou mais estados, separados por vírgula.
+        schema:
+          type: array
+          items:
+            $ref: ./componentes/enums.yaml#/components/schemas/EstadoCobranca
+        style: form
+        explode: false
+      - name: natureza_despesa
+        in: query
+        required: false
+        description: Ordinária ou extraordinária.
+        schema:
+          type: string
+          enum:
+          - ordinaria
+          - extraordinaria
+      - name: de
+        in: query
+        required: false
+        description: Vencimento a partir de (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ate
+        in: query
+        required: false
+        description: Vencimento até (aaaa-mm-dd).
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação; prefixo - para decrescente.
+        schema:
+          type: string
+          enum:
+          - vencimento
+          - -vencimento
+          default: -vencimento
+      responses:
+        '200':
+          description: Página de cobranças.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CobrancaProprietarioNaoResidente'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                  competencia: 2026-11
+                  origem: mensal
+                  natureza_despesa: ordinaria
+                  descricao: Taxa condominial de novembro
+                  principal_centavos: 45000
+                  desconto_centavos: 0
+                  multa_centavos: 900
+                  juros_centavos: 150
+                  total_centavos: 46050
+                  valor_calculado_em: '2026-11-12T09:00:00-03:00'
+                  vencimento: '2026-11-10'
+                  estado: em_atraso
+                  emitida_em: '2026-10-26T06:00:00-03:00'
+                  responsavel_papel: inquilino
+                  pode_pagar: false
+                  comprovantes: []
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem vínculo, sem permissão para o papel efetivo ou sem acesso ao dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                naoresp:
+                  summary: Sem acesso à situação financeira (SEG-17)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para o responsável financeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semPermissao:
+                  summary: Permissão mudou com o app aberto (texto de UF 15)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para síndico.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-05
+      - RF-FI-07
+      - RF-FI-08
+      - RF-FI-16
+      - RN-FI-03
+      - RN-FI-09
+      - RN-FI-10
+      - SEG-17
+      - US-FI-02
+      - US-FI-03
+  /v1/proprietario-nao-residente/cobrancas/{cobranca_id}:
+    get:
+      operationId: proprietarioNaoResidenteConsultarCobranca
+      summary: Consulta uma cobrança com o valor atualizado
+      description: Segunda via sempre com o valor atualizado, com multa e juros do dia (RN-FI-08), e comprovantes depois da confirmação (RN-PG-07). Pagamento ainda não confirmado aparece como "Pagamento em processamento"; boleto pode levar até 3 dias úteis (UF 13.1).
+      tags:
+      - cobranca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: '#/components/parameters/CobrancaId'
+      responses:
+        '200':
+          description: Cobrança.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CobrancaProprietarioNaoResidente'
+              example:
+                id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                competencia: 2026-11
+                origem: mensal
+                natureza_despesa: ordinaria
+                descricao: Taxa condominial de novembro
+                principal_centavos: 45000
+                desconto_centavos: 0
+                multa_centavos: 900
+                juros_centavos: 150
+                total_centavos: 46050
+                valor_calculado_em: '2026-11-12T09:00:00-03:00'
+                vencimento: '2026-11-10'
+                estado: em_atraso
+                emitida_em: '2026-10-26T06:00:00-03:00'
+                responsavel_papel: inquilino
+                pode_pagar: false
+                comprovantes: []
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-FI-07
+      - RF-FI-08
+      - RN-FI-06
+      - RN-FI-08
+      - RN-FI-10
+      - RN-PG-07
+      - SEG-17
+      - US-FI-03
+  /v1/proprietario-nao-residente/cobrancas/{cobranca_id}/pagamentos:
+    post:
+      operationId: proprietarioNaoResidentePagarCobranca
+      summary: Gera o pagamento de uma cobrança
+      description: 'Gera a segunda via com o valor atualizado e devolve os dados que o cliente usa: `linha_digitavel`, `pix_copia_e_cola`, `pix_qr_code_base64` ou `url_checkout` do checkout hospedado do Asaas, com `expira_em`. O cartão nunca passa pela API (SEG-12). A baixa é automática quando o Asaas confirma (RN-FI-13); pagamento em duplicidade gera alerta à administradora (RN-FI-19). Só o responsável financeiro paga.'
+      tags:
+      - pagamentos
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/IdempotencyKey
+      - $ref: '#/components/parameters/CobrancaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagarCobrancaRequisicaoProprietarioNaoResidente'
+            examples:
+              boleto:
+                summary: Boleto com QR Code Pix
+                value:
+                  meio: boleto
+              pix:
+                summary: Pix
+                value:
+                  meio: pix
+              cartao:
+                summary: Cartão, em checkout hospedado
+                value:
+                  meio: cartao
+      responses:
+        '201':
+          description: Dados de pagamento.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DadosDePagamentoProprietarioNaoResidente'
+              examples:
+                boleto:
+                  summary: Boleto
+                  value:
+                    id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                    meio: boleto
+                    valor_centavos: 46050
+                    criada_em: '2026-11-12T09:01:00-03:00'
+                    linha_digitavel: 23793.38128 60000.000003 00000.000408 1 98760000046050
+                    pix_copia_e_cola: 00020126580014br.gov.bcb.pix0136exemplo-chave-fake5204000053039865802BR5909CONDOMINIO6009SAO PAULO62070503***6304ABCD
+                    pix_qr_code_base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==
+                    url_checkout: null
+                    expira_em: '2026-11-13T23:59:00-03:00'
+                cartao:
+                  summary: 'Cartão: abrir `url_checkout`'
+                  value:
+                    id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
+                    meio: cartao
+                    valor_centavos: 46050
+                    criada_em: '2026-11-12T09:01:00-03:00'
+                    linha_digitavel: null
+                    pix_copia_e_cola: null
+                    pix_qr_code_base64: null
+                    url_checkout: https://sandbox.asaas.com/checkout/exemplo456
+                    expira_em: '2026-11-13T23:59:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          description: Sem vínculo, sem permissão para o papel efetivo ou sem acesso ao dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                naoresp:
+                  summary: Cobrança emitida a outro responsável (UF 13.1)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para o responsável financeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                semPermissao:
+                  summary: Permissão mudou com o app aberto (texto de UF 15)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Esta área é só para síndico.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '422':
+          description: Regra de negócio violada.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                meio:
+                  summary: Forma de pagamento não aceita (RN-FI-02)
+                  value:
+                    codigo: COBRANCA_MEIO_NAO_ACEITO
+                    mensagem: Esta forma de pagamento não está ativa neste condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estado:
+                  summary: Cobrança já paga ou cancelada
+                  value:
+                    codigo: COBRANCA_NAO_PAGAVEL
+                    mensagem: Esta cobrança não está em aberto.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                regraDeNegocio:
+                  summary: Regra violada, exemplo genérico (texto Proposta)
+                  value:
+                    codigo: REGRA_DE_NEGOCIO_VIOLADA
+                    mensagem: Não foi possível concluir esta ação pelas regras do condomínio.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          description: Serviço indisponível.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                gateway:
+                  summary: Gateway fora do ar, cobrança vencida (texto de UF 13.1)
+                  value:
+                    codigo: PAGAMENTO_INDISPONIVEL
+                    mensagem: Pagamento indisponível agora. Quando você pagar, o valor será atualizado com multa e juros até o dia do pagamento.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                gatewayprazo:
+                  summary: Gateway fora do ar, cobrança no prazo (texto de UF 13.1)
+                  value:
+                    codigo: PAGAMENTO_INDISPONIVEL
+                    mensagem: Pagamento indisponível agora. Tente de novo mais tarde; o vencimento continua em 10/11/2026.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                servicoIndisponivel:
+                  summary: Serviço indisponível
+                  value:
+                    codigo: SERVICO_INDISPONIVEL
+                    mensagem: Algo deu errado do nosso lado. Tente de novo em alguns minutos.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+      x-rastreabilidade:
+      - RF-FI-07
+      - RF-FI-08
+      - RF-FI-09
+      - RN-FI-02
+      - RN-FI-08
+      - RN-FI-13
+      - RN-FI-19
+      - SEG-12
+      - SEG-17
+      - US-FI-03
+components:
+  securitySchemes:
+    bearerJwt:
+      $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
+  parameters:
+    ComunicadoId:
+      name: comunicado_id
+      in: path
+      required: true
+      description: Identificador do comunicado.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    ReuniaoId:
+      name: reuniao_id
+      in: path
+      required: true
+      description: Identificador da reunião.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    VotacaoId:
+      name: votacao_id
+      in: path
+      required: true
+      description: Identificador da votação.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+    CobrancaId:
+      name: cobranca_id
+      in: path
+      required: true
+      description: Identificador da cobrança.
+      schema:
+        $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+  schemas:
+    CondominioProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - nome
+      - cobranca_ativa
+      - meios_cobranca_aceitos
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        cobranca_ativa:
+          type: boolean
+        meios_cobranca_aceitos:
+          type: array
+          items:
+            type: string
+            enum:
+            - boleto
+            - pix
+            - cartao
+        temporada_permitida:
+          type: boolean
+          description: Aluguel por temporada permitido no condomínio; desligado por padrão (RN-VI-10).
+    UnidadeProprietarioNaoResidente:
+      type: object
+      description: Unidade do proprietário. Não traz visitantes, chamados, reservas, encomendas nem score do inquilino (RN-CD-19).
+      required:
+      - id
+      - identificacao
+      - situacao_ocupacao
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        identificacao:
+          type: string
+        bloco:
+          oneOf:
+          - type: string
+          - type: 'null'
+        situacao_ocupacao:
+          type: string
+          enum:
+          - alugada
+          - desocupada
+        contrato_fim:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Data
+          - type: 'null'
+        contrato_vence_em_dias:
+          oneOf:
+          - type: integer
+          - type: 'null'
+    ContratoLocacaoProprietarioNaoResidente:
+      type: object
+      description: Só as datas do contrato, sem dados da rotina do inquilino (RN-CD-19).
+      required:
+      - estado
+      - inicio
+      - versao_atual
+      properties:
+        estado:
+          type: string
+          description: Estado do contrato (MER/DER 4.2); enumeração é lacuna.
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        encerrado_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Data
+          - type: 'null'
+        versao_atual:
+          type: object
+          required:
+          - numero
+          - inicio_contratual
+          properties:
+            numero:
+              type: integer
+            inicio_contratual:
+              $ref: ./componentes/comum.yaml#/components/schemas/Data
+            fim_contratual:
+              oneOf:
+              - $ref: ./componentes/comum.yaml#/components/schemas/Data
+              - type: 'null'
+        versoes:
+          type: array
+          items:
+            type: object
+            required:
+            - numero
+            - inicio_contratual
+            properties:
+              numero:
+                type: integer
+              inicio_contratual:
+                $ref: ./componentes/comum.yaml#/components/schemas/Data
+              fim_contratual:
+                oneOf:
+                - $ref: ./componentes/comum.yaml#/components/schemas/Data
+                - type: 'null'
+              registrado_em:
+                $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          description: Renovações não apagam a data anterior.
+    SolicitacaoLocacaoProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - tipo
+      - estado
+      - enviada_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        tipo:
+          type: string
+          enum:
+          - cadastro_inquilino
+          - renovacao_contrato
+          - encerramento_contrato
+        descricao:
+          oneOf:
+          - type: string
+          - type: 'null'
+        nova_data_fim:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Data
+          - type: 'null'
+        estado:
+          type: string
+          enum:
+          - pendente
+          - concluida
+          - recusada
+          description: Fila com estes status (RF-AD-02).
+        enviada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        atendida_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        motivo_recusa:
+          oneOf:
+          - type: string
+            description: Informado pela administradora ao recusar (RN-CD-23).
+          - type: 'null'
+    ReclamacaoValidadaProprietarioNaoResidente:
+      type: object
+      description: Só categoria, data, decisão e multa (RN-RC-16). Sem a conversa, sem quem reclamou, sem pontos e sem score (ADR-010).
+      required:
+      - id
+      - categoria
+      - data_ocorrencia
+      - decidida_em
+      - decisao
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        categoria:
+          type: string
+        data_ocorrencia:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        decidida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        decisao:
+          type: string
+          enum:
+          - validada
+        multa:
+          oneOf:
+          - type: object
+            required:
+            - valor_centavos
+            properties:
+              cobranca_id:
+                oneOf:
+                - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                - type: 'null'
+              valor_centavos:
+                $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          - type: 'null'
+    HospedeTemporadaProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - nome
+      - data_entrada
+      - data_saida
+      - estado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+        documento:
+          oneOf:
+          - type: string
+          - type: 'null'
+        data_entrada:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        data_saida:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoVisita
+    ComunicadoProprietarioNaoResidente:
+      type: object
+      description: Só comunicado geral para moradores ou para todos (RN-CD-19). Não há resposta nem comunicado individual.
+      required:
+      - id
+      - titulo
+      - enviado_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        titulo:
+          type: string
+        texto:
+          type: string
+          description: Só no detalhe.
+        autor:
+          type: object
+          required:
+          - nome
+          properties:
+            nome:
+              type: string
+            papel:
+              oneOf:
+              - type: string
+              - type: 'null'
+        enviado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        lido_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+    OpcaoVotacaoProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - texto
+      - ordem
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        texto:
+          type: string
+        ordem:
+          type: integer
+    MinhaSituacaoDeVotoProprietarioNaoResidente:
+      type: object
+      description: Situação do usuário nesta votação. Nunca contém a opção escolhida (SEG-06).
+      required:
+      - pode_votar
+      properties:
+        pode_votar:
+          type: boolean
+        qualidade:
+          oneOf:
+          - type: string
+            enum:
+            - proprietario
+            - inquilino
+            - procurador
+          - type: 'null'
+        motivo:
+          oneOf:
+          - type: string
+            enum:
+            - nao_vota_pela_unidade
+            - inquilino_pauta_com_despesa_extraordinaria
+            - unidade_em_atraso
+            - unidade_ja_votou
+            - votacao_encerrada
+          - type: 'null'
+        mensagem:
+          oneOf:
+          - type: string
+            description: Texto de UF 11.1. `unidade_em_atraso` só aparece para quem vota pela unidade e para os responsáveis financeiros dela (RN-VO-16, RN-FI-11).
+          - type: 'null'
+        aviso:
+          oneOf:
+          - type: string
+            description: 'Aviso ao inquilino: se o proprietário votar até o encerramento, o voto dele vale no lugar do seu (RN-VO-18).'
+          - type: 'null'
+        unidade_representada_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    VotacaoDaPautaProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - estado
+      - opcoes
+      - minha_situacao
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        estado:
+          type: string
+          description: Estados de reunião, votação e eleição não estão enumerados nos docs; `Encerrada`, `Sem quórum` e `Empate` são citados em MER/DER 4.9 (lacuna).
+        quorum_regra:
+          oneOf:
+          - type: string
+          - type: 'null'
+        abre_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        encerra_em:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        opcoes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpcaoVotacaoProprietarioNaoResidente'
+        minha_situacao:
+          $ref: '#/components/schemas/MinhaSituacaoDeVotoProprietarioNaoResidente'
+        resultado:
+          oneOf:
+          - type: object
+            required:
+            - situacao
+            - opcoes
+            properties:
+              situacao:
+                type: string
+                enum:
+                - encerrada
+                - sem_quorum
+                - empate
+              opcoes:
+                type: array
+                items:
+                  type: object
+                  required:
+                  - opcao_id
+                  - texto
+                  - quantidade
+                  properties:
+                    opcao_id:
+                      $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                    texto:
+                      type: string
+                    quantidade:
+                      type: integer
+          - type: 'null'
+        resultado_rotulo:
+          oneOf:
+          - type: string
+            description: '"O resultado aparece quando a reunião for encerrada." enquanto não há resultado (RN-VO-03).'
+          - type: 'null'
+    PautaReuniaoProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - ordem
+      - titulo
+      - tipo
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        ordem:
+          type: integer
+        titulo:
+          type: string
+        descricao:
+          type: string
+        tipo:
+          type: string
+          enum:
+          - informativa
+          - com_votacao
+        envolve_despesa_extraordinaria:
+          type: boolean
+          description: 'Padrão: envolve (RN-VO-18).'
+        votacao:
+          oneOf:
+          - $ref: '#/components/schemas/VotacaoDaPautaProprietarioNaoResidente'
+          - type: 'null'
+    ReuniaoResumoProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - titulo
+      - inicio_previsto
+      - local
+      - estado
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        titulo:
+          type: string
+        convocada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        inicio_previsto:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim_efetivo:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        local:
+          type: string
+        estado:
+          type: string
+          description: Estados de reunião, votação e eleição não estão enumerados nos docs; `Encerrada`, `Sem quórum` e `Empate` são citados em MER/DER 4.9 (lacuna).
+        ata_arquivo_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        presenca_arquivo_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+    ReuniaoProprietarioNaoResidente:
+      allOf:
+      - $ref: '#/components/schemas/ReuniaoResumoProprietarioNaoResidente'
+      - type: object
+        required:
+        - pautas
+        properties:
+          pautas:
+            type: array
+            items:
+              $ref: '#/components/schemas/PautaReuniaoProprietarioNaoResidente'
+    VotarRequisicaoProprietarioNaoResidente:
+      type: object
+      required:
+      - opcao_id
+      properties:
+        opcao_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidade_representada_id:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          description: Só para procurador votando por uma unidade que representa por procuração; o guard aceita a procuração no lugar do vínculo com a unidade. Sem o campo, vale `X-Unidade-Id`.
+    ProcuracaoProprietarioNaoResidente:
+      type: object
+      required:
+      - id
+      - unidade_id
+      - procurador_vinculo_id
+      - inicio
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        unidade_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        reuniao_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        eleicao_id:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+          - type: 'null'
+        outorgante_nome:
+          type: string
+        procurador_vinculo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        procurador_nome:
+          type: string
+        inicio:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        fim:
+          oneOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+          - type: 'null'
+        papel:
+          type: string
+          enum:
+          - outorgante
+          - procurador
+          description: Papel do usuário nesta procuração.
+    PossivelProcuradorProprietarioNaoResidente:
+      type: object
+      required:
+      - vinculo_condominio_id
+      - nome
+      properties:
+        vinculo_condominio_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        nome:
+          type: string
+    DadosDePagamentoProprietarioNaoResidente:
+      type: object
+      description: 'Dados que o cliente usa para concluir o pagamento. Os nomes dos cinco campos de pagamento são fixos. Dados de cartão nunca passam pela API (SEG-12): o cartão é pago no checkout hospedado do Asaas, aberto em `url_checkout`. Os campos que não se aplicam ao meio vêm nulos.'
+      required:
+      - id
+      - meio
+      - valor_centavos
+      - criada_em
+      - expira_em
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        meio:
+          type: string
+          enum:
+          - boleto
+          - pix
+          - cartao
+          description: Boleto vale só para cobrança; reserva aceita Pix e cartão (MER/DER 4.10).
+        valor_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        criada_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        linha_digitavel:
+          oneOf:
+          - type: string
+            description: Linha digitável do boleto.
+          - type: 'null'
+        pix_copia_e_cola:
+          oneOf:
+          - type: string
+            description: Código Pix copia e cola.
+          - type: 'null'
+        pix_qr_code_base64:
+          oneOf:
+          - type: string
+            description: Imagem do QR Code Pix em base64.
+          - type: 'null'
+        url_checkout:
+          oneOf:
+          - type: string
+            description: Endereço do checkout hospedado do Asaas, para pagamento por cartão.
+            format: uri
+          - type: 'null'
+        expira_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    ComprovanteProprietarioNaoResidente:
+      type: object
+      required:
+      - tipo
+      - arquivo_id
+      - emitido_em
+      properties:
+        tipo:
+          type: string
+          enum:
+          - pagamento
+          - reembolso
+        arquivo_id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        emitido_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+    CobrancaProprietarioNaoResidente:
+      type: object
+      description: 'Cobrança da unidade. Situação financeira só para quem a SEG-17 permite: responsável financeiro e, no caso do proprietário, a unidade; nunca para outros moradores (RN-FI-10).'
+      required:
+      - id
+      - competencia
+      - natureza_despesa
+      - principal_centavos
+      - total_centavos
+      - vencimento
+      - estado
+      - pode_pagar
+      properties:
+        id:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+        competencia:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}$
+        origem:
+          type: string
+          description: Mensal ou extra (MER/DER 4.10; enumeração completa é lacuna).
+        natureza_despesa:
+          type: string
+          enum:
+          - ordinaria
+          - extraordinaria
+          description: Taxa mensal é ordinária; fundo de reserva e obras são extraordinárias (RN-FI-20, RF-FI-16).
+        descricao:
+          oneOf:
+          - type: string
+            description: Por exemplo, Taxa condominial de novembro ou multa por infração.
+          - type: 'null'
+        principal_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        desconto_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        multa_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        juros_centavos:
+          $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+        total_centavos:
+          allOf:
+          - $ref: ./componentes/comum.yaml#/components/schemas/Centavos
+          description: Valor atualizado até `valor_calculado_em`, com multa (até 2%) e juros do dia (RN-FI-06, RN-FI-08).
+        valor_calculado_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        vencimento:
+          $ref: ./componentes/comum.yaml#/components/schemas/Data
+        estado:
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoCobranca
+        emitida_em:
+          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+        responsavel_papel:
+          oneOf:
+          - type: string
+            enum:
+            - proprietario
+            - inquilino
+            description: Quem é o responsável financeiro desta cobrança, para o selo "Paga pelo inquilino" (UF 13.1).
+          - type: 'null'
+        pode_pagar:
+          type: boolean
+          description: 'Falso quando a cobrança foi emitida a outro responsável: aparece com o selo de estado e sem botão de pagar (UF 13.1).'
+        comprovantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComprovanteProprietarioNaoResidente'
+    PagarCobrancaRequisicaoProprietarioNaoResidente:
+      type: object
+      required:
+      - meio
+      properties:
+        meio:
+          type: string
+          enum:
+          - boleto
+          - pix
+          - cartao
+          description: Entre as formas ativas do condomínio (RN-FI-02). Boleto já traz QR Code Pix.
+x-lacunas:
+- Estados da tentativa de pagamento e prazos reais de confirmação de boleto e Pix dependem da validação do Asaas em sandbox (MER/DER 4.10, ADR-002); o texto "Boleto pode levar até 3 dias úteis" é o de UF 13.1.
+- Recusa de cartão ("O cartão não foi aprovado. Tente outro cartão, Pix ou boleto.") ocorre no checkout hospedado e chega por webhook; não é erro desta operação.
+- Enumeração completa de `origem` da cobrança (mensal, extra, reemissão de multa) não está definida (MER/DER 4.10).
+- 'Revogação de procuração: o DER tem `revogada_em`, mas RF e RN não definem a operação; não há rota.'
+- 'Identidade do inquilino não é exposta ao proprietário: os docs só dão a ele as datas do contrato (RN-CD-19).'
+- O módulo `visitantes` não consta em `01-backend.md` 3.3 para este perfil, mas RF-VI-13 e RN-VI-10 dão ao proprietário o cadastro de hóspede de temporada.
+- Estado do contrato de locação (`contrato_locacao.estado`) não é enumerado nos docs.
+- 'Ações vedadas a este perfil e sem rota por decisão do PRD 3: reservar, abrir chamado, reclamar, avaliar funcionários, ver score (RN-CD-19, RN-SC-01).'

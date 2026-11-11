@@ -27,7 +27,7 @@ A fonte das decisões é [`../01-arquitetura.md`](../01-arquitetura.md) (seção
 | **Substituído** | Trocado por outro ADR, que é citado no cabeçalho |
 | **Obsoleto** | Deixou de se aplicar (ex.: o componente saiu do projeto), sem substituto |
 
-Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Hoje nenhum ADR está aceito.
+Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; os demais continuam sem validação.
 
 ## Como criar um novo ADR
 
@@ -45,10 +45,10 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | Nº | Título | Estado | Data | Depende de |
 | --- | --- | --- | --- | --- |
 | 001 | [Multi-tenant com banco compartilhado, `condominio_id` e RLS](001-multi-tenant-rls.md) | Proposto | 06/11/2026 | Prova de conceito de RLS com carga |
-| 002 | [Gateway de pagamento](002-gateway-de-pagamento.md) | Em aberto | 06/11/2026 | Prova de conceito; marco 2; UF 17 |
+| 002 | [Gateway de pagamento](002-gateway-de-pagamento.md) | Aceito, com ressalvas (Asaas) | 10/11/2026 | Prova de conceito como verificação; KYC, chargeback e prazos reais; marco 2 |
 | 003 | [Banco local do aparelho e sincronização offline](003-banco-local-e-sync-offline.md) | Proposto | 06/11/2026 | Prova de conceito de criptografia e fila |
-| 004 | [Provedor de nuvem, região e residência de dados](004-nuvem-regiao-residencia-dados.md) | Em aberto | 06/11/2026 | Estimativa de custo; LGPD |
-| 005 | [E-mail transacional](005-email-transacional.md) | Em aberto | 06/11/2026 | ADR-004 |
+| 004 | [Provedor de nuvem, região e residência de dados](004-nuvem-regiao-residencia-dados.md) | Aceito, com ressalvas (Supabase + Render, só MVP) | 10/11/2026 | Revisão obrigatória antes do piloto com dados reais (custo, LGPD, PITR) |
+| 005 | [E-mail transacional](005-email-transacional.md) | Aceito, com ressalvas (Resend) | 10/11/2026 | Teste de entregabilidade; LGPD (dados fora do Brasil); revisão do ADR-004 |
 | 006 | [Fila, agendador e distribuição de eventos](006-fila-agendador-eventos.md) | Proposto | 06/11/2026 | Carga esperada |
 | 007 | [Autorização com papéis no servidor, JWT sem papéis e refresh rotativo](007-autorizacao-jwt-sem-papeis.md) | Proposto | 06/11/2026 | Revisão de segurança |
 | 008 | [ORM ou query builder e migrações](008-orm-query-builder-migracoes.md) | Proposto | 06/11/2026 | Controle de transação |

@@ -3,7 +3,7 @@
 - **Estado:** Proposto
 - **Data:** 06/11/2026
 - **Decisores:** Pedro Lemos
-- **Depende de:** custo (RNF-18) e escolha de nuvem ([ADR-004](004-nuvem-regiao-residencia-dados.md))
+- **Depende de:** custo (RNF-18) e revisão da nuvem ([ADR-004](004-nuvem-regiao-residencia-dados.md), Aceito com ressalvas em 10/11/2026 só para construir o MVP). **RPO e RTO não são atendidos no plano gratuito do Supabase (sem PITR, conforme consulta de 10/11/2026) e dependem da revisão do ADR-004 antes do piloto**
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-004](004-nuvem-regiao-residencia-dados.md)
 
 ## Contexto
@@ -67,7 +67,7 @@ Se o custo de PITR não couber, a ADR volta à opção A e o RPO de 24 h passa a
 ## Critérios de validação e o que falta para aceitar
 
 - Definição dos números de RPO e RTO pelo Pedro, a partir do impacto de negócio.
-- Confirmação de PITR no PostgreSQL gerenciado da [ADR-004](004-nuvem-regiao-residencia-dados.md) e do custo contra RNF-18.
+- Confirmação de PITR no PostgreSQL gerenciado da [ADR-004](004-nuvem-regiao-residencia-dados.md) (o plano gratuito do Supabase não tem PITR; o provedor e o plano do piloto saem da revisão do ADR-004) e do custo contra RNF-18.
 - Primeiro teste de restauração em staging, com tempo medido contra o RTO.
 - Procedimento escrito de reaplicação de exclusões LGPD.
 

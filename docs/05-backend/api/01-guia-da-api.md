@@ -301,7 +301,7 @@ Essa forma foi conferida com o `lint` e valida; as operações usam `security: [
 | --- | --- |
 | Cabeçalho | `Authorization: Bearer <JWT>` |
 | Token de acesso | JWT assinado, 15 min, só com `sub` (usuário) e `sid` (sessão). **Sem papéis nem condomínios** |
-| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; reuso do antigo revoga a sessão), ligado ao aparelho. Renovação em `POST /v1/acesso/renovar` |
+| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; replay indevido revoga a sessão; direção de tolerância controlada a retry legítimo aprovada em 12/11/2026, com mecanismo e janela ainda sujeitos à revisão. Renovação em `POST /v1/acesso/renovar` |
 | Chaves | Identificador de chave (`kid`) para rotação sem derrubar sessões |
 | App | Tokens no `expo-secure-store` |
 | Web | Refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax`; token de acesso só em memória; exige proteção CSRF para o cookie de refresh |
@@ -608,3 +608,20 @@ Documentos de origem:
 | `docs/04-banco-de-dados/01-mer-e-der.md` | Seção 2.2 (códigos de estado), seção 7 (ciclos de vida) |
 | `docs/01-produto/03-regras-de-negocio.md` | Estados em 5.5, 7.4, 8.3, 9.1, 9.2, 12.2 e 12.4 |
 | `docs/02-design/02-user-flows.md` | Seção 15 (mensagens de erro) |
+
+## Complementação de 12/11/2026
+
+Aplicar as [19 escolhas](../../01-produto/05-decisoes-de-complementacao.md). Cancelamentos pelo condomínio exigem motivo e idempotência; moderação valida destinatário vigente e projeção sem identidade protegida; eleição regular segue RN-VO-13 atualizada em 13/11/2026: síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição; administradora e suporte autorizado também podem. Exportação financeira é sempre assíncrona: POST retorna 202 sem arquivo pronto, consulta informa andamento/falha e somente conclusão permite arquivo privado, com autorização revalidada. Códigos técnicos propostos: solicitada, em_processamento, concluida, falhou; TTL e retenção não definidos.
+
+Refresh deve distinguir replay indevido de retry legítimo de resposta perdida; direção de tolerância controlada aprovada, mas janela/mecanismo e defesa contra replay exigem revisão antes da implementação (ADR-007 continua Proposto). Fila offline pendente é separada do cache; prazo e acesso após logout ainda não definidos. Operador de exceções LGPD não tem função/permissão concedida neste contrato.
+
+
+## Atualização de autogestão e eleições — 13/11/2026
+
+Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+
+**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+
+**Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
+
+**Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.

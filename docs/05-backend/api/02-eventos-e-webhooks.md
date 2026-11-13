@@ -158,9 +158,9 @@ Sem exemplo de corpo e sem transição de estado. Não são pedidos no webhook; 
 
 **Casos sem regra nos docs (lacuna, nenhuma regra inventada aqui):**
 
-- **Reserva `expirada` ou `cancelada` que recebe confirmação tardia** (a rotina 1 já liberou o horário, RN-CA-06, ou o morador cancelou e o pagamento chegou depois). Os docs não dizem se o horário volta, se há devolução automática nem quem decide. O que se sabe é só que o `recebimento` real não pode ser descartado (conciliação e RN-FI-19). A decidir pelo Pedro.
-- **Cobrança `emitida` já vencida e ainda não marcada `em_atraso` pela rotina 16** (o pagamento chega entre o vencimento e a rodada da madrugada). Os docs não dizem se vira `paga` ou `paga_com_atraso`, nem como fica a multa e os juros nessa janela. A decidir pelo Pedro (RN-FI-06, RN-FI-09, RN-FI-08).
-- **Cobrança `cancelada` ou `em_acordo` (versão 2)** que recebe pagamento: sem regra nos docs.
+- **Decisão de 12/11/2026 — reserva expirada/cancelada:** registrar recebimento real e pendência para administradora/suporte autorizado; sem recuperar horário, reativar reserva ou devolver automaticamente.
+- **Decisão de 12/11/2026 — Emitida paga após vencimento:** classificar Paga com atraso pelo vencimento e instante efetivo, mesmo antes da rotina 16; multa/juros conforme RN-FI-06/08, evitando dupla cobrança com Asaas na PoC.
+- **Decisão de 12/11/2026 — cobrança Cancelada:** registrar recebimento e pendência para administradora/suporte autorizado, sem reativação. Em acordo permanece V2.
 
 ## 7. Sequência do pagamento confirmado
 
@@ -204,10 +204,12 @@ sequenceDiagram
 - **Gatilhos e texto dos push de comunicado, votação e demais tipos** de RF-NO-01 ainda não estão nas RN; ficam fora do catálogo até lá.
 - **Cobrança em atraso como notificação obrigatória:** proposta fora das RN (UF 17); não entra nos obrigatórios.
 - **Canal dos lembretes de cobrança (rotina 17):** não definido em RF-FI-11.
-- **Pagamento confirmado depois de a reserva expirar ou ser cancelada, e pagamento de cobrança `emitida` já vencida antes da rotina 16:** os docs não definem; registrados na seção 6.3 como lacuna, sem regra inventada.
+- **Recebimentos excepcionais:** regras de produto resolvidas em 12/11/2026 na seção 6.3; mapeamento de eventos e instante efetivo continuam dependentes da PoC Asaas, não realizada.
 - **Multa e juros:** o cálculo é do servidor (RN-FI-08); se o Asaas também aplica multa e juros configurados na cobrança, e como evitar cobrança em dobro, é **a confirmar**.
 - **Chargeback, prazos reais de confirmação, KYC da subconta:** lacunas do ADR-002 e da UF 17.
 - **Webhook do Resend:** Proposta; precisa de aprovação do Pedro para existir.
 - **Conteúdo exato dos eventos do Asaas, reenvio e fila pausada:** ver `openapi/webhooks.yaml` (`x-lacunas`) e `03-integracoes-externas.md`, seção 9.
 - **Escala do WebSocket** (conexões por instância) e **retenção** de `evento_gateway_quarentena` e do outbox: lacunas (arquitetura 3.4 e 9.3, MER/DER P-09).
 - **`01-backend.md` e SEG-17** ainda dizem "assinatura" para o webhook do Asaas; o correto, pela documentação do Asaas, é token no cabeçalho. A correção é de outra tarefa.
+
+Complementação: [registro de 12/11/2026](../../01-produto/05-decisoes-de-complementacao.md). Moderação, atribuições e exportação não recebem nomes novos de evento de domínio nesta alteração; seus nomes/protocolo continuam proposta a definir quando necessário.

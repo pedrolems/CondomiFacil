@@ -224,3 +224,7 @@ Fontes internas: `01-backend.md` 4.6, 4.7, 5.2, 5.5 e 6; arquitetura 3.4, 3.6, 3
 | Supabase: limite de tamanho de arquivo no gratuito, expiração máxima do URL assinado, CORS para o app web | A confirmar |
 | Expo: configuração do FCM nas credenciais do Expo | A confirmar |
 | Retenção da quarentena de webhooks, de arquivos e de logs; verificação de vírus; limites de taxa | Lacuna (MER/DER P-09, arquitetura 3.8 e 9.3) |
+
+## Complementação de 12/11/2026
+
+[Decisões aprovadas](../../01-produto/05-decisoes-de-complementacao.md) fixam registro e resolução assistida de dinheiro tardio, sem recuperar horário/reativar cobrança, e classificação de atraso pelo instante efetivo. A PoC deve identificar o campo confiável desse instante; confirmação/recebimento não pode usar hora de entrega do webhook como substituto arbitrário. Nada nesta edição comprova KYC, prazos, chargeback, devolução ou sandbox. Assinatura da plataforma no MVP é assistida/manual e separada dos recebimentos condominiais.

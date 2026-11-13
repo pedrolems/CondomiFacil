@@ -382,7 +382,7 @@ paths:
     post:
       operationId: comumRenovar
       summary: Renova o token de acesso
-      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e o reuso de um já usado revoga a sessão (ADR-007, Proposta). No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
+      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay indevido revoga a sessão. Direção aprovada em 12/11/2026: tolerância controlada ao retry legítimo após resposta perdida; duração/mecanismo e proteção contra replay continuam pendentes da revisão de segurança, bloqueando a implementação dessa exceção (ADR-007, Proposta). No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
       tags:
       - acesso
       security: []
@@ -680,7 +680,7 @@ paths:
     patch:
       operationId: comumAtualizarPerfil
       summary: Atualiza a preferência de tema
-      description: 'Guarda a escolha de tema: "Igual ao aparelho" (padrão), "Claro" ou "Escuro" (RF-AC-05). A escolha fica salva e vale em qualquer aparelho. Só a preferência de tema é editável por aqui: cadastro de pessoas é da administradora (RN-CD-01). Exige `Authorization`, sem cabeçalhos de contexto.'
+      description: 'Guarda a escolha de tema: "Igual ao aparelho" (padrão), "Claro" ou "Escuro" (RF-AC-05). A escolha fica salva e vale em qualquer aparelho. Só a preferência de tema é editável por aqui: cadastro de pessoas é da administradora ou da gestão local no Essencial autogestão (RN-CD-01, RN-PL-08), em operação administrativa específica. Exige `Authorization`, sem cabeçalhos de contexto.'
       tags:
       - acesso
       security:
@@ -2115,7 +2115,7 @@ paths:
     post:
       operationId: comumDenunciarConteudo
       summary: Denuncia um conteúdo ofensivo
-      description: Qualquer usuário do condomínio pode denunciar um conteúdo a que tem acesso (RF-RS-14, RN-RC-13), pelo menu "Denunciar" de qualquer texto (UF 9.4). A denúncia vai ao síndico; se o conteúdo foi escrito pelo síndico, vai a quem julgaria uma reclamação contra ele (RN-RC-13, tabela 5.1). O destinatário é decidido pelo servidor e não aparece na resposta, nem quem escreveu o conteúdo. O conteúdo precisa ser de um tipo denunciável e estar acessível ao denunciante; de outro condomínio ou fora do alcance responde `404`. A resposta nunca devolve autor do conteúdo, destinatário nem estado. O que o destinatário pode fazer com a denúncia e o que ele vê do conteúdo denunciado não estão definidos nos docs (lacuna).
+      description: Qualquer usuário do condomínio pode denunciar um conteúdo a que tem acesso (RF-RS-14, RN-RC-13), pelo menu "Denunciar" de qualquer texto (UF 9.4). A denúncia vai ao síndico; se o conteúdo foi escrito pelo síndico, vai a quem julgaria uma reclamação contra ele (RN-RC-13, tabela 5.1). O destinatário é decidido pelo servidor e não aparece na resposta, nem quem escreveu o conteúdo. O conteúdo precisa ser de um tipo denunciável e estar acessível ao denunciante; de outro condomínio ou fora do alcance responde `404`. A resposta nunca devolve autor do conteúdo, destinatário nem estado. Decisão de 12/11/2026 — destinatário autorizado revisa projeção protegida e encerra sem ação ou oculta conteúdo com motivo/histórico, sem score automático; operações de consulta/decisão estão neste arquivo. A proteção de identidades na projeção ainda exige revisão.
       tags:
       - convivencia
       security:
@@ -2254,6 +2254,359 @@ paths:
       - RN-SC-02
       - US-PE-02
       - US-RS-07
+  /v1/denuncias/recebidas:
+    get:
+      operationId: comumListarDenunciasRecebidas
+      summary: Lista denúncias atribuídas ao destinatário autorizado
+      description: 'RN-RC-13, decisão de 12/11/2026. Resolve destinatário pela tabela vigente e conflito. Devolve projeção mínima sem identidade de reclamante/avaliador, sem score nem acesso irrestrito à origem. Suporte não recebe reclamações/scores. Encaminhamento não concede leitura de conteúdo protegido. Caminho e códigos são proposta.'
+      tags: [convivencia]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página autorizada com projeções protegidas.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dados, paginacao]
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, conteudo_projetado, motivo]
+                      properties:
+                        id:
+                          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                        conteudo_projetado:
+                          type: string
+                          description: Texto com identidades protegidas removidas; não é o objeto original.
+                        motivo:
+                          type: string
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados: []
+                paginacao: {proximo_cursor: null, tem_mais: false}
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro422
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: [RF-RS-14, RN-RC-13, US-RS-07]
+  /v1/denuncias/{denuncia_id}/decisao:
+    post:
+      operationId: comumDecidirDenuncia
+      summary: Decide denúncia atribuída
+      description: 'RN-RC-13, decisão de 12/11/2026. Revalida atribuição atual e acesso à projeção protegida. Encerra sem ação ou oculta conteúdo com motivo, autoria, momento e histórico, sem apagar prova restrita nem aplicar score. Não revela identidade de reclamante ou avaliador. Nunca autoriza suporte a reclamações/scores. Decisão concorrente incompatível recebe 409; replay idempotente recupera recibo.'
+      tags: [convivencia]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: denuncia_id
+        in: path
+        required: true
+        description: Identificador do recurso no escopo autorizado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resultado, motivo]
+              properties:
+                resultado:
+                  type: string
+                  enum: [sem_acao, ocultar]
+                  description: Códigos propostos para os resultados aprovados.
+                motivo:
+                  type: string
+                  minLength: 1
+      responses:
+        '204':
+          description: Ação registrada com autoria e auditoria, sem corpo.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro422
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: [RF-RS-14, RN-RC-13, US-RS-07]
+  /v1/eleicoes:
+    post:
+      operationId: comumAbrirEleicao
+      summary: Abre a eleição de síndico e subsíndico com prazo de candidaturas
+      description: "Decisão de 13/11/2026: qualquer plano admite síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte autorizado no Gestão + Suporte também podem conduzir. Concessão inicial e prova de ausência pendentes, sem autoconcessão. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './sindico.yaml#/components/schemas/AbrirEleicaoSindico'
+            example:
+              candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+              candidaturas_fim: '2026-11-19T18:00:00-03:00'
+      responses:
+        '201':
+          description: Eleição aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+              example:
+                id: 000002bc-1111-4222-8333-0000000002bc
+                candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                estado: candidaturas_abertas
+                candidaturas: []
+                resultado: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          $ref: './sindico.yaml#/components/responses/Erro422Eleicao'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-05
+      - RF-VO-06
+      - RN-VO-04
+      - RN-VO-05
+      - RN-VO-13
+      - US-VO-03
+    get:
+      operationId: comumListarEleicoes
+      summary: Lista as eleições
+      description: 'Consulta no próprio condomínio pelo condutor legitimado de RN-VO-13, em qualquer plano; resultado somente após encerramento e sem votos individuais.'
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-candidaturas_inicio`.
+        schema:
+          type: string
+          enum:
+          - candidaturas_inicio
+          - -candidaturas_inicio
+          default: -candidaturas_inicio
+      responses:
+        '200':
+          description: Página de eleições.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000002bc-1111-4222-8333-0000000002bc
+                  candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                  candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                  estado: candidaturas_abertas
+                  candidaturas:
+                  - id: 000002c6-1111-4222-8333-0000000002c6
+                    cargo: sindico
+                    candidato_nome: Otávio Brandão
+                    unidade_identificacao: Bloco C, 502
+                    estado: aceita
+                    motivo_inelegibilidade: null
+                  resultado: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-05
+      - RF-VO-07
+      - RN-VO-07
+      - RN-CD-27
+      - RN-CD-28
+      - US-VO-03
+  /v1/eleicoes/{eleicao_id}/encerramento:
+    post:
+      operationId: comumEncerrarEleicao
+      summary: Encerra e apura eleição regular
+      description: 'Decisão de 13/11/2026, RN-VO-07/13. Condutor legitimado pela sequência de RN-VO-13, em qualquer plano, ou administradora vinculada/suporte autorizado. Revalidar vigência, ausência e concessão a cada ação; concessão inicial e prova de ausência pendentes, sem autoconcessão. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
+      tags: [governanca]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: eleicao_id
+        in: path
+        required: true
+        description: Identificador do recurso no escopo autorizado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '204':
+          description: Ação registrada com autoria e auditoria, sem corpo.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro422
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: [RF-VO-05, RF-VO-07, RF-VO-08, RN-VO-07, RN-VO-13, US-VO-03]
+  /v1/eleicoes/{eleicao_id}:
+    get:
+      operationId: comumObterEleicao
+      summary: Detalha uma eleição
+      description: 'Consulta no próprio condomínio pelo condutor legitimado de RN-VO-13, em qualquer plano; resultado somente após encerramento e sem votos individuais.'
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: './sindico.yaml#/components/parameters/EleicaoId'
+      responses:
+        '200':
+          description: Eleição.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+              example:
+                id: 000002bc-1111-4222-8333-0000000002bc
+                candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                estado: candidaturas_abertas
+                candidaturas:
+                - id: 000002c6-1111-4222-8333-0000000002c6
+                  cargo: sindico
+                  candidato_nome: Otávio Brandão
+                  unidade_identificacao: Bloco C, 502
+                  estado: aceita
+                  motivo_inelegibilidade: null
+                resultado: null
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-06
+      - RF-VO-07
+      - RN-VO-13
+      - RN-CD-27
+      - RN-CD-28
+      - US-VO-03
 components:
   securitySchemes:
     bearerJwt:
@@ -3212,14 +3565,14 @@ components:
           type: string
           minLength: 1
 x-lacunas:
-- 'Denúncia de conteúdo (`POST /v1/denuncias`): os docs não definem o que o destinatário vê do conteúdo denunciado nem como a anonimidade de avaliador (RN-PE-09) e de reclamante (RN-SC-12, RN-RC-08) é preservada quando a denúncia de avaliação, resposta de pesquisa ou reclamação chega ao síndico (RN-RC-13); também não definem estados da denúncia, ações do síndico sobre ela, nem consulta pelo destinatário; o MER tem `denuncia_conteudo` com `estado` e `encaminhado_vinculo_id`, sem valores. Sem listagem nem tratamento aqui.'
+- "RN-RC-13: consulta de denúncias atribuídas e decisão sem ação/ocultação com motivo e histórico foram definidas em 12/11/2026; operações estão neste arquivo. Projeção sem desanonimizar avaliador/reclamante ainda exige revisão e o ciclo técnico completo não foi enumerado. Divergência sobre administradora criar denúncia permanece."
 - 'Nota dos setores: casas decimais e arredondamento da nota não estão definidos; a lista de setores não tem fonte (`setor` é texto livre); parâmetro `competencia` e padrão "último mês fechado" são Proposta, e o comportamento para mês futuro ou não fechado é lacuna.'
 - 'Tipos denunciáveis: o MER cita mensagem de comunicado, reclamação, avaliação de atendimento e resposta de pesquisa; a ordem e o alcance por perfil não estão nos docs.'
 - 'Limites de taxa (requisições e janela) nos endpoints de acesso: lacuna do guia (seção 10); nenhum número aparece neste arquivo.'
 - 'Tempo de expiração dos URLs assinados de envio e de leitura ("minutos" e "curta duração"): lacuna (arquitetura 3.8).'
 - 'Lista de tipos de mídia aceitos, formato do hash, verificação de vírus e retenção de arquivos: lacuna (arquitetura 3.8).'
 - 'Estados de `pedido_lgpd` e códigos de `origem_tipo` de `movimento_score`: o MER/DER não os lista; ficam como texto livre com exemplo.'
-- 'Tolerância da rotação do refresh em rede instável (uma renovação perdida derruba a sessão legítima): em aberto no ADR-007.'
+- "Direção de tolerância controlada a retry legítimo de refresh aprovada em 12/11/2026; mecanismo, janela, classificação de replay e revisão de segurança ainda pendentes no ADR-007."
 - 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem ID de produto que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`) e são Proposta. O guia só aceita IDs RF, RN, US e SEG em `x-rastreabilidade`, por isso a lista dessas operações fica vazia.'
 - 'Lista de notificações (`GET /v1/eu/notificacoes`): RF-NO-01 só trata da escolha de tipos; a lista vem do MER (`notificacao`) e da arquitetura 3.7. Marcar como lida (`lida_em`) ficou fora por falta de RF.'
 - 'Primeira unidade ativa lembrada entre sessões e ordem do seletor de unidade: sem regra nos docs; o cliente decide.'
@@ -3229,3 +3582,8 @@ x-lacunas:
 - 'Listagem de pedidos de LGPD (`GET /v1/eu/pedidos-lgpd`): sem RF dedicado; Proposta, sustentada só por SEG-11.'
 - 'Unidade em `escopo=sindico`: RF-RS-11 só autoriza identificar a unidade no próprio score; RN-SC-02 e UF 9.4 pedem a referência do mandato na Transparência. Aqui `unidade` vem nula fora do próprio; dúvida para o Pedro.'
 - 'Mapeamento API x MER/DER no recurso: `reclamacao_id` (API) liga-se a `recurso_reclamacao.decisao_id` por `decisao_reclamacao` (UQ por reclamação); `resultado` e `decidido_em` (API) correspondem ao `estado`, `decidido_em` e `fundamentacao` do MER, cujos valores de `estado` não estão definidos.'
+
+x-decisoes-12-11-2026:
+- "RN-RC-13: ações de denúncia definidas em 12/11/2026; lista/decisão constam neste contrato. Proteção de identidades na projeção e conflito sobre administradora denunciar ainda exigem revisão."
+- "Refresh: tolerância controlada a retry legítimo aprovada como direção; duração e mecanismo continuam pendentes, sem autorizar replay."
+- "LGPD: automatizar procedimento definido, exceção assistida; operador ainda não definido, sem permissão implícita."

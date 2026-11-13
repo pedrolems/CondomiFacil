@@ -588,3 +588,6 @@ x-lacunas:
   - Limite de taxa deste endpoint e proteção contra volume de requisições com token inválido: lacuna (guia, seção 10).
   - Webhook do Resend: Proposta, sem requisito de origem; critério de resposta que o Resend considera sucesso e tolerância de `svix-timestamp` não constam na documentação consultada.
   - Textos e `codigo` `WEBHOOK_NAO_AUTENTICADO`: Proposta, sem origem em UF 15.
+
+x-decisoes-12-11-2026:
+- "Recebimentos tardios são preservados e encaminhados sem reativação/recuperação de horário; Emitida paga após vencimento classifica Paga com atraso pelo instante efetivo. Mapeamento do instante depende da PoC."

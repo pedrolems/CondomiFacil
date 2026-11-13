@@ -583,3 +583,7 @@ x-lacunas:
 - 'Sem tipo de operação offline para entrada por interfone, entrada negada, desfazer, iniciar atendimento de chamado nem confirmação de divergência: as RN-OF só citam entradas e saídas (RN-OF-03) e conclusão (RN-CH-04).'
 - 'Códigos de `motivo` de divergência, de `aviso` e de `recusa` (`OP_ID_REUTILIZADO_COM_CARGA_DIFERENTE`, `SEM_PERMISSAO` por operação): Proposta; os docs só dizem que a carga diferente é recusada (MER 4.12) e que a operação recusada não derruba as demais (ADR-003).'
 - 'Encomendas pendentes no delta da portaria: Proposta (arquitetura 3.1.1).'
+
+x-decisoes-12-11-2026:
+- "RN-OF-06: fila pendente protegida é separada do cache apagável; preservar até sincronização/tratamento explícito. Retenção e acesso após logout exigem desenho, sem prazo arbitrário."
+- "RN-CH-04: menor horário do celular mantido; empate/desvio ainda dependem de proposta ADR-014."

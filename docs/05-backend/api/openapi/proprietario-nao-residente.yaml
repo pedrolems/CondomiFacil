@@ -1799,6 +1799,67 @@ paths:
       - SEG-12
       - SEG-17
       - US-FI-03
+  /v1/proprietario-nao-residente/eleicoes/{eleicao_id}:
+    get:
+      operationId: proprietarioConsultarEleicao
+      summary: Consulta uma eleição
+      description: "Proprietário da unidade ativa consulta candidaturas e resultados eleitorais, incluindo inconclusivo por segundo empate ou ausência de elegível; contagens somente após encerramento e nenhum voto individual. Não permite candidatar-se por esta operação. RN-VO-01/03/07/13 e decisão de 12/11/2026."
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/UnidadeIdObrigatorio
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: './morador.yaml#/components/parameters/EleicaoId'
+      responses:
+        '200':
+          description: Eleição.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: './morador.yaml#/components/schemas/EleicaoMorador'
+              example:
+                id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                candidaturas_inicio: '2026-11-01T00:00:00-03:00'
+                candidaturas_fim: '2026-11-15T23:59:00-03:00'
+                estado: candidaturas_abertas
+                candidaturas:
+                - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                  cargo: sindico
+                  candidato_nome: Marta Nunes
+                  unidade_referencia: Bloco A · Apto 12
+                  inscrita_em: '2026-11-03T10:00:00-03:00'
+                  estado: aceita
+                  motivo_inelegibilidade: null
+                votacoes: []
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-05
+      - RF-VO-06
+      - RF-VO-07
+      - RF-VO-08
+      - RN-VO-03
+      - RN-VO-07
+      - RN-VO-13
+      - US-VO-03
 components:
   securitySchemes:
     bearerJwt:

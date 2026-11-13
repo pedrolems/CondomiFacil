@@ -3588,7 +3588,7 @@ paths:
     post:
       operationId: administradoraEncerrarMandato
       summary: Encerra um mandato antes do prazo
-      description: Renúncia, destituição ou desligamento do síndico profissional. O subsíndico assume até a nova eleição; sem subsíndico, a administradora recebe alerta e abre a eleição (RN-CD-13). Ação auditada (SEG-08).
+      description: Renúncia, destituição ou desligamento do síndico profissional. O subsíndico assume até a nova eleição; sem subsíndico, aplica-se a sequência de condução eleitoral em qualquer plano de RN-CD-13/RN-VO-13. Ação auditada (SEG-08).
       tags:
       - governanca
       security:
@@ -4323,7 +4323,7 @@ paths:
     get:
       operationId: administradoraObterResponsaveisFinanceiros
       summary: Consulta os responsáveis financeiros da unidade
-      description: Um responsável para as despesas ordinárias e outro para as extraordinárias (RN-FI-03). Dado financeiro da unidade, só para a administradora (SEG-17).
+      description: Um responsável para as despesas ordinárias e outro para as extraordinárias (RN-FI-03). Dado financeiro da unidade para executor administrativo autorizado; esta interface atende administradora, e a proposta de autogestão usa interface própria do síndico (SEG-17, RN-PL-08).
       tags:
       - cobranca
       security:
@@ -5414,7 +5414,7 @@ paths:
     post:
       operationId: administradoraResolverDivergenciaDePagamento
       summary: Resolve um alerta de conciliação
-      description: Registra quem resolveu, quando e o motivo; não cria recebimento sem origem confiável (SEG-17). Ação auditada (SEG-08).
+      description: Inclui recebimentos de reserva expirada/cancelada e cobrança cancelada, com decisão assistida sem reativação ou recuperação de horário. Registra quem resolveu, quando e o motivo; não cria recebimento sem origem confiável (SEG-17). Ação auditada (SEG-08).
       tags:
       - pagamentos
       security:
@@ -6779,10 +6779,10 @@ paths:
               example:
                 id: 000000e7-0000-4000-8000-0000000000e7
                 formato: csv
-                estado: concluida
+                estado: solicitada
                 solicitada_em: '2026-11-10T10:00:00-03:00'
-                concluida_em: '2026-11-10T10:00:02-03:00'
-                arquivo_id: 000000e8-0000-4000-8000-0000000000e8
+                concluida_em: null
+                arquivo_id: null
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
@@ -7579,6 +7579,348 @@ paths:
       - RN-CH-20
       - RN-CH-21
       - US-CH-05
+  /v1/administradora/eleicoes:
+    post:
+      operationId: administradoraAbrirEleicao
+      summary: Abre a eleição de síndico e subsíndico com prazo de candidaturas
+      description: "Decisão de 13/11/2026: administradora vinculada ou suporte autorizado no Gestão + Suporte também podem conduzir. A eleição funciona em qualquer plano pela sequência síndico, subsíndico, conselho fiscal e proprietário designado, em comum.yaml, conforme RN-VO-13. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './sindico.yaml#/components/schemas/AbrirEleicaoSindico'
+            example:
+              candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+              candidaturas_fim: '2026-11-19T18:00:00-03:00'
+      responses:
+        '201':
+          description: Eleição aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+              example:
+                id: 000002bc-1111-4222-8333-0000000002bc
+                candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                estado: candidaturas_abertas
+                candidaturas: []
+                resultado: null
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          $ref: './sindico.yaml#/components/responses/Erro422Eleicao'
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-05
+      - RF-VO-06
+      - RN-VO-04
+      - RN-VO-05
+      - RN-VO-13
+      - US-VO-03
+    get:
+      operationId: administradoraListarEleicoes
+      summary: Lista as eleições
+      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      - name: ordenar
+        in: query
+        required: false
+        description: Ordenação. Padrão `-candidaturas_inicio`.
+        schema:
+          type: string
+          enum:
+          - candidaturas_inicio
+          - -candidaturas_inicio
+          default: -candidaturas_inicio
+      responses:
+        '200':
+          description: Página de eleições.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - dados
+                - paginacao
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados:
+                - id: 000002bc-1111-4222-8333-0000000002bc
+                  candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                  candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                  estado: candidaturas_abertas
+                  candidaturas:
+                  - id: 000002c6-1111-4222-8333-0000000002c6
+                    cargo: sindico
+                    candidato_nome: Otávio Brandão
+                    unidade_identificacao: Bloco C, 502
+                    estado: aceita
+                    motivo_inelegibilidade: null
+                  resultado: null
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-05
+      - RF-VO-07
+      - RN-VO-07
+      - RN-CD-27
+      - RN-CD-28
+      - US-VO-03
+  /v1/administradora/reservas/{reserva_id}/cancelamento-condominio:
+    post:
+      operationId: administradoraCancelarReservaPeloCondominio
+      summary: Cancela reserva pelo condomínio
+      description: 'Decisão de 12/11/2026, RN-CA-05. Cancela inclusive Aguardando pagamento como Cancelada pelo condomínio, com motivo, autoria e auditoria. Só devolve integralmente se houve recebimento; sem dinheiro recebido não cria devolução. Cancela visitas futuras vinculadas, preservando quem entrou. Revalida função e entidade na TX; recebimento posterior abre pendência sem recuperar horário. Administradora ou suporte com plano e autorização vigentes.'
+      tags: [configuracao]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: reserva_id
+        in: path
+        required: true
+        description: Identificador do recurso no escopo autorizado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo:
+                  type: string
+                  minLength: 1
+                  description: Motivo obrigatório registrado no histórico e na auditoria.
+      responses:
+        '204':
+          description: Ação registrada com autoria e auditoria, sem corpo.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro422
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: [RF-RE-04, RF-RE-05, RN-CA-05, US-RE-04]
+  /v1/administradora/eleicoes/{eleicao_id}/encerramento:
+    post:
+      operationId: administradoraEncerrarEleicao
+      summary: Encerra e apura eleição regular
+      description: 'Decisão de 13/11/2026, RN-VO-07/13. Esta interface atende administradora vinculada ou suporte autorizado; a interface comum atende os demais condutores elegíveis. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
+      tags: [governanca]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - name: eleicao_id
+        in: path
+        required: true
+        description: Identificador do recurso no escopo autorizado.
+        schema:
+          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+      - $ref: ./componentes/comum.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '204':
+          description: Ação registrada com autoria e auditoria, sem corpo.
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '422':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro422
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade: [RF-VO-05, RF-VO-07, RF-VO-08, RN-VO-07, RN-VO-13, US-VO-03]
+  /v1/administradora/eleicoes/{eleicao_id}:
+    get:
+      operationId: administradoraObterEleicao
+      summary: Detalha uma eleição
+      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
+      tags:
+      - governanca
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: './sindico.yaml#/components/parameters/EleicaoId'
+      responses:
+        '200':
+          description: Eleição.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: './sindico.yaml#/components/schemas/EleicaoSindico'
+              example:
+                id: 000002bc-1111-4222-8333-0000000002bc
+                candidaturas_inicio: '2026-11-12T08:00:00-03:00'
+                candidaturas_fim: '2026-11-19T18:00:00-03:00'
+                estado: candidaturas_abertas
+                candidaturas:
+                - id: 000002c6-1111-4222-8333-0000000002c6
+                  cargo: sindico
+                  candidato_nome: Otávio Brandão
+                  unidade_identificacao: Bloco C, 502
+                  estado: aceita
+                  motivo_inelegibilidade: null
+                resultado: null
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-VO-06
+      - RF-VO-07
+      - RN-VO-13
+      - RN-CD-27
+      - RN-CD-28
+      - US-VO-03
+  /v1/administradora/reservas-cancelaveis:
+    get:
+      operationId: administradoraListarReservasCancelaveis
+      summary: Lista reservas elegíveis ao cancelamento pelo condomínio
+      description: 'Consulta mínima para RN-CA-05. Apenas Confirmada e Aguardando pagamento no condomínio autorizado, com área, unidade e horário; sem valores, meios, score ou identidade do reservante. Síndico/sub em substituição ou administradora/suporte autorizado usam sua própria interface. Revalidar elegibilidade e função ao cancelar; a consulta não bloqueia intervalo nem garante estado futuro.'
+      tags: [configuracao]
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+      - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      responses:
+        '200':
+          description: Página mínima de reservas elegíveis.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dados, paginacao]
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, area, unidade, inicio, fim, estado]
+                      properties:
+                        id:
+                          $ref: ./componentes/comum.yaml#/components/schemas/Uuid
+                        area: {type: string}
+                        unidade: {type: string}
+                        inicio:
+                          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+                        fim:
+                          $ref: ./componentes/comum.yaml#/components/schemas/DataHora
+                        estado:
+                          type: string
+                          enum: [confirmada, aguardando_pagamento]
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+              example:
+                dados: []
+                paginacao: {proximo_cursor: null, tem_mais: false}
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+      x-rastreabilidade: [RF-RE-04, RF-RE-05, RN-CA-05, US-RE-04]
 components:
   securitySchemes:
     bearerJwt:
@@ -8777,7 +9119,7 @@ components:
           - true
         alerta_sem_subsindico:
           type: boolean
-          description: Sem subsíndico, a administradora recebe alerta e abre a nova eleição (RN-CD-13).
+          description: Sem subsíndico, a condução eleitoral segue conselho fiscal e, sem este, proprietário designado; administradora ou suporte autorizado também podem conduzir (RN-CD-13, RN-VO-13).
           examples:
           - false
     SubstituicaoAdministradora:
@@ -10330,9 +10672,8 @@ components:
           - pdf
         estado:
           type: string
-          description: 'Estado da exportação (valores: lacuna).'
-          examples:
-          - concluida
+          enum: [solicitada, em_processamento, concluida, falhou]
+          description: Códigos técnicos propostos de acompanhamento assíncrono; arquivo somente quando concluída.
         solicitada_em:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         concluida_em:
@@ -10720,13 +11061,19 @@ x-lacunas:
 - 'Formato da planilha de pré-cadastro e limite de linhas: lacuna; o cliente envia os itens já lidos.'
 - 'Dados bancários: o MER/DER só registra `dados_bancarios_protegidos`; os campos exatos são lacuna.'
 - 'Verificação (KYC) da subconta no Asaas e motivo de recusa da conta: lacuna (ADR-002). Como o titular pessoa física que não é o usuário logado aceita o termo (SEG-15): lacuna.'
-- 'Estados de devolução, de divergência de conciliação e de exportação financeira: o MER/DER não os lista; aparecem como texto.'
+- "Estados completos de devolução e divergência de conciliação ainda não enumerados no MER. Exportação financeira ganhou códigos técnicos propostos de acompanhamento assíncrono em 12/11/2026."
 - 'Valor da cobrança extra: o MER/DER guarda `valor_centavos` no lote; se é por unidade ou total a ratear é lacuna.'
 - 'Lista completa de finalidades de cobrança extra além de rateio, fundo de reserva, obras e multa por infração: lacuna (RN-FI-20).'
 - 'Categoria avulsa de "Fundo de reserva" com cobrança desligada: a RN-FI-24 a cita e a lista de categorias da RN-FI-32 não tem essa categoria, por isso não há código para ela (pergunta ao Pedro). "Taxa condominial" avulsa usa `taxa_condominial`.'
 - 'Lista de motivos de negativa de reclamação: lacuna (RF-RS-06 cita lista, sem conteúdo nas fontes).'
-- 'Cancelamento de reserva pelo condomínio (RN-CA-05): as fontes não dizem quem faz; sem operação aqui.'
+- "RN-CA-05: ator e ação resolvidos em 12/11/2026; administradora/suporte autorizado e síndico/sub em substituição têm operações próprias com motivo/auditoria, inclusive para Aguardando pagamento sem devolução se não recebeu."
 - 'Comunicados gerais e individuais: a matriz não dá envio à administradora; só a conversa com o alvo da reclamação (RN-CO-04) e a publicação do regimento.'
 - 'Limites de taxa, tempo de guarda da `Idempotency-Key` e política de versão mínima do app: lacunas do guia.'
 - 'Código `RECEITA_AVULSA_COM_COBRANCA_ATIVA` (receita avulsa fora de `outras_receitas` com o módulo de cobrança ligado): Proposta, as fontes só dizem que a regra vale com o módulo desligado (RN-FI-24).'
 - 'Avaliações de atendimento agregadas (RF-CH-10): as fontes não dizem se a distribuição por estrelas também se esconde com menos de 3 avaliações (RN-CH-20 cita a média); aqui ela fica nula, como Proposta. Os caminhos `/v1/administradora/avaliacoes-atendimento/*` são Proposta.'
+
+x-decisoes-12-11-2026:
+- "RN-CA-05: cancelar reserva pelo condomínio exige motivo/auditoria, inclusive Aguardando pagamento; sem recebimento não há devolução."
+- "Eleição regular abre/encerra por administradora ou suporte autorizado; segundo empate/sem elegível fica inconclusivo sem vencedor automático."
+- "Fontes financeiras individuais restritas e projeções por dia/categoria; exportações assíncronas."
+- "Recebimentos em reserva expirada/cancelada e cobrança cancelada abrem pendência assistida sem reativação; Paga com atraso considera instante efetivo."

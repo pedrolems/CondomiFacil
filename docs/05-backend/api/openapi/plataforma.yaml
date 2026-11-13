@@ -24,7 +24,7 @@ paths:
     get:
       operationId: plataformaListarPlanos
       summary: Lista os planos e as faixas de preço
-      description: 'Essencial (com administradora) e Gestão + Suporte (sem administradora), por faixa de unidades (RN 11). Os planos não se criam: só os preços têm versões. Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
+      description: 'Essencial (com administradora ou autogestão sem administradora e sem suporte de gestão) e Gestão + Suporte (sem administradora), por faixa de unidades (RN 11). Os planos não se criam: só os preços têm versões. Só o Admin da plataforma; o suporte recebe `403`. Rota da plataforma: não leva `X-Condominio-Id` nem `X-Unidade-Id`; o condomínio, quando houver, vai no caminho.'
       tags:
       - plataforma
       security:
@@ -2636,3 +2636,6 @@ x-lacunas:
 - 'Retenção do registro de acesso do suporte e de `auditoria_plataforma`: lacuna.'
 - 'Aviso de 30 dias do novo preço ao cliente (RN-PL-07): canal e texto não definidos.'
 - 'Limites de taxa, tempo de guarda da `Idempotency-Key` e política de versão mínima do app: lacunas do guia.'
+
+x-decisoes-12-11-2026:
+- "Assinatura da plataforma no MVP tem cobrança assistida/manual com ciclo/valores registrados e separada do dinheiro condominial."

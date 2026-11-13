@@ -844,7 +844,7 @@ paths:
     post:
       operationId: moradorCancelarReserva
       summary: Cancela uma reserva
-      description: Cancela até o início (RN-CA-01) e libera o horário na hora (RN-CA-06). Paga cancelada até 12h antes (configurável) tem reembolso integral, Pix em até 2 dias úteis ou estorno no cartão (RN-CA-02, RN-CA-04); depois disso cancela sem reembolso, com aviso antes de confirmar (RN-CA-03). A lista de visitantes vinculada é cancelada junto (RN-VI-14). Não tira pontos.
+      description: Cancela até o início (RN-CA-01) e libera o horário na hora (RN-CA-06). Paga cancelada com antecedência maior ou igual a 12h, inclusive igualdade (configurável) tem reembolso integral, Pix em até 2 dias úteis ou estorno no cartão (RN-CA-02, RN-CA-04); depois disso cancela sem reembolso, com aviso antes de confirmar (RN-CA-03). A lista de visitantes vinculada é cancelada junto (RN-VI-14). Não tira pontos.
       tags:
       - reservas
       security:
@@ -7279,6 +7279,15 @@ components:
       - candidaturas_fim
       - estado
       properties:
+        resultado_inconclusivo:
+          type: [object, 'null']
+          description: 'Somente após encerramento. Decisão de 12/11/2026: segundo empate ou ausência de elegível, sem vencedor automático; encaminhado ao condutor legitimado vigente de RN-VO-13, sem exigir administradora ou suporte pago (atualização de 13/11/2026).'
+          required: [motivo]
+          properties:
+            motivo:
+              type: string
+              enum: [segundo_turno_empatado, sem_candidato_elegivel]
+              description: Códigos propostos; não enumera todo o ciclo eleitoral.
         id:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         candidaturas_inicio:
@@ -7287,7 +7296,7 @@ components:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         estado:
           type: string
-          description: Estados de reunião, votação e eleição não estão enumerados nos docs; `Encerrada`, `Sem quórum` e `Empate` são citados em MER/DER 4.9 (lacuna).
+          description: Ciclo completo não enumerado; resultado inconclusivo aprovado em 12/11/2026 consta de resultado_inconclusivo, somente após encerramento.
     EleicaoMorador:
       allOf:
       - $ref: '#/components/schemas/EleicaoResumoMorador'

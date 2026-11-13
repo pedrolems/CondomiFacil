@@ -31,7 +31,7 @@ components:
         `confirmada` Confirmada; `em_andamento` Em andamento; `expirada` Expirada; `cancelada`
         Cancelada; `cancelada_com_reembolso` Cancelada com reembolso; `cancelada_sem_reembolso`
         Cancelada sem reembolso; `cancelada_pelo_condominio` Cancelada pelo condomínio; `cumprida`
-        Cumprida (antes chamada Realizada); `nao_comparecimento` Não comparecimento.
+        Aguardando pagamento pode ir a Cancelada pelo condomínio (RN-CA-05, decisão de 12/11/2026), sem devolução se não houve recebimento. Cumprida (antes chamada Realizada); `nao_comparecimento` Não comparecimento.
       enum:
         - aguardando_pagamento
         - confirmada
@@ -93,7 +93,7 @@ components:
         Estado do chamado (RN 9.2). Correspondência: `aberto` Aberto; `em_atendimento` Em
         atendimento (só limpeza); `orcamento` Orçamento (só manutenção); `agendado` Agendado (só
         manutenção); `concluido` Concluído; `reaberto` Reaberto (até 48h após a conclusão,
-        RN-CH-07). A avaliação do atendimento não é estado.
+        RN-CH-07). Manutenção Reaberto exige triagem para Orçamento ou Agendado. A avaliação do atendimento não é estado.
       enum:
         - aberto
         - em_atendimento
@@ -126,7 +126,7 @@ components:
       description: |
         Estado da cobrança condominial (RN 12.2). Correspondência: `emitida` Emitida; `em_atraso`
         Em atraso; `paga` Paga; `paga_com_atraso` Paga com atraso; `em_acordo` Em acordo (versão
-        2, fora do MVP); `cancelada` Cancelada. A situação "em atraso" nunca é exposta a outros
+        2, fora do MVP); `cancelada` Cancelada. Emitida paga após vencimento vai a paga_com_atraso mesmo antes da rotina; Cancelada recebe registro financeiro/pendência sem reativação (RN-FI-13). A situação "em atraso" nunca é exposta a outros
         moradores (SEG-17).
       enum:
         - emitida

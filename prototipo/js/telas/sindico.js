@@ -6,7 +6,7 @@ const GES = ['sindico', 'subsindico'];
 const R = n => CUR.p + '/' + n;
 const isSub = () => CUR.p === 'subsindico';
 const plena = () => !isSub() || S.substituicao;   // tem as funções de síndico
-const julgaveis = () => S.julgar.filter(j => isSub() ? (j.contraSindico || S.substituicao) : !j.contraSindico);
+const julgaveis = () => S.julgar.filter(j => !j.atribuicaoEncerrada).filter(j => isSub() ? (j.contraSindico || S.substituicao) : !j.contraSindico);
 const soSindico = (titulo, back) => ({ tab: 'gestao', top: { title: titulo, back: R(back || 'gestao') },
   body: empty('lock', 'Esta função é do síndico. Você passa a ter acesso quando a substituição pelo subsíndico estiver ativa.') });
 
@@ -23,15 +23,18 @@ def(GES, 'gestao', 'Gestão', 'Gestão', () => {
     ['star', 'Avaliações do atendimento', 'avaliacoes', baixas ? badge(baixas + (baixas > 1 ? ' avaliações baixas' : ' avaliação baixa'), 'warning') : ''],
     ['megaphone', plena() ? 'Comunicados' : 'Comunicados e sugestões', 'comunicados', !isSub() && pend ? badge(pend + ' sugestão', 'accent') : ''],
     ['vote', 'Reuniões e eleições', 'reunioes', ''],
+    ...(S.autogestao.ativa ? [['building-2', 'Administração do condomínio', 'autogestao', badge('Autogestão', 'neutral')]] : []),
     ['inbox', 'Solicitações de cadastro', 'solicitacoes', badge(`${S.franquia.usadas} de ${S.franquia.total}`, 'neutral')],
     ['receipt', 'Inadimplência', 'inadimplencia', badge(S.inad.length + ' unidades', 'danger')],
     ['wallet', 'Finanças', 'financas', ''],
+    ['calendar-x', 'Cancelar pelo condomínio', 'cancelamentos', ''],
+    ['flag', 'Denúncias recebidas', 'denuncias', ''],
     ['package', 'Encomendas com prazo vencido', 'encomendas-vencidas', badge(String(S.encomendas.filter(e => e.estado === 'Prazo vencido').length), 'warning')],
     ['user-round-cog', 'Substituição pelo subsíndico', 'substituicao', S.substituicao ? badge('Ativa', 'info') : isSub() ? badge('Inativa', 'neutral') : ''],
   ];
   // Dia a dia do subsíndico: julgar contra o síndico, acompanhar manutenção, sugerir comunicados, votos presenciais e encomendas vencidas
-  const DIA = ['julgar', 'manutencao', 'comunicados', 'reunioes', 'encomendas-vencidas', 'substituicao'];
-  const items = plena() ? todos : todos.filter(i => DIA.includes(i[2]));
+  const DIA = ['julgar', 'manutencao', 'comunicados', 'reunioes', 'encomendas-vencidas', 'substituicao', 'denuncias'];
+  const items = (plena() ? todos : todos.filter(i => DIA.includes(i[2]))).filter(i => !S.autogestao.ativa || i[2] !== 'solicitacoes');
   return {
     tab: 'gestao', top: { title: 'Gestão', actions: [{ icon: 'bell', label: 'Notificações', on: R('notificacoes'), dot: true }] }, flush: true,
     body: `${isSub() ? `<div class="pad" style="padding-bottom:0">${S.substituicao ? banner('info', 'user-round-cog', 'Substituição ativa: você tem as funções de síndico até o síndico ou a administradora desativar. Tudo o que fizer fica registrado.', { inline: true })
@@ -56,7 +59,8 @@ def(GES, 'julgar', 'Reclamações para julgar', 'Reclamações (9.2)', () => {
   };
 });
 def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
-  const j = S.julgar.find(x => x.id === ctx.arg) || S.julgar[0];
+  const j = S.julgar.find(x => x.id === ctx.arg);
+  if (!j || !julgaveis().includes(j)) return { tab: 'gestao', top: { title: 'Reclamação', back: R('julgar') }, body: empty('lock', 'Caso indisponível para sua função atual.') };
   const decidida = ['Validada', 'Negada', 'Encerrada'].includes(j.estado);
   const podeDecidir = j.resposta || j.semResposta;
   const pessoa = (l, x) => `<div class="card" style="flex:1"><div class="t-caption muted">${l}</div><b>${x.nome}</b><div class="t-body-sm muted">${x.un}</div><div class="t-body-sm">Score <b class="num">${x.score}</b></div></div>`;
@@ -143,7 +147,7 @@ def(GES, 'manutencao-detalhe', 'Acompanhar manutenção', 'Chamados (8.3)', ctx 
       ${c.agenda ? row({ icon: 'calendar-days', title: 'Visita agendada', sub: c.agenda }) : ''}
       <h3 class="t-title-sm">Andamento</h3>${timeline(steps.map((s, i) => ({ t: s, state: i < idx || (c.estado === 'Concluído' && i === idx) ? 'done' : i === idx ? 'now' : '' })))}
       ${c.estado === 'Concluído' ? fotosServico(c) + avalSindico(c) : ''}</div>`,
-    footer: nextS && plena() ? btn('Avançar para ' + nextS, { block: true, size: 'lg', on: () => {
+    footer: c.estado === 'Reaberto' && plena() ? `<div class="stack"><p class="help">Aguardando triagem. Escolha o próximo atendimento.</p>${['Orçamento', 'Agendado'].map(destino => btn('Encaminhar para ' + destino, { block: true, on: () => triarManutencao(c, destino) })).join('')}</div>` : nextS && plena() ? btn('Avançar para ' + nextS, { block: true, size: 'lg', on: () => {
       const doIt = () => { c.estado = nextS; c.fora = false; if (nextS === 'Concluído') { c.concluidoEm = AGORA_PROTO; c.concluido = 'agora'; c.fotos = Math.min((FORM.sfotos || []).length, 5); FORM.sfotos = []; } if (nextS === 'Agendado' && !c.agenda) c.agenda = '10/11 às 14h'; rerender(); toast(nextS === 'Concluído' ? 'Chamado concluído. Quem abriu foi avisado e pode reabrir em até 48h.' : 'Andamento atualizado: ' + nextS + '.'); };
       if (!c.empresa && nextS !== 'Orçamento') { escolherEmpresa(); return; }
       if (nextS === 'Concluído') { FORM.sfotos = []; sheet(() => `<h2 class="t-title-md">Concluir chamado</h2><div class="t-body-sm muted">${esc(c.cat)} · ${esc(c.local)} · ${esc(c.empresa)}</div><div class="field"><span class="field-label">Fotos do serviço (opcional)</span>${photoPicker('sfotos')}<span class="help">Até 5 fotos. Quem abriu vê as fotos para avaliar o serviço. Você pode concluir sem foto.</span></div>${btn('Concluir chamado', { block: true, size: 'lg', icon: 'check', on: () => { closeLayer(); doIt(); } })}`); return; }
@@ -216,7 +220,7 @@ def(GES, 'comunicado-novo', 'Novo comunicado', 'Comunicados (10.1)', () => {
 def(GES, 'reunioes', 'Reuniões e eleições', 'Reuniões (11)', () => ({
   tab: 'gestao', top: { title: 'Reuniões', back: R('gestao') },
   body: `<div class="stack">${plena() ? '' : banner('info', 'vote', 'Você registra os votos presenciais nas reuniões convocadas pelo síndico. Convocar, criar pautas e encerrar é com ele, ou com você na substituição.', { inline: true })}${S.reunioes.map(g => card({ icon: g.eleicao ? 'vote' : 'calendar-days', title: g.titulo, sub: g.data, badge: st(g.estado), on: g.eleicao ? R('eleicao/') + g.id : R('reuniao-gestao/') + g.id })).join('')}
-    ${plena() ? btn('Abrir eleição', { v: 'secondary', icon: 'vote', on: () => toast('A eleição 2027–2028 já está aberta.') }) : ''}</div>`,
+    ${btn('Conduzir eleição', { icon: 'vote', on: R('eleicoes') })}${banner('info', 'vote', 'Síndico conduz; na ausência, subsíndico, conselho fiscal ou proprietário designado, em qualquer plano.', { inline: true })}</div>`,
   fab: !plena() ? null : { icon: 'plus', label: 'Convocar', aria: 'Convocar reunião', on: () => { resetForm({ pautas: [{ q: '', tipo: 'votacao' }] }); go(R('convocar')); } },
 }));
 def(GES, 'convocar', 'Convocar reunião', 'Reuniões (11)', () => {
@@ -279,7 +283,7 @@ def(GES, 'solicitacao-nova', 'Nova solicitação', 'Solicitações (4.2)', () =>
     footer: btn('Enviar solicitação', { block: true, size: 'lg', on: () => {
       if (!(FORM.snome || '').trim()) { A.sErr = 'Informe o nome.'; rerender(); return; }
       A.sErr = '';
-      const send = () => { S.solicitacoes.unshift({ id: 's' + uid(), tipo: FORM.stipo || 'Incluir morador', det: FORM.snome + (FORM.sun ? ' · ' + FORM.sun : ''), estado: 'Pendente', data: 'hoje' }); S.franquia.usadas++; go(R('solicitacoes')); setTimeout(() => toast('Solicitação enviada à administradora.'), 50); };
+      const send = () => { if (S.autogestao.ativa || !plena()) return; S.solicitacoes.unshift({ id: 's' + uid(), tipo: FORM.stipo || 'Incluir morador', det: FORM.snome + (FORM.sun ? ' · ' + FORM.sun : ''), estado: 'Pendente', data: 'hoje' }); S.franquia.usadas++; go(R('solicitacoes')); setTimeout(() => toast('Solicitação enviada à administradora.'), 50); };
       if (esg) dialog({ title: 'Enviar solicitação extra?', text: 'Esta solicitação custará R$ 15,00 na próxima fatura do condomínio.', actions: [{ label: 'Enviar por R$ 15,00', on: send }, { label: 'Esperar o próximo mês', v: 'secondary' }] });
       else send();
     } }),
@@ -312,3 +316,8 @@ def(GES, 'substituicao', 'Substituição pelo subsíndico', 'Gestão', () => isS
     ${sw('Ativar substituição pela subsíndica', S.substituicao, () => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa. Carla Mendes tem as funções de síndico.' : 'Substituição desativada. As funções voltaram para você.'); })}
     ${S.substituicao ? banner('info', 'info', 'Tudo o que a subsíndica fizer fica registrado.', { inline: true }) : ''}</div>`,
 }));
+
+function triarManutencao(c, destino) {
+  if (c?.tipo !== 'manutencao' || !['sindico', 'subsindico'].includes(CUR.p) || (CUR.p === 'subsindico' && !S.substituicao) || c.estado !== 'Reaberto' || !['Orçamento', 'Agendado'].includes(destino)) return false;
+  c.estado = destino; c.triagem = { destino, autor: PROFILES[CUR.p].name, em: '12/11/2026' }; registrarDecisao('Triagem de manutenção ' + c.id, destino); rerender(); toast('Triagem registrada: ' + destino + '.'); return true;
+}

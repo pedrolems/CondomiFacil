@@ -1,5 +1,87 @@
 /* Administradora — painel web (11.9): fluxos 4.1, 4.3, 4.4, 9.2, 11.2, 13.2 */
 'use strict';
+
+const podeCancelarCondominio = () => CUR.p === 'admin' || CUR.p === 'sindico' || (CUR.p === 'subsindico' && S.substituicao);
+
+def('admin', 'historico-vinculos', 'Vigência e histórico', 'Administração (4)', () => {
+  if (CUR.p !== 'admin') return { body: empty('lock', 'Acesso restrito.') };
+  const h = S.complementacao.casoOriginal;
+  return { nav: 'mandatos', body: head('Vigência e histórico', 'Simulação de encerramento de função e mudança de habilitado.') + card({ icon: 'history', title: 'Preservar episódio original', body: 'Trocar habilitado mantém caso e score no vínculo original. O novo ocupante começa com score próprio e não lê o caso anterior.', foot: btn('Simular troca de habilitado', { on: () => { if (CUR.p !== 'admin') return; h.habilitadoTrocado = true; registrarDecisao('Troca de habilitado', 'Caso e score preservados no episódio original.'); rerender(); toast('Vínculo original preservado. Sem transferência de pontos.'); } }) }) + card({ icon: 'user-round-cog', title: h.julgadorVigente ? 'Julgador com função vigente' : 'Julgador anterior sem acesso', body: 'Exemplo de caso contra síndico: o subsíndico perde a função; sem subsíndico elegível, passa à administradora pela tabela vigente. Demais exemplos são independentes.', foot: h.julgadorVigente ? btn('Simular perda de função no caso contra síndico', { on: () => { if (CUR.p !== 'admin') return; h.julgadorVigente = false; const caso = S.julgar.find(j => j.id === 'j4'); if (caso) { caso.atribuicaoEncerrada = true; caso.reatribuidoPara = 'Administradora'; caso.historicoAtribuicao = [{ de: 'Subsíndico', para: 'Administradora', motivo: 'Perda da função do julgador; caso contra síndico, sem subsíndico elegível.' }]; } registrarDecisao('Reatribuir casos', 'Tabela vigente; acesso do julgador anterior encerrado.'); rerender(); } }) : '' }) };
+});
+
+def('morador', 'caso-historico', 'Defesa e recurso do vínculo anterior', 'Score e reclamações (9)', () => {
+  const h = S.complementacao.casoOriginal;
+  if (CUR.p !== 'morador' || A.verComoNovoHabilitado) return { tab: 'menu', top: { title: 'Caso', back: 'morador/menu' }, body: empty('lock', 'Caso indisponível para este vínculo.') };
+  return { tab: 'menu', top: { title: 'Caso do vínculo original', back: 'morador/menu' }, body: `<div class="stack">${banner('neutral', 'history', 'Acesso próprio restrito à defesa e ao recurso deste caso. Não dá acesso aos dados atuais da unidade.', { inline: true })}${card({ icon: 'scale', title: 'Recurso da penalidade original', sub: 'Saldo antes da penalidade: 3 · penalidade nominal: 10 · perda efetiva: 3', body: 'Saldo deste episódio: ' + h.saldo + '. ' + (h.habilitadoTrocado ? 'O habilitado mudou; este histórico continua no episódio original.' : 'A troca de habilitado não transfere esta penalidade.'), foot: h.revertido ? badge('Perda efetiva restituída: 3 pontos', 'neutral') : btn('Simular recurso aceito', { on: () => { if (CUR.p !== 'morador' || A.verComoNovoHabilitado || h.revertido) return; h.saldo = Math.min(100, h.saldo + h.perdaEfetiva); h.revertido = true; rerender(); toast('3 pontos restituídos ao episódio original.'); } }) })}${btn('Simular acesso como novo habilitado', { v: 'secondary', on: () => { A.verComoNovoHabilitado = true; rerender(); } })}</div>` };
+});
+function registrarDecisao(acao, motivo) {
+  S.complementacao.auditoria.push({ acao, motivo, autor: PROFILES[CUR.p].name, em: '12/11/2026' });
+}
+function aplicarCancelamentoCondominio(reservas, motivo) {
+  if (!podeCancelarCondominio() || !String(motivo || '').trim()) return false;
+  const elegiveis = reservas.filter(r => ['Confirmada', 'Aguardando pagamento'].includes(r.estado));
+  elegiveis.forEach(r => {
+    const recebeu = r.estado === 'Confirmada' && r.valor > 0;
+    r.estado = 'Cancelada pelo condomínio'; r.motivoCancelamento = motivo.trim(); r.reembolso = recebeu ? 'Solicitado' : null;
+    const lista = listaDaReserva(r);
+    if (lista) { pessoasLista(lista.id).filter(v => v.estado === 'Esperado').forEach(v => { v.estado = 'Cancelado'; v.cancelado = true; }); lista.estado = 'Cancelada'; }
+    registrarDecisao('Cancelar reserva ' + r.id + ' pelo condomínio', motivo.trim());
+  });
+  return elegiveis.length > 0;
+}
+function pedirCancelamentoCondominio(reservas) {
+  if (!podeCancelarCondominio()) return;
+  FORM.ccmotivo = ''; FORM.ccerro = '';
+  const abrir = () => sheet(() => `<h2 class="t-title-md">Cancelar pelo condomínio</h2><p class="t-body-sm">Informe o motivo. Só há reembolso se houve recebimento; o horário é liberado e o morador é avisado.</p>${field('Motivo obrigatório', textarea('ccmotivo'), { error: FORM.ccerro })}${btn('Confirmar cancelamento', { v: 'danger', block: true, on: () => {
+    if (!podeCancelarCondominio()) return;
+    if (!(FORM.ccmotivo || '').trim()) { FORM.ccerro = 'Informe o motivo.'; abrir(); return; }
+    const ok = aplicarCancelamentoCondominio(reservas, FORM.ccmotivo);
+    closeLayer(); rerender(); toast(ok ? 'Cancelamento registrado. Morador avisado.' : 'A reserva mudou. Consulte a lista atualizada.');
+  } })}`);
+  abrir();
+}
+
+def(['admin', 'sindico', 'subsindico'], 'cancelamentos', 'Cancelamentos pelo condomínio', 'Reservas (5.2)', ctx => {
+  if (!podeCancelarCondominio()) return soSindico('Cancelamentos');
+  const body = S.reservas.filter(r => ['Confirmada', 'Aguardando pagamento'].includes(r.estado)).map(r => row({ icon: 'calendar-x', title: areaOf(r.area).nome, sub: `${r.dia} · ${r.hora}`, right: st(r.estado), on: () => pedirCancelamentoCondominio([r]) })).join('');
+  return { nav: 'cancelamentos', tab: 'gestao', top: { title: 'Cancelar pelo condomínio', back: ctx.p + '/gestao' }, body: `<div class="stack">${ctx.p === 'admin' ? head('Cancelar pelo condomínio', 'Reservas elegíveis; motivo e auditoria obrigatórios.') : ''}<div class="list">${body || empty('calendar-check', 'Nenhuma reserva elegível.')}</div></div>` };
+});
+
+def(['sindico', 'subsindico'], 'denuncias', 'Denúncias recebidas', 'Comunicação (10)', ctx => {
+  const atribuida = d => d.destinatario === 'sindico' ? (S.substituicao ? CUR.p === 'subsindico' : CUR.p === 'sindico') : d.destinatario === CUR.p;
+  const list = S.complementacao.denuncias.filter(atribuida);
+  const decidir = d => {
+    if (!atribuida(d) || d.resultado) return;
+    FORM.dmotivo = ''; FORM.derro = '';
+    const abrir = () => sheet(() => `<h2 class="t-title-md">Revisar conteúdo</h2><p>${esc(d.conteudo)}</p>${field('Motivo obrigatório', textarea('dmotivo'), { error: FORM.derro })}${['Encerrar sem ação', 'Ocultar conteúdo'].map(acao => btn(acao, { v: acao === 'Ocultar conteúdo' ? 'danger' : 'secondary', block: true, on: () => {
+      if (!atribuida(d) || d.resultado) return;
+      if (!(FORM.dmotivo || '').trim()) { FORM.derro = 'Informe o motivo.'; abrir(); return; }
+      d.resultado = acao; d.decisaoMotivo = FORM.dmotivo.trim(); d.decididaEm = '12/11/2026';
+      if (d.comunicadoId && acao === 'Ocultar conteúdo') { const c = S.comunicados.find(c => c.id === d.comunicadoId); if (c) c.oculto = true; }
+      registrarDecisao(acao + ' ' + d.id, d.decisaoMotivo); closeLayer(); rerender(); toast('Decisão registrada sem alteração de score.');
+    } })).join('')}`);
+    abrir();
+  };
+  return { tab: 'gestao', top: { title: 'Denúncias recebidas', back: ctx.p + '/gestao' }, body: `<div class="stack">${banner('info', 'shield-check', 'Somente conteúdo atribuído a você, com identidades protegidas. A decisão não altera score.', { inline: true })}${list.map(d => card({ icon: d.resultado === 'Ocultar conteúdo' ? 'eye-off' : 'flag', title: d.resultado || 'Aguardando revisão', body: esc(d.conteudo), sub: esc(d.motivo) + (d.decisaoMotivo ? ' · Motivo da decisão: ' + esc(d.decisaoMotivo) : ''), foot: d.resultado ? '' : btn('Revisar denúncia', { on: () => decidir(d) }) })).join('')}</div>` };
+});
+
+
+def('admin', 'recebimentos-pendentes', 'Recebimentos em análise', 'Cobrança (13)', () => {
+  if (CUR.p !== 'admin') return { body: empty('lock', 'Acesso restrito à administradora autorizada.') };
+  const cf = S.complementacao.cobrancaFronteira ||= { id: 'bf1', valor: 620, venc: '10/11', estado: 'Emitida' };
+  const simular = tipo => {
+    if (CUR.p !== 'admin') return;
+    if (!S.complementacao.recebimentos.some(r => r.tipo === tipo)) S.complementacao.recebimentos.push({ tipo, valor: 120, estado: 'Em análise', motivo: '' });
+    rerender();
+  };
+  return { nav: 'recebimentos-pendentes', body: head('Recebimentos em análise', 'Dinheiro recebido é preservado; reserva e cobrança canceladas não são reativadas.') + `<div class="row wrap">${['Reserva expirada', 'Reserva cancelada', 'Cobrança cancelada'].map(t => btn('Simular: ' + t, { v: 'secondary', on: () => simular(t) })).join('')}</div>${card({ icon: 'clock', title: 'Pagamento após vencimento, antes da rotina', sub: 'Venceu em 10/11 · estado: ' + cf.estado, body: 'Instante efetivo simulado: 11/11/2026 às 00h01. A rotina de atraso ainda não rodou.', foot: cf.estado === 'Emitida' ? btn('Simular recebimento após vencimento', { on: () => { if (CUR.p !== 'admin') return; aplicarRecebimentoCobranca(cf, cf.venc, '2026-11-11T00:01:00-03:00'); registrarDecisao('Classificar cobrança bf1', 'Instante efetivo posterior ao vencimento.'); rerender(); } }) : '' })}<div class="stack" style="margin-top:16px">${S.complementacao.recebimentos.map(r => card({ icon: 'receipt', title: r.tipo, sub: money(r.valor) + ' · ' + r.estado, body: r.motivo ? esc(r.motivo) : 'Pendente de resolução assistida. Sem reativação ou devolução automática.', foot: r.estado === 'Em análise' ? btn('Registrar encaminhamento', { on: () => { FORM.rpm = ''; FORM.rpe = ''; const abrir = () => sheet(() => `<h2 class="t-title-md">Registrar encaminhamento</h2>${field('Motivo', textarea('rpm'), { error: FORM.rpe })}${btn('Registrar', { on: () => { if (CUR.p !== 'admin') return; if (!(FORM.rpm || '').trim()) { FORM.rpe = 'Informe o motivo.'; abrir(); return; } r.motivo = FORM.rpm.trim(); r.estado = 'Encaminhado'; registrarDecisao(r.tipo, r.motivo); closeLayer(); rerender(); } })}`); abrir(); } }) : '' })).join('')}</div>` };
+});
+
+def('admin', 'assinatura', 'Assinatura da plataforma', 'Plano', () => {
+  if (CUR.p !== 'admin') return { body: empty('lock', 'Acesso restrito.') };
+  const a = S.complementacao.assinatura;
+  return { nav: 'assinatura', body: head('Assinatura da plataforma', 'Cobrança assistida/manual, separada da taxa e da conta do condomínio.') + card({ icon: 'file-text', title: a.ciclo, sub: money(a.valor) + ' · ' + a.estado, body: a.anotacao ? 'Sua anotação: ' + esc(a.anotacao) : 'Aguardar tratamento comercial pela equipe da plataforma; nenhum pagamento é enviado ao gateway do condomínio.', foot: btn('Anotar contato com a plataforma', { on: () => { FORM.asm = ''; FORM.ase = ''; const abrir = () => sheet(() => `<h2 class="t-title-md">Acompanhamento da assinatura</h2>${field('Registro', textarea('asm'), { error: FORM.ase })}${btn('Salvar registro', { on: () => { if (CUR.p !== 'admin') return; if (!(FORM.asm || '').trim()) { FORM.ase = 'Descreva o acompanhamento.'; abrir(); return; } a.anotacao = FORM.asm.trim(); registrarDecisao('Anotação do cliente sobre contato comercial', a.anotacao); closeLayer(); rerender(); } })}`); abrir(); } }) }) };
+});
 const head = (t, sub, actions = '') => `<div class="web-head"><div><h1 class="t-title-md">${t}</h1>${sub ? `<p class="t-body-sm muted" style="margin:4px 0 0">${sub}</p>` : ''}</div><div class="row wrap">${actions}</div></div>`;
 function table(cols, rows, o = {}) {
   return `<div class="table-wrap"><table class="tbl"><thead><tr>${cols.map(c => `<th scope="col" class="${c.r ? 'r' : ''}">${c.t}</th>`).join('')}</tr></thead>
@@ -163,7 +245,7 @@ def('admin', 'areas', 'Áreas e regras', 'Cadastros (4.1)', () => ({
       ${FORM.apaga === 'paga' ? field('Valor', input('av', { inputmode: 'decimal', ph: 'R$ 0,00' })) : ''}
       ${btn('Salvar área', { block: true, on: () => { closeLayer(); if (FORM.apaga === 'paga' && A.semConta) { dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Sem conta bancária', text: 'Cadastre a conta bancária do condomínio antes de criar áreas pagas.', actions: [{ label: 'Cadastrar conta', on: () => go('admin/implantacao/2') }, { label: 'Agora não', v: 'secondary' }] }); return; } S.areas.push({ id: uid(), nome: FORM.an || 'Nova área', paga: FORM.apaga === 'paga', valor: parseFloat((FORM.av || '0').replace(',', '.')) || 0, cap: 'Até 20 pessoas', ico: 'map-pin' }); rerender(); toast('Área salva.'); } })}
       <label class="row help"><input type="checkbox" class="checkbox" ${A.semConta ? 'checked' : ''} ${cb(() => { A.semConta = !A.semConta; })}>Simular condomínio sem conta bancária</label>`) }))}
-    ${table([{ t: 'Área' }, { t: 'Tipo' }, { t: 'Valor', r: true }, { t: 'Capacidade' }, { t: 'Reembolso até' }, { t: '', r: true }], S.areas.map(a => `<tr><td><span class="row">${ic(a.ico)}<b>${a.nome}</b></span></td><td>${a.paga ? badge('Paga', 'info') : badge('Gratuita', 'neutral')}</td><td class="r">${a.paga ? money(a.valor) : '—'}</td><td>${a.cap}</td><td>${a.paga ? '12h antes (herdado do condomínio)' : '—'}</td>${menuCell([['pencil', 'Editar regras', () => go('admin/configuracoes')], ['calendar-x', 'Bloquear para manutenção', () => dialog({ title: `Bloquear ${a.nome}?`, text: 'As reservas no período são canceladas pelo condomínio, com reembolso integral, e os moradores são avisados com o motivo.', actions: [{ label: 'Bloquear e cancelar reservas', v: 'danger', on: () => { S.reservas.filter(r => r.area === a.id && ['Confirmada', 'Aguardando pagamento'].includes(r.estado)).forEach(r => r.estado = 'Cancelada pelo condomínio'); toast('Área bloqueada. Reservas canceladas pelo condomínio.'); } }, { label: 'Cancelar', v: 'secondary' }] })]])}</tr>`))}`,
+    ${table([{ t: 'Área' }, { t: 'Tipo' }, { t: 'Valor', r: true }, { t: 'Capacidade' }, { t: 'Reembolso até' }, { t: '', r: true }], S.areas.map(a => `<tr><td><span class="row">${ic(a.ico)}<b>${a.nome}</b></span></td><td>${a.paga ? badge('Paga', 'info') : badge('Gratuita', 'neutral')}</td><td class="r">${a.paga ? money(a.valor) : '—'}</td><td>${a.cap}</td><td>${a.paga ? '12h antes (herdado do condomínio)' : '—'}</td>${menuCell([['pencil', 'Editar regras', () => go('admin/configuracoes')], ['calendar-x', 'Bloquear para manutenção', () => pedirCancelamentoCondominio(S.reservas.filter(r => r.area === a.id))]])}</tr>`))}`,
 }));
 
 /* ---- Reclamações (consulta e julgamento nos casos de RN-RC-03/07) ---- */
@@ -226,7 +308,7 @@ def('admin', 'comunicados', 'Comunicados', 'Comunicação (10.1)', () => ({
 /* ---- Reuniões, mandatos e substituição (4.4, 11.2) ---- */
 def('admin', 'reunioes', 'Reuniões e mandatos', 'Mandatos (4.4)', () => ({
   nav: 'reunioes',
-  body: `${head('Reuniões e mandatos', '', btn('Abrir eleição', { icon: 'vote', on: () => toast('Eleição 2027–2028 aberta. Candidaturas até 15/11.') }))}
+  body: `${head('Reuniões e mandatos', '', btn('Abrir eleição', { icon: 'vote', on: 'admin/eleicoes' }))}
     <h2 class="t-title-sm" style="margin-bottom:12px">Mandatos ativos</h2>
     ${table([{ t: 'Cargo' }, { t: 'Nome' }, { t: 'Unidade' }, { t: 'Início' }, { t: 'Fim' }, { t: '', r: true }], S.mandatos.map(m => `<tr><td><b>${m.cargo}</b></td><td>${m.nome}</td><td>${m.un}</td><td class="num">${m.ini}</td><td class="num">${m.fim}</td>${menuCell([['calendar-x', 'Encerrar mandato antes do fim', () => dialog({ tone: 'danger', icon: 'triangle-alert', title: `Encerrar o mandato de ${m.nome}?`, text: m.cargo === 'Síndico' ? 'A subsíndica assume até a nova eleição. Você será levada a abrir a eleição.' : 'O cargo fica vago até a próxima eleição.', actions: [{ label: 'Encerrar mandato', v: 'danger', on: () => toast('Mandato encerrado. Abra a nova eleição.') }, { label: 'Cancelar', v: 'secondary' }] })]])}</tr>`))}
     <div class="grid-2" style="margin-top:24px"><section class="card"><h2 class="t-title-sm">Substituição do síndico</h2>${sw('Subsíndica assume as funções de síndico', S.substituicao, () => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa.' : 'Funções voltaram ao síndico.'); }, { sub: 'Ativada pela administradora ou pelo síndico. Tudo fica registrado.' })}</section>

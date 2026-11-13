@@ -175,9 +175,28 @@ function payTarget(arg) {
   if (kind === 'reserva') { const r = S.reservas.find(x => x.id === id) || S.reservas[1]; return { kind, obj: r, valor: r.valor, titulo: areaOf(r.area).nome + ' · ' + r.dia, back: 'reserva-pagamento/' + r.id }; }
   const c = cobrancaAtual().concat(S.cobrancasProp).find(x => x.id === id) || S.cobrancas[0]; return { kind, obj: c, valor: c.valor, titulo: c.ref, back: 'cobranca/' + c.id };
 }
+function registrarRecebimentoEmAnalise(tipo, obj) {
+  const chave = tipo + ':' + obj.id;
+  if (!S.complementacao.recebimentos.some(x => x.chave === chave)) S.complementacao.recebimentos.push({ chave, tipo, valor: obj.valor || 0, estado: 'Em análise', motivo: '' });
+}
+function aplicarRecebimentoCobranca(c, vencimento, efetivo) {
+  if (c.estado === 'Cancelada') { registrarRecebimentoEmAnalise('Cobrança cancelada', c); return false; }
+  const [dia, mes] = vencimento.split('/');
+  const venc = '2026-' + mes + '-' + dia;
+  c.estado = efetivo.slice(0, 10) > venc ? 'Paga com atraso' : 'Paga'; c.pago = efetivo.slice(0, 10).split('-').reverse().slice(0, 2).join('/');
+  return true;
+}
 function payApproved(p, t) {
-  if (t.kind === 'reserva') { t.obj.estado = 'Confirmada'; go(p + '/reserva-ok/' + t.obj.id); }
-  else { const c = S.cobrancas.concat(S.cobrancasProp).find(x => x.id === t.obj.id); c.estado = S.atraso && c.id === 'b1' ? 'Paga com atraso' : 'Paga'; c.pago = 'hoje'; if (c.id === 'b1') S.atraso = false; go(p + '/cobranca-paga/' + c.id); }
+  if (t.kind === 'reserva') {
+    if (t.obj.estado === 'Expirada' || t.obj.estado.startsWith('Cancelada')) { registrarRecebimentoEmAnalise(t.obj.estado === 'Expirada' ? 'Reserva expirada' : 'Reserva cancelada', t.obj); go(p + '/reserva/' + t.obj.id); toast('Recebimento em análise. A reserva não foi reativada.'); return; }
+    t.obj.estado = 'Confirmada'; go(p + '/reserva-ok/' + t.obj.id);
+  } else {
+    const c = S.cobrancas.concat(S.cobrancasProp).find(x => x.id === t.obj.id);
+    if (!c) return;
+    if (!aplicarRecebimentoCobranca(c, t.obj.venc, t.efetivo || HOJE_PROTO)) { go(p + '/cobranca/' + c.id); toast('Recebimento em análise. A cobrança continua cancelada.'); return; }
+    if (c.id === 'b1') S.atraso = false;
+    go(p + '/cobranca-paga/' + c.id);
+  }
 }
 def([...RES, 'proprietario'], 'pix', 'Pagar com Pix', 'Pagamentos', ctx => {
   const t = payTarget(ctx.arg || 'reserva-r2'), p = ctx.p;
@@ -247,9 +266,9 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
   const cancelar = () => {
     const end = estado => { r.estado = estado; const l = listaDaReserva(r); if (l) { pessoasLista(l.id).filter(v => v.estado === 'Esperado').forEach(v => { v.estado = 'Cancelado'; v.cancelado = true; }); l.estado = 'Cancelada'; } rerender(); toast(l ? 'Reserva cancelada. A lista vinculada também foi cancelada.' : 'Reserva cancelada.'); };
     if (!a.paga || r.estado === 'Aguardando pagamento') return dialog({ title: 'Cancelar a reserva?', text: `${a.nome}, ${r.dia} · ${r.hora}. O horário fica livre para outros moradores.`, actions: [{ label: 'Cancelar reserva', v: 'danger', on: () => end('Cancelada') }, { label: 'Manter reserva', v: 'secondary' }] });
-    dialog({ title: 'Quanto tempo falta para a reserva?', text: 'O protótipo simula as duas situações.', actions: [
-      { label: 'Mais de 12h (com reembolso)', v: 'secondary', on: () => dialog({ title: 'Cancelar com reembolso?', text: `Você recebe ${money(r.valor)} de volta: Pix em até 2 dias úteis ou estorno no cartão.`, actions: [{ label: 'Cancelar com reembolso', v: 'danger', on: () => end('Cancelada com reembolso') }, { label: 'Manter reserva', v: 'secondary' }] }) },
-      { label: '12h ou menos (sem reembolso)', v: 'secondary', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Cancelar a reserva sem reembolso?', text: 'Faltam menos de 12h. Se cancelar, o valor não será devolvido.', actions: [{ label: 'Cancelar sem reembolso', v: 'danger', on: () => end('Cancelada sem reembolso') }, { label: 'Manter reserva', v: 'secondary' }] }) },
+    dialog({ title: 'Quanto tempo falta para a reserva?', text: '12h exatas estão incluídas no reembolso. Escolha a situação para simular.', actions: [
+      { label: '12h ou mais (com reembolso)', v: 'secondary', on: () => dialog({ title: 'Cancelar com reembolso?', text: `Você recebe ${money(r.valor)} de volta: Pix em até 2 dias úteis ou estorno no cartão.`, actions: [{ label: 'Cancelar com reembolso', v: 'danger', on: () => end('Cancelada com reembolso') }, { label: 'Manter reserva', v: 'secondary' }] }) },
+      { label: 'Menos de 12h (sem reembolso)', v: 'secondary', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Cancelar a reserva sem reembolso?', text: 'Faltam menos de 12h. Se cancelar, o valor não será devolvido.', actions: [{ label: 'Cancelar sem reembolso', v: 'danger', on: () => end('Cancelada sem reembolso') }, { label: 'Manter reserva', v: 'secondary' }] }) },
     ] });
   };
   return {
@@ -259,7 +278,7 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
       ${lr ? row({ icon: 'list-checks', title: `Lista: ${lrQ.total} ${lrQ.total === 1 ? 'pessoa' : 'pessoas'}`, sub: `${esc(lr.titulo)} · ${lrQ.chegaram} chegaram`, on: p + '/lista-visitantes/' + lr.id }) : sugereLista(r) ? bannerLista(r, p) : ''}
       ${r.valor ? `<div class="card"><div class="row-between"><span>Valor</span><b class="num">${money(r.valor)}</b></div>${r.estado === 'Aguardando pagamento' ? `<p class="t-body-sm c-warning row" style="margin:0">${ic('clock')}Pague até ${r.prazo} ou o horário é liberado.</p>` : ''}</div>` : ''}
       ${r.estado === 'Confirmada' && a.paga ? banner('info', 'info', 'Cancelamento com reembolso até 12h antes do início.', { inline: true }) : ''}
-      ${r.estado === 'Cancelada pelo condomínio' ? banner('info', 'info', 'O condomínio cancelou esta reserva por manutenção. O valor foi devolvido integralmente.', { inline: true }) : ''}
+      ${r.estado === 'Cancelada pelo condomínio' ? banner('info', 'info', `O condomínio cancelou esta reserva. Motivo: ${esc(r.motivoCancelamento || 'Manutenção')}. ${r.reembolso ? 'Reembolso solicitado, acompanhe no histórico.' : 'Sem devolução quando não houve recebimento.'}`,  { inline: true }) : ''}
       ${r.estado.startsWith('Cancelada com') ? row({ icon: 'file-check', title: 'Comprovante do reembolso', on: () => toast('Comprovante baixado.') }) : ''}
     </div>`,
     footer: ativa ? `${r.estado === 'Aguardando pagamento' ? btn('Pagar agora', { block: true, size: 'lg', on: p + '/reserva-pagamento/' + r.id }) : ''}${btn('Cancelar reserva', { v: 'secondary', block: true, on: cancelar })}` : '',
@@ -495,7 +514,7 @@ function reabrirChamado(c) {
   if (c.aval) { (c.avalHist = c.avalHist || []).push(c.aval); c.aval = null; }   // a avaliação feita vale para a conclusão anterior (RN-CH-17)
   c.ciclo = (c.ciclo || 1) + 1; c.avaliacaoDisponivelEm = null; c.correcaoConclusao = ''; c.conclusaoPendente = false;
   c.estado = 'Reaberto'; c.concluidoEm = null; c.concluido = ''; c.fotos = 0; c.prazo = 'vence em 24h'; c.fora = false;
-  closeLayer(); rerender(); toast('Chamado reaberto. Ele voltou para a fila.');
+  closeLayer(); rerender(); toast(c.tipo === 'manutencao' ? 'Chamado reaberto. Aguarda triagem da gestão.' : 'Chamado reaberto. Ele voltou para a fila.');
 }
 const resetFormAval = () => { FORM.av_nota = 0; FORM.av_base = null; FORM.av_coment = ''; };
 /* Avaliar o atendimento (RN-CH-15 a RN-CH-18; fluxo 8.4) */
@@ -828,12 +847,12 @@ def([...RES, 'proprietario'], 'eleicao', 'Eleição e candidatura', 'Reuniões e
   const p = ctx.p, isProp = p === 'proprietario';
   return {
     tab: isProp ? 'assembleias' : 'menu', top: { title: 'Eleição', back: p + (isProp ? '/assembleias' : '/votacoes') },
-    body: `<div class="stack">${card({ icon: 'vote', title: 'Eleição de síndico e subsíndico 2027–2028', sub: 'Candidaturas até 15/11 · votação em 20/11', badge: st('Candidaturas abertas') })}
+    body: `<div class="stack">${card({ icon: 'vote', title: 'Eleição de síndico e subsíndico 2027–2028', sub: 'Candidaturas até 15/11 · votação em 20/11', badge: st(S.complementacao.eleicao.estado) })}${btn('Condução eleitoral', { v: 'secondary', on: p + '/eleicoes' })}
       <h3 class="t-title-sm">Candidatos</h3><div class="list list-full">${[['Pedro Alves', 'Síndico · Bloco B · Apto 101 · reeleição'], ['Marta Gouveia', 'Síndica · Bloco C · Apto 201'], ['Carla Mendes', 'Subsíndica · Bloco B · Apto 202']].map(([n, s]) => row({ avatar: n, title: n, sub: s })).concat(A.cand ? [row({ avatar: 'Ana Lima', title: 'Ana Lima', sub: A.cand + ' · Bloco A · Apto 101', right: badge('Candidatura aceita', 'success') })] : []).join('')}</div>
-      ${banner('info', 'info', 'Síndico e subsíndico precisam ser de unidades diferentes. Em empate, há segundo turno em até 7 dias.', { inline: true })}
+      ${['Inconclusiva', 'Encerrada', 'Segundo turno'].includes(S.complementacao.eleicao.estado) ? banner('info', 'vote', S.complementacao.eleicao.motivo, { inline: true }) : ''}${banner('info', 'info', 'Síndico e subsíndico precisam ser de unidades diferentes. Em empate, há segundo turno em até 7 dias.', { inline: true })}
       ${isProp ? banner('info', 'vote', 'Na eleição de 20/11, quem vota pelo Bloco B · Apto 302 é você ou o seu procurador.', { inline: true }) : isInq(p) ? banner('info', 'vote', 'Na eleição, quem vota pela unidade é o proprietário ou o procurador dele. Você pode se candidatar.', { inline: true }) : ''}</div>`,
-    footer: A.cand || isProp ? '' : btn('Candidatar-se', { block: true, size: 'lg', on: () => sheet(() => `<h2 class="t-title-md">Candidatar-se a</h2>${choice('cargo', 'Síndica', 'Síndica', { def: 'Síndica' })}${choice('cargo', 'Subsíndica', 'Subsíndica', { def: 'Síndica' })}
-      <p class="help">Carla Mendes (Bloco B · Apto 202) já concorre a subsíndica. Isso não impede sua candidatura.</p>${btn('Confirmar candidatura', { block: true, on: () => { A.cand = FORM.cargo || 'Síndica'; closeLayer(); rerender(); toast('Candidatura enviada.'); } })}`) }),
+    footer: A.cand || isProp || S.complementacao.eleicao.estado !== 'Candidaturas abertas' ? '' : btn('Candidatar-se', { block: true, size: 'lg', on: () => sheet(() => `<h2 class="t-title-md">Candidatar-se a</h2>${choice('cargo', 'Síndica', 'Síndica', { def: 'Síndica' })}${choice('cargo', 'Subsíndica', 'Subsíndica', { def: 'Síndica' })}
+      <p class="help">Carla Mendes (Bloco B · Apto 202) já concorre a subsíndica. Isso não impede sua candidatura.</p>${btn('Confirmar candidatura', { block: true, on: () => { if (!S.online || S.complementacao.eleicao.estado !== 'Candidaturas abertas') return; A.cand = FORM.cargo || 'Síndica'; closeLayer(); rerender(); toast('Candidatura enviada.'); } })}`) }),
   };
 });
 
@@ -877,10 +896,10 @@ function sugestoes(p) {
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicado', 'Ler comunicado', 'Comunicados (10.1)', ctx => {
   const c = S.comunicados.find(x => x.id === ctx.arg) || S.comunicados[0]; c.novo = false;
   return {
-    tab: 'menu', top: { title: 'Comunicado', back: ctx.p + '/comunicados', actions: [{ icon: 'ellipsis', label: 'Mais ações', on: () => sheet(`${row({ icon: 'flag', title: 'Denunciar conteúdo', sub: 'Vai para quem julgaria uma reclamação contra o autor', on: () => { closeLayer(); toast('Denúncia enviada.'); } })}`) }] },
-    body: `<div class="stack"><h1 class="t-title-md">${c.titulo}</h1><div class="t-caption muted">Síndico Pedro Alves · ${c.data} · ${c.publico}</div><p class="t-body" style="margin:0">${c.txt}</p>
+    tab: 'menu', top: { title: 'Comunicado', back: ctx.p + '/comunicados', actions: [{ icon: 'ellipsis', label: 'Mais ações', on: () => sheet(`${row({ icon: 'flag', title: 'Denunciar conteúdo', sub: 'Vai para quem julgaria uma reclamação contra o autor', on: () => { S.complementacao.denuncias.push({ id: 'dn' + uid(), destinatario: 'subsindico', comunicadoId: c.id, conteudo: 'Mensagem de comunicado encaminhada em projeção protegida para revisão, sem identidades protegidas.', motivo: 'Conteúdo ofensivo', resultado: null }); closeLayer(); toast('Denúncia enviada ao destinatário autorizado.'); } })}`) }] },
+    body: `<div class="stack"><h1 class="t-title-md">${c.titulo}</h1><div class="t-caption muted">Síndico Pedro Alves · ${c.data} · ${c.publico}</div><p class="t-body" style="margin:0">${c.oculto ? 'Conteúdo ocultado após revisão.' : esc(c.txt)}</p>
       ${(ctx.p === 'sindico' || (ctx.p === 'subsindico' && S.substituicao)) && !c.individual ? `<div class="card"><div class="row-between"><span>Confirmações de leitura</span><b class="num">${c.lidos} de ${c.total}</b></div></div>` : ''}
-      ${c.individual ? `<h2 class="t-title-sm">Conversa</h2><div class="stack-2"><div class="msg">${c.txt}</div>${c.resposta ? `<div class="msg me">${esc(c.resposta)}</div>` : ''}</div>` : ''}</div>`,
+      ${c.individual ? `<h2 class="t-title-sm">Conversa</h2><div class="stack-2"><div class="msg">${c.oculto ? 'Conteúdo ocultado após revisão.' : esc(c.txt)}</div>${c.resposta ? `<div class="msg me">${esc(c.resposta)}</div>` : ''}</div>` : ''}</div>`,
     footer: c.individual && !c.resposta && ctx.p !== 'sindico' ? `${field('', textarea('kres', { ph: 'Escreva sua resposta' }))}${btn('Responder', { block: true, icon: 'send', on: () => { if (!(FORM.kres || '').trim()) return; c.resposta = FORM.kres; FORM.kres = ''; rerender(); toast('Resposta enviada ao síndico.'); } })}` : '',
   };
 });
@@ -902,7 +921,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'notif-config
 def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'privacidade', 'Privacidade e dados', 'Configurações (14.1)', ctx => ({
   tab: 'menu', top: { title: 'Privacidade e dados', back: ctx.p + '/menu' }, flush: true,
   body: `<div class="list">${row({ icon: 'file-text', title: 'Política de privacidade', on: () => sheet('<h2 class="t-title-md">Política de privacidade</h2><p class="t-body">Texto de exemplo da política de privacidade do condomínio.</p>') })}
-    ${row({ icon: 'download', title: 'Pedir cópia dos meus dados', sub: 'Arquivo por e-mail em até 15 dias', on: () => dialog({ title: 'Pedir cópia dos seus dados?', text: 'Vamos enviar um arquivo para ana.lima@email.com em até 15 dias.', actions: [{ label: 'Pedir cópia', on: () => toast('Pedido registrado. O arquivo chega em até 15 dias.') }, { label: 'Agora não', v: 'secondary' }] }) })}
+    ${row({ icon: 'download', title: 'Pedir cópia dos meus dados', sub: 'Arquivo por e-mail em até 15 dias; exceções exigem análise autorizada', on: () => dialog({ title: 'Pedir cópia dos seus dados?', text: 'Vamos enviar um arquivo para ana.lima@email.com em até 15 dias.', actions: [{ label: 'Pedir cópia', on: () => { S.pedidoLgpd = 'Em processamento'; toast('Pedido registrado. Etapas definidas serão processadas; exceções exigem análise autorizada.'); } }, { label: 'Agora não', v: 'secondary' }] }) })}
     ${row({ icon: 'trash-2', title: 'Excluir minha conta', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir sua conta?', text: 'Seu histórico fica anônimo. Votos e reclamações continuam, sem identificação. ' + (ctx.p === 'proprietario' ? 'Você é a proprietária: a administradora será avisada para definir o substituto, e até lá a unidade não vota.' : 'Você é o morador habilitado: a administradora será avisada para definir o substituto, e até lá ninguém reserva nem cadastra visitantes pela unidade.'),
       body: field('Confirme com sua senha', `<input class="input" type="password" autocomplete="current-password">`), actions: [{ label: 'Excluir conta', v: 'danger', on: () => go('acesso/boas-vindas') }, { label: 'Manter conta', v: 'secondary' }] }) })}</div>`,
 }));

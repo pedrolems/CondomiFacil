@@ -4,6 +4,14 @@ Protótipo em HTML, CSS e JavaScript puro, feito a partir de `docs/02-design/01-
 
 ## Como abrir
 
+### Revisão de 13/11/2026: autogestão e eleições
+
+No painel lateral, ative **Essencial · Autogestão**. No perfil Síndico, abra Gestão → Administração do condomínio (`#/sindico/autogestao`): registros administrativos fictícios, execução local proposta para revisão, sem criar backend nem formulários completos. Subsíndico executa na substituição; morador com "Sou do conselho fiscal" acompanha `#/morador/autogestao` sem edição nem descrições administrativas pessoais. Finanças oferece novo lançamento simulado ao executor local; a matriz detalhada e demais operações administrativas continuam para revisão. Administradora fica indisponível nesta modalidade.
+
+Em **Conduzir eleição** (`#/sindico/eleicoes`, também disponível para subsíndico, morador/conselho e proprietário), os controles laterais simulam disponibilidade de síndico, sub e conselho. A precedência é síndico → sub → conselho → proprietário designado, válida em qualquer plano. O controle de designação refere-se ao usuário do perfil atual, proprietário morador ou não residente; é uma concessão já validada simulada, sem definir quem pode concedê-la na aplicação real. Encerrar definitivamente revoga a permissão; segundo turno a conserva. Alterar cenário revalida callbacks e o acesso direto; não há resultado parcial nem vínculo eleitor–voto. Simule empate, ausência de elegível e resultado conclusivo. Suporte autorizado não tem perfil próprio neste protótipo e sua condução não é simulada. Operações novas de administração, finanças e eleição exigem internet.
+
+Registro de decisões e revisões: [Autogestão e condução eleitoral](../docs/01-produto/06-autogestao-e-conducao-eleitoral.md). A distribuição operacional entre síndico/sub/conselho é proposta de desenho a revisar; autogestão e precedência eleitoral são decisões do Pedro. Os dados e a auditoria são locais e desaparecem ao recarregar.
+
 Abra `index.html` no navegador (duplo clique funciona). Se preferir um servidor local:
 
 ```bash
@@ -52,3 +60,22 @@ Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
 - **Locação no painel da administradora:** Unidades e moradores > "Alugadas" ou "Desocupadas" abre o detalhe da unidade (cadastrar, renovar e encerrar contrato, responsáveis financeiros por tipo).
 
 O painel à esquerda lista todas as telas do perfil, troca o tema e simula situações (score baixo, unidade em atraso, termos novos, sem internet). No morador, "Morador é inquilino" mostra o voto do inquilino e as cobranças só ordinárias; no proprietário, há "Unidade desocupada", "Temporada permitida" e "Contrato vence em 20 dias".
+
+## Decisões de 12/11/2026 no protótipo
+
+As [19 escolhas aprovadas](../docs/01-produto/05-decisoes-de-complementacao.md) foram refletidas nas regras, documentos e simulações abaixo. Tudo continua em memória, sem backend, gateway ou armazenamento seguro real.
+
+| Onde testar | Comportamento | Escolhas |
+| --- | --- | --- |
+| Morador > Reserva paga > Cancelar | 12h exatas estão no reembolso; menos de12h avisa ausência de devolução | 1A |
+| Síndico > Gestão > Cancelar pelo condomínio; Administradora > Cancelar pelo condomínio; Áreas > Bloquear para manutenção | Motivo obrigatório, autoria/auditoria em memória; Aguardando pagamento cancela sem devolução; paga registra reembolso solicitado, sem fingir devolução concluída. Sub fora da substituição é recusado também pela rota direta | 2A/3A |
+| Administradora > Recebimentos em análise | Simula dinheiro em reserva expirada/cancelada e cobrança cancelada sem reativar; registra encaminhamento assistido. Outra opção paga Emitida após vencimento antes da rotina e mostra Paga com atraso. Confirmação pelas telas Pix/cartão também preserva dinheiro de entidade cancelada/expirada | 4A/5A/6A |
+| Morador > Chamado concluído de manutenção > Reabrir; Síndico > Gestão > Manutenção > detalhe | Mantém Reaberto até triagem explícita para Orçamento/Agendado; sub fora da substituição não tria | 7A |
+| Administradora > Vigência e histórico (lista lateral de telas); Morador > Defesa e recurso do vínculo anterior (lista lateral) | Recorte de caso contra síndico: perda da função do sub transfere atribuição à administradora sem ex-acesso; troca de habilitado preserva episódio. Penalidade nominal10 aplicada sobre3 restitui só3; simular novo habilitado nega leitura do caso | 8A/9A/10A |
+| Comunicado > Mais ações > Denunciar; Síndico/Subsíndico > Gestão > Denúncias recebidas | Projeção sem identidade protegida, encerrar sem ação ou ocultar com motivo/histórico, sem score automático. Ocultar substitui texto normal por aviso e preserva evidência em memória; atribuição considera substituição vigente | 11A |
+| Conduzir eleição; Síndico > Reuniões; Morador/Proprietário > Eleição | Precedência local em qualquer plano conforme decisão de 13/11; substitui restrição de 12A. Primeiro empate segue a segundo turno; segundo empate ou ausência de elegível fica inconclusivo para o condomínio, sem vencedor automático | RN-VO-13; 13A |
+| Privacidade e dados; Portaria/Limpeza > indicador de sincronização | Explica análise autorizada para exceções LGPD e separação fila/cache; não concede operador nem simula prazo de retenção/logout/segurança já resolvido | 14A/15A |
+| Finanças > lançamentos; Exportar CSV/PDF > Acompanhar exportações | Receitas por dia/categoria, sem unidade. Pedido assíncrono não oferece arquivo antes da conclusão; pode simular falha; fechar a folha não a reabre ao concluir, e pedido pode ser retomado pelo acompanhamento | 17A/18A |
+| Administradora > Assinatura da plataforma | Consulta cobrança assistida/manual separada do dinheiro condominial; cliente pode anotar contato comercial, sem emitir/baixar cobrança nem agir como equipe da plataforma | 19A |
+
+A tolerância controlada de refresh (16A), operador LGPD, privacidade do acesso histórico/moderação, retenção/logout da fila, sigilo/substituição do voto e integrações Asaas continuam condições de desenho/validação externa. O protótipo não demonstra essas garantias técnicas. As simulações não substituem testes de implementação ou validação visual com usuários.

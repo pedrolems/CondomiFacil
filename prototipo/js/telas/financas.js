@@ -1,8 +1,9 @@
 /* Finanças do condomínio (11.15): fluxos 13.3 e 13.4.
-   Administradora edita (web); síndico, subsíndico em substituição e conselho fiscal só leem, comentam e exportam (RN-FI-29). */
+   RN-FI-29: administradora edita; autogestão propõe execução local por síndico/sub em substituição. Conselho fiscal acompanha, comenta e exporta. */
 'use strict';
 
 const FIN = () => S.fin;
+const fPodeEditar = () => S.online && (administradorPresente() || autogestaoExecuta());
 const fPer = () => FORM.fper || '2026-10';
 const fMeses = per => /^\d+m$/.test(per) ? FIN_MESES.slice(-parseInt(per, 10)) : [per];
 const fDia = iso => iso.slice(8) + '/' + iso.slice(5, 7);
@@ -58,10 +59,11 @@ function fMesBadge(per) {
   return s === 'fechado' ? badge('Fechado', 'neutral', 'lock') : badge('Aberto', 'info');
 }
 function fFechar(ym) {
+  if (!fPodeEditar()) return;
   const sem = FIN().lanc.filter(l => l.ym === ym && l.tipo === 'despesa' && !l.comp).length;
   dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Fechar ' + finMesNome(ym) + '?',
     text: (sem ? `${sem} ${sem > 1 ? 'despesas estão sem comprovante' : 'despesa está sem comprovante'}. ` : '') + 'Depois de fechar, o mês só aceita estorno.',
-    actions: [{ label: sem ? 'Fechar mesmo assim' : 'Fechar mês', on: () => { FIN().fechados.push(ym); FIN().fechadoEm[ym] = '05/11'; rerender(); toast(finMesLabel(ym).split(' ')[0] + ' fechado.'); } }, { label: 'Voltar', v: 'secondary' }] });
+    actions: [{ label: sem ? 'Fechar mesmo assim' : 'Fechar mês', on: () => { if (!fPodeEditar() || FIN().fechados.includes(ym)) return; FIN().fechados.push(ym); FIN().fechadoEm[ym] = '05/11'; rerender(); toast(finMesLabel(ym).split(' ')[0] + ' fechado.'); } }, { label: 'Voltar', v: 'secondary' }] });
 }
 
 /* Resumo em cartões */
@@ -128,8 +130,18 @@ function fFiltros() {
 const fAfter = () => { const e = $('#f-fcat'); e && e.addEventListener('change', () => rerender()); const q = $('#f-fq'); q && q.addEventListener('change', () => rerender()); };
 
 function fExportar(fmt, D) {
-  const n = fFiltrados(D).length;
-  toast(`financeiro-${/m$/.test(fPer()) ? fPer() + '-' + fPer().slice(0, -1) : fPer()}.${fmt} baixado (${n} lançamentos, sem dados de unidade).`);
+  if (!fPodeLer(CUR.p)) return;
+  const pedido = { id: uid(), formato: fmt, perfil: CUR.p, condominio: S.condo, estado: 'Em processamento', quantidade: fFiltrados(D).length, periodo: fPer() };
+  S.complementacao.exportacoes.push(pedido);
+  fAcompanharExportacoes();
+  setTimeout(() => { if (pedido.estado !== 'Em processamento') return; pedido.estado = 'Disponível'; if (CUR.p === pedido.perfil && S.condo === pedido.condominio && fPodeLer(CUR.p)) { if (CUR_SHEET?.[0] === fTelaExportacoes) fAcompanharExportacoes(); else toast('Exportação disponível em Acompanhar exportações.'); } }, 900);
+}
+
+function fAcompanharExportacoes() { if (fPodeLer(CUR.p)) sheet(fTelaExportacoes); }
+function fTelaExportacoes() {
+  if (!fPodeLer(CUR.p)) return '';
+  const permitida = x => fPodeLer(CUR.p) && x.perfil === CUR.p && x.condominio === S.condo;
+  return `<h2 class="t-title-md">Exportações</h2><p class="t-body-sm muted">O arquivo fica disponível depois do processamento. O acesso continua restrito.</p>${S.complementacao.exportacoes.filter(permitida).map(x => card({ icon: x.estado === 'Disponível' ? 'file-check' : x.estado === 'Falhou' ? 'circle-alert' : 'clock', title: x.formato.toUpperCase() + ' · ' + x.periodo, badge: badge(x.estado, 'neutral', x.estado === 'Disponível' ? 'file-check' : x.estado === 'Falhou' ? 'circle-alert' : 'clock'), sub: x.quantidade + ' lançamentos · sem dados de unidade', foot: x.estado === 'Disponível' ? btn('Abrir arquivo privado', { on: () => { if (!permitida(x) || x.estado !== 'Disponível') return; toast('Arquivo privado disponível nesta simulação: ' + x.formato.toUpperCase() + '.'); } }) : x.estado === 'Em processamento' ? btn('Simular falha', { v: 'secondary', on: () => { if (!permitida(x) || x.estado !== 'Em processamento') return; x.estado = 'Falhou'; fAcompanharExportacoes(); } }) : '' })).join('')}`;
 }
 
 function fDetalhe(id, adm, p) {
@@ -147,16 +159,18 @@ function fDetalhe(id, adm, p) {
   });
 }
 function fComentar(alvo, p) {
+  if (!S.online || CUR.p !== p || !fPodeLer(p)) return;
   FORM.fcom = ''; FORM.fcomErr = '';
   const papel = p === 'sindico' ? 'Síndico' : p === 'subsindico' ? 'Subsíndico em substituição' : 'Conselho fiscal';
   const por = p === 'sindico' ? 'Pedro Alves' : p === 'subsindico' ? 'Carla Mendes' : 'Luiza Prado';
   sheet(() => `<h2 class="t-title-md">${String(alvo).startsWith('mes:') ? 'Comentar ' + finMesNome(alvo.slice(4)) : 'Comentar lançamento'}</h2>
-    <p class="t-body-sm muted">A administradora é avisada. O comentário não altera valores nem aprova o mês.</p>${field('Comentário', textarea('fcom'), { error: FORM.fcomErr })}
-    ${btn('Enviar comentário', { block: true, on: () => { if (!(FORM.fcom || '').trim()) { FORM.fcomErr = 'Escreva o comentário.'; return sheet(CUR_SHEET[0], CUR_SHEET[1]); } FORM.fcomErr = ''; FIN().coment.push({ id: 'k' + uid(), alvo, por, papel, data: '05/11', txt: FORM.fcom.trim(), novo: true }); closeLayer(); rerender(); toast('Comentário enviado. A administradora foi avisada.'); } })}`);
+    <p class="t-body-sm muted">${S.autogestao.ativa ? 'A gestão local é avisada.' : 'A administradora é avisada.'} O comentário não altera valores nem aprova o mês.</p>${field('Comentário', textarea('fcom'), { error: FORM.fcomErr })}
+    ${btn('Enviar comentário', { block: true, on: () => { if (!S.online || CUR.p !== p || !fPodeLer(p)) return; if (!(FORM.fcom || '').trim()) { FORM.fcomErr = 'Escreva o comentário.'; return sheet(CUR_SHEET[0], CUR_SHEET[1]); } FORM.fcomErr = ''; FIN().coment.push({ id: 'k' + uid(), alvo, por, papel, data: '05/11', txt: FORM.fcom.trim(), novo: true }); closeLayer(); rerender(); toast(S.autogestao.ativa ? 'Comentário enviado à gestão local.' : 'Comentário enviado. A administradora foi avisada.'); } })}`);
 }
 
 /* ---- Novo lançamento e edição (administradora) ---- */
 function fForm(edit) {
+  if (!fPodeEditar()) return;
   const e = edit || null;
   if (!FORM.ftp) Object.assign(FORM, { ftp: e ? e.tipo : 'despesa', fdata: e ? e.data : FIN().hoje, fcategoria: e ? e.cat : 'energia', fserv: e ? e.sub : 'Elevador', fval: e ? String(e.valor).replace('.', ',') : '', fforn: e ? e.forn : '', fdesc: e ? e.desc : '', frec: e ? e.rec : false, fcomp: e && e.comp ? [1] : [] });
   const tp = FORM.ftp, cats = tp === 'receita' ? (FIN().cobrancaAtiva ? { outras: FIN_CATS_R.outras } : { outras: FIN_CATS_R.outras, taxa: FIN_CATS_R.taxa, extras: 'Fundo de reserva' }) : FIN_CATS_D;
@@ -179,6 +193,7 @@ function fForm(edit) {
 }
 const photoPickerSheet = key => `<div class="row">${(FORM[key] || []).length ? `<span class="row" style="gap:6px">${ic('file-check')}Comprovante anexado</span>${btn('Remover', { v: 'text', on: () => { FORM[key] = []; sheet(CUR_SHEET[0], CUR_SHEET[1]); } })}` : btn('Anexar foto ou PDF', { v: 'secondary', icon: 'paperclip', on: () => { FORM[key] = [1]; sheet(CUR_SHEET[0], CUR_SHEET[1]); } })}</div>`;
 function fSalvar(e) {
+  if (!fPodeEditar() || (e && (e.origem !== 'manual' || FIN().fechados.includes(e.ym)))) return;
   const er = {}, v = parseFloat(String(FORM.fval || '').replace(/[^\d,.-]/g, '').replace('.', '').replace(',', '.'));
   const data = FORM.fdata || '';
   if (!(v > 0)) er.valor = 'Informe um valor maior que zero.';
@@ -195,10 +210,12 @@ function fSalvar(e) {
 }
 function fNovo(edit) { ['ftp', 'fdata', 'fcategoria', 'fserv', 'fval', 'fforn', 'fdesc', 'frec', 'fcomp', 'ferr'].forEach(k => delete FORM[k]); fForm(edit); }
 function fEstornar(l) {
+  if (!fPodeEditar() || l.origem !== 'manual' || !FIN().fechados.includes(l.ym) || l.estornado || l.estornoDe) return;
   FORM.fmot = '';
   const abre = () => dialog({ tone: 'warning', icon: 'triangle-alert', title: 'Estornar este lançamento?', text: 'Cria um lançamento de valor oposto com a data de hoje. O original continua visível, como Estornado.',
     body: field('Motivo', textarea('fmot'), { error: FORM.fmotErr }),
     actions: [{ label: 'Estornar', keep: true, on: () => {
+      if (!fPodeEditar() || l.estornado || l.estornoDe) return;
       if (!(FORM.fmot || '').trim()) { FORM.fmotErr = 'Informe o motivo do estorno.'; return abre(); }
       FORM.fmotErr = ''; closeLayer();
       const n = { id: 'f' + (++FIN().n), ym: FIN().mesAtual, data: FIN().hoje, tipo: l.tipo, cat: l.cat, sub: l.sub, desc: 'Estorno: ' + l.desc, forn: l.forn, valor: -l.valor, comp: l.comp, rec: false, origem: 'manual', qtd: 0, estornoDe: l.id, motivo: FORM.fmot.trim() };
@@ -207,7 +224,8 @@ function fEstornar(l) {
   abre();
 }
 function fExcluir(l) {
-  dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir este lançamento?', text: 'A exclusão fica na auditoria, com autor, data e valor.', actions: [{ label: 'Excluir', v: 'danger', on: () => { FIN().lanc.splice(FIN().lanc.indexOf(l), 1); rerender(); toast('Lançamento excluído.'); } }, { label: 'Manter', v: 'secondary' }] });
+  if (!fPodeEditar() || l.origem !== 'manual' || FIN().fechados.includes(l.ym)) return;
+  dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir este lançamento?', text: 'A exclusão fica na auditoria, com autor, data e valor.', actions: [{ label: 'Excluir', v: 'danger', on: () => { if (!fPodeEditar() || FIN().fechados.includes(l.ym)) return; FIN().lanc.splice(FIN().lanc.indexOf(l), 1); rerender(); toast('Lançamento excluído.'); } }, { label: 'Manter', v: 'secondary' }] });
 }
 
 /* ---- Painel web da administradora ---- */
@@ -228,7 +246,7 @@ def('admin', 'financas', 'Finanças', 'Finanças (13.3)', () => {
     : empty('search', 'Nenhum lançamento neste filtro.', btn('Limpar filtros', { v: 'secondary', on: () => { FORM.fq = ''; FORM.fcat = ''; FORM.ftipo = 'todos'; rerender(); } }));
   const rotulo = /m$/.test(per) ? 'últimos ' + per.replace('m', ' meses') : finMesLabel(per);
   return { nav: 'financas', after: fAfter, body: `${head('Finanças do condomínio', 'Controle gerencial de receitas e despesas. Não substitui a contabilidade.',
-      btn('Exportar CSV', { v: 'secondary', icon: 'download', on: () => fExportar('csv', D) }) + btn('Exportar PDF', { v: 'secondary', icon: 'download', on: () => fExportar('pdf', D) }) + btn('Novo lançamento', { icon: 'plus', on: () => fNovo() }))}
+      btn('Exportar CSV', { v: 'secondary', icon: 'download', on: () => fExportar('csv', D) }) + btn('Exportar PDF', { v: 'secondary', icon: 'download', on: () => fExportar('pdf', D) }) + btn('Acompanhar exportações', { v: 'secondary', icon: 'clock', on: fAcompanharExportacoes }) + btn('Novo lançamento', { icon: 'plus', on: () => fNovo() }))}
     ${fPeriodoChips()}
     <div class="row wrap" style="margin-bottom:12px;gap:8px"><h2 class="t-title-sm" style="margin:0">${rotulo}</h2>${fMesBadge(per)}${novos ? badge(novos + ' novo comentário', 'accent', 'message-circle') : ''}</div>
     ${fFaixaMes(per, true)}<div style="height:16px"></div>
@@ -248,7 +266,8 @@ def(['sindico', 'subsindico', 'morador'], 'financas', 'Finanças do condomínio'
   const per = fPer(), D = fDados(per), lista = fFiltrados(D), t = FORM.ftipo || 'todos';
   const max = D.cats.length ? D.cats[0].v : 1;
   return { tab, after: fAfter, top: { title: p === 'morador' ? 'Finanças do condomínio' : 'Finanças', back }, flush: true, body: `<div class="pad stack">
-    ${banner('info', 'eye', 'Só leitura. Você vê totais do condomínio, sem dados de unidades.', { inline: true })}
+    ${banner('info', 'eye', autogestaoExecuta() ? 'Autogestão: execução financeira local proposta para revisão. Conselho fiscal continua somente leitura e comentários.' : 'Só leitura. Você vê totais do condomínio, sem dados de unidades.', { inline: true })}
+    ${autogestaoExecuta() ? btn('Novo lançamento (simulação)', { icon: 'plus', on: () => fNovo() }) : ''}
     ${fPeriodoChips()}<div class="row wrap" style="gap:8px">${fMesBadge(per)}</div>${fFaixaMes(per, false)}
     ${fResumo(D, per)}
     <h2 class="t-title-sm">Despesas por categoria</h2>
@@ -258,5 +277,5 @@ def(['sindico', 'subsindico', 'morador'], 'financas', 'Finanças do condomínio'
     <div class="chips">${[['todos', 'Todos'], ['receitas', 'Receitas'], ['despesas', 'Despesas']].map(([k, l]) => chip(l, t === k, () => { FORM.ftipo = k; rerender(); })).join('')}</div></div>
     <div class="list">${lista.length ? lista.slice(0, 30).map(l => row({ icon: l.tipo === 'receita' ? 'arrow-down-to-line' : 'arrow-up-from-line', title: `<span style="${l.estornado ? 'text-decoration:line-through' : ''}">${l.desc}</span>`, sub: fDia(l.data) + ' · ' + (l.tipo === 'receita' ? FIN_CATS_R : FIN_CATS_D)[l.cat], right: `<span class="stack-2" style="align-items:flex-end"><b class="num">${fSinal(l)}</b>${l.estornado ? badge('Estornado', 'warning', 'undo-2') : l.estornoDe ? badge('Estorno', 'neutral', 'undo-2') : fComents(l.id).length ? badge('Comentário', 'neutral', 'message-circle') : ''}</span>`, on: () => fDetalhe(l.id, false, p) })).join('') : empty('search', 'Nenhum lançamento neste filtro.', btn('Limpar filtros', { v: 'secondary', on: () => { FORM.fq = ''; FORM.ftipo = 'todos'; rerender(); } }))}</div>
     <div class="pad stack-2">${!/m$/.test(per) ? fComents('mes:' + per).map(c => `<div class="card"><div class="t-label-sm">${c.por} · ${c.papel} · ${c.data}</div><div class="t-body-sm">${c.txt}</div></div>`).join('') + btn('Comentar o mês', { v: 'secondary', icon: 'message-circle', block: true, on: () => fComentar('mes:' + per, p) }) : ''}
-      ${btn('Exportar CSV', { v: 'secondary', icon: 'download', block: true, on: () => fExportar('csv', D) })}${btn('Exportar PDF', { v: 'secondary', icon: 'download', block: true, on: () => fExportar('pdf', D) })}</div>` };
+      ${btn('Acompanhar exportações', { v: 'secondary', icon: 'clock', block: true, on: fAcompanharExportacoes })}${btn('Exportar CSV', { v: 'secondary', icon: 'download', block: true, on: () => fExportar('csv', D) })}${btn('Exportar PDF', { v: 'secondary', icon: 'download', block: true, on: () => fExportar('pdf', D) })}</div>` };
 });

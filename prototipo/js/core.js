@@ -274,7 +274,7 @@ function render(keepScroll) {
   let fn = SCREENS[r.p + '/' + r.name];
   if (!fn) { go(r.p + '/' + P.home); return; }
   const ctx = { p: r.p, P, arg: r.arg, name: r.name };
-  const s = fn(ctx) || {};
+  const s = r.p === 'admin' && S.autogestao.ativa ? { body: empty('lock', 'Essencial com autogestão não possui administradora. Use Gestão no perfil Síndico.') } : fn(ctx) || {};
   const pendingToast = $('#toast') ? $('#toast').innerHTML : '';
   app.innerHTML = `<div class="proto">${renderSide(ctx)}<main class="proto-stage" id="main-content">${P.layout === 'web' ? renderWeb(ctx, s) : renderPhone(ctx, s)}</main></div>`;
   if (keepScroll && pendingToast) $('#toast').innerHTML = pendingToast;
@@ -322,7 +322,7 @@ function syncIndicator() {
   return `<button type="button" class="sync-ind" aria-label="Sincronização: ${txt}. Toque para detalhes" ${cb(() => sheet(`<h2 class="t-title-md">Sincronização</h2>
      ${row({ icon: S.online ? 'wifi' : 'wifi-off', title: S.online ? 'Conectado' : 'Sem internet', sub: 'Última atualização às ' + S.lastSync })}
      ${row({ icon: 'cloud-upload', title: n + (n === 1 ? ' registro pendente' : ' registros pendentes'), sub: n ? S.pending.map(p => p.t).join(' · ') : 'Nada aguardando envio' })}
-     ${btn(S.online ? 'Simular queda de internet' : 'Simular volta da internet', { v: 'secondary', block: true, icon: S.online ? 'wifi-off' : 'wifi', on: () => { closeLayer(); setOnline(!S.online); } })}`))}>${ic(iconN, cls)}<span>${txt}</span></button>`;
+     <p class="help">A fila pendente é separada do cache do dia e preservada até envio ou tratamento explícito. Retenção e acesso após sair da conta ainda serão definidos.</p>${btn(S.online ? 'Simular queda de internet' : 'Simular volta da internet', { v: 'secondary', block: true, icon: S.online ? 'wifi-off' : 'wifi', on: () => { closeLayer(); setOnline(!S.online); } })}`))}>${ic(iconN, cls)}<span>${txt}</span></button>`;
 }
 function unitSwitcher(ctx) {
   const u = S.units[S.unit];
@@ -355,6 +355,10 @@ function renderSide(ctx) {
     return g + `<a class="scr ${isOn ? 'on' : ''}" href="#/${route}">${esc(it.label)}</a>`;
   }).join('');
   const sim = [];
+  if (['sindico', 'subsindico', 'morador', 'proprietario', 'admin'].includes(ctx.p)) {
+    sim.push(btn('Essencial · Autogestão: ' + (S.autogestao.ativa ? 'ativa' : 'inativa'), { on: () => { S.autogestao.ativa = !S.autogestao.ativa; rerender(); } }));
+    [['sindico', 'Síndico disponível'], ['sub', 'Subsíndico disponível'], ['conselho', 'Conselho disponível'], ['designado', 'Usuário atual designado para esta eleição']].forEach(([k,l]) => sim.push(btn(l + ': ' + (S.eleitoral[k] ? 'sim' : 'não'), { on: () => { S.eleitoral[k] = !S.eleitoral[k]; if (k === 'designado') S.eleitoral.designadoPerfil = S.eleitoral[k] ? ctx.p : null; rerender(); } })));
+  }
   if (ctx.P.staff) sim.push(`<button class="${S.online ? '' : 'on'}" ${cb(() => setOnline(!S.online))}>${S.online ? 'Simular sem internet' : 'Voltar internet'}</button>`);
   if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) {
     sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? scoreContexto().base : 58; rerender(); })}>Score baixo nesta unidade (58)</button>`);

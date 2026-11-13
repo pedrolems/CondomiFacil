@@ -4,6 +4,14 @@ let savedTheme = 'system';
 try { savedTheme = localStorage.getItem('cf-theme') || 'system'; } catch (e) {}
 
 const S = {
+  autogestao: { ativa: false, registros: [] },
+  eleitoral: { sindico: true, sub: true, conselho: true, designado: false },
+  complementacao: {
+    auditoria: [], denuncias: [{ id: 'dn1', destinatario: 'sindico', conteudo: 'Texto ofensivo em mensagem de área comum (projeção sem identidades protegidas).', motivo: 'Linguagem ofensiva', resultado: null }, { id: 'dn2', destinatario: 'subsindico', conteudo: 'Conteúdo atribuído à gestão, encaminhado ao julgador alternativo (projeção protegida).', motivo: 'Ofensa pessoal', resultado: null }],
+    recebimentos: [], exportacoes: [], eleicao: { estado: 'Não aberta', turno: 1, motivo: '', contagens: null },
+    casoOriginal: { saldo: 0, perdaEfetiva: 3, revertido: false, habilitadoTrocado: false, julgadorVigente: true },
+    assinatura: { ciclo: 'novembro de 2026', valor: 499, estado: 'Aguardando tratamento', motivo: '' }
+  },
   theme: savedTheme, online: true, syncing: false, pending: [], lastSync: '14h32', training: false, termsPending: false,
   user: { nome: 'Ana Lima', email: 'ana.lima@email.com' }, conselho: false,
   unit: 0,
@@ -266,7 +274,7 @@ Object.defineProperties(S, {
 
 /* ---------- Finanças do condomínio (RN-FI-21 a RN-FI-32) ----------
    Dados fictícios de um condomínio de 120 unidades, de dez/2025 a nov/2026 (hoje = 05/11/2026). Receitas de cobrança e de reservas
-   são lançamentos automáticos agregados por mês (origem 'auto'); o resto é avulso (origem 'manual'). Valor negativo = estorno. */
+   são lançamentos automáticos agregados por dia e categoria (origem 'auto'); o resto é avulso (origem 'manual'). Valor negativo = estorno. */
 const FIN_CATS_D = { energia: 'Energia', agua: 'Água e esgoto', gas: 'Gás', terc: 'Serviços terceirizados', folha: 'Folha de funcionários', manut: 'Manutenção e obras', seg: 'Seguros', adm: 'Administração', outros: 'Outros' };
 const FIN_CATS_R = { taxa: 'Taxa condominial', extras: 'Cobranças extras', multas: 'Multas e juros por atraso', infr: 'Multas por infração', areas: 'Aluguel de áreas', outras: 'Outras receitas' };
 const FIN_SERVICOS = ['Portaria', 'Limpeza', 'Elevador', 'Jardinagem', 'Outro'];
@@ -280,7 +288,14 @@ S.fin = { hoje: '2026-11-05', mesAtual: '2026-11', diaFech: 10, cobrancaAtiva: t
 (function () {
   const F = S.fin, L = F.lanc;
   FIN_MESES.slice(0, 10).forEach(ym => { const m = +ym.slice(5), y = +ym.slice(0, 4); F.fechadoEm[ym] = '10/' + String(m === 12 ? 1 : m + 1).padStart(2, '0'); });
-  const add = o => { L.push(Object.assign({ id: 'f' + (++F.n), sub: '', desc: '', forn: '', comp: false, rec: false, origem: 'manual', qtd: 0 }, o)); return L[L.length - 1]; };
+  const add = o => {
+    const inserir = x => { L.push(Object.assign({ id: 'f' + (++F.n), sub: '', desc: '', forn: '', comp: false, rec: false, origem: 'manual', qtd: 0 }, x)); return L[L.length - 1]; };
+    if (o.origem !== 'auto' || o.tipo !== 'receita' || o.qtd < 3) return inserir(o);
+    const qtd1 = Math.floor(o.qtd / 3), qtd2 = Math.floor(o.qtd / 3), quantidades = [qtd1, qtd2, o.qtd - qtd1 - qtd2];
+    const total = Math.round(o.valor * 100), valores = quantidades.map(q => Math.floor(total * q / o.qtd)); valores[2] = total - valores[0] - valores[1];
+    const dias = o.ym === '2026-11' ? ['03', '04', '05'] : ['10', '20', '27'];
+    return quantidades.map((q, i) => inserir({ ...o, data: o.ym + '-' + dias[i], valor: valores[i] / 100, qtd: q, desc: (FIN_CATS_R[o.cat] || 'Recebimentos') + ' · recebimentos do dia' }))[0];
+  };
   const taxaN = [114, 116, 115, 117, 116, 118, 117, 116, 118, 117, 117, 84];
   const multas = [380, 455, 402.4, 510, 468.2, 395, 430.8, 520, 410, 447.6, 412.6, 0];
   const areas = [840, 1080, 720, 990, 1260, 870, 1140, 960, 1350, 780, 1020, 240];
@@ -336,6 +351,7 @@ S.fin = { hoje: '2026-11-05', mesAtual: '2026-11', diaFech: 10, cobrancaAtiva: t
 const ADMIN_NAV = [
   ['visao-geral', 'Visão geral', 'layout-dashboard'], ['implantacao', 'Implantação', 'rocket'], ['unidades', 'Unidades e moradores', 'house'],
   ['funcionarios', 'Funcionários', 'id-card'], ['areas', 'Áreas e regras', 'calendar-days'], ['reclamacoes', 'Reclamações', 'message-square-warning'],
+  ['cancelamentos', 'Cancelar pelo condomínio', 'calendar-x'], ['eleicoes', 'Eleições', 'vote'], ['recebimentos-pendentes', 'Recebimentos em análise', 'receipt'], ['assinatura', 'Assinatura da plataforma', 'file-text'],
   ['cobranca', 'Cobrança', 'receipt'], ['financas', 'Finanças', 'wallet'], ['comunicados', 'Comunicados', 'megaphone'], ['reunioes', 'Reuniões e mandatos', 'vote'],
   ['solicitacoes', 'Solicitações', 'inbox'], ['bloqueio', 'Lista de bloqueio', 'ban'], '-', ['configuracoes', 'Configurações', 'settings'],
 ];
@@ -351,3 +367,6 @@ const HUB = [
   { p: 'manutencao', t: 'Funcionário · Manutenção', s: 'Proposta · não previsto no PRD', f: ['Fila de chamados de manutenção atribuídos', 'Agenda de visitas', 'Atualizar andamento e concluir com foto', 'Hoje o PRD prevê só empresas cadastradas pelo síndico'] },
   { p: 'proprietario', t: 'Proprietário não residente', s: 'App · Unidade, Cobranças, Assembleias, Menu', f: ['Unidade alugada: contrato, inquilino e pedidos à administradora', 'Paga as extraordinárias; vê as ordinárias do inquilino', 'Vota nas assembleias e indica procurador', 'Ocorrências validadas contra a unidade, sem ver a rotina do inquilino', 'Unidade desocupada e hóspede de temporada'] },
 ];
+
+S.complementacao.denuncias[0].comunicadoId = 'k2';
+S.complementacao.denuncias[1].comunicadoId = 'k1';

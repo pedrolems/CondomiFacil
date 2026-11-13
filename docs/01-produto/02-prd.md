@@ -63,8 +63,10 @@ O MVP inclui todos os módulos abaixo, exceto relatórios e acordos de parcelame
 
 | Plano | Para quem | Inclui | Preço |
 | --- | --- | --- | --- |
-| Essencial | Condomínios com administradora | App completo; a administradora faz cadastros e configurações | R$ 99 até 30 unidades; R$ 179 de 31 a 80; R$ 299 de 81 a 150; R$ 499 de 151 a 300; R$ 799 de 301 a 600; acima de 600, sob consulta |
+| Essencial | Condomínios com administradora ou sem administradora em autogestão | App completo; administradora ou gestão local executa administração conforme RN-PL-08 | R$ 99 até 30 unidades; R$ 179 de 31 a 80; R$ 299 de 81 a 150; R$ 499 de 151 a 300; R$ 799 de 301 a 600; acima de 600, sob consulta |
 | Gestão + Suporte | Condomínios sem administradora | App completo + a equipe da plataforma faz o papel de administradora (cadastros, mudanças de moradores, novas áreas, regras) | Essencial + R$ 150/mês. Solicitações incluídas por mês: 10 até 150 unidades, 25 de 151 a 300, 50 de 301 a 600, sob consulta acima de 600; R$ 15 por solicitação extra |
+
+**Essencial com autogestão (13/11/2026).** O condomínio sem administradora pode escolher somente o Essencial, sem contratar Gestão + Suporte. É uma modalidade de gestão do mesmo plano, com seus preços existentes. As tarefas administrativas ficam com síndico, subsíndico (se houver) e conselho fiscal (se houver), conforme RN-PL-08. A distribuição operacional e suas salvaguardas estão propostas para revisão em [Autogestão e condução eleitoral](06-autogestao-e-conducao-eleitoral.md). Não há franquia de serviço administrativo da plataforma nessa modalidade.
 
 **Unidade** é cada imóvel privativo do condomínio: apartamento, casa ou sala comercial. Áreas comuns, vagas de garagem e depósitos não contam como unidades.
 
@@ -83,7 +85,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
 | Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores |
 | Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
-| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; obrigatório em condomínio sem subsíndico. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14. Acompanham as finanças do condomínio em modo leitura e podem comentar (RF-FI-17, RF-FI-24) |
+| Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; a composição obrigatória sem subsíndico está em revisão (RN-CD-14/RN-VO-09), e sua ausência factual não bloqueia a eleição. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14. Acompanham as finanças do condomínio em modo leitura e podem comentar (RF-FI-17, RF-FI-24) |
 | Proprietário não residente | Dono da unidade que não mora nela, com a unidade alugada ou desocupada. Vota nas assembleias, vê e paga as cobranças de que é responsável e acompanha a unidade: contrato de locação, multas e reclamações validadas contra ela (RN-CD-19) |
 
 **Unidade alugada.** O inquilino é cadastrado com as datas do contrato e passa a ser o morador habilitado, com todas as funções de morador. O proprietário continua votando, responde pelas despesas extraordinárias e é avisado do que acontece com a unidade, sem ver a rotina do inquilino. No fim do contrato, a administradora renova ou encerra o vínculo; sem renovação, a unidade fica desocupada (RN-CD-20 a RN-CD-24).
@@ -91,6 +93,8 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 **Visão por unidade.** O app exibe reservas, visitantes, reuniões, votações e métricas da unidade ativa. Quem tem mais de uma unidade vê um painel separado para cada uma.
 
 **Substituição do síndico.** A administradora ou o próprio síndico ativa a substituição; o subsíndico passa a ter as funções de síndico até a desativação, que pode ser feita a qualquer momento por quem tem esse poder.
+
+**Como ler as permissões na autogestão.** Nas tarefas operacionais administrativas, a coluna Administradora e os perfis dos RF-AD/RF-FI incluem o responsável local de RN-PL-08. O desenho a revisar atribui execução ao síndico e ao subsíndico em substituição; o conselho fiscal mantém fiscalização, comentários e exportação. Essa equivalência não vale para acesso global a reclamações, julgamento de parte interessada, gestão da plataforma, autovalidação de mandato ou poderes sensíveis ainda pendentes no registro 06.
 
 **O que a administradora faz**
 
@@ -142,16 +146,18 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Convocar reuniões, criar pautas e encerrar votações | — | Sim | Sim | Em substituição | — | — | — |
 | Registrar votos presenciais | — | Sim | Sim | Sim | — | — | — |
 | Votar ou indicar procurador (proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária) | Sim | Sim | — | Sim | — | — | — |
+| Cancelar reserva pelo condomínio com motivo | — | Sim | Sim | Em substituição | — | — | Sim |
+| Abrir e encerrar eleição regular | Proprietário designado, sem os demais | RN-VO-13 | RN-VO-13 | Síndico ausente ou cargo vago | — | — | Sim |
 | Ativar substituição do síndico | — | Sim | Sim | — | — | — | Sim |
 | Solicitar cadastro, alteração ou remoção | — | Sim | Sim | Em substituição | — | — | — |
-| Fazer cadastros e configurações | — | — | — | — | — | — | Sim |
+| Fazer cadastros e configurações | — | Autogestão: RN-PL-08 | Autogestão: RN-PL-08 | Autogestão, em substituição | — | — | Sim |
 | Ver lista de entrada bloqueada | — | Sim | Sim | Sim | — | Sim | Sim |
 | Ver score dos funcionários | — | Sem administradora | Sem administradora | Sem administradora | — | — | Sim |
-| Configurar cobrança e formas de pagamento | — | — | — | — | — | — | Sim |
+| Configurar cobrança e formas de pagamento | — | Autogestão: RN-PL-08 | Autogestão: RN-PL-08 | Autogestão, em substituição | — | — | Sim |
 | Ver e pagar cobranças da própria unidade | Responsável financeiro | Responsável financeiro | — | Responsável financeiro | — | — | — |
 | Ver painel de inadimplência | — | Sim | Sim | Em substituição | — | — | Sim |
 | Solicitar cobrança extra | — | Sim | Sim | Em substituição | — | — | — |
-| Lançar receitas e despesas, fechar o mês e estornar lançamentos | — | — | — | — | — | — | Sim |
+| Lançar receitas e despesas, fechar o mês e estornar lançamentos | — | Autogestão: RN-FI-29 | Autogestão: RN-FI-29 | Autogestão, em substituição | — | — | Sim |
 | Ver as finanças do condomínio (resumo, categorias, evolução e lançamentos) | — | Sim | Sim | Em substituição | — | — | Sim |
 | Comentar lançamentos e meses das finanças | — | Sim | Sim | Em substituição | — | — | — |
 | Exportar as finanças (CSV e PDF) | — | Sim | Sim | Em substituição | — | — | Sim |
@@ -159,7 +165,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 **Perfis fora da matriz**
 
 - **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações e ver scores.
-- **Conselho fiscal:** julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
+- **Conselho fiscal:** sem síndico e subsíndico, conduz a eleição conforme RN-VO-13; isso não concede gestão administrativa geral. Julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
 - **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
 - **Proprietário não residente:** "Votar ou indicar procurador" e "Ver e pagar cobranças da própria unidade" (as de que é responsável financeiro). Também lê comunicados gerais, acompanha o contrato de locação e as multas e reclamações validadas contra a unidade e pede o cadastro, a renovação ou o encerramento do inquilino. Não reserva, não abre chamados, não reclama, não avalia funcionários e não vê a rotina do inquilino (RN-CD-19).
 - **Julgador de reclamação:** quem julga, seja quem for, pode iniciar a conversa com o alvo (RN-CO-04), mesmo sem permissão para enviar comunicados.
@@ -214,7 +220,7 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RE-01 | Ver disponibilidade das áreas em calendário | Morador | Horário reservado aparece como "ocupado", sem nome ou unidade; cada estado identificado por texto, não só por cor |
 | RF-RE-02 | Fazer reserva gratuita | Morador | Confirmação imediata se as regras forem cumpridas; na confirmação, sugere montar a lista de visitantes quando a reserva é futura e ainda não tem lista, inclusive na paga depois da aprovação do pagamento (RN-RE-12) |
 | RF-RE-03 | Fazer reserva paga | Morador | Horário bloqueado até o fim do prazo de pagamento |
-| RF-RE-04 | Cancelar com reembolso até 12h antes do início | Morador | Prazo configurável por condomínio e área |
+| RF-RE-04 | Cancelar com reembolso com antecedência ≥12h, inclusive igualdade | Morador | Prazo configurável; condomínio cancela conforme RN-CA-05, inclusive Aguardando pagamento, com motivo e auditoria |
 | RF-RE-05 | Cancelar sem reembolso depois do prazo | Morador | Libera a área para outros moradores |
 | RF-RE-06 | Bloquear reservas gratuitas para a pessoa com score baixo naquela unidade | Sistema | Áreas gratuitas aparecem indisponíveis para ela pela unidade ativa; outras pessoas e outros vínculos de unidade não são bloqueados (RN-SC-09, RN-SC-10) |
 | RF-RE-07 | Configurar prazos, antecedência, limites e valores | Administradora | Por condomínio e por área |
@@ -271,7 +277,7 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-CH-01 | Abrir chamado de limpeza ou manutenção, com foto | Morador, Síndico, Portaria | Categorias por tipo (ex.: piscina, jardim, ar-condicionado) |
 | RF-CH-02 | Ver e concluir chamados de limpeza | Limpeza | Fotos opcionais do serviço feito, até 5 (RN-CH-14) |
 | RF-CH-03 | Consultar e concluir chamados de limpeza sem internet | Limpeza | Conclusões sincronizam ao voltar a conexão; no mesmo ciclo, vale o menor horário registrado pelo celular, mesmo se enviado depois, com histórico e aviso da correção (RN-CH-04) |
-| RF-CH-04 | Acompanhar chamados de manutenção, indicar a empresa e concluir | Síndico; Subsíndico só acompanha, exceto na substituição | Status: aberto, orçamento, agendado, concluído; fotos opcionais do serviço na conclusão (RN-CH-14) |
+| RF-CH-04 | Acompanhar chamados de manutenção, indicar a empresa e concluir | Síndico; Subsíndico só acompanha, exceto na substituição | Status: aberto, orçamento, agendado, concluído; fotos opcionais do serviço na conclusão (RN-CH-14); Reaberto exige triagem para Orçamento ou Agendado |
 | RF-CH-05 | Acompanhar o status, ver as fotos do serviço concluído e reabrir em até 48h | Quem abriu | Notificação na conclusão, que convida a avaliar o atendimento (RF-CH-08) |
 | RF-CH-06 | Classificar a urgência ao abrir o chamado (alta, média ou leve), ver a urgência em cores nas listas e no detalhe, e ver as listas em ordem de urgência (abertos antes dos concluídos; empate, o mais antigo primeiro) | Quem abre; todos os que veem o chamado | Obrigatória; textos de ajuda com exemplos no formulário; alta em vermelho, média em amarelo e leve em verde, sempre com texto; ordem na exibição (RN-CH-13) |
 | RF-CH-07 | Ajustar a urgência de um chamado já aberto | Síndico; Subsíndico só na substituição | Fica registrado (quem, quando, de/para) e quem abriu é avisado |
@@ -297,7 +303,7 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-RS-11 | Ver o próprio score e o histórico de ganhos e perdas | Quem tem score | Morador: saldo, histórico e recuperação do vínculo da unidade ativa, com identificação da unidade; cada novo vínculo começa em 100. Funcionário e síndico profissional sem unidade: score individual por condomínio (RN-SC-13, RN-SC-14) |
 | RF-RS-12 | Ver o score do síndico e a nota de cada setor | Todos | Tela "Transparência"; síndico morador mostra o score da unidade vinculada ao mandato, sem juntar os outros imóveis; profissional sem unidade mostra o funcional do condomínio (RN-SC-02) |
 | RF-RS-13 | Consultar todas as reclamações, com identidade e score do reclamante e do alvo | Administradora | Inclusive contra síndico e subsíndico |
-| RF-RS-14 | Filtrar palavras ofensivas e denunciar conteúdo | Todos | Denúncia vai ao síndico |
+| RF-RS-14 | Filtrar palavras ofensivas e denunciar conteúdo | Todos | Destinatário de RN-RC-13 revisa projeção protegida e encerra sem ação ou oculta com motivo/histórico, sem score automático |
 | RF-RS-15 | Avisar o proprietário não residente de reclamação validada contra a unidade | Sistema | Categoria, data, decisão e multa; sem a conversa e sem quem reclamou (RN-RC-16) |
 | RF-RS-16 | Mostrar o semáforo do prazo de decisão nas reclamações aguardando decisão | Quem reclamou; julgador | Verde (no prazo), amarelo (últimos 25% do prazo) e vermelho (esgotado), sempre com texto; na lista e no detalhe; sem semáforo em reclamação pendente ou já decidida (RN-RC-17 a RN-RC-19) |
 
@@ -318,10 +324,10 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-VO-02 | Votar em cada pauta, um voto por unidade | Proprietário | O voto vale pela unidade inteira; votação aberta da convocação até o encerramento da reunião (RN-VO-01) |
 | RF-VO-03 | Indicar procurador para uma votação | Proprietário | Antes de a unidade votar; procurador é usuário do mesmo condomínio (pode ser o inquilino) e representa no máximo 1 unidade além das suas |
 | RF-VO-04 | Registrar votos presenciais por unidade | Síndico, Subsíndico | Junto com a ata; o subsíndico registra nas reuniões convocadas pelo síndico |
-| RF-VO-05 | Abrir eleição de síndico e subsíndico com candidaturas | Síndico, Administradora | Inscrição no app, com prazo |
+| RF-VO-05 | Abrir eleição de síndico e subsíndico com candidaturas | Síndico; na ausência/vacância, subsíndico; sem ambos, conselho; sem todos, proprietário designado; administradora e suporte autorizado também | RN-VO-13, em qualquer plano; permissão temporária restrita, auditoria, voto secreto e resultado só após encerramento |
 | RF-VO-06 | Bloquear candidaturas inelegíveis | Sistema | Mesma unidade do outro cargo; reeleição conforme a configuração do condomínio |
 | RF-VO-07 | Exibir resultado só após o encerramento | Todos | Voto secreto; contagem por opção |
-| RF-VO-08 | Abrir segundo turno em caso de empate | Sistema | Entre os empatados, em até 7 dias |
+| RF-VO-08 | Abrir segundo turno em caso de empate | Sistema | Entre os empatados em até 7 dias; segundo empate/sem elegível é inconclusivo, sem vencedor automático |
 | RF-VO-09 | Anexar ata e lista de presença | Síndico | PDF anexado à reunião |
 | RF-VO-10 | Marcar cada pauta com votação como "envolve despesa extraordinária" ou não | Síndico | Padrão: envolve (RN-VO-18) |
 | RF-VO-11 | Votar pela unidade alugada nas pautas sem despesa extraordinária | Inquilino (morador habilitado) | Vale se o proprietário não votar até o encerramento; o voto do proprietário substitui o do inquilino, que é avisado (RN-VO-18) |
@@ -341,7 +347,7 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | --- | --- | --- | --- |
 | RF-NO-01 | Push para visitante, encomenda, reserva, chamado, comunicado, votação e reclamação | Todos | O usuário escolhe quais receber, exceto as obrigatórias |
 | RF-LG-01 | Pedir cópia dos próprios dados | Todos | Envio por e-mail em até 15 dias |
-| RF-LG-02 | Pedir exclusão da conta | Todos | Histórico anonimizado; votos e reclamações mantidos sem identificação |
+| RF-LG-02 | Pedir exclusão da conta | Todos | Procedimento definido automatizado e exceções assistidas por operador ainda a definir; retenção por finalidade; votos/reclamações sem identificação |
 
 ### 4.13 Cobrança condominial e finanças do condomínio
 
@@ -355,7 +361,7 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-FI-06 | Lançar cobranças extras (rateio, fundo de reserva, multa por infração) | Administradora, Suporte | Para uma, várias ou todas as unidades; o síndico solicita |
 | RF-FI-07 | Emitir boleto registrado com QR Code Pix, Pix e pagamento por cartão | Sistema | Pelo gateway; segunda via sempre com valor atualizado |
 | RF-FI-08 | Ver as cobranças da unidade, pagar no app e baixar comprovantes | Responsável financeiro | Histórico completo da unidade |
-| RF-FI-09 | Dar baixa automática quando o pagamento é confirmado | Sistema | Confirmação por webhook do gateway |
+| RF-FI-09 | Dar baixa automática quando o pagamento é confirmado | Sistema | Confirmação por webhook do gateway. Após vencimento é Paga com atraso pelo instante efetivo, mesmo antes da rotina; Cancelada recebe registro/pendência sem reativação (RN-FI-13). |
 | RF-FI-10 | Registrar pagamento feito fora do app | Administradora, Suporte | Com comprovante anexado e motivo |
 | RF-FI-11 | Lembrar o responsável antes e depois do vencimento | Sistema | 5 dias antes, no dia, 1 e 7 dias depois |
 | RF-FI-12 | Calcular multa e juros por atraso | Sistema | Padrão: multa de 2% e juros de 1% ao mês, proporcionais aos dias |
@@ -363,12 +369,12 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-FI-14 | Negociar débitos em parcelas (acordo) | Administradora, Suporte | Entrega na versão 2 |
 | RF-FI-15 | Exportar cobranças e pagamentos | Administradora | CSV para a contabilidade |
 | RF-FI-16 | Classificar cada cobrança como ordinária ou extraordinária | Administradora, Suporte, Sistema | Taxa mensal é ordinária; fundo de reserva e obras vêm como extraordinárias; multa por infração vai a quem paga as ordinárias, com aviso ao proprietário (RN-FI-20) |
-| RF-FI-17 | Painel financeiro do condomínio: resumo do mês (receitas, despesas, saldo e comparação com o mês anterior), despesas por categoria e evolução de 6 ou 12 meses | Administradora, Suporte, Síndico, Conselho fiscal | Síndico, conselho fiscal e subsíndico em substituição só leem; gráficos sempre com tabela equivalente (RN-FI-21, RN-FI-29) |
+| RF-FI-17 | Painel financeiro do condomínio: resumo do mês (receitas, despesas, saldo e comparação com o mês anterior), despesas por categoria e evolução de 6 ou 12 meses | Administradora, Suporte, Síndico, Conselho fiscal | Conselho fiscal sempre em leitura; síndico e sub em substituição só leem com administradora/Gestão + Suporte e executam na proposta de autogestão RN-PL-08; gráficos sempre com tabela equivalente (RN-FI-21, RN-FI-29) |
 | RF-FI-18 | Lançar como receita, sozinho, o que o condomínio recebe pelo app: cobranças pagas (taxa, fundo de reserva, extras, multas e juros) e reservas pagas | Sistema | Pela data do pagamento confirmado; nunca digitado de novo; taxas do gateway entram como despesa (RN-FI-22, RN-FI-23) |
 | RF-FI-19 | Registrar despesa ou receita avulsa com data, categoria, valor, fornecedor ou origem, descrição e comprovante opcional | Administradora, Suporte | Categorias de despesa fixas; receita avulsa só como "Outras receitas"; valor maior que zero; data até hoje e em mês aberto (RN-FI-24, RN-FI-25) |
 | RF-FI-20 | Repetir todo mês um lançamento marcado como recorrente | Sistema | Valor fixo (honorários, seguro, aluguel de antena); contas variáveis são digitadas todo mês (RN-FI-26) |
 | RF-FI-21 | Filtrar os lançamentos por período, categoria, tipo e texto | Administradora, Suporte, Síndico, Conselho fiscal | Período: um mês, 3, 6 ou 12 meses; os totais acompanham o filtro |
-| RF-FI-22 | Exportar o resumo e os lançamentos filtrados em CSV e PDF | Administradora, Suporte, Síndico, Conselho fiscal | CSV para a contabilidade; PDF com resumo, categorias e lançamentos; sem dados de unidade (RN-FI-30) |
+| RF-FI-22 | Exportar o resumo e os lançamentos filtrados em CSV e PDF | Administradora, Suporte, Síndico, Conselho fiscal | Processamento assíncrono, acompanhamento e arquivo privado; CSV para a contabilidade; PDF com resumo, categorias e lançamentos; sem dados de unidade (RN-FI-30) |
 | RF-FI-23 | Fechar o mês e estornar lançamentos de mês fechado | Administradora, Suporte, Sistema | Fechamento no dia configurado do mês seguinte ou antes, pela administradora; mês fechado não edita, só estorna, com motivo e registro (RN-FI-27, RN-FI-28) |
 | RF-FI-24 | Comentar um lançamento ou o mês, inclusive depois do fechamento | Síndico, Subsíndico em substituição, Conselho fiscal | A administradora é avisada; o comentário não altera valores nem aprova o mês (RN-FI-31) |
 
@@ -384,7 +390,7 @@ As regras completas, com IDs, valores padrão e parâmetros configuráveis, est�
 | Reservas e pagamentos | Pagas ou gratuitas; confirmação automática; pagamento em até 24h; cancelamento com reembolso até 12h antes e sem reembolso depois; dinheiro direto na conta do condomínio | 7 |
 | Visitantes e portaria | Cadastro a qualquer momento antes da chegada; lista de visitantes para festas e eventos; visitas recorrentes; autorização por interfone continua valendo; consulta e registro offline; "saída não registrada" após 24h | 8 |
 | Encomendas e chamados | Lembretes em 3 e 7 dias e guarda de 30 dias; limpeza em 24h; manutenção com primeira atualização em 48h | 9 |
-| Votações e mandatos | Um voto por unidade, do proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária; voto secreto; reeleição configurável, permitida por padrão; conselho fiscal obrigatório sem subsíndico | 10 |
+| Votações e mandatos | Um voto por unidade, do proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária; voto secreto; reeleição configurável, permitida por padrão; composição conselho/sub em revisão; ausência factual não bloqueia RN-VO-13 | 10 |
 | Planos | Preço por faixa de unidades; franquia de 10, 25 ou 50 solicitações no Gestão + Suporte; R$ 15 por solicitação extra | 11 |
 | Cobrança condominial | Módulo opcional; formas de pagamento escolhidas pela administradora; vencimento padrão dia 10; multa de até 2% e juros de 1% ao mês; inadimplência visível só a quem administra; unidade em atraso não vota; na unidade alugada, o inquilino paga as despesas ordinárias e o proprietário as extraordinárias | 12 |
 | Finanças do condomínio | Receitas de cobrança e de reservas entram sozinhas, pela data do pagamento; despesas por categoria lançadas pela administradora; mês fechado só aceita estorno, com motivo e registro; síndico, subsíndico em substituição e conselho fiscal veem e comentam; moradores não veem | 12.3 |
@@ -497,3 +503,8 @@ App em React Native com TypeScript, publicado para Android, iOS e web (React Nat
 | Arquivos (fotos, atas) | Armazenamento de objetos (S3 ou equivalente), com fotos comprimidas no aparelho |
 | E-mail transacional | **Resend** (decisão de Pedro em 10/11/2026, ADR-005, aceito com ressalvas) |
 | Monitoramento | Sentry + logs |
+
+
+## Decisões de complementação de 12/11/2026
+
+As [19 escolhas aprovadas](05-decisoes-de-complementacao.md) detalham requisitos existentes. Score e casos permanecem no episódio original; reatribuição do julgador segue função vigente; recurso restitui perda efetiva. Recebimento real tardio é registrado sem recuperar reserva/cobrança cancelada. Finanças usam fontes restritas e projeções diárias por categoria. Assinatura da plataforma é assistida/manual, separada do dinheiro condominial. Fila offline pendente não é cache apagável; retenção/logout e tolerância controlada de refresh dependem de desenho/revisão. Suporte não acessa reclamações/scores; operador LGPD não foi definido. PoC, parecer e sigilo de votação permanecem condições de implementação, não validações realizadas.

@@ -28,7 +28,8 @@ O CondomiFacil atende condomínios de qualquer porte, verticais ou horizontais, 
 | Segmento | Perfil | Plano |
 | --- | --- | --- |
 | Condomínio com administradora | A administradora cuida de cadastros e da parte administrativa; o síndico quer menos trabalho operacional | Essencial |
-| Condomínio sem administradora | Síndico morador faz tudo sozinho, sem ferramenta e sem apoio | Gestão + Suporte |
+| Condomínio sem administradora, em autogestão | Gestão local assume administração pelo app, sem contratar serviço administrativo da plataforma | Essencial (autogestão) |
+| Condomínio sem administradora que deseja serviço administrativo | Gestão local opta por apoio operacional da plataforma | Gestão + Suporte |
 | Administradoras | Atendem vários condomínios e querem padronizar a operação | Essencial, em volume |
 | Condomínio grande | Centenas ou milhares de unidades, várias torres e portarias, alto volume de visitantes e encomendas | Essencial ou Gestão + Suporte, na faixa de unidades correspondente |
 
@@ -63,7 +64,7 @@ O produto se diferencia por tratar convivência como parte da gestão, não só 
 1. **Score de conduta com recuperação.** Reclamações validadas e avaliações custam pontos; regularidade devolve. Score baixo tira o acesso a reservas gratuitas, o que dá consequência real à boa convivência.
 2. **Reclamações com processo justo.** O alvo não sabe quem reclamou, o julgador precisa conversar com ele antes de decidir, reclamações falsas punem quem reclamou e toda decisão tem recurso.
 3. **Transparência do síndico.** O score do síndico e a nota de cada setor são públicos para todos os moradores.
-4. **Plano para quem não tem administradora.** No Gestão + Suporte, a equipe da plataforma faz cadastros e configurações, o que atende o condomínio, de qualquer porte, que hoje fica sem apoio.
+4. **Escolha para quem não tem administradora.** O Essencial admite autogestão, com funções locais concentradas no síndico, subsíndico e conselho, quando existirem (RN-PL-08). No Gestão + Suporte, a equipe da plataforma faz cadastros e configurações, o que atende o condomínio, de qualquer porte, que hoje fica sem apoio.
 5. **Portaria que funciona sem internet.** Consulta e registro de visitantes offline, com sincronização e aviso de divergência.
 6. **Regras do jeito de cada condomínio.** Prazos, limites, pontos e valores configuráveis por condomínio e por área, sem desenvolvimento sob medida.
 7. **Dinheiro direto para o condomínio.** Pagamentos de reservas caem na conta do condomínio, com reembolso automático no prazo.

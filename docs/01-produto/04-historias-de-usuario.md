@@ -11,6 +11,8 @@ São 71 histórias em 13 épicos; cada uma é entregue quando todos os seus crit
 - **Critérios de aceite:** no formato Dado / Quando / Então, como lista de verificação para o QA marcar.
 - **Valores padrão:** os critérios usam os padrões das regras (ex.: 12h para cancelar com reembolso); em condomínios com outra configuração, vale o valor configurado.
 
+**Aplicação à autogestão (13/11/2026):** nas histórias administrativas e financeiras, "administradora" inclui o responsável local do Essencial com autogestão para as tarefas operacionais de RN-PL-08. A distribuição síndico executor/subsíndico em substituição/conselho fiscalizador é desenho para revisão, sem herdar acesso global a reclamações ou autovalidação de mandato. A implantação inicial e as atribuições sensíveis permanecem pendentes no [registro 06](06-autogestao-e-conducao-eleitoral.md).
+
 ## Épico 1 — Acesso e conta
 
 ### US-AC-01 — Primeiro acesso
@@ -57,6 +59,8 @@ Requisitos: RF-AC-03 · RN-CD-02
 - [ ] Dado o código válido, quando crio uma nova senha, então a senha antiga deixa de funcionar e as outras sessões são encerradas.
 - [ ] Dado 5 senhas erradas seguidas no login, quando tento de novo, então o acesso fica pausado por 15 minutos, com a opção de redefinir a senha (SEG-04).
 
+- [ ] Resposta de renovação perdida exige desenho de tolerância controlada a retry legítimo sem replay; parâmetros/mecanismo aguardam revisão de segurança, sem aceitar todo ADR-007.
+
 ### US-AC-05 — Trocar de unidade
 
 Como morador com mais de uma unidade, quero escolher a unidade ativa, para ver reservas, visitantes e reuniões de cada uma separadamente.
@@ -84,7 +88,9 @@ Requisitos: RF-AC-05, RF-AC-06
 
 Como administradora, quero cadastrar moradores individualmente ou por planilha, para implantar o condomínio rápido.
 
-Requisitos: RF-AD-01, RF-AD-04 · RN-CD-01, RN-CD-04
+Requisitos: RF-AD-01, RF-AD-04 · RN-CD-01, RN-CD-04, RN-PL-08
+
+- [ ] Dado Essencial com autogestão e gestão local já habilitada, quando o executor local cadastra pessoas, então aplica as mesmas validações e auditoria sem depender de administradora ou suporte pago; a primeira habilitação não é autoconcedida.
 
 - [ ] Dado uma planilha no modelo do app, quando a importo, então vejo uma prévia com as linhas válidas e os erros por linha antes de confirmar.
 - [ ] Dado uma unidade sem morador habilitado, quando tento salvar, então o sistema exige que eu escolha um, a não ser que eu a marque como desocupada.
@@ -167,6 +173,7 @@ Requisitos: RF-CH-04, RF-EN-05, RF-VO-04, RF-RS-03 · RN-CD-27, RN-CD-28, RN-CH-
 - [ ] Dado encomendas com prazo vencido, quando abro a lista, então vejo as encomendas, sem marcar a devolução.
 - [ ] Dado que tento abrir solicitações ou inadimplência, quando não há substituição ativa, então vejo que a função é do síndico e fica disponível na substituição.
 - [ ] Dado que a substituição é ativada, quando abro a Gestão, então vejo todas as funções de síndico e um aviso de que tudo fica registrado.
+- [ ] Dado o síndico ausente ou cargo vago, quando conduzo a eleição como subsíndico, então RN-VO-13 permite abrir/encerrar essa eleição sem depender de substituição ativa e sem conceder outras funções de gestão.
 
 ### US-AD-08 — Cadastrar blocos e portarias
 
@@ -252,16 +259,18 @@ Requisitos: RF-RE-03, RF-PG-01, RF-PG-02, RF-PG-04 · RN-RE-03, RN-PG-04 a RN-PG
 - [ ] Dado que o prazo venceu sem pagamento, quando a rotina roda, então a reserva fica "expirada" e o horário é liberado.
 - [ ] Dado um pagamento aprovado, quando ele é processado, então o valor vai para a conta do condomínio, descontadas as taxas do gateway.
 
+- [ ] Recebimento confirmado em reserva expirada/cancelada registra dinheiro e pendência para administradora/suporte autorizado, sem recuperar horário, reativar ou devolver automaticamente.
+
 ### US-RE-04 — Cancelar reserva
 
 Como morador, quero cancelar uma reserva, para liberar a área quando eu não puder usar.
 
 Requisitos: RF-RE-04, RF-RE-05, RF-RE-10, RF-PG-03 · RN-CA-01 a RN-CA-06, RN-RE-14
 
-- [ ] Dado uma reserva paga com mais de 12h até o início, quando cancelo, então recebo reembolso integral (Pix em até 2 dias úteis; cartão estornado pela operadora).
+- [ ] Dado uma reserva paga com 12h ou mais até o início, quando cancelo, então recebo reembolso integral (Pix em até 2 dias úteis; cartão estornado pela operadora).
 - [ ] Dado uma reserva paga com menos de 12h até o início, quando tento cancelar, então o app avisa que não haverá reembolso e, se eu confirmar, cancela.
 - [ ] Dado uma reserva que já começou, quando abro os detalhes, então a opção de cancelar não aparece.
-- [ ] Dado um cancelamento feito pelo condomínio, quando ele ocorre, então recebo reembolso integral e o motivo, em qualquer prazo.
+- [ ] Dado um cancelamento feito pelo condomínio, quando ele ocorre, então recebo o motivo e, se houve recebimento, reembolso integral em qualquer prazo; se não houve, não é criada devolução.
 - [ ] Dado qualquer cancelamento, quando ele é confirmado, então o horário fica livre na hora.
 - [ ] Dado uma reserva confirmada e o lembrete ligado, quando faltam 24h para o início (ou o valor de `reserva.lembrete_antecedencia_horas`), então recebo um único push com o nome da área, o dia e o horário; ao tocar, abre o detalhe da reserva, com o atalho "Cancelar reserva".
 - [ ] Dado o push do lembrete, quando uso o atalho para cancelar, então valem as regras de cancelamento (reembolso integral na reserva paga até 12h antes; depois disso, o app avisa que não haverá reembolso antes de confirmar) e o cancelamento não tira pontos do meu score.
@@ -269,6 +278,8 @@ Requisitos: RF-RE-04, RF-RE-05, RF-RE-10, RF-PG-03 · RN-CA-01 a RN-CA-06, RN-RE
 - [ ] Dado uma reserva confirmada com menos antecedência que a do lembrete, quando ela é criada, então não recebo lembrete para ela.
 - [ ] Dado o lembrete ligado e o parâmetro em 24h, quando uma reserva confirmada começa às 02:00 de sábado (horário calculado 02:00 de sexta, entre 00:00 e 08:59), então recebo o push na quinta às 21:00, e não na madrugada de sexta; horários calculados entre 09:00 e 23:59 não mudam.
 - [ ] Dado uma reserva confirmada depois das 21:00 antecipadas (mas antes do horário calculado), quando ela é confirmada, então não recebo lembrete, porque o horário de envio já passou.
+
+- [ ] Cancelamento pelo condomínio exige síndico, sub em substituição, administradora ou suporte autorizado, motivo e auditoria; Aguardando pagamento vira Cancelada pelo condomínio sem devolução se não recebeu.
 
 ### US-RE-05 — Bloqueio de reservas gratuitas por score
 
@@ -345,6 +356,8 @@ Requisitos: RF-VI-05, RF-VI-06, RF-VI-11 · RN-OF-01 a RN-OF-06
 - [ ] Dado que a internet volta, quando o app sincroniza, então os registros pendentes são enviados sem eu fazer nada.
 - [ ] Dado um registro offline que diverge do cadastro (ex.: visitante cancelado pelo morador), quando sincroniza, então recebo um aviso e só consigo fechá-lo após confirmar por interfone com o morador que cadastrou.
 - [ ] Dado o fim do dia ou a saída da conta, quando ocorre, então a cópia salva no aparelho é apagada.
+
+- [ ] Limpeza do cache preserva fila não enviada protegida até sincronização/tratamento explícito; retenção e acesso após logout aguardam desenho.
 
 ### US-VI-05 — Visitante sem cadastro e lista de bloqueio
 
@@ -473,6 +486,8 @@ Requisitos: RF-CH-02, RF-CH-03, RF-CH-06 · RN-CH-04, RN-CH-06, RN-CH-08, RN-CH-
 - [ ] Dado que vou concluir um chamado, quando abro a conclusão, então posso anexar até 5 fotos do serviço, mas não preciso: sem foto, "Concluir chamado" funciona igual.
 - [ ] Dado a internet fora, quando concluo um chamado com fotos, então as fotos ficam na fila e são enviadas com a conclusão.
 
+- [ ] Conclusão/fotos offline pendentes não são descartadas silenciosamente na limpeza de cache (RN-OF-06); empate/relógio continuam pendentes.
+
 ### US-CH-03 — Acompanhar manutenção
 
 Como síndico, quero registrar a empresa contratada e o andamento dos chamados de manutenção, para os moradores saberem o que está sendo feito.
@@ -485,6 +500,8 @@ Requisitos: RF-CH-04, RF-CH-05, RF-CH-07 · RN-CH-05 a RN-CH-07, RN-CH-11, RN-CH
 - [ ] Dado que sou subsíndico sem a substituição ativa, quando abro um chamado de manutenção, então só acompanho o andamento.
 - [ ] Dado um chamado aberto, quando mudo a urgência, então o detalhe registra quem mudou, quando e de qual nível para qual, e quem abriu é avisado.
 - [ ] Dado que sou funcionário ou porteiro, quando abro um chamado, então vejo a urgência, mas não consigo alterá-la.
+
+- [ ] Manutenção Reaberto permanece assim até triagem do síndico/sub em substituição para Orçamento ou Agendado, com autoria/momento.
 
 ### US-CH-04 — Avaliar o atendimento do chamado
 
@@ -529,6 +546,7 @@ Requisitos: RF-RS-01, RF-RS-02, RF-RS-07 · RN-RC-01, RN-RC-02, RN-RC-09, RN-RC-
 - [ ] Dado a reclamação registrada, quando o alvo é notificado, então ele não vê quem reclamou.
 - [ ] Dado que quero reclamar do síndico e do subsíndico, quando tento, então preciso abrir duas reclamações separadas.
 
+
 ### US-RS-02 — Conversar com o alvo antes de decidir
 
 Como julgador, quero ver a reclamação com o score do reclamante e do alvo e conversar com o alvo, para decidir com os dois lados.
@@ -564,6 +582,9 @@ Requisitos: RF-RS-04 · RN-RC-03, RN-RC-11
 - [ ] Dado reclamação contra o subsíndico com a substituição ativa, quando é aberta, então vai para a administradora; sem ela, fica "pendente" até o fim da substituição.
 - [ ] Dado reclamação feita pelo próprio julgador, quando é aberta, então vai para quem julgaria uma reclamação contra ele.
 
+- [ ] Perda da função do julgador retira acesso e reatribui pela tabela vigente, preservando histórico; sem elegível aguarda atribuição.
+- [ ] Troca de habilitado mantém caso e pontos no episódio original, sem acesso do novo ocupante. Pessoa originalmente envolvida conserva acesso próprio restrito à defesa/recurso, com projeção sujeita à revisão de privacidade.
+
 ### US-RS-05 — Recorrer de uma decisão
 
 Como quem perdeu pontos, quero recorrer uma vez, para ter a decisão revista por outra pessoa.
@@ -576,6 +597,8 @@ Requisitos: RF-RS-09 · RN-RC-07, RN-RC-14, RN-RC-15
 - [ ] Dado 7 dias sem recurso, quando a rotina roda, então a reclamação fica "encerrada".
 - [ ] Dado decisão da administradora ou do conselho fiscal, quando abro a reclamação, então não há opção de recurso.
 - [ ] Dado recurso aceito, quando é decidido, então os pontos voltam e essa perda deixa de contar para a regularidade.
+
+- [ ] Saldo 3 reduzido a 0 por penalidade nominal 10 recebe somente 3 pontos na reversão, no perfil original, com movimento vinculado e teto 100.
 
 ### US-RS-06 — Acompanhar meu score
 
@@ -602,6 +625,8 @@ Requisitos: RF-RS-12 a RF-RS-14 · RN-SC-02, RN-RC-08, RN-RC-13
 - [ ] Dado um síndico morador com várias unidades, quando vejo seu score público, então ele corresponde à unidade vinculada ao mandato; as pontuações dos outros imóveis permanecem separadas.
 - [ ] Dado que sou administradora, quando abro as reclamações, então vejo todas, com identidade e score do reclamante e do alvo, inclusive contra síndico e subsíndico.
 - [ ] Dado um texto ofensivo, quando é enviado, então o filtro o bloqueia; e quando alguém denuncia um conteúdo, a denúncia vai ao síndico.
+
+- [ ] Destinatário autorizado revisa denúncia em projeção protegida e encerra sem ação ou oculta com motivo/histórico, sem score automático e sem revelar reclamante/avaliador.
 
 ### US-RS-08 — Acompanhar o prazo da reclamação
 
@@ -714,6 +739,11 @@ Requisitos: RF-VO-05, RF-VO-06, RF-VO-08 · RN-VO-04, RN-VO-05, RN-VO-07, RN-VO-
 - [ ] Dado um empate, quando a eleição encerra, então um segundo turno entre os empatados é aberto em até 7 dias.
 - [ ] Dado síndico e subsíndico eleitos da mesma unidade, quando o resultado sai, então assume como subsíndico o próximo mais votado.
 
+- [ ] Dado qualquer plano, quando se abre ou encerra eleição, então RN-VO-13 autoriza o síndico; ausente/vago, o subsíndico; sem ambos, o conselho; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora e suporte autorizado também podem conduzir quando presentes.
+- [ ] Dado um condutor autorizado, quando age, então a ação é auditada sem revelar votos e o resultado só aparece após encerramento; a permissão eleitoral não concede administração geral.
+- [ ] Dado proprietário sem concessão válida ou condutor fora da condição autorizada, quando tenta abrir/encerrar, então o acesso é negado, sem autoconcessão.
+- [ ] Segundo turno empatado ou ausência de elegível publica inconclusivo e encaminha ao condutor de RN-VO-13, sem vencedor automático nem dependência de administradora.
+
 ## Épico 11 — Planos e suporte
 
 ### US-PL-01 — Cobrar pela faixa de unidades
@@ -726,6 +756,11 @@ Requisitos: RF-AD-16 · RN-PL-01, RN-PL-06, RN-PL-07
 - [ ] Dado que o condomínio muda de faixa, quando isso ocorre, então o novo valor vale a partir do ciclo seguinte.
 - [ ] Dado que um condomínio do Gestão + Suporte contrata uma administradora, quando registrado, então passa ao Essencial no ciclo seguinte e o suporte perde o acesso.
 - [ ] Dado a revisão anual de preços, quando um novo valor é definido, então o cliente é avisado com 30 dias de antecedência.
+
+- [ ] Assinatura da plataforma no MVP usa cobrança assistida/manual com ciclo/valores registrados, separada do dinheiro e da conta condominial.
+
+- [ ] Dado condomínio sem administradora que opta somente pelo Essencial, quando sua modalidade é autogestão, então mantém a faixa e preço do Essencial, sem obrigar Gestão + Suporte nem conceder acesso administrativo ao suporte.
+- [ ] Dada autogestão, quando há pedido administrativo, então ele é atendido pela gestão local de RN-PL-08; conselho não ganha edição financeira por consequência da modalidade e poderes sensíveis aguardam revisão.
 
 ### US-PL-02 — Controlar a franquia de solicitações
 
@@ -761,6 +796,8 @@ Requisitos: RF-LG-01, RF-LG-02 · SEG-11
 - [ ] Dado um pedido de exclusão, quando é concluído, então perco o acesso e meu histórico é anonimizado.
 - [ ] Dado meus votos e reclamações, quando a conta é excluída, então eles continuam contando, sem me identificar.
 
+- [ ] Etapas definidas de LGPD são automatizadas/rastreadas; exceções aguardam operador autorizado cuja função/permissão ainda deve ser definida, sem concessão implícita.
+
 ## Épico 13 — Cobrança e finanças do condomínio
 
 ### US-FI-01 — Configurar a cobrança
@@ -795,6 +832,8 @@ Requisitos: RF-FI-07 a RF-FI-09, RF-FI-12 · RN-FI-06, RN-FI-08, RN-FI-13, RN-FI
 - [ ] Dado uma cobrança vencida, quando gero a segunda via, então o valor inclui multa de 2% e juros de 1% ao mês proporcionais aos dias.
 - [ ] Dado um pagamento confirmado, quando abro a cobrança, então baixo o comprovante.
 - [ ] Dado um pagamento confirmado, quando é processado, então o valor vai para a conta do condomínio, descontadas as taxas do gateway.
+
+- [ ] Pagamento efetivo após vencimento antes da rotina classifica Paga com atraso; cobrança Cancelada registra recebimento/pendência sem reativação.
 
 ### US-FI-04 — Lançar cobranças extras e pagamentos fora do app
 
@@ -845,8 +884,11 @@ Requisitos: RF-FI-17, RF-FI-18, RF-FI-21, RF-FI-22 · RN-FI-21 a RN-FI-23, RN-FI
 - [ ] Dado a taxa do gateway de um pagamento, quando ele é confirmado, então a taxa entra sozinha como despesa de Administração.
 - [ ] Dado os filtros de período, categoria, tipo e texto, quando os aplico, então a lista e os totais mostram só o filtrado.
 - [ ] Dado que exporto, quando escolho CSV ou PDF, então o arquivo respeita o filtro, traz o resumo, as categorias e os lançamentos, e não contém unidade nem responsável financeiro.
-- [ ] Dado que sou síndico, subsíndico em substituição ou conselho fiscal, quando abro as finanças, então só leio, comento e exporto; não vejo botões de lançar, editar, fechar nem estornar.
+- [ ] Dado que sou conselho fiscal, ou síndico/subsíndico de condomínio com administradora ou Gestão + Suporte, quando abro as finanças, então só leio, comento e exporto; no Essencial com autogestão, o desenho proposto permite execução ao síndico/sub em substituição (RN-PL-08/RN-FI-29), sem dar edição ao conselho.
 - [ ] Dado que sou morador, proprietário não residente ou funcionário, quando uso o app, então não encontro as finanças do condomínio em lugar nenhum.
+
+- [ ] Receitas automáticas aparecem agregadas por dia/categoria sem unidade/responsável; fontes individuais permanecem restritas.
+- [ ] Exportação tem acompanhamento assíncrono e arquivo privado quando pronto, com permissão revalidada; falha não oferece download fictício.
 
 ### US-FI-08 — Lançar despesas e receitas
 
@@ -867,7 +909,9 @@ Requisitos: RF-FI-19, RF-FI-20 · RN-FI-24 a RN-FI-26, RN-FI-32
 
 Como administradora, quero fechar o mês e corrigir lançamentos de meses fechados sem apagar o histórico, para o controle ser confiável para o síndico e o conselho fiscal.
 
-Requisitos: RF-FI-23 · RN-FI-27, RN-FI-28
+Requisitos: RF-FI-23 · RN-FI-27, RN-FI-28, RN-FI-29, RN-PL-08
+
+- [ ] Dado Essencial com autogestão, quando o síndico ou subsíndico em substituição executa a proposta local de fechamento/estorno, então mantém motivo, auditoria e mês fechado imutável; conselho fiscal sem outra capacidade autorizada não edita, fecha nem estorna.
 
 - [ ] Dado um mês aberto, quando edito ou excluo um lançamento avulso, então a alteração fica na auditoria com autor, data, valor antigo e valor novo.
 - [ ] Dado um mês que acabou, quando o fecho, então o app avisa quantas despesas estão sem comprovante e pede confirmação de que depois só haverá estorno.
@@ -907,3 +951,6 @@ As 71 histórias cobrem os 139 requisitos funcionais do PRD; requisitos não fun
 | 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
 | 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 (US-NO-01 também verifica o interruptor de RF-RE-10) |
 | 13. Cobrança e finanças do condomínio | US-FI-01 a US-FI-10 | RF-FI-01 a RF-FI-24 |
+
+
+Critérios acrescentados por decisão de Pedro em 12/11/2026: [registro das 19 escolhas](05-decisoes-de-complementacao.md). São critérios da futura implementação, não testes já executados.

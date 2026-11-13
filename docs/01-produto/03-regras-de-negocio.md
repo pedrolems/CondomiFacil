@@ -68,28 +68,30 @@ Um parâmetro é resolvido do nível mais geral para o mais específico; o níve
 
 ## 3. Cadastros, unidades e papéis
 
-Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pela administradora ou pelo suporte, e cada unidade ocupada tem exatamente um morador habilitado.
+**Leitura por modalidade (13/11/2026):** nas tarefas administrativas operacionais deste documento, a referência à administradora inclui o responsável local da autogestão conforme RN-PL-08. Isso abrange cadastros, locações, áreas, regras, documentos, lista de bloqueio, cobranças, recebimentos tardios e finanças. Não transfere acesso global a reclamações, poder para julgar a si próprio, poderes da plataforma nem o direito de validar o próprio mandato. A distribuição fina de poderes locais é proposta para revisão no registro 06.
+
+Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pelo responsável administrativo conforme RN-PL-08, e cada unidade ocupada tem exatamente um morador habilitado.
 
 | ID | Regra |
 | --- | --- |
-| RN-CD-01 | Todo usuário é pré-cadastrado pela administradora ou, no plano Gestão + Suporte, pela equipe da plataforma |
+| RN-CD-01 | Todo usuário é pré-cadastrado pela administradora, pela equipe da plataforma no Gestão + Suporte ou pelo responsável administrativo local no Essencial com autogestão (RN-PL-08); a habilitação inicial da primeira gestão depende de procedimento ainda a definir |
 | RN-CD-02 | No primeiro acesso, o usuário recebe um código de 6 dígitos no e-mail cadastrado, válido por 15 minutos, com até 5 tentativas; depois disso, precisa pedir novo código. Um novo código pode ser pedido após 60 segundos e invalida o anterior. A tela mostra a mesma mensagem para e-mails cadastrados e não cadastrados, para não revelar quem tem conta. A mesma regra vale para a recuperação de senha |
 | RN-CD-03 | O usuário só usa o app após aceitar termos de uso, política de privacidade, regimento do condomínio e a página "Como funciona" (RF-AC-07); nova versão de qualquer um exige novo aceite antes de continuar. Quem tem vínculo com mais de um condomínio aceita o regimento de cada um |
 | RN-CD-04 | Cada unidade tem exatamente um morador habilitado; a unidade não pode ser salva sem ele, e cada troca é registrada com data. A única exceção é a unidade desocupada (RN-CD-24) |
 | RN-CD-05 | Um usuário pode ter vínculo com várias unidades e condomínios; o app mostra só os dados da unidade ativa, e cada unidade tem painel e métricas separados |
-| RN-CD-06 | O síndico não cadastra ninguém: ele envia uma solicitação de cadastro, alteração ou remoção, que a administradora ou o suporte atende ou recusa com motivo |
-| RN-CD-07 | Na mudança de um morador, o acesso é desativado e o histórico mantido; reservas futuras são canceladas com reembolso integral, e visitas recorrentes são encerradas |
+| RN-CD-06 | Com administradora ou Gestão + Suporte, o síndico envia solicitação de cadastro, alteração ou remoção, atendida ou recusada com motivo. No Essencial com autogestão, o responsável local executa essas tarefas e atende os pedidos dos proprietários sem fila de suporte pago (RN-PL-08) |
+| RN-CD-07 | Na mudança de um morador, o acesso é desativado e o histórico mantido; reservas futuras são canceladas com reembolso integral se houve recebimento, e visitas recorrentes são encerradas |
 | RN-CD-08 | No desligamento de um funcionário, os chamados abertos dele voltam para a fila do setor; as notas da pesquisa ficam no histórico |
 | RN-CD-09 | Funcionários terceirizados são cadastrados como funcionários, com o nome da empresa |
 | RN-CD-10 | Síndico e subsíndico devem ser de unidades diferentes |
 | RN-CD-11 | O síndico morador mantém todas as funções de morador; o síndico profissional não tem nenhuma |
 | RN-CD-12 | A substituição do síndico pelo subsíndico é ativada pela administradora ou pelo síndico, e pode ser desativada por eles a qualquer momento; cada ativação e desativação é registrada |
-| RN-CD-13 | Se o mandato do síndico terminar antes do prazo (renúncia ou destituição), o subsíndico assume até a nova eleição. Sem subsíndico, a administradora recebe um alerta e abre a nova eleição; até a posse, as funções exclusivas do síndico ficam sem titular, e reclamações seguem a tabela 5.1 como "sem subsíndico" |
-| RN-CD-14 | Condomínio sem subsíndico deve ter conselho fiscal com um ou mais membros (RN-VO-09) |
+| RN-CD-13 | Se o mandato do síndico terminar antes do prazo (renúncia ou destituição), o subsíndico assume até a nova eleição. Sem subsíndico, a condução eleitoral segue RN-VO-13, sem exigir administradora ou suporte pago; até a posse, as funções exclusivas do síndico ficam sem titular, e reclamações seguem a tabela 5.1 como "sem subsíndico". Conduzir a eleição não concede gestão administrativa geral |
+| RN-CD-14 | A composição prevista exige conselho fiscal com um ou mais membros quando não há subsíndico (RN-VO-09). A ausência factual de ambos não bloqueia a eleição de RN-VO-13; a compatibilização dessa exigência com o cenário de órgãos opcionais pedido em 13/11/2026 está pendente de revisão, sem presumir conselho existente |
 | RN-CD-15 | A lista de pessoas com entrada bloqueada é mantida pela administradora, com nome, documento e motivo |
 | RN-CD-16 | O suporte da plataforma só acessa condomínios do plano Gestão + Suporte, e cada acesso é registrado |
 | RN-CD-17 | O condomínio pode ter blocos (torres ou quadras) e várias portarias; cada unidade pertence a um bloco, e cada portaria atende todos os blocos ou só os definidos pela administradora |
-| RN-CD-18 | Se o morador habilitado, o proprietário ou um responsável financeiro pedir a exclusão da conta (RF-LG-02), a administradora é avisada para definir o substituto. Enquanto a unidade estiver sem morador habilitado, ninguém reserva nem cadastra visitantes por ela; enquanto estiver sem proprietário com acesso, ela não vota |
+| RN-CD-18 | Se o morador habilitado, o proprietário ou um responsável financeiro pedir a exclusão da conta (RF-LG-02), a administradora é avisada para definir o substituto. Enquanto a unidade estiver sem morador habilitado, ninguém reserva nem cadastra visitantes por ela; enquanto estiver sem proprietário com acesso, ela não vota Procedimento definido de LGPD é automatizado; exceções aguardam operador autorizado ainda sem função/permissão definida, sem concessão implícita. |
 | RN-CD-19 | Todo proprietário não residente recebe login próprio, com a unidade alugada ou desocupada. Ele vê e paga as cobranças de que é responsável financeiro e vê a situação das demais cobranças da unidade; vota e indica procurador (RN-VO-01); recebe os comunicados gerais para moradores ou para todos; vê as reclamações validadas e as multas contra a unidade (RN-RC-16) e as datas do contrato de locação. Não reserva, não abre chamados, não registra reclamações, não avalia funcionários, não cadastra visitantes (exceto RN-VI-10) e não tem score. Nunca vê os visitantes, chamados, reservas, encomendas nem o score do inquilino |
 | RN-CD-20 | O inquilino é cadastrado pela administradora com as datas de início e fim do contrato de locação; sem data de fim, o contrato é por prazo indeterminado. Ao ser cadastrado, ele passa a ser o morador habilitado, e o proprietário passa a não residente. Os dependentes do inquilino ficam vinculados a ele e saem junto |
 | RN-CD-21 | 30 dias antes do fim do contrato (configurável), a administradora, o proprietário e o inquilino são avisados. A administradora renova o contrato, com nova data de fim, ou o encerra. Sem renovação, o acesso do inquilino e dos dependentes é desativado 7 dias após o fim (configurável), como numa mudança (RN-CD-07), e a unidade fica desocupada |
@@ -98,7 +100,7 @@ Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pela administrado
 | RN-CD-24 | A administradora marca como desocupada a unidade sem ninguém morando. Nela, não há morador habilitado; o proprietário vota e é o responsável financeiro de todas as cobranças; ninguém reserva, cadastra visitantes (exceto RN-VI-10) nem abre chamados pela unidade. Reclamação validada contra a unidade desocupada não tira pontos de ninguém, e o proprietário é avisado (RN-RC-16) |
 | RN-CD-25 | Quando o proprietário volta a morar na unidade, a administradora muda o vínculo dele para morador: ele volta a ser o morador habilitado e inicia um novo score pessoal naquela unidade em 100. O histórico do vínculo anterior é preservado e os scores dele em outras unidades não mudam |
 | RN-CD-26 | Quando a unidade tem mais de um proprietário, a administradora cadastra só o proprietário representante, que vota e recebe os avisos da unidade |
-| RN-CD-27 | Fora da substituição, o subsíndico tem uma gestão limitada: julga o previsto em RN-RC-03 e RN-RC-07; acompanha os chamados de manutenção e o andamento, sem indicar empresa nem mudar o status; sugere comunicados ao síndico (RN-CO-05); registra votos presenciais nas reuniões convocadas pelo síndico (RN-VO-11); e vê as encomendas com prazo de guarda vencido, sem marcar a devolução. Não convoca reuniões, não cria pautas, não encerra votações, não faz solicitações à administradora e não vê a inadimplência |
+| RN-CD-27 | Fora da substituição, o subsíndico tem uma gestão limitada: julga o previsto em RN-RC-03 e RN-RC-07; acompanha os chamados de manutenção e o andamento, sem indicar empresa nem mudar o status; sugere comunicados ao síndico (RN-CO-05); registra votos presenciais nas reuniões convocadas pelo síndico (RN-VO-11); e vê as encomendas com prazo de guarda vencido, sem marcar a devolução. Não convoca reuniões, não cria pautas, não encerra votações de pautas, não faz solicitações à administradora e não vê a inadimplência; a condução de eleição na ausência/vacância do síndico é a exceção específica de RN-VO-13, sem exigir substituição ativa para essa capacidade eleitoral |
 | RN-CD-28 | Na substituição, o subsíndico tem todas as funções do síndico, exceto ativar e desativar a substituição (RN-CD-12) |
 
 ## 4. Score
@@ -131,14 +133,14 @@ Moradores têm um score pessoal de 0 a 100 em cada unidade em que residem. Cada 
 | RN-SC-01 | O score vai de 0 a 100; ganhos acima de 100 e perdas abaixo de 0 são descartados. Visitantes, administradora, suporte, admin da plataforma, proprietário não residente e empresas de manutenção não têm score |
 | RN-SC-02 | O score individual é visto só pelo próprio usuário. Exceções: todos veem o score do síndico — para síndico morador, o do vínculo da unidade de referência do mandato; para o profissional sem unidade, o funcional naquele condomínio. Reclamação contra síndico ou subsíndico usa o score do vínculo da unidade de referência do mandato, quando morador, sem somar nem alterar scores de outros imóveis. O julgador e a administradora veem identidade e score do reclamante e do alvo no contexto da reclamação; a administradora vê o score dos funcionários; sem administradora, síndico e subsíndico veem o score dos funcionários |
 | RN-SC-03 | Os pontos por gravidade e por motivo de negativa são configuráveis por condomínio |
-| RN-SC-04 | Reclamação contra uma unidade tira pontos só do morador habilitado |
+| RN-SC-04 | Reclamação contra uma unidade tira pontos só do morador habilitado do episódio de moradia originalmente vinculado ao caso. Troca de habilitado não transfere caso nem pontos ao novo ocupante; a penalidade continua sendo aplicada apenas após a decisão |
 | RN-SC-05 | Penalidade só é aplicada após a decisão; reclamações pendentes não alteram o score |
 | RN-SC-08 | Recuperação: +5 pontos a cada 2 meses de regularidade, contados separadamente para cada score. Reclamação validada contra a pessoa, ou penalidade por reclamação desproporcional ou falsa feita por ela, reinicia apenas o período do score afetado. Reclamações pendentes ou negadas sem penalidade não interrompem a contagem |
 | RN-SC-09 | Score menor ou igual a 60 (configurável) tira da pessoa o direito a reservas gratuitas pela unidade daquele score; reservas pagas continuam liberadas. O direito volta automaticamente quando esse score passa de 60 |
 | RN-SC-10 | O bloqueio vale só para a pessoa naquela unidade; os outros moradores da mesma unidade continuam reservando e os vínculos dela em outras unidades não são afetados |
 | RN-SC-11 | O score não decide nada sozinho no julgamento; o julgador o usa como referência |
 | RN-SC-12 | Cada alteração aparece no histórico do usuário com data, motivo e pontos; a identidade do reclamante nunca aparece no histórico do alvo |
-| RN-SC-13 | O score de moradia pertence à pessoa em cada vínculo com uma unidade: não é uma pontuação compartilhada pelos moradores nem uma pontuação única da pessoa em todos os imóveis. A mesma pessoa tem saldo, histórico e regularidade separados em cada unidade. Cada novo vínculo de moradia começa em 100, inclusive para novo inquilino ou retorno do proprietário; não herda pontos do ocupante anterior nem apaga o histórico encerrado. Reclamação contra unidade afeta só o score do morador habilitado naquela unidade; reclamação feita por morador usa o vínculo da unidade ativa. O proprietário não residente não tem score de moradia nem perde pontos por reclamações contra a unidade alugada |
+| RN-SC-13 | O score de moradia pertence à pessoa em cada vínculo com uma unidade: não é uma pontuação compartilhada pelos moradores nem uma pontuação única da pessoa em todos os imóveis. A mesma pessoa tem saldo, histórico e regularidade separados em cada unidade. Cada novo vínculo de moradia começa em 100, inclusive para novo inquilino ou retorno do proprietário; não herda pontos do ocupante anterior nem apaga o histórico encerrado. Reclamação contra unidade afeta só o score do episódio originalmente vinculado ao caso, conforme RN-SC-04; reclamação feita por morador usa o vínculo da unidade ativa. O proprietário não residente não tem score de moradia nem perde pontos por reclamações contra a unidade alugada |
 | RN-SC-14 | Funcionário e síndico profissional sem unidade têm score individual separado por condomínio. Reclamações e, para funcionários, a pesquisa mensal alteram apenas esse score funcional no condomínio correspondente. Não se cria unidade fictícia nem se compartilha esse saldo com outro condomínio ou com score de moradia |
 
 ### 4.3 Exemplo
@@ -170,17 +172,17 @@ Toda reclamação é identificada, tem um único alvo do mesmo condomínio e só
 | --- | --- |
 | RN-RC-01 | Reclamações são identificadas; o alvo nunca vê quem reclamou |
 | RN-RC-02 | Cada reclamação tem um único alvo, do mesmo condomínio do reclamante: um funcionário, uma unidade, o síndico (morador ou profissional) ou o subsíndico. Reclamar de síndico e subsíndico exige duas reclamações separadas |
-| RN-RC-03 | O julgador é definido pela tabela 5.1 no momento da abertura |
-| RN-RC-04 | O julgador inicia a conversa com o alvo antes de decidir; quando o alvo é uma unidade, a conversa é com o morador habilitado e, na unidade desocupada, com o proprietário. A decisão é liberada quando o alvo responde ou quando vencem 5 dias (configurável) sem resposta, com o registro "alvo não respondeu" |
+| RN-RC-03 | O julgador é definido pela tabela 5.1 no momento da abertura. Ao perder o mandato ou a função necessária, perde o acesso de julgador e o caso é reatribuído pela tabela vigente, preservando autoria e histórico; sem julgador elegível, aguarda atribuição sem conceder acesso ao anterior |
+| RN-RC-04 | O julgador inicia a conversa com o alvo antes de decidir; quando o alvo é uma unidade, a conversa é com a pessoa do episódio originalmente vinculado ao caso e, na unidade desocupada, com o proprietário; trocar habilitado não abre a conversa ao novo ocupante. A decisão é liberada quando o alvo responde ou quando vencem 5 dias (configurável) sem resposta, com o registro "alvo não respondeu" |
 | RN-RC-05 | Negativa exige um motivo da lista; motivos com penalidade exigem também uma justificativa escrita |
 | RN-RC-06 | Prazo para decisão: 15 dias (configurável), com lembrete ao julgador no prazo e a cada 5 dias depois dele |
-| RN-RC-07 | Quem perdeu pontos pode recorrer uma vez, em até 7 dias da decisão (tabela 5.3) |
+| RN-RC-07 | Quem perdeu pontos pode recorrer uma vez, em até 7 dias da decisão (tabela 5.3). Recurso aceito devolve somente a perda efetivamente aplicada ao score original: saldo 3 com penalidade nominal 10 cai a 0 e devolve 3, não 10; mantém teto 100 e movimento vinculado à penalidade |
 | RN-RC-08 | A administradora consulta todas as reclamações, com identidade e score do reclamante e do alvo |
 | RN-RC-09 | A categoria define a gravidade padrão; o julgador pode mudá-la ao validar, com justificativa |
 | RN-RC-10 | O alvo é notificado na abertura e na decisão, sem a identidade do reclamante |
 | RN-RC-11 | Reclamação feita pelo próprio julgador (ex.: síndico reclamando de um funcionário) vai para quem julgaria uma reclamação contra ele |
 | RN-RC-12 | Dano encontrado em vistoria gera reclamação contra a unidade em nome do condomínio, sem reclamante pessoa; segue o julgamento normal, com as fotos da vistoria como evidência. Se for negada, ninguém é penalizado |
-| RN-RC-13 | Textos ofensivos são filtrados; qualquer usuário pode denunciar conteúdo, e a denúncia vai ao síndico. Denúncia de conteúdo escrito pelo síndico vai a quem julgaria uma reclamação contra ele (tabela 5.1) |
+| RN-RC-13 | Textos ofensivos são filtrados; qualquer usuário pode denunciar conteúdo, e a denúncia vai ao síndico. Denúncia de conteúdo escrito pelo síndico vai a quem julgaria uma reclamação contra ele (tabela 5.1). O destinatário autorizado revisa apenas a projeção necessária do conteúdo, sem revelar reclamante ou avaliador protegido, e encerra sem ação ou oculta o conteúdo com motivo e histórico. Não aplica score automaticamente nem apaga a prova. Suporte da plataforma continua sem acesso a reclamações e scores |
 | RN-RC-14 | Quem é parte da reclamação nunca julga o recurso dela. Nesse caso, o recurso vai à administradora e, sem ela, ao conselho fiscal; sem nenhum dos dois, fica pendente, e a administradora ou o suporte recebe alerta para cadastrar o conselho fiscal |
 | RN-RC-15 | Reclamação decidida sem recurso em 7 dias é encerrada automaticamente |
 | RN-RC-16 | Quando uma reclamação contra unidade alugada ou desocupada é validada, o proprietário não residente é avisado com a categoria, a data, a decisão e a multa, se houver; ele não vê a conversa nem quem reclamou |
@@ -196,7 +198,7 @@ Toda reclamação é identificada, tem um único alvo do mesmo condomínio e só
 | Subsíndico | Síndico; se o síndico for parte da reclamação ou estiver em substituição, administradora; sem ela, conselho fiscal (RN-RC-14) |
 | Administradora ou conselho fiscal | Sem recurso no app |
 
-Recurso aceito devolve os pontos; recurso negado mantém a decisão e encerra a reclamação. Em qualquer linha, vale RN-RC-14: quem é parte nunca julga o recurso.
+Recurso aceito devolve a perda efetiva registrada, conforme RN-RC-07; recurso negado mantém a decisão e encerra a reclamação. Em qualquer linha, vale RN-RC-14: quem é parte nunca julga o recurso. Na troca de habilitado, o caso e o score permanecem no episódio original; a pessoa anteriormente envolvida mantém acesso próprio à defesa e ao recurso do caso, sem acesso aos dados atuais da unidade nem identidade protegida do reclamante. A projeção e o mecanismo desse acesso restrito dependem de revisão de privacidade antes da implementação (decisão de Pedro em 12/11/2026).
 
 ### 5.4 Categorias e gravidade padrão
 
@@ -271,10 +273,10 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | ID | Regra |
 | --- | --- |
 | RN-CA-01 | O morador pode cancelar qualquer reserva até o horário de início |
-| RN-CA-02 | Reserva paga cancelada até 12h antes do início (configurável) tem reembolso integral |
+| RN-CA-02 | Reserva paga cancelada com antecedência maior ou igual a 12h antes do início (configurável) tem reembolso integral; a igualdade exata está incluída |
 | RN-CA-03 | Depois desse prazo, o cancelamento continua permitido, mas sem reembolso; o app avisa antes de confirmar |
 | RN-CA-04 | Reembolso por Pix em até 2 dias úteis; no cartão, estorno pela operadora |
-| RN-CA-05 | Cancelamento feito pelo condomínio (manutenção, mudança de morador) tem reembolso integral em qualquer prazo, com aviso ao morador e o motivo |
+| RN-CA-05 | Cancelamento feito pelo condomínio (manutenção, mudança de morador) pode ser executado pelo síndico, subsíndico em substituição, administradora ou suporte autorizado no Gestão + Suporte, com motivo obrigatório, autoria, auditoria e aviso ao morador. Tem reembolso integral em qualquer prazo se houve recebimento. Aguardando pagamento também pode ir para Cancelada pelo condomínio, sem devolução quando não houve recebimento |
 | RN-CA-06 | Todo cancelamento libera o horário na hora |
 
 ### 7.3 Pagamentos
@@ -293,7 +295,7 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 
 | Estado | Significado | Próximos estados |
 | --- | --- | --- |
-| Aguardando pagamento | Reserva paga com horário bloqueado, dentro do prazo de pagamento | Confirmada, Expirada, Cancelada |
+| Aguardando pagamento | Reserva paga com horário bloqueado, dentro do prazo de pagamento | Confirmada, Expirada, Cancelada, Cancelada pelo condomínio |
 | Confirmada | Gratuita na criação ou paga com pagamento aprovado | Cancelada, Cancelada com reembolso, Cancelada sem reembolso, Cancelada pelo condomínio, Em andamento, Cumprida, Não comparecimento |
 | Em andamento | Uso constatado e marcado pela portaria a partir do início do horário reservado | Cumprida |
 | Expirada | Prazo de pagamento vencido; horário liberado | — |
@@ -305,6 +307,8 @@ Toda reserva é paga ou gratuita conforme a área, é confirmada automaticamente
 | Não comparecimento | Reserva paga ou gratuita não usada, registrada na vistoria pela portaria ou limpeza | — |
 
 A reserva gratuita já nasce confirmada; a paga passa por "aguardando pagamento" e expira se o prazo vencer. O fluxo completo está no User Flows, seções 5.1 a 5.3.
+
+**Recebimento após expiração/cancelamento (decisão de Pedro em 12/11/2026):** registrar o dinheiro e abrir pendência para administradora ou suporte autorizado resolver. Não recuperar o horário, reativar a reserva ou devolver automaticamente. Resolução financeira deve registrar motivo e histórico; o recebimento real não pode ser descartado como repetição de webhook.
 
 ## 8. Visitantes e portaria
 
@@ -341,7 +345,7 @@ O cadastro de visitantes agiliza a portaria, mas não é a única forma de autor
 | RN-OF-03 | Entradas e saídas registradas offline ficam numa fila e são enviadas automaticamente ao voltar a conexão |
 | RN-OF-04 | Se um registro offline divergir do cadastro (ex.: entrada de visitante que o morador cancelou), o porteiro é avisado ao sincronizar e deve confirmar por interfone com o morador que cadastrou; o aviso só fecha após a confirmação |
 | RN-OF-05 | Divergências não são enviadas ao síndico |
-| RN-OF-06 | A cópia salva é criptografada e apagada ao fim do dia e ao sair da conta |
+| RN-OF-06 | O cache de consulta é criptografado e apagado ao fim do dia e ao sair da conta. A fila de operações pendentes é separada do cache e preservada, protegida, até sincronização ou tratamento explícito; não é descartada silenciosamente na limpeza do cache. Prazo de retenção, acesso após logout e tratamento operacional dependem de desenho e revisão de segurança, sem prazo arbitrário definido |
 
 ### 8.3 Estados da visita
 
@@ -411,7 +415,7 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-CH-04 | A equipe de limpeza atende os chamados do setor, também sem internet; se duas pessoas concluírem o mesmo ciclo do chamado offline, vale a conclusão com o menor horário registrado pelo celular, mesmo que ela seja enviada depois. A ordem de chegada ao servidor não substitui esse critério. As operações, os horários do celular e os de recebimento são preservados; a conclusão que deixa de valer continua no histórico, com aviso aos funcionários envolvidos. Reenvio da mesma operação não cria nova conclusão nem novo ciclo. Empate exato e tratamento de relógio incorreto são detalhes técnicos ainda propostos no ADR-014 |
 | RN-CH-05 | Manutenção é feita por empresas terceirizadas; o síndico registra a empresa, atualiza o status e conclui. O subsíndico acompanha os chamados sem alterá-los, exceto na substituição (RN-CD-27) |
 | RN-CH-06 | Prazos: limpeza concluída em 24h; manutenção com primeira atualização em 48h (configuráveis). Chamados fora do prazo aparecem em destaque para o síndico |
-| RN-CH-07 | Quem abriu é avisado da conclusão e pode reabrir em até 48h; o aviso também convida a avaliar o atendimento (RN-CH-15) |
+| RN-CH-07 | Quem abriu é avisado da conclusão e pode reabrir em até 48h; o aviso também convida a avaliar o atendimento (RN-CH-15). Na manutenção, permanece Reaberto até triagem explícita do síndico ou subsíndico em substituição, que escolhe Orçamento ou Agendado e registra autoria e momento; não há avanço automático nem conclusão sem triagem |
 | RN-CH-08 | Chamados de um funcionário desligado voltam para a fila do setor |
 | RN-CH-09 | Quem abre o chamado classifica a urgência em um de três níveis, sem valor pré-selecionado: **alta** (risco para pessoas ou dano que cresce rápido; ex.: hall com líquido no chão, risco de queda), **média** (atrapalha o uso, sem risco imediato; ex.: lâmpada queimada) e **leve** (pode esperar alguns dias). O formulário mostra esses exemplos e orienta escolher o nível mais alto em caso de dúvida. Sem urgência, o chamado não é enviado |
 | RN-CH-10 | A urgência aparece, com texto e cor, em toda lista e no detalhe do chamado, para quem abriu, síndico, subsíndico e funcionários: alta em vermelho, média em amarelo e leve em verde. O chamado guarda a urgência e a data e hora de abertura |
@@ -472,20 +476,20 @@ Só o síndico fala em nome do condomínio, e cada unidade tem um voto, dado pel
 | ID | Regra |
 | --- | --- |
 | RN-VO-04 | Síndico e subsíndico devem ser de unidades diferentes |
-| RN-VO-05 | Reeleição do síndico morador e do subsíndico: configurável pela administradora; o padrão segue a lei e permite reeleição |
-| RN-VO-06 | Síndico profissional não passa por eleição no app nem segue regra de reeleição; a administradora registra contratação, recontratação ou desligamento |
-| RN-VO-07 | Empate na eleição gera segundo turno entre os empatados em até 7 dias; empate em pauta segue RN-VO-17 |
-| RN-VO-09 | Condomínio sem subsíndico deve ter conselho fiscal com um ou mais membros; enquanto não tiver, a administradora ou o suporte recebe um alerta pendente |
-| RN-VO-13 | Candidaturas são feitas no app, dentro do prazo definido na convocação; o sistema bloqueia candidatos inelegíveis e mostra o motivo |
+| RN-VO-05 | Reeleição do síndico morador e do subsíndico: configurável pela administradora; no Essencial com autogestão, a alteração é atividade local sensível cujo validador e salvaguardas aguardam AG-07 do registro 06; o padrão existente permite reeleição |
+| RN-VO-06 | Síndico profissional não passa por eleição no app nem segue regra de reeleição; a administradora registra contratação, recontratação ou desligamento. Na autogestão, o responsável pela validação desse registro aguarda AG-07 do registro 06; o próprio interessado não se autovalida |
+| RN-VO-07 | Empate na eleição gera segundo turno entre os empatados em até 7 dias; segundo turno empatado ou ausência de candidato elegível deixa resultado inconclusivo, encaminhado ao condutor autorizado de RN-VO-13, sem vencedor automático nem dependência de administradora. Empate em pauta segue RN-VO-17 |
+| RN-VO-09 | A composição prevista exige conselho fiscal quando não há subsíndico (RN-CD-14); na ausência factual, a pendência é apresentada à gestão local ou ao condutor eleitoral, sem impedir a eleição por proprietário designado. Revisar essa obrigatoriedade e o tratamento das reclamações sem julgador no registro 06 |
+| RN-VO-13 | Candidaturas são feitas no app dentro do prazo da convocação; o sistema bloqueia inelegíveis com motivo. Em qualquer plano, abre e encerra a eleição o síndico em exercício; se ausente ou cargo vago, o subsíndico; sem ambos, o conselho fiscal; sem todos, um proprietário designado pelo condomínio, com permissão temporária restrita à eleição. Administradora e suporte autorizado no Gestão + Suporte também podem conduzir quando presentes. Ações são auditadas, votos continuam secretos e resultado só aparece após encerramento. A designação, comprovação de ausência, representação do conselho e validade/revogação da permissão precisam de definição antes do código; nenhuma pessoa se autoconcede acesso |
 | RN-VO-14 | Se o subsíndico eleito for da mesma unidade do síndico eleito, assume o próximo mais votado para subsíndico |
-| RN-VO-15 | A administradora registra início e fim de cada mandato |
+| RN-VO-15 | A administradora registra início e fim de cada mandato; no Essencial com autogestão, o registro e sua validação independente seguem procedimento ainda a definir em AG-07 do registro 06, sem autovalidação nem concessão implícita ao condutor eleitoral |
 | RN-VO-19 | O inquilino pode se candidatar a síndico ou subsíndico, salvo se a convenção proibir (Código Civil, art. 1.347) |
 
 ## 11. Planos comerciais e solicitações de suporte
 
-O preço depende do número de unidades (apartamentos, casas ou salas) e de o condomínio ter ou não administradora.
+O preço depende do número de unidades e do plano escolhido. O Essencial atende tanto condomínios com administradora quanto condomínios sem administradora em autogestão; a ausência de administradora não obriga contratar Gestão + Suporte. Autogestão é uma modalidade do Essencial, não um terceiro plano.
 
-| Faixa de unidades | Essencial (com administradora) | Gestão + Suporte (sem administradora) | Solicitações incluídas por mês (Gestão + Suporte) |
+| Faixa de unidades | Essencial (com administradora ou autogestão) | Gestão + Suporte (sem administradora) | Solicitações incluídas por mês (Gestão + Suporte) |
 | --- | --- | --- | --- |
 | Até 30 | R$ 99/mês | R$ 249/mês | 10 |
 | 31 a 80 | R$ 179/mês | R$ 329/mês | 10 |
@@ -502,7 +506,9 @@ O preço depende do número de unidades (apartamentos, casas ou salas) e de o co
 | RN-PL-04 | A franquia mensal de solicitações depende da faixa de unidades (tabela acima); as não usadas não acumulam |
 | RN-PL-05 | Cada solicitação além da franquia custa R$ 15 e entra na fatura seguinte; o síndico vê o contador antes de enviar |
 | RN-PL-06 | Se o condomínio contratar uma administradora, passa ao Essencial no ciclo seguinte e o suporte perde o acesso |
-| RN-PL-07 | Os preços são revistos uma vez por ano; o novo valor é comunicado com 30 dias de antecedência e vale a partir do ciclo seguinte |
+| RN-PL-07 | Os preços são revistos uma vez por ano; o novo valor é comunicado com 30 dias de antecedência e vale a partir do ciclo seguinte. No MVP, a cobrança da assinatura da plataforma é assistida/manual, com registro de ciclo e valores; é separada da cobrança e do dinheiro do condomínio, sem reutilizar automaticamente a conta recebedora condominial |
+
+| RN-PL-08 | O Essencial admite autogestão: condomínio sem administradora que não contrata Gestão + Suporte, mantendo as faixas e os preços do Essencial. As funções de gestão e administrativas ficam na gestão local: síndico, subsíndico se houver e conselho fiscal se houver. Como desenho operacional para revisão, o síndico executa cadastros, configurações, cobrança e finanças; o subsíndico executa durante substituição formal; o conselho fiscaliza, lê, comenta e exporta, sem edição financeira irrestrita. Poderes adicionais do conselho/subsíndico, validação de mandatos, conta recebedora e implantação inicial dependem das decisões do registro 06. Não há acesso administrativo do suporte, franquia de solicitações pagas ou herança das permissões globais de reclamações da administradora. Eleições seguem RN-VO-13 independentemente da modalidade |
 
 ## 12. Cobrança condominial
 
@@ -524,9 +530,9 @@ Quando o módulo está ativo, cada unidade recebe a cobrança mensal da taxa con
 | RN-FI-10 | A situação financeira de uma unidade é vista só pela administradora, pelo síndico (ou subsíndico em substituição) e pelo proprietário; cada responsável financeiro vê as cobranças emitidas para ele. Nunca aparece para outros moradores |
 | RN-FI-11 | Unidade em atraso não vota nas assembleias (Código Civil, art. 1.335, III), qualquer que seja o tipo da cobrança vencida; o motivo é mostrado só a quem vota pela unidade e aos responsáveis financeiros dela |
 | RN-FI-12 | Bloquear reservas de unidade em atraso é configurável e vem desligado; só deve ser ligado se o regimento previr |
-| RN-FI-13 | A baixa é automática quando o gateway confirma o pagamento; pagamento feito fora do app é registrado pela administradora, com comprovante e motivo |
+| RN-FI-13 | A baixa é automática quando o gateway confirma o pagamento; pagamento feito fora do app é registrado pela administradora, com comprovante e motivo. A classificação considera vencimento e instante efetivo do pagamento, não a execução da rotina: pagamento após vencimento vai a Paga com atraso mesmo se ainda Emitida. Confirmação em cobrança Cancelada registra recebimento e pendência para administradora ou suporte autorizado, sem reativar a cobrança |
 | RN-FI-14 | Cobranças extras (rateio, fundo de reserva, multa por infração) são lançadas pela administradora, a pedido do síndico, com descrição, tipo (ordinária ou extraordinária), valor, unidades e vencimento |
-| RN-FI-15 | Só a administradora cancela uma cobrança, com motivo registrado em auditoria |
+| RN-FI-15 | A cobrança é cancelada pela administradora, pelo suporte autorizado no Gestão + Suporte ou pelo executor local proposto para o Essencial com autogestão (RN-PL-08), com motivo registrado em auditoria |
 | RN-FI-16 | Lembretes ao responsável: 5 dias antes, no dia, 1 e 7 dias depois do vencimento |
 | RN-FI-17 | Os valores vão para a mesma conta bancária das reservas (RN-PG-01 a RN-PG-04); as taxas do gateway são descontadas do valor recebido |
 | RN-FI-18 | Acordos de parcelamento de débitos entram na versão 2 |
@@ -551,15 +557,15 @@ O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho
 | ID | Regra |
 | --- | --- |
 | RN-FI-21 | O painel mostra, para um mês ou para 3, 6 ou 12 meses, as receitas, as despesas e o saldo (receitas menos despesas), pelo regime de caixa: vale a data do pagamento ou do recebimento, não a do vencimento. Para um mês, compara com o mês anterior; para vários meses, só mostra a evolução. As cobranças extraordinárias (fundo de reserva e obras) aparecem discriminadas para o saldo não parecer sobra da rotina. Todo gráfico tem tabela com os mesmos valores |
-| RN-FI-22 | Com o módulo de cobrança ativo, toda cobrança paga (RN-FI-13) e toda reserva paga viram receita sozinhas, na data da confirmação do pagamento, nas categorias do item 12.4. O lançamento automático não se edita nem se exclui: a correção é feita na origem (cancelamento de cobrança, baixa manual, devolução) e o painel acompanha |
+| RN-FI-22 | Com o módulo de cobrança ativo, toda cobrança paga (RN-FI-13) e toda reserva paga viram receita sozinhas, na data da confirmação do pagamento, nas categorias do item 12.4. O lançamento automático não se edita nem se exclui: a correção é feita na origem (cancelamento de cobrança, baixa manual, devolução) e o painel acompanha. As fontes individuais são restritas; as projeções financeiras autorizadas agregam por dia e categoria, sem unidade ou responsável na apresentação. |
 | RN-FI-23 | A receita entra pelo valor pago; a taxa do gateway (RN-FI-17) entra sozinha como despesa de "Administração". Devolução de pagamento em duplicidade (RN-FI-19) e reembolso de reserva (RN-CA-02) geram, sozinhos, um lançamento de estorno na mesma categoria da receita, com a data da devolução |
 | RN-FI-24 | A administradora lança despesas e receitas avulsas com data, categoria, valor maior que zero e fornecedor (despesa) ou origem (receita); descrição e comprovante (foto ou PDF de até 10 MB) são opcionais, e o app destaca as despesas sem comprovante. Receita avulsa só na categoria "Outras receitas" (aluguel de antena, rendimento de aplicação, indenização de seguro etc.), porque as demais vêm das cobranças e reservas; com o módulo de cobrança desligado, valem também "Taxa condominial" e "Fundo de reserva" avulsas, já que o app não vê esses pagamentos. A folha de funcionários é lançada pelo total do mês, sem nome nem salário individual |
 | RN-FI-25 | A data de um lançamento não pode ser futura nem cair em mês fechado. Despesa lançada sem fornecedor é recusada |
 | RN-FI-26 | Um lançamento pode ser marcado como recorrente mensal, com valor fixo (honorários, seguro, aluguel de antena): o sistema cria o lançamento do mês no dia escolhido (nos meses curtos, no último dia). Contas variáveis, como energia e água, são digitadas todo mês. Cada lançamento criado é comum; encerrar a recorrência vale dali em diante e não muda meses anteriores |
-| RN-FI-27 | Enquanto o mês está aberto, só a administradora edita ou exclui lançamentos avulsos, e cada alteração fica na auditoria, com autor, data, valor antigo e valor novo |
+| RN-FI-27 | Enquanto o mês está aberto, o executor financeiro de RN-FI-29 edita ou exclui lançamentos avulsos; cada alteração fica na auditoria, com autor, data, valor antigo e valor novo |
 | RN-FI-28 | O mês fecha sozinho no dia 10 do mês seguinte (configurável), ou antes, quando a administradora o fecha depois do último dia do mês. Lançamento de mês fechado não se edita nem se exclui, e o mês não reabre: a correção é um **estorno**, que a administradora faz com motivo obrigatório. O estorno é um novo lançamento de valor oposto, na mesma categoria, ligado ao original e com a data do estorno (mês corrente); o original passa a "Estornado", e um estorno não se estorna (para refazer, lança-se o valor correto). Pagamentos confirmados depois do fechamento entram no mês do pagamento |
-| RN-FI-29 | A administradora (ou o suporte, no plano Gestão + Suporte) lança, fecha e estorna. O síndico (ou o subsíndico em substituição) e o conselho fiscal veem tudo em modo leitura. Moradores, proprietários não residentes e funcionários não veem as finanças |
-| RN-FI-30 | Telas e exportações mostram receitas de cobrança agregadas por categoria e quantidade de cobranças pagas, sem unidade nem responsável financeiro (SEG-17). O CSV de cobranças por unidade (RF-FI-15) continua só da administradora. A exportação em CSV e PDF respeita o filtro aplicado e não inclui dados pessoais além do nome do fornecedor |
+| RN-FI-29 | Com administradora, ela lança, fecha e estorna; no Gestão + Suporte, atua o suporte autorizado. No Essencial com autogestão, o desenho proposto em RN-PL-08 atribui essas operações ao síndico ou subsíndico em substituição, preservando auditoria, estorno e segregação dos dados individuais. Conselho fiscal permanece em leitura, comentários e exportação, sem editar valores. Moradores, proprietários não residentes e funcionários não veem as finanças. A distribuição fina de poderes locais aguarda revisão do registro 06 |
+| RN-FI-30 | Telas e exportações mostram receitas de cobrança agregadas por categoria e quantidade de cobranças pagas, sem unidade nem responsável financeiro (SEG-17). O CSV de cobranças por unidade (RF-FI-15) continua só da administradora. A exportação em CSV e PDF respeita o filtro aplicado e não inclui dados pessoais além do nome do fornecedor. A exportação é assíncrona, tem acompanhamento e arquivo privado com autorização revalidada no acesso; retenção e validade do link continuam por definir. |
 | RN-FI-31 | Síndico, subsíndico em substituição e conselho fiscal podem comentar um lançamento ou o mês, inclusive depois do fechamento. O comentário mostra autor e data, não se edita, avisa a administradora e não altera valores nem equivale à aprovação das contas |
 | RN-FI-32 | Categorias fixas de despesa: Energia, Água e esgoto, Gás, Serviços terceirizados (com o serviço: portaria, limpeza, elevador, jardinagem ou outro), Folha de funcionários, Manutenção e obras, Seguros, Administração (honorários e tarifas) e Outros. Receitas: Taxa condominial, Cobranças extras (fundo de reserva, obras e rateios), Multas e juros por atraso, Multas por infração, Aluguel de áreas (reservas pagas) e Outras receitas |
 
@@ -579,6 +585,8 @@ O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho
 | Multas por infração | Cobranças de multa por infração pagas (RN-FI-14) | Automático |
 | Aluguel de áreas | Reservas pagas (RN 7.3) | Automático |
 | Outras receitas | Antena, rendimento de aplicação, indenização de seguro etc. | Avulso, pela administradora |
+
+Decisões de Pedro em 12/11/2026 e limites: [registro das 19 escolhas](05-decisoes-de-complementacao.md). LGPD automatiza apenas procedimentos definidos e encaminha exceções a operador autorizado ainda a definir, sem criar permissão implícita. Retenção é por finalidade, sujeita à revisão; pagamentos e prazos externos exigem PoC Asaas, não realizada.
 
 ## 13. Catálogo de parâmetros configuráveis
 

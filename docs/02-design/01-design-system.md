@@ -814,6 +814,7 @@ Cartões com o score do síndico (componente 10.18 em versão compacta) e a nota
 
 ### 11.7 Votações
 
+- **Condução eleitoral (13/11/2026):** em qualquer plano, síndico; se ausente ou cargo vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado pelo condomínio, inclusive não residente, com permissão temporária restrita à eleição. Administradora presente e suporte autorizado no Gestão + Suporte também podem conduzir. Mostrar responsável e motivo de indisponibilidade; nunca resultados parciais nem relação eleitor–voto. Encerramento definitivo revoga a permissão temporária. Concessão e comprovação da designação ainda exigem revisão.
 - Cartão da pauta com pergunta, opções em botões de opção grandes, quórum e prazo ("Votação até o fim da reunião, 20/11 às 21h").
 - Confirmação em diálogo com a opção escolhida, porque o voto não pode ser mudado.
 - Depois de votar: selo `success` "Seu voto foi registrado". Resultado só aparece após o encerramento (RF-VO-07).
@@ -869,6 +870,8 @@ O subsíndico usa as telas do síndico. O que muda depende da substituição (RN
 - No topo da Gestão, faixa `info`: fora da substituição, "Você vê as funções de gestão da subsíndica. As demais aparecem quando a substituição estiver ativa."; na substituição, "Substituição ativa: você tem as funções de síndico até o síndico ou a administradora desativar. Tudo o que fizer fica registrado."
 - No Início, o cartão "Para julgar" diz "reclamações contra o síndico" fora da substituição; na substituição, aparece também o cartão "Substituição ativa".
 - Para o síndico, Comunicados ganha a seção "Sugestões da subsíndica" acima dos enviados, e o item Comunicados da Gestão mostra um selo `accent` com o número de sugestões pendentes. Revisar abre o formulário de novo comunicado preenchido, com a faixa "Sugestão da subsíndica [nome], de [data]. Revise antes de enviar."
+
+Eleição regular segue a precedência local de 11.7 em qualquer plano, independentemente de administradora ou suporte. A decisão de 13/11/2026 substitui a restrição de 12/11/2026 (RN-VO-13).
 
 ### 11.12 Avaliação do atendimento
 
@@ -969,6 +972,25 @@ Telas de RF-FI-17 a RF-FI-24 (fluxos 13.3 e 13.4). Só cartão (10.7), tabela (1
 - Uma coluna: chips de período rolável; cartões de Receitas, Despesas e Saldo com a comparação em texto; "Despesas por categoria" como linhas de lista (10.9) com a barra `chart-1` embaixo do valor; "Evolução" com o gráfico de 6 meses e "Ver como tabela"; "Lançamentos" em linhas de lista (descrição, categoria e data no apoio, valor à direita) com chips "Todos", "Receitas" e "Despesas" e busca. Tocar na linha abre a folha de detalhe, com comprovante e comentários, e o botão "Comentar".
 - No fim da tela: "Comentar o mês", "Exportar CSV" e "Exportar PDF". O arquivo respeita o filtro.
 - Na versão web (RF-AC-06), o síndico vê a mesma página da administradora, sem os botões de escrita.
+
+### 11.16 Exceções e acompanhamento aprovados em 12/11/2026
+
+- Reservas: mostrar reembolso com antecedência maior ou igual ao prazo (inclusive 12h exatas). A gestão autorizada usa Cancelar pelo condomínio com motivo obrigatório; Aguardando pagamento cancela sem reembolso se não houve recebimento. Recebimento tardio mostra “Recebimento em análise”, sem sugerir reserva reativada.
+- Manutenção: Reaberto traz “Aguardando triagem” e ações Orçamento/Agendado somente para síndico/sub em substituição. Registrar autoria/momento e manter texto de estado.
+- Reclamações: reatribuição retira ações do ex-julgador. Troca de habilitado não mostra caso do antigo ao novo; acesso próprio histórico fica restrito ao caso. Recurso mostra pontos efetivamente devolvidos, sem inflar penalidade truncada.
+- Denúncias: destinatário vê projeção protegida, motivo, ação Encerrar sem ação ou Ocultar conteúdo, confirmação e histórico. Oculto aparece com texto e ícone, sem apagar evidência restrita nem penalizar score automaticamente. Não revelar autoria protegida na moderação.
+- Eleições: a restrição original de 12/11 foi substituída pela precedência local de 11.7 em 13/11/2026. Inconclusiva traz motivo e encaminhamento ao condomínio, sem vencedor inventado; administradora e suporte autorizado podem participar quando presentes.
+- Exportações: solicitação, processamento, falha e arquivo disponível são informações de acompanhamento; ícone/texto sempre acompanham o estado. Arquivo é privado e exige autorização atual. Não anunciar “baixado” ao solicitar.
+- Portaria/limpeza: pendência de envio é separada da limpeza do cache; não mostrar “Tudo sincronizado” enquanto houver fila. Acesso após logout ainda requer desenho de segurança.
+- LGPD: exceção informa necessidade de análise autorizada sem nomear operador não definido. Sessão não promete tolerância já implementada. Assinatura da plataforma aparece como cobrança assistida/manual separada da taxa condominial.
+
+Sem tokens ou componentes novos. Detalhes normativos e validações pendentes estão no [registro das 19 escolhas](../01-produto/05-decisoes-de-complementacao.md).
+
+### 11.17 Essencial com autogestão
+
+Condomínio sem administradora e sem Gestão + Suporte utiliza a modalidade Autogestão do Essencial (RN-PL-08), mantendo funcionalidades e preços do Essencial. Gestão oferece "Administração do condomínio", sem solicitações à administradora nem franquia de suporte contratado. Cadastros, áreas/regras, cobrança, finanças e configuração devem ter executor local e auditoria. O desenho de distribuição proposto para revisão coloca o síndico na execução e o subsíndico na substituição, com conselho fiscal acompanhando e fiscalizando, sem edição financeira automática. Propostas de permissões finas não equivalem à aprovação de Pedro.
+
+O protótipo demonstra a modalidade por controle lateral e registros fictícios de alterações administrativas. Não substitui formulários completos nem concede privilégios reais. Operações administrativas e eleitorais exigem internet e rechecagem de função ao confirmar; ausência de gestor não dá poderes administrativos ao proprietário designado para eleição. Na fiscalização, não expor descrições administrativas com dados pessoais. Pendências detalhadas no registro [Autogestão e condução eleitoral](../01-produto/06-autogestao-e-conducao-eleitoral.md).
 
 ## 12. Navegação por perfil
 
@@ -1187,6 +1209,8 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 13/11/2026 | Condução eleitoral por precedência local em qualquer plano (11.7), designação restrita à eleição e Essencial com autogestão (11.17), incluindo simulação de administração local | Decisão de Pedro: funcionamento sem administradora ou suporte pago; distribuição detalhada de funções fica como proposta para revisão, preservando sigilo e fiscalização |
+| 12/11/2026 | Exceções de reserva e pagamento, triagem de manutenção, episódio original e reversão efetiva, moderação protegida, autorização eleitoral, exportação assíncrona e fila separada do cache (11.16); assinatura assistida e LGPD com operador pendente | Decisões de Pedro, escolhas 1A–19A; alinhar RN, PRD, histórias, fluxos e protótipo sem ampliar acesso nem afirmar validações externas |
 | 09/11/2026 | Texto do push "Lembrete de reserva" (13.5): quando o envio é antecipado para as 21:00 da noite anterior, o título e o texto usam o dia e o horário reais ("Reserva no sábado"), não "amanhã"; sem componente nem token novo | Decisão de Pedro: horário de 24h antes entre 00:00 e 08:59 antecipa o push para as 21:00 da noite anterior, então o aviso pode chegar com mais de 24h de antecedência (RN-RE-14, D-39 dos User Flows, fluxo 5.1) |
 | 09/11/2026 | Texto do push "Lembrete de reserva" (13.5), interruptor "Lembrete de reserva" nas preferências de notificação e atalho "Cancelar reserva" no detalhe da reserva (11.4); sem componente nem token novo | Decisão de Pedro: avisar o morador 24h antes de reserva confirmada, de forma opcional, só por push e com atalho para cancelar nas regras de RN-CA-01 a RN-CA-03 (RN-RE-14, RF-RE-10, US-RE-04, US-NO-01, UF 5.1, 5.2 e 14.1) |
 | 08/11/2026 | Conclusão de limpeza sem internet escolhida pelo menor horário do celular, mesmo enviada depois; aviso de correção, avaliação superada só no histórico e nova avaliação na janela configurada desde a disponibilização | Decisão de Pedro (RN-CH-04, RN-CH-15, RN-CH-17): preservar autoria do serviço e das avaliações, retirar notas superadas das médias e impedir efeitos duplicados; a correção não reinicia as 48h de reabertura |

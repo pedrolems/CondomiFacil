@@ -258,6 +258,8 @@ flowchart TD
 
 ### 4.3 Mudança de morador e desligamento de funcionário
 
+**Variação transversal — Essencial com autogestão (13/11/2026, RN-PL-08):** os fluxos 4.1–4.5, 13.2 e 13.3 precisam funcionar sem administradora e sem Gestão + Suporte. Entrada por Gestão → Administração do condomínio; indicar "Essencial · Autogestão". Distribuição proposta para revisão: síndico executa cadastro, configuração e administração financeira; subsíndico executa durante substituição; conselho fiscal acompanha e fiscaliza, sem editor financeiro automático. Ação administrativa exige internet, função vigente e auditoria. Solicitação destinada à administradora passa a fila local, sem cobrar franquia de Gestão + Suporte. A designação eleitoral não autoriza cadastros, finanças ou concessão de funções. Fluxos antigos abaixo descrevem a variante com administradora; a variante local deve preservar as mesmas validações e privacidade, sujeita à revisão das permissões finas.
+
 ```mermaid
 flowchart TD
     A(["Administradora registra mudança de morador"]) --> B{"É o morador habilitado?"}
@@ -265,7 +267,7 @@ flowchart TD
     B -->|"Não"| D
     C --> D["Confirma a mudança"]
     D --> S1["Acesso desativado na hora; histórico mantido"]
-    S1 --> S2["Reservas futuras canceladas com reembolso integral"]
+    S1 --> S2["Reservas futuras canceladas com reembolso integral se houve recebimento"]
     S2 --> S3["Visitas recorrentes encerradas"]
     S3 --> Z(["Mudança registrada"])
     F(["Administradora desliga funcionário"]) --> F1["Sistema devolve os chamados abertos à fila do setor"]
@@ -297,7 +299,7 @@ flowchart TD
     B -->|"Fim antecipado"| D["Administradora encerra o mandato"]
     D --> D1{"Há subsíndico?"}
     D1 -->|"Sim"| D2["Subsíndico assume até a nova eleição"]
-    D1 -->|"Não"| D3["Administradora recebe alerta e abre a nova eleição; funções de síndico ficam sem titular até a posse"]
+    D1 -->|"Não"| D3["Conselho; sem conselho, proprietário designado conduz eleição; funções de síndico sem titular até posse"]
     D2 --> Z2(["Fluxo 11.2: eleição"])
     D3 --> Z2
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
@@ -430,8 +432,8 @@ flowchart TD
     B -->|"Sim"| E1(["Opção Cancelar não aparece"])
     B -->|"Não"| C{"Tipo e situação"}
     C -->|"Gratuita ou paga ainda não paga"| D["Confirma o cancelamento"]
-    C -->|"Paga, faltam mais de 12h"| F["Aviso: reembolso integral"]
-    C -->|"Paga, faltam 12h ou menos"| G["Aviso: não haverá reembolso"]
+    C -->|"Paga, faltam 12h ou mais"| F["Aviso: reembolso integral"]
+    C -->|"Paga, faltam menos de 12h"| G["Aviso: não haverá reembolso"]
     G --> G1{"Confirma mesmo assim?"}
     G1 -->|"Não"| Z0(["Reserva mantida"])
     G1 -->|"Sim"| D
@@ -439,10 +441,10 @@ flowchart TD
     D --> S1["Horário liberado na hora"]
     S1 --> H{"Qual cancelamento?"}
     H -->|"Gratuita ou paga ainda não paga"| Z1(["Cancelada"])
-    H -->|"Paga, faltavam mais de 12h"| S2["Pix em até 2 dias úteis ou estorno no cartão; comprovante"]
+    H -->|"Paga, faltavam 12h ou mais"| S2["Pix em até 2 dias úteis ou estorno no cartão; comprovante"]
     S2 --> Z2(["Cancelada com reembolso"])
-    H -->|"Paga, faltavam 12h ou menos"| Z3(["Cancelada sem reembolso"])
-    X(["Condomínio cancela: manutenção ou mudança de morador"]) --> X1["Reembolso integral em qualquer prazo"]
+    H -->|"Paga, faltavam menos de 12h"| Z3(["Cancelada sem reembolso"])
+    X(["Condomínio cancela: manutenção ou mudança de morador"]) --> X1["Motivo e auditoria; reembolso integral se houve recebimento"]
     X1 --> X2["Morador avisado com o motivo"]
     X2 --> S1
     H -->|"Pelo condomínio"| Z4(["Cancelada pelo condomínio; reembolso integral se houve pagamento"])
@@ -460,6 +462,8 @@ flowchart TD
 | Reembolso falhou no gateway | Push: "Seu reembolso está atrasado. Já estamos resolvendo." A administradora recebe alerta | Acompanha no histórico | RN-CA-04, SEG-17 |
 | Reserva já começou | Sem botão de cancelar | — | RN-CA-01 |
 | Chegou pelo atalho do push de lembrete | Detalhe da reserva com "Cancelar reserva"; vale o mesmo aviso de reembolso (integral até 12h antes, depois sem reembolso). Cancelar não tira pontos | Confirma ou mantém | RN-RE-14, RN-CA-02, RN-CA-03 |
+
+**Decisão de 12/11/2026:** cancelamento pelo condomínio é executado pelo síndico, subsíndico em substituição, administradora ou suporte autorizado, com motivo obrigatório, autoria e auditoria. Aguardando pagamento também vira Cancelada pelo condomínio; sem recebimento, não há devolução. Recebimento posterior à expiração/cancelamento é registrado e abre pendência assistida, sem recuperar horário, reativar reserva ou devolver automaticamente.
 
 ### 5.3 Reservas do dia, vistoria e não comparecimento
 
@@ -612,6 +616,8 @@ flowchart TD
 | Falha ao enviar um item da fila | O item continua pendente, e o app tenta de novo sozinho | Automático | RNF-08 |
 | Saída da conta com itens pendentes | "Há N registros ainda não enviados. Conecte-se antes de sair." | Espera a sincronização | RN-OF-06 |
 | Registrar encomenda offline | Botão desabilitado: "Encomendas precisam de internet. Anote e registre quando a conexão voltar." | Registra depois | RNF-06 |
+
+**Fila e cache (12/11/2026):** limpar cache do dia/logout não descarta operações pendentes: a fila é separada e protegida até sincronização ou tratamento explícito. Retenção, acesso após logout e recuperação ainda dependem de desenho; a interface informa pendência e não promete sincronização concluída.
 
 ### 6.4 Modo de treinamento
 
@@ -840,6 +846,8 @@ O síndico (ou o subsíndico em substituição) também pode ajustar a urgência
 
 Ao concluir, o síndico (ou o subsíndico em substituição) pode anexar fotos do serviço, sem obrigação (RN-CH-14). Concluir exige uma empresa registrada, porque a avaliação do atendimento vale para ela (RN-CH-15).
 
+**Manutenção reaberta (12/11/2026):** permanece Reaberto até o síndico/sub em substituição fazer triagem e escolher Orçamento ou Agendado com autoria/momento. Novo ocupante não herda chamados/casos do anterior.
+
 ### 8.4 Avaliar o atendimento do chamado
 
 - **Perfil:** quem abriu o chamado: morador, síndico morador e subsíndico. Síndico profissional, portaria e funcionários não veem a ação (RN-CH-15).
@@ -995,6 +1003,8 @@ flowchart TD
 | Alvo é uma unidade desocupada | A conversa é com o proprietário; validada, ninguém perde pontos | — | RN-RC-04, RN-CD-24 |
 | Reclamação validada contra unidade alugada ou desocupada | O proprietário recebe a categoria, a data, a decisão e a multa, sem a conversa e sem quem reclamou | — | RN-RC-16 |
 
+**Reatribuição e episódio (12/11/2026):** perda de função/mandato retira acesso do julgador e reatribui pela tabela vigente; sem elegível aguarda atribuição. Troca de habilitado preserva caso e score no episódio original, sem acesso do novo ocupante. Pessoa originalmente envolvida conserva acesso próprio à defesa/recurso do caso, sujeito à revisão de privacidade, sem consultar dados atuais da unidade.
+
 ### 9.3 Recorrer
 
 ```mermaid
@@ -1029,6 +1039,8 @@ flowchart TD
 | Administradora ou conselho fiscal | Sem recurso no app |
 
 Quem é parte da reclamação (reclamante ou alvo) nunca julga o recurso; sem nenhum julgador possível, o recurso fica pendente e a administradora recebe alerta para cadastrar o conselho fiscal (RN-RC-14).
+
+**Reversão (12/11/2026):** devolver apenas perda efetiva registrada. Exemplo: saldo 3, penalidade nominal 10, saldo 0; recurso aceito devolve 3 ao mesmo perfil, com teto 100 e movimento vinculado.
 
 ### 9.4 Acompanhar score e transparência
 
@@ -1068,6 +1080,8 @@ flowchart TD
 ```
 
 Só o síndico, ou o subsíndico em substituição, envia comunicados (RN-CO-01). Fora da substituição, o subsíndico sugere, e a sugestão sai em nome do síndico quando ele a envia (RN-CO-05). A única exceção é a conversa com o alvo de uma reclamação, que qualquer julgador inicia de dentro da reclamação (RN-CO-04).
+
+**Denúncia (12/11/2026):** destinatário autorizado revisa projeção protegida e escolhe Encerrar sem ação ou Ocultar conteúdo, com motivo/histórico. A ocultação retira o texto da exibição normal, preservando evidência restrita; não cria penalidade de score nem revela reclamante/avaliador. Encaminhar não concede acesso irrestrito à origem; suporte permanece excluído de reclamações e scores.
 
 ## 11. Reuniões, votações e eleições
 
@@ -1130,18 +1144,20 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A(["Síndico ou administradora abre a eleição com prazo de candidaturas"]) --> B["Morador se candidata a síndico ou subsíndico"]
+    A(["Responsável eleitoral vigente abre eleição: síndico; na ausência, sub, conselho ou proprietário designado"]) --> B["Morador se candidata a síndico ou subsíndico"]
     B --> C{"Elegível?"}
     C -->|"Não: reeleição desligada ou mesma unidade do outro cargo"| E1["Candidatura bloqueada, com o motivo"]
     C -->|"Sim"| D["Candidatura aceita"]
     D --> F["Prazo encerra; votação como em 11.1"]
     F --> G{"Empate?"}
     G -->|"Sim"| H["Segundo turno entre os empatados em até 7 dias"]
-    H --> F
+    H --> H1{"Segundo turno empatou ou não há elegível?"}
+    H1 -->|"Sim"| INC["Resultado inconclusivo; encaminhar ao responsável local e condomínio, sem vencedor automático"]
+    H1 -->|"Não"| I
     G -->|"Não"| I{"Síndico e subsíndico eleitos da mesma unidade?"}
     I -->|"Sim"| J["Assume o próximo mais votado para subsíndico"]
     I -->|"Não"| K
-    J --> K["Administradora registra início e fim dos mandatos"]
+    J --> K["Responsável administrativo registra mandatos; na autogestão, distribuição a revisar"]
     K --> Z(["Novos mandatos ativos"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
@@ -1153,7 +1169,9 @@ flowchart TD
 | --- | --- | --- | --- |
 | Candidatura fora do prazo | Botão "Candidatar-se" desabilitado: "Candidaturas encerradas em [data]." | — | RN-VO-13 |
 | Reeleição desligada | "O regimento deste condomínio não permite reeleição." | — | RN-VO-05 |
-| Nenhum candidato | A administradora recebe alerta e pode reabrir o prazo | Reabre | RN-VO-13 |
+| Nenhum candidato elegível | Resultado inconclusivo; responsável local e condomínio recebem encaminhamento | Tratamento pelo condomínio; administradora/suporte autorizado quando presentes, sem vencedor automático | RN-VO-07/13 |
+
+**Eleição regular (13/11/2026):** vale em qualquer plano: síndico em exercício; ausente/vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado pelo condomínio, inclusive não residente, com permissão temporária restrita à eleição. Administradora presente e suporte autorizado no Gestão + Suporte também podem conduzir. Ações auditadas, votos secretos e resultado apenas ao encerramento. Encerramento definitivo revoga a permissão temporária; segundo turno permanece na mesma eleição. Segundo empate ou falta de elegível produz resultado inconclusivo encaminhado ao condomínio, sem vencedor automático. Comprovação de ausência, composição do conselho e concessão inicial da designação continuam a revisar. Esta decisão substitui a restrição de 12/11/2026.
 
 ## 12. Pesquisa mensal
 
@@ -1228,6 +1246,8 @@ flowchart TD
 | Proprietário vê cobrança emitida ao inquilino | A cobrança aparece com o selo de estado e "Paga pelo inquilino", sem botão de pagar | — | RN-FI-10 |
 | Gateway fora do ar, cobrança no prazo | "Pagamento indisponível agora. Tente de novo mais tarde; o vencimento continua em [data]." | Tenta depois | RN-FI-04 |
 | Gateway fora do ar, cobrança vencida | "Pagamento indisponível agora. Quando você pagar, o valor será atualizado com multa e juros até o dia do pagamento." | Tenta depois | RN-FI-06, RN-FI-08 |
+
+**Recebimento excepcional (12/11/2026):** pagamento após vencimento é Paga com atraso pelo instante efetivo, mesmo antes da rotina de atraso. Cobrança Cancelada permanece Cancelada; registra recebimento e pendência para administradora/suporte autorizado, sem reativar dívida. A tela distingue estado da cobrança e recebimento em análise.
 
 ### 13.2 Configurar cobrança, cobranças extras e inadimplência
 
@@ -1338,8 +1358,10 @@ flowchart TD
 | Receita de cobrança | Linha agregada: "Taxa condominial · 117 cobranças pagas", sem unidade | — | RN-FI-30 |
 | Filtro sem resultado | "Nenhum lançamento neste filtro." com a ação "Limpar filtros" | Limpa | RN-FI-21 |
 | Período de vários meses | A comparação com o mês anterior some; fica a evolução | — | RN-FI-21 |
-| Exportar | "financeiro-2026-10.csv baixado." ou "financeiro-2026-10.pdf baixado."; o arquivo respeita o filtro | — | RN-FI-30 |
+| Exportar | "financeiro-2026-10.csv disponível somente após processamento assíncrono e consulta." ou "financeiro-2026-10.pdf disponível somente após processamento assíncrono e consulta."; o arquivo respeita o filtro | — | RN-FI-30 |
 | Mês fechado | Faixa "Mês fechado em 10/11. Alterações só por estorno."; os comentários continuam liberados | Comenta | RN-FI-28, RN-FI-31 |
+
+**Finanças (12/11/2026):** fontes individuais ficam restritas e projeções autorizadas agregam receitas automáticas por dia/categoria, sem unidade/responsável. Exportar inicia processamento assíncrono; usuário acompanha solicitação, vê falha quando houver e acessa arquivo privado só quando pronto, com permissão revalidada. Não há download concluído no instante do pedido.
 
 ## 14. Notificações e LGPD
 
@@ -1371,6 +1393,8 @@ flowchart TD
 Notificações obrigatórias: decisão de reclamação contra a pessoa e divergência de sincronização para o porteiro (US-NO-01).
 
 Dentro de Reserva, o interruptor opcional "Lembrete de reserva" (ligado por padrão) controla o push enviado 24h antes do início de reserva confirmada, ou às 21:00 da noite anterior quando esse horário cair entre 00:00 e 08:59 (fluxo 5.1, RN-RE-14).
+
+**LGPD e sessão (12/11/2026):** automatizar só procedimento definido; exceções aguardam operador autorizado ainda sem função/permissão definida. Não presumir suporte/admin como operador. Refresh deve prever tolerância controlada a retry legítimo; duração, mecanismo e defesa contra replay ficam sujeitos à revisão de segurança. Retenção é por finalidade; não há prazo novo aprovado.
 
 ## 15. Mensagens de erro transversais
 
@@ -1407,7 +1431,7 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-14 | Pagamento em duplicidade da taxa não tinha tratamento | Alerta à administradora, que devolve ou abate na próxima cobrança (nova RN-FI-19) | RN 12.1 |
 | D-15 | O responsável financeiro podia ser o proprietário não residente, mas não havia perfil para ele entrar no app | Novo perfil "Proprietário não residente", só com as cobranças da unidade (nova RN-CD-19); o PRD passa a ter 11 perfis | PRD 3, RN glossário, RN-SC-01 |
 | D-16 | A exclusão de conta do morador habilitado deixaria a unidade sem habilitado, o que RN-CD-04 proíbe | A administradora é avisada para definir o substituto; até lá, a unidade não vota (nova RN-CD-18) | RN 3 |
-| D-17 | Fim antecipado do mandato do síndico sem subsíndico não tinha regra | A administradora recebe alerta e abre a eleição; as funções de síndico ficam sem titular até a posse | RN-CD-13 |
+| D-17 | Fim antecipado do mandato do síndico sem subsíndico não tinha regra | Revisão de 13/11: conselho ou, sem conselho, proprietário designado conduz eleição; administradora pode quando presente; funções do síndico sem titular até posse | RN-CD-13; RN-VO-13 |
 | D-18 | A denúncia de conteúdo ia sempre ao síndico, mesmo se o conteúdo fosse dele | Vai a quem julgaria uma reclamação contra o síndico | RN-RC-13 |
 | D-19 | Não estava claro se solicitação recusada contava na franquia | Não conta | RN-PL-03 |
 | D-20 | Os diagramas de estados e o fluxo da reclamação estavam como conteúdo incorporado quebrado | Estados viraram tabelas nas Regras, com os mesmos nomes do Design System (4.5), que ganhou "Cancelada" (reserva) e "Não compareceu" (visita); o PRD aponta para este documento | RN 5.5, RN 7.4, PRD 6, DS 4.5 e 18 |
@@ -1431,7 +1455,11 @@ Ao mapear os fluxos, surgiram contradições e lacunas entre os documentos de pr
 | D-38 | As rotinas diárias, exceto 3, 6, 9 e 13, não tinham horário, e as que enviam lembrete poderiam disparar push de madrugada | Decidido por Pedro em 09/11/2026: rotinas diárias sem horário rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as diárias de lembrete ou aviso a pessoas (encomenda, prazos de reclamação e chamado, avaliação de chamado, cobrança, fim de contrato de locação) rodam às 09:00 locais. Também decidido em 09/11/2026: (a) as rotinas 10 e 20 têm duas etapas na mesma rotina, efeito de regra na madrugada e aviso às 09:00; (b) o push gerado por rotina da madrugada fica na fila e sai às 09:00 locais, e o push de evento disparado por pessoa não muda; (c) o lembrete de avaliação de chamado sai às 09:00 locais do dia seguinte ao fim das 24h após a conclusão | RN 14, RN-CH-17, RF-CH-08, US-CH-02, US-CH-04, DS 11.12, arq. 3.5 e 3.7, ADR-012, ADR-014, backend 5.2 e 6.4 |
 | D-39 | O lembrete de reserva (RN-RE-14) enviado 24h antes do início cairia de madrugada quando a reserva começa entre 00:00 e 09:00 | Decidido por Pedro em 09/11/2026: se o horário calculado (início menos `reserva.lembrete_antecedencia_horas`) cair entre 00:00 e 08:59 no fuso do condomínio, o push é antecipado para as 21:00 da noite anterior ao dia desse horário, nunca adiado (reserva às 02:00 de sábado, 24h: push na quinta às 21:00); entre 09:00 e 23:59 não muda. Por coerência com RN-RE-14, reserva confirmada depois do horário de envio (inclusive depois das 21:00 antecipadas) não recebe lembrete (confirmado por Pedro em 09/11/2026). A rotina segue a cada 5 min, fora da fila das 09:00 da D-38. Como o push pode sair mais de 24h antes, o texto usa o dia e o horário reais em vez de "amanhã" | RN-RE-14, RN 14, RF-RE-10, US-RE-04, fluxo 5.1, DS 13.5, arq. 3.5, D12 (4.8), ADR-012, backend 5.2 e 5.5 |
 
+Decisões de 12/11/2026: [registro consolidado das 19 escolhas](../01-produto/05-decisoes-de-complementacao.md). Cobrança da assinatura da plataforma é assistida/manual no MVP, separada do dinheiro condominial. Os detalhes resolvidos por esse registro deixam de ser pendências; permanecem as condições externas e os parâmetros não definidos.
+
 ## 17. Pendências
+
+**Autogestão e condução eleitoral — revisão de 13/11/2026:** definir matriz por operação (cadastros, cobrança, configuração e finanças), ativação de substituição sem gestor disponível, primeiro acesso e comprovação de representação, quem registra ausência/vacância, concessão/revogação da designação eleitoral, atuação de membros do conselho e conflitos de interesse, julgamento sem administradora e sem substitutos, transição entre modalidades e entrega de dados/acessos. Eleição não depende de resolver essas permissões administrativas. Detalhamento, opções e consequências no [registro de revisão](../01-produto/06-autogestao-e-conducao-eleitoral.md). Não presumir aprovação da distribuição fina nem de novas competências do conselho.
 
 Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma decisão do negócio ou de terceiros.
 

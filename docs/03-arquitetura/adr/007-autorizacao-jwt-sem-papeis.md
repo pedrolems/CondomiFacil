@@ -36,7 +36,7 @@ Opção **B**.
 | Item | Proposta |
 | --- | --- |
 | Access token | JWT assinado, curto (15 min), só com `sub` (usuário) e `sid` (sessão). Sem papéis nem condomínios |
-| Refresh token | Opaco e aleatório, guardado como hash no banco, **rotativo**: cada uso gera outro; reuso do antigo revoga a sessão; ligado ao aparelho |
+| Refresh token | Opaco e aleatório, guardado como hash no banco, **rotativo**: cada uso gera outro; replay indevido revoga a sessão; retry legítimo deve ter tolerância controlada conforme direção de 12/11/2026, com mecanismo e duração ainda sujeitos à revisão de segurança; ligado ao aparelho |
 | Revogação | Tabela de sessões; sair da conta, troca de senha e exclusão LGPD revogam |
 | App | Tokens no `expo-secure-store` |
 | Web | Refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax`; access token só em memória, para evitar roubo por XSS. Exige proteção CSRF para o cookie de refresh |
@@ -67,7 +67,7 @@ Outras decisões associadas: senha com Argon2id; comparação do código em temp
 **Riscos**
 
 - Cache de papel mantém permissão antiga por alguns segundos após uma mudança.
-- Rotação de refresh pode derrubar sessão legítima em rede instável, se a resposta da renovação se perder. A política exata de tolerância está em aberto.
+- Rotação de refresh pode derrubar sessão legítima em rede instável, se a resposta da renovação se perder. Pedro aprovou em 12/11/2026 a direção de tolerância controlada a retry legítimo; mecanismo, janela e proteção contra replay continuam pendentes de revisão de segurança.
 - Cookie na web exige CORS restrito e proteção CSRF bem feitos.
 - Política de versões mínimas do cliente e limites de taxa são lacunas.
 
@@ -75,7 +75,7 @@ Outras decisões associadas: senha com Argon2id; comparação do código em temp
 
 - Revisão de segurança (`docs/07-seguranca`) do desenho de sessão, rotação e cookie.
 - Medir o custo da consulta de papel por requisição contra RNF-01 e definir o tempo do cache.
-- Testes: reuso de refresh revoga a sessão; troca de papel vale dentro do tempo do cache; cabeçalho de condomínio sem vínculo é recusado; suporte sem plano Gestão + Suporte não abre contexto.
+- Testes: replay indevido de refresh revoga a sessão; retry legítimo exige mecanismo e janela ainda sujeitos à revisão; troca de papel vale dentro do tempo do cache; cabeçalho de condomínio sem vínculo é recusado; suporte sem plano Gestão + Suporte não abre contexto.
 - Aprovação do Pedro.
 
 ## Referências
@@ -84,3 +84,18 @@ Outras decisões associadas: senha com Argon2id; comparação do código em temp
 - `docs/01-produto/02-prd.md`: seção 3 (permissões) e 10; SEG-03, SEG-04, SEG-17; RF-AC-01 a 04, RF-AD-01.
 - `docs/01-produto/03-regras-de-negocio.md`: RN-CD-01, RN-CD-02, RN-CD-04, RN-CD-05, RN-CD-12, RN-CD-28.
 - `docs/02-design/02-user-flows.md`: seções 3.1 a 3.3 e 15.
+
+## Complementação de 12/11/2026
+
+Direção aprovada por Pedro: distinguir retry legítimo após resposta perdida de replay indevido, com tolerância controlada. Não há duração arbitrária nem mecanismo aprovado nesta revisão. Até revisão, não implementar exceção ampla ao reuso. O contrato registra esse bloqueio. Esta decisão não aceita integralmente o ADR. Registro: [19 escolhas](../../01-produto/05-decisoes-de-complementacao.md), item 16A.
+
+
+## Atualização de autogestão e eleições — 13/11/2026
+
+Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+
+**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+
+**Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
+
+**Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.

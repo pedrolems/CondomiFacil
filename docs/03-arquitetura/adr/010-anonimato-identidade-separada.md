@@ -42,7 +42,7 @@ Opção **B**, com os mecanismos abaixo (arquitetura 3.9.2).
 | Pesquisa mensal | Tabela de respostas **sem** `avaliador_id`. A regra "um avaliador, uma resposta por funcionário e mês" é garantida por um **identificador derivado**: HMAC com chave só do servidor sobre avaliador + funcionário + mês. Impede duplicar sem revelar quem é |
 | Nota do setor | Regra do mínimo de 2 funcionários aplicada no cálculo do fechamento (rotina 6), antes de gravar o que será exibido |
 | Avaliação de chamado | Consulta do funcionário sobre visão agregada com `HAVING count >= 3`, data truncada ao mês; síndico e subsíndico leem pela rota do chamado |
-| Finanças | Receitas de cobrança gravadas **só agregadas por categoria e mês**; vínculo com cobrança individual em tabela separada, inacessível a síndico e conselho fiscal |
+| Finanças | Fontes individuais restritas e projeções agregadas **por dia e categoria**, sem unidade/responsável para síndico e conselho fiscal; direção aprovada por Pedro em 12/11/2026, sem aprovar estrutura física ou todo o ADR |
 
 Cuidados adicionais:
 
@@ -84,3 +84,7 @@ Cuidados adicionais:
 - `docs/03-arquitetura/01-arquitetura.md`: seções 3.9.2, 4.11, 7 (SEG-07, SEG-18), 9.2, 9.4.
 - `docs/01-produto/02-prd.md`: SEG-07, SEG-16, SEG-18; RF-PE-04, RF-LG-02.
 - `docs/01-produto/03-regras-de-negocio.md`: RN-RC-01, RN-RC-10, RN-RC-12, RN-RC-16, RN-RC-19, RN-SC-02, RN-PE-08, RN-PE-09, RN-CH-19 a RN-CH-21, RN-FI-30, RN-CD-16.
+
+## Complementação de 12/11/2026
+
+Pedro aprovou fontes financeiras individuais restritas e agregação diária por categoria nas projeções autorizadas (item 17A do [registro](../../01-produto/05-decisoes-de-complementacao.md)). Moderação não revela reclamante/avaliador e acesso próprio ao caso após saída requer projeção revisada. Sigilo de voto, pesquisa, retenção e demais escolhas deste ADR continuam propostas sujeitas à revisão.

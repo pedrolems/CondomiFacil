@@ -318,7 +318,7 @@ sequenceDiagram
 | Item | Proposta |
 | --- | --- |
 | Access token | JWT assinado, curto (15 min), com `sub` (usuário) e `sid` (sessão). **Sem** papéis nem condomínios dentro do token |
-| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; reuso do antigo revoga a sessão), ligado a aparelho |
+| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; replay indevido revoga a sessão; direção de tolerância controlada a retry legítimo aprovada em 12/11/2026, com mecanismo e janela ainda sujeitos à revisão|
 | Por que sem papéis no JWT | Papéis mudam (substituição do síndico, fim de mandato, troca de morador) e o usuário tem vários vínculos; resolver no servidor a cada requisição evita permissão velha. Custo: uma consulta por requisição, mitigada por cache em processo de poucos segundos |
 | Sessão expirada | A API responde 401; o cliente volta ao login e depois à tela (UF 15) |
 | Revogação | Tabela de sessões; sair da conta, troca de senha e LGPD (exclusão) revogam |
@@ -479,7 +479,7 @@ O requisito é que **a identidade não possa vazar nem por bug de tela**. A estr
 | Nota do setor | Só publicada com 2 ou mais funcionários avaliados | Regra aplicada no cálculo do fechamento (rotina 6), antes de gravar o que será exibido | RN-PE-08 |
 | Avaliação do atendimento de chamado | Funcionário vê média e comentários anônimos só com 3 ou mais avaliações, sem unidade, morador, chamado ou local, com mês no lugar da data; administradora só vê agregado; síndico e subsíndico veem nota, comentário e base no detalhe do chamado | Consulta do funcionário feita sobre uma visão agregada com `HAVING count >= 3`, com data truncada ao mês; síndico lê pela rota do chamado | RN-CH-19 a RN-CH-21 |
 | Calendário de reservas | "Ocupado" sem unidade | DTO sem identificação | RN-RE-05 |
-| Finanças | Receitas de cobrança agregadas, sem unidade nem responsável; folha só pelo total | Receitas de cobrança gravadas **só agregadas por categoria e mês** no lançamento automático; o vínculo com cobrança individual fica em tabela separada, inacessível a síndico e conselho | RN-FI-30, SEG-18 |
+| Finanças | Receitas de cobrança agregadas, sem unidade nem responsável; folha só pelo total | Receitas de cobrança gravadas **só agregadas por categoria e mês** no lançamento automático; o vínculo com cobrança individual fica em tabela separada, inacessível ao conselho e à projeção fiscal do síndico; executor administrativo da autogestão usa somente a finalidade específica autorizada de cobrança/conciliação | RN-FI-30, SEG-18 |
 
 Cuidados adicionais (Proposta):
 
@@ -599,7 +599,7 @@ CREATE POLICY tenant ON visita
 | --- | --- | --- |
 | **Usuário em vários condomínios e várias unidades** | Identidade única (`usuario`); vínculos em `vinculo_usuario_unidade`. O app mostra **uma unidade ativa** por vez (seletor no topo). O cliente envia condomínio e unidade ativos; a API valida o vínculo e abre a transação com **um** condomínio. Trocar de unidade ou condomínio troca o contexto; cada unidade tem painel e métricas próprios. O regimento é aceito por condomínio (RF-AC-02). Dados offline são por usuário + condomínio (seção 4.8) | RN-CD-05, RF-AC-04 |
 | **Administradora com vários condomínios** | A administradora entra num painel web que lista seus condomínios (`administradora_condominio`). Ao abrir um, o contexto é daquele condomínio, como qualquer usuário. Telas que **agregam** vários condomínios (ex.: visão geral) fazem uma consulta por condomínio ou usam uma **visão `SECURITY DEFINER`** que recebe a lista de condomínios autorizados e valida cada um contra `administradora_condominio`; sem `BYPASSRLS` geral | RN 3; PRD 3 |
-| **Suporte da plataforma** | Papel de banco/perfil distinto. Só abre contexto em condomínios do plano **Gestão + Suporte** (verificado na tabela `acesso_suporte`/plano **na hora de abrir o contexto**). **Cada acesso é registrado** (quem, condomínio, quando, tela). Sem permissão nas tabelas de **reclamação e score** (privilégio `SELECT` não concedido ao papel e política que nega): o suporte "não julga nem consulta reclamações e não vê scores". Perde acesso quando o condomínio contrata administradora e passa ao Essencial (RN-PL-06) | RN-CD-16, SEG-13 |
+| **Suporte da plataforma** | Papel de banco/perfil distinto. Só abre contexto em condomínios do plano **Gestão + Suporte** (verificado na tabela `acesso_suporte`/plano **na hora de abrir o contexto**). **Cada acesso é registrado** (quem, condomínio, quando, tela). Sem permissão nas tabelas de **reclamação e score** (privilégio `SELECT` não concedido ao papel e política que nega): o suporte "não julga nem consulta reclamações e não vê scores". Perde acesso quando vigora Essencial, com administradora ou autogestão (RN-PL-06) | RN-CD-16, SEG-13 |
 | **Admin da plataforma** | Atua só no painel da plataforma: papel com acesso às tabelas de plataforma (condomínio, plano, vínculo de suporte, parâmetros-padrão) e **sem acesso às tabelas de tenant**. Para suporte ao cliente, quem acessa dados do condomínio é o suporte da plataforma, com registro | PRD 3 |
 | **Jobs** | Cada job abre o contexto de um condomínio (fan-out). Jobs globais (ex.: expirar reservas) usam o papel de job com políticas explícitas que só enxergam o necessário, ou enumeram condomínios e processam um a um | seção 3.5 |
 | **Webhooks** | Endpoint grava só `evento_gateway` (papel mínimo); o processamento resolve o condomínio pela cobrança | seção 3.6 |
@@ -630,7 +630,7 @@ CREATE POLICY tenant ON visita
 ### 4.8 Isolamento de dados offline no aparelho
 
 - Um arquivo de banco por `(usuario_id, condominio_id)`, cifrado, com chave no armazenamento seguro (SEG-09).
-- Troca de condomínio ou unidade: fecha o banco anterior; sair da conta apaga tudo (inclusive fila **não enviada**: antes de apagar, avisar o usuário que há pendências e exigir confirmação, Proposta).
+- Troca de condomínio ou unidade: fecha o banco anterior; sair da conta apaga o cache de consulta. Fila não enviada fica separada e protegida até sincronização/tratamento explícito; retenção e acesso após logout exigem desenho de segurança (RN-OF-06, decisão de 12/11/2026).
 - Apagado ao fim do dia (rotina 13 + verificação local, seção 3.1.1).
 - Aparelho compartilhado por porteiros de turnos diferentes: cada login tem seu banco; ao sair, apaga.
 
@@ -930,7 +930,7 @@ flowchart LR
 | SEG-06 | Sigilo do voto | `voto_registro` separado de `voto_conteudo` | 3.10 |
 | SEG-07 | Sigilo do score e do reclamante | Identidade em tabela separada, DTOs sem autor, endpoint único de score com regras, suporte sem acesso | 3.9.2 |
 | SEG-08 | Auditoria | Tabela append-only gravada na mesma transação; gatilhos contra alteração | 3.9.1 |
-| SEG-09 | Dados offline | SQLCipher, chave no armazenamento seguro, apagado ao sair da conta, ao trocar de condomínio e ao fim do dia (rotina 13 + verificação local) | 3.1.1, 4.8 |
+| SEG-09 | Dados offline | SQLCipher, chave no armazenamento seguro; cache apagado ao sair/trocar contexto/fim do dia, fila pendente protegida separadamente (RN-OF-06) (rotina 13 + verificação local) | 3.1.1, 4.8 |
 | SEG-10 | Retenção de visitantes | Rotina 14 (anonimização) usando `visitante.retencao_meses` (padrão 6, faixa 1 a 12); anonimiza campos pessoais mantendo contagens | 3.5 |
 | SEG-11 | Direitos do titular | Módulo `lgpd`: cópia dos dados por e-mail em até 15 dias (job, entrega por link expirável); exclusão com confirmação por senha, anonimização do histórico, votos e reclamações mantidos sem identificação; aviso à administradora se o usuário é morador habilitado, proprietário ou responsável financeiro (RN-CD-18) | 3.3, 6.9 |
 | SEG-12 | Pagamentos | Gateway certificado; checkout hospedado ou tokenização; nenhum dado de cartão na API, no banco ou nos logs | 3.6 |
@@ -1062,3 +1062,18 @@ Nuvem e região do piloto (o MVP usa Supabase e Render gratuitos, ADR-004); CI/C
 | 9 Decisões em aberto e riscos | — | — | — | SEG-16, SEG-15 | UF 17; AGENTS.md |
 
 Observação: as listas de RF por épico são resumidas aqui; a cobertura completa RF → US está em `docs/01-produto/04-historias-de-usuario.md`. Ao adicionar ou mudar uma regra (RN), atualizar na mesma alteração as linhas desta tabela que citam essa regra, conforme a convenção de rastreabilidade do projeto.
+
+## Complementação de 12/11/2026
+
+[Decisões aprovadas](../01-produto/05-decisoes-de-complementacao.md): dinheiro tardio preservado com resolução assistida sem reativação, fontes financeiras restritas com projeções diárias por categoria, exportações assíncronas/privadas, assinatura assistida/manual separada. Autorização revalida episódio e função vigentes; reatribui caso após mandato e protege defesa/recurso históricos. LGPD tem automação apenas do definido, sem operador de exceção ainda concedido. Sigilo/substituição de voto, tolerância de refresh, retenção, Asaas e pareceres continuam sujeitos às respectivas validações; ADRs não aceitos integralmente por essa decisão.
+
+
+## Atualização de autogestão e eleições — 13/11/2026
+
+Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+
+**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+
+**Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
+
+**Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.

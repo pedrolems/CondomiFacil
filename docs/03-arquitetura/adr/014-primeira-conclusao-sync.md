@@ -68,3 +68,7 @@ RN-CH-04, RN-CH-15 e RN-CH-17 contêm as decisões de produto. O estado deste AD
 - `docs/03-arquitetura/01-arquitetura.md`: seções 3.1.1 (resolução de conflitos), 9.1, 9.3.
 - `docs/01-produto/03-regras-de-negocio.md`: RN-CH-04, RN-CH-15.
 - `docs/01-produto/02-prd.md`: RNF-16.
+
+## Direção de Pedro em 12/11/2026
+
+Menor horário do celular continua a regra, mesmo enviado depois. Empate exato e desvio de relógio continuam dependentes de proposta e validação, sem tolerância arbitrária. Fila pendente protegida é separada do cache. Este registro não aceita integralmente o ADR. [Decisões consolidadas](../../01-produto/05-decisoes-de-complementacao.md).

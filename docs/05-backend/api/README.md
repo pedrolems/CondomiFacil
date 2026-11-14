@@ -22,6 +22,9 @@
 
 Nenhum arquivo foi aceito pelo Pedro. As escolhas de Asaas, Supabase + Render e Resend são decisões dele (10/11/2026, aceitas com ressalvas nos ADRs 002, 004 e 005); todo o resto é Proposta.
 
+Os relatórios RF-RL-01 a 11 foram antecipados ao MVP e alinhados por decisão do Pedro em 14/11/2026; isso não equivale a aceitar o desenho técnico do contrato.
+
+
 Cada arquivo de `openapi/` é um documento OpenAPI 3.1 válido sozinho e usa os componentes comuns por `$ref: './componentes/comum.yaml#/components/...'`.
 
 ## Como visualizar
@@ -40,10 +43,21 @@ Os arquivos de perfil referenciam `./componentes/...` por caminho relativo; abra
 
 ## Cobertura RF -> operação
 
-Gerada em 10/11/2026 a partir do `x-rastreabilidade` de cada operação dos arquivos de `openapi/` (script temporário, fora do repositório), contra os RF da tabela do PRD seções 4 a 9. O PRD declara 139 RF e a contagem real é **139**: **131 têm ao menos uma operação** e **8 não têm**, cada um com o motivo na coluna Observação. Estado: Proposta.
+Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada operação dos arquivos de `openapi/` (script temporário, fora do repositório), contra os RF da tabela do PRD seções 4 a 9. Revisada em 14/11/2026: o PRD declara 150 RF e a contagem real é **150**: **142 têm ao menos uma operação** e **8 não têm**, cada um com o motivo na coluna Observação. Estado: Proposta.
 
 | RF | Requisito (resumo) | Operação (`operationId`) | Arquivo | Observação |
 | --- | --- | --- | --- | --- |
+| RF-RL-01 | Financeiro do condomínio | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-02 | Cobranças e pagamentos | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-03 | Inadimplência | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-04 | Unidades, ocupação e locação | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-05 | Funcionários e empresas | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-06 | Solicitações administrativas | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-07 | Avaliações de atendimento | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-08 | Reclamações gerenciais | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-09 | Reservas gerenciais | `administradoraListarCatalogoRelatorios`, `administradoraConsultarRelatorio` | `administradora.yaml` | MVP de 14/11/2026; só administradora |
+| RF-RL-10 | Exportar relatório no formato permitido | `administradoraSolicitarExportacaoRelatorio` | `administradora.yaml` | Tipo/formato/alvo validados |
+| RF-RL-11 | Acompanhar e baixar arquivo privado | `administradoraSolicitarExportacaoRelatorio`, `administradoraListarExportacoesRelatorios`, `administradoraObterExportacaoRelatorio`, `administradoraAutorizarDownloadRelatorio` | `administradora.yaml` | Somente solicitante/tenant/função vigente |
 | RF-AC-01 | No primeiro acesso, enviar código ao e-mail pré-cadastrado; validad... | `comumAtivar`, `comumPedirCodigo`, `webhookResendReceberEvento` | `comum.yaml`, `webhooks.yaml` | |
 | RF-AC-02 | Aceitar termos de uso, política de privacidade e regimento do condo... | `administradoraListarDocumentosDoCondominio`, `sindicoAutogestaoListarDocumentosDoCondominio`, `administradoraPublicarVersaoDeDocumento`, `sindicoAutogestaoPublicarVersaoDeDocumento`, `comumListarAceitesPendentes`, `comumRegistrarAceites` |`administradora.yaml`, `comum.yaml`, `sindico.yaml` | |
 | RF-AC-03 | Recuperar senha por e-mail | `comumPedirCodigo`, `comumRedefinirSenha` | `comum.yaml` | |
@@ -188,7 +202,7 @@ Gerada em 10/11/2026 a partir do `x-rastreabilidade` de cada operação dos arqu
 
 | Arquivo | Operações (`operationId`) |
 | --- | --- |
-| `administradora.yaml` | 99 |
+| `administradora.yaml` | 105 |
 | `comum.yaml` | 36 |
 | `conselho-fiscal.yaml` | 13 |
 | `limpeza.yaml` | 10 |
@@ -199,7 +213,7 @@ Gerada em 10/11/2026 a partir do `x-rastreabilidade` de cada operação dos arqu
 | `sindico.yaml` | 136 |
 | `sync.yaml` | 2 |
 | `webhooks.yaml` | 2 |
-| **Total** | **424** |
+| **Total** | **430** |
 
 As rotas de tempo real não são operações OpenAPI: estão em `asyncapi/tempo-real.yaml`. `webhooks.yaml` tem 2 operações (Asaas e Resend).
 
@@ -283,3 +297,7 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 ### Cobertura administrativa da autogestão — proposta de 13/11/2026
 
 82 operações em `/v1/sindico/gestao/` reutilizam parâmetros, corpos e respostas específicos da administradora por referências, mantendo IDs próprios e autorização de síndico/substituto no Essencial autogestão. Cobrem cadastro de unidades, pessoas, funcionários, empresas, áreas, parâmetros, documentos, locação, cobrança, conta recebedora, conciliação e finanças. Não são CRUD genérico. RFs correspondentes mantêm cobertura nas linhas acima. Não incluem concessão inicial, gestão da própria autoridade, designação de proprietário eleitoral, nem modificação de mandatos/substituições: são lacunas bloqueadoras de desenho e revisão. Conselho conserva leitura/comentário/exportação e condução eleitoral nas condições de RN-VO-13; distribuição administrativa adicional depende de Pedro. A validação técnica do contrato não aprova automaticamente essas propostas de DTO e autorização.
+
+## Relatórios antecipados para MVP — 14/11/2026
+
+RF-RL-01 a 11 / RN-RL-01 a 08 / US-RL-01 a 03. Seis novas operações da interface administradora cobrem catálogo, consulta, criação/listagem/detalhe de jobs próprios e autorização temporária de download. Não são acessíveis pelo suporte/autogestão por equivalência. Desenho técnico continua proposto; retenção/links, limites, consistência temporal e privacidade de pequenos grupos permanecem pendentes. Exportações financeiras anteriores não mudam de permissão.

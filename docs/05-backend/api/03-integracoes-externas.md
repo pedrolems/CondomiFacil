@@ -228,3 +228,7 @@ Fontes internas: `01-backend.md` 4.6, 4.7, 5.2, 5.5 e 6; arquitetura 3.4, 3.6, 3
 ## Complementação de 12/11/2026
 
 [Decisões aprovadas](../../01-produto/05-decisoes-de-complementacao.md) fixam registro e resolução assistida de dinheiro tardio, sem recuperar horário/reativar cobrança, e classificação de atraso pelo instante efetivo. A PoC deve identificar o campo confiável desse instante; confirmação/recebimento não pode usar hora de entrega do webhook como substituto arbitrário. Nada nesta edição comprova KYC, prazos, chargeback, devolução ou sandbox. Assinatura da plataforma no MVP é assistida/manual e separada dos recebimentos condominiais.
+
+## Arquivos de relatórios — 14/11/2026
+
+Relatórios do MVP usam armazenamento privado já planejado, com geração no worker por adaptadores de formato PDF/CSV/XLSX/PNG/SVG; não requerem nova API de terceiros nem escolhem biblioteca neste documento. Registrar objeto privado e liberar leitura temporária só após validar solicitante, tenant, função e arquivo pronto/válido (RN-RL-06/07). Não expor credenciais no web nem usar URL assinada como permanente. Tamanho, concorrência, expiração/retencão e custo de armazenamento/egresso precisam de PoC; Render gratuito não garante geração contínua.

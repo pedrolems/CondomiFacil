@@ -11,7 +11,7 @@ Este documento detalha todas as regras de negócio do CondomiFacil, a partir do 
 - Os IDs seguem o padrão `RN-<módulo>-<número>`, e este documento é a fonte oficial das regras: o PRD traz só um resumo, e o PRD e as histórias de usuário citam estes IDs.
 - Uma regra marcada como **configurável** tem um parâmetro no catálogo da seção 13, com valor padrão, faixa permitida, nível e quem pode alterar.
 - Regras sem essa marca são fixas: valem igual para todos os condomínios.
-- Onde este documento diz "administradora", leia "administradora ou, no plano Gestão + Suporte, a equipe de suporte da plataforma". A exceção são as seções 4 e 5 (score, reclamações e recursos): o suporte não julga, não consulta reclamações e não vê scores. Por isso, "sem administradora" significa sem administradora contratada, mesmo com o suporte atuando.
+- Onde este documento diz "administradora", leia "administradora ou, no plano Gestão + Suporte, a equipe de suporte da plataforma". As exceções são a seção 15 (novos relatórios RF-RL-01 a 11, exclusivos da administradora) e as seções 4 e 5 (score, reclamações e recursos): o suporte não julga, não consulta reclamações e não vê scores. Por isso, "sem administradora" significa sem administradora contratada, mesmo com o suporte atuando.
 - IDs de regras removidas não são reaproveitados, então algumas sequências têm lacunas (ex.: não existem RN-SC-06 e RN-SC-07).
 - Os fluxos de tela que aplicam estas regras, com os caminhos de erro, estão no User Flows — CondomiFacil (`docs/02-design/02-user-flows.md`).
 
@@ -671,3 +671,30 @@ O sistema executa 21 rotinas sem ação de ninguém; cada execução é registra
 | Lançamentos recorrentes | Diária | 00:00 a 06:00 | Cria os lançamentos recorrentes do mês no dia escolhido (no último dia, nos meses curtos) | RN-FI-26 |
 | Fechar o mês financeiro | Diária | 00:00 a 06:00 | No dia configurado do mês seguinte, fecha o mês financeiro anterior se a administradora ainda não o fechou | RN-FI-28 |
 | Fim de contrato de locação | Diária, em duas etapas | Efeito: 00:00 a 06:00; aviso: 09:00 | Etapa de efeito: sem renovação, desativa o inquilino e os dependentes após a carência e marca a unidade como desocupada. Etapa de aviso: avisa 30 dias antes do fim do contrato | RN-CD-21 |
+
+## 15. Relatórios gerenciais e exportações — 14/11/2026
+
+Decisão do Pedro: relatórios antecipados para MVP; alinhamento completo autorizado. RF-RL-01 a RF-RL-11; US-RL-01 a US-RL-03; painel web em [painel-web.md](../06-frontend/painel-web.md).
+
+| ID | Regra |
+| --- | --- |
+| RN-RL-01 | Os nove relatórios são da administradora vinculada ao condomínio selecionado. Não há relatório consolidado da carteira. Novos relatórios/formatos não são herdados por suporte, síndico, sub, conselho, admin da plataforma ou autogestão. Permanecem RF-FI-15 e RF-FI-22 nas condições existentes; poderes finos da autogestão seguem pendentes no registro 06. |
+| RN-RL-02 | O catálogo abaixo define campos mínimos, filtros e formatos. A API só entrega a projeção autorizada; consultar cadastro/caso não autoriza exportar todos os campos. Relatórios novos não incluem rotina de visitantes/encomendas, voto individual, score individual nem contabilidade formal. |
+| RN-RL-03 | Finanças agregam receitas por categoria/quantidade, sem unidade/responsável, conforme RN-FI-30. Cobranças/inadimplência por unidade são conjuntos separados, exclusivos da administradora para estes relatórios. Reclamações só em agregados sem identidade, unidade, texto ou score. Atendimento segue RN-CH-19, sem comentários, avaliador, chamado/local e sem avaliação superada. Não exportar dados pessoais em descrição, metadados ou campos ocultos. |
+| RN-RL-04 | PDF é documento paginado; CSV/XLSX são tabelas completas filtradas; PNG/SVG são só gráficos/resumos agregados previstos, com título, período, legenda e alternativa tabular. Formato nunca altera permissão. Não exportar tabelas nominais como imagem nem produzir backup de banco ou pacote de anexos. |
+| RN-RL-05 | Data do filtro e fuso do condomínio são explícitos; totais e linhas usam o mesmo recorte e referência de cálculo. A exportação inclui o conjunto completo autorizado, não apenas a página. Distinguir zero de ausência e mês aberto de fechado; receita automática não é somada novamente como avulsa. Não afirmar posição histórica sem dados para calculá-la. |
+| RN-RL-06 | Exportação é assíncrona e privada, ligada a solicitante, condomínio, tipo, filtros, formato e referência de cálculo. Estados: Solicitada, Em processamento, Pronta, Falhou e Expirada. Somente Pronta e ainda válida admite acesso ao arquivo; falha não oferece arquivo parcial. Auditoria registra solicitação e acesso, sem conteúdo do relatório nos logs. |
+| RN-RL-07 | Listar, consultar e baixar revalidam usuário solicitante, vínculo, condomínio e função vigente. Conhecer job/arquivo não autoriza acesso; revogação bloqueia download. Acesso ao objeto usa autorização temporária, sem URL pública permanente. Cópia já baixada fica sob guarda do usuário e não pode ser apagada remotamente pelo logout. |
+| RN-RL-08 | Retenção do arquivo, validade do link, limites de período/volume/concorrência, consistência temporal e privacidade de pequenos grupos dependem de desenho e validação. Não fixar prazo/limiar arbitrário nem ampliar acesso enquanto isso; período do agregado de atendimento segue pendência contratual. Contabilidade oficial e acordos de parcelamento não são antecipados. |
+
+| Tipo | Conteúdo permitido | Filtros | Formatos |
+| --- | --- | --- | --- |
+| financeiro — Financeiro do condomínio | Resumo, receitas/despesas, categorias, evolução e lançamentos; sem unidade, responsável financeiro ou dados pessoais além do fornecedor | Período, categoria, tipo e texto | PDF,CSV,XLSX,PNG,SVG |
+| cobrancas — Cobranças e pagamentos | Unidade, competência, natureza, vencimento, estado, valor e pagamento confirmado; sem CPF, e-mail ou telefone | Competência/período, bloco/unidade, estado e natureza | PDF,CSV,XLSX |
+| inadimplencia — Inadimplência | Unidade, total devido, vencimento e dias de atraso; gráficos somente agregados | Data de referência, bloco/unidade e faixa de atraso | PDF,CSV,XLSX,PNG,SVG |
+| ocupacao — Unidades, ocupação e locação | Bloco/unidade, ocupação, tipo e vigência do contrato; sem moradores, documentos ou anexos | Bloco, ocupação e término do contrato | PDF,CSV,XLSX,PNG,SVG |
+| cadastros — Funcionários e empresas | Nome, setor/serviço, vínculo, empresa e situação; sem salário, documentos, score ou notas de pesquisa | Setor/serviço, empresa e situação | PDF,CSV,XLSX |
+| solicitacoes — Solicitações administrativas | Identificador, tipo, datas, estado e tempo de tramitação; sem texto ou anexos privados | Período de abertura/conclusão, tipo e estado | PDF,CSV,XLSX,PNG,SVG |
+| atendimento — Avaliações de atendimento | Média, quantidade e distribuição por funcionário/empresa conforme RN-CH-19; sem comentário, avaliador, unidade, chamado ou local | Funcionário/empresa e ordenação; período de cálculo permanece pendente | PDF,CSV,XLSX,PNG,SVG |
+| reclamacoes — Reclamações gerenciais | Quantidades por categoria, estado e prazo; sem pessoa, unidade, score, relato, conversa ou foto | Período, categoria e estado | PDF,CSV,XLSX,PNG,SVG |
+| reservas — Reservas gerenciais | Quantidades por área, estado e uso; valores agregados; sem pessoa, unidade ou rotina individual | Período, área, estado e paga/gratuita | PDF,CSV,XLSX,PNG,SVG |

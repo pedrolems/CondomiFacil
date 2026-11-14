@@ -213,3 +213,7 @@ sequenceDiagram
 - **`01-backend.md` e SEG-17** ainda dizem "assinatura" para o webhook do Asaas; o correto, pela documentação do Asaas, é token no cabeçalho. A correção é de outra tarefa.
 
 Complementação: [registro de 12/11/2026](../../01-produto/05-decisoes-de-complementacao.md). Moderação, atribuições e exportação não recebem nomes novos de evento de domínio nesta alteração; seus nomes/protocolo continuam proposta a definir quando necessário.
+
+## Exportações gerenciais — 14/11/2026
+
+RF-RL-10/11 e RN-RL-06/07. Eventos internos propostos: `relatorio.exportacao.solicitada` (id do pedido/tenant/solicitante/tipo/formato), `relatorio.exportacao.pronta` e `relatorio.exportacao.falhou` (id/tenant/solicitante/estado e código neutro). Não carregar linhas, dados pessoais, link assinado ou conteúdo financeiro na outbox/log. Worker revalida vínculo/função e gera arquivo privado; consulta/download revalidam novamente. A central usa consulta de andamento; não criar canal Socket.IO nem push obrigatório por consequência. Notificação de conclusão, se adotada posteriormente, deve ter texto genérico e destino autorizado, sem ampliar preferências atuais.

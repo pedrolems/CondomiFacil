@@ -836,7 +836,7 @@ Cartões com o score do síndico (componente 10.18 em versão compacta) e a nota
 
 Para administradora, suporte e síndico (RF-AC-06), na faixa expandida.
 
-- Navegação lateral com: Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Finanças, Comunicados, Reuniões, Solicitações, Configurações.
+- Navegação lateral com: Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Finanças, Comunicados, Reuniões, Solicitações, Configurações, Relatórios e Exportações (os dois últimos apenas para administradora autorizada, RN-RL-01).
 - Telas de lista usam tabela (10.22); telas de cadastro usam formulário de uma coluna com largura máxima de 640.
 - Configurações mostram, em cada parâmetro, o padrão da plataforma, o valor do condomínio, a faixa permitida e de onde vem o valor ("Herdado do condomínio").
 - No plano Gestão + Suporte, o síndico vê o contador de solicitações antes de enviar ("7 de 10 solicitações usadas este mês. As próximas custam R$ 15,00 cada.") (RN-PL-05).
@@ -991,6 +991,16 @@ Sem tokens ou componentes novos. Detalhes normativos e validações pendentes es
 Condomínio sem administradora e sem Gestão + Suporte utiliza a modalidade Autogestão do Essencial (RN-PL-08), mantendo funcionalidades e preços do Essencial. Gestão oferece "Administração do condomínio", sem solicitações à administradora nem franquia de suporte contratado. Cadastros, áreas/regras, cobrança, finanças e configuração devem ter executor local e auditoria. O desenho de distribuição proposto para revisão coloca o síndico na execução e o subsíndico na substituição, com conselho fiscal acompanhando e fiscalizando, sem edição financeira automática. Propostas de permissões finas não equivalem à aprovação de Pedro.
 
 O protótipo demonstra a modalidade por controle lateral e registros fictícios de alterações administrativas. Não substitui formulários completos nem concede privilégios reais. Operações administrativas e eleitorais exigem internet e rechecagem de função ao confirmar; ausência de gestor não dá poderes administrativos ao proprietário designado para eleição. Na fiscalização, não expor descrições administrativas com dados pessoais. Pendências detalhadas no registro [Autogestão e condução eleitoral](../01-produto/06-autogestao-e-conducao-eleitoral.md).
+
+### 11.18 Relatórios e exportações no painel web
+
+MVP por decisão do Pedro em 14/11/2026. RN-RL-01 a 08; RF-RL-01 a 11; US-RL-01 a 03; UF 18. Relatórios abre catálogo de nove tipos da administradora, com filtros, referência temporal, tabela e gráfico agregado com alternativa tabular. Não adicionar módulo mobile nem conceder novo acesso ao suporte/autogestão.
+
+- Cabeçalho mantém condomínio, título do relatório, filtros e data de referência. Total corresponde ao conjunto completo, separado da quantidade da página.
+- Ações: “Exportar tabela”, “Exportar relatório em PDF” e “Exportar gráfico”; formatos conforme catálogo de RN-RL-02. PDF/CSV/XLSX para tabela; PNG/SVG só gráfico agregado.
+- Exportações mostra pedidos próprios com formato, filtros, referência e estado em texto+ícone: Solicitada (clock), Em processamento (loader-circle), Pronta (download), Falhou (circle-alert), Expirada (clock-alert). Não oferecer download antes de Pronta.
+- Falhou permite nova solicitação; arquivo expirado exige nova geração. Link expirado pode ser renovado se arquivo/acesso continuarem válidos. Mudança de função revoga o acesso também à tela aberta.
+- Sem dados mostra estado vazio; sem rede informa tentativa posterior. Nunca incluir campo protegido no arquivo ou imagem por estar oculto visualmente.
 
 ## 12. Navegação por perfil
 
@@ -1209,6 +1219,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 14/11/2026 | Relatórios gerenciais antecipados para MVP; nove tipos, PDF/CSV/XLSX e PNG/SVG agregados; central privada assíncrona (11.18) | Decisão do Pedro e autorização de alinhamento; preservar acesso da administradora e privacidade |
 | 13/11/2026 | Condução eleitoral por precedência local em qualquer plano (11.7), designação restrita à eleição e Essencial com autogestão (11.17), incluindo simulação de administração local | Decisão de Pedro: funcionamento sem administradora ou suporte pago; distribuição detalhada de funções fica como proposta para revisão, preservando sigilo e fiscalização |
 | 12/11/2026 | Exceções de reserva e pagamento, triagem de manutenção, episódio original e reversão efetiva, moderação protegida, autorização eleitoral, exportação assíncrona e fila separada do cache (11.16); assinatura assistida e LGPD com operador pendente | Decisões de Pedro, escolhas 1A–19A; alinhar RN, PRD, histórias, fluxos e protótipo sem ampliar acesso nem afirmar validações externas |
 | 09/11/2026 | Texto do push "Lembrete de reserva" (13.5): quando o envio é antecipado para as 21:00 da noite anterior, o título e o texto usam o dia e o horário reais ("Reserva no sábado"), não "amanhã"; sem componente nem token novo | Decisão de Pedro: horário de 24h antes entre 00:00 e 08:59 antecipa o push para as 21:00 da noite anterior, então o aviso pode chegar com mais de 24h de antecedência (RN-RE-14, D-39 dos User Flows, fluxo 5.1) |
@@ -1295,3 +1306,5 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 | 14. Acessibilidade | RNF-12 |
 | 15. Privacidade | RN-SC-02, RN-RC-01, RN-RC-16, RN-RE-05, RN-PE-09, RN-FI-10, RN-FI-11, RN-FI-29, RN-FI-30, RN-CD-19, SEG-07, SEG-17, SEG-18 |
 | 16. Desempenho | RNF-02, RNF-04 |
+
+Rastreabilidade da revisão de 14/11/2026: RN-RL-01 a 08 → RF-RL-01 a 11 → US-RL-01 a 03 → UF 18 → DS 11.18 → `prototipo/js/telas/relatorios.js`.

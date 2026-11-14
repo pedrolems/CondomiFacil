@@ -4,7 +4,7 @@ Nov 4, 2026 · @Pedro Lemos
 
 ## Como ler
 
-São 71 histórias em 13 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
+São 74 histórias em 14 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
 
 - **Formato:** "Como \[perfil\], quero \[ação\], para \[objetivo\]".
 - **IDs:** `US-<módulo>-<número>`. Cada história cita os requisitos (RF, RNF, SEG) do PRD — CondomiFacil e as regras (RN) das Regras de Negócio — CondomiFacil que ela implementa.
@@ -932,9 +932,46 @@ Requisitos: RF-FI-24 · RN-FI-29, RN-FI-31
 - [ ] Dado um mês fechado, quando comento, então o comentário é aceito e os valores não mudam.
 - [ ] Dado um comentário, quando a administradora o lê, então ele não altera valores nem marca o mês como aprovado.
 
+## Épico 14 — Relatórios gerenciais e exportações
+
+### US-RL-01 — Consultar relatórios do condomínio
+
+Como administradora, quero consultar os nove relatórios do condomínio selecionado para acompanhar sua operação.
+
+Requisitos: RF-RL-01 a RF-RL-09 · RN-RL-01/02/03/05/08.
+
+- O catálogo oferece somente os nove tipos autorizados, com campos e filtros de RN-RL-02; gráficos têm tabela equivalente.
+- Trocar condomínio troca contexto e descarta respostas atrasadas. URL direta, filtro manipulado e outro tenant não contornam autorização.
+- Finanças não exibem unidade/responsável; cobranças ficam separadas. Reclamações e atendimento respeitam as projeções protegidas.
+- Total considera todo o recorte, com referência temporal/fuso e distinção de zero/ausência.
+- Suporte e outros perfis não herdam o módulo; exportações anteriores continuam disponíveis nos seus recortes.
+
+### US-RL-02 — Solicitar uma exportação
+
+Como administradora, quero escolher relatório, filtros e formato para obter o mesmo conjunto autorizado consultado na tela.
+
+Requisitos: RF-RL-10 · RN-RL-03 a RN-RL-06.
+
+- PDF/CSV/XLSX exportam a tabela; PNG/SVG somente gráficos agregados habilitados no catálogo. Formato incompatível é recusado pelo servidor.
+- Pedido aceito mostra Solicitada e o identificador; não promete arquivo pronto. A geração é privada e assíncrona.
+- Arquivo contém todo o recorte com totais consistentes, sem colunas ocultas por permissão, fórmulas injetadas, dados pessoais em metadados ou anexos privados.
+- Falha de rede não gera duplicação silenciosa de pedido; o resultado é reconciliado antes da repetição.
+
+### US-RL-03 — Acompanhar e baixar exportações
+
+Como administradora solicitante, quero acompanhar o processamento e baixar o arquivo quando estiver pronto.
+
+Requisitos: RF-RL-11 · RN-RL-06/07/08.
+
+- A central lista apenas pedidos próprios do condomínio autorizado e permite voltar ao detalhe.
+- Estados possuem texto e ícone; Pronta permite baixar, Falhou explica e permite nova solicitação, Expirada requer nova geração.
+- A API revalida acesso na consulta e download; outra pessoa, outro condomínio ou vínculo revogado não recebe arquivo nem link.
+- Link temporário expirado pode ser renovado só enquanto arquivo e autorização forem válidos; arquivo expirado exige gerar novamente.
+- São auditados pedido e acesso sem copiar relatório para logs; prazo de retenção e validade continuam pendentes de dimensionamento.
+
 ## Cobertura
 
-As 71 histórias cobrem os 139 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 74 histórias cobrem os 150 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
@@ -951,6 +988,7 @@ As 71 histórias cobrem os 139 requisitos funcionais do PRD; requisitos não fun
 | 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
 | 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 (US-NO-01 também verifica o interruptor de RF-RE-10) |
 | 13. Cobrança e finanças do condomínio | US-FI-01 a US-FI-10 | RF-FI-01 a RF-FI-24 |
+| 14. Relatórios gerenciais | US-RL-01 a US-RL-03 | RF-RL-01 a RF-RL-11 |
 
 
 Critérios acrescentados por decisão de Pedro em 12/11/2026: [registro das 19 escolhas](05-decisoes-de-complementacao.md). São critérios da futura implementação, não testes já executados.

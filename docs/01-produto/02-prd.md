@@ -33,7 +33,7 @@ O CondomiFacil é um app em React Native (celular e web) que centraliza a rotina
 
 ## 2. Escopo e planos comerciais
 
-O MVP inclui todos os módulos abaixo, exceto relatórios e acordos de parcelamento; o produto é vendido em dois planos, conforme o condomínio tenha ou não administradora.
+O MVP inclui todos os módulos abaixo, exceto acordos de parcelamento; o produto é vendido em dois planos, conforme o condomínio tenha ou não administradora.
 
 | Módulo | Entrega |
 | --- | --- |
@@ -52,7 +52,7 @@ O MVP inclui todos os módulos abaixo, exceto relatórios e acordos de parcelame
 | Pesquisa mensal de funcionários | MVP |
 | Notificações push | MVP |
 | Painel da plataforma (condomínios, planos, suporte) | MVP |
-| Relatórios e exportações | Versão 2 |
+| Relatórios gerenciais e exportações da administradora (9 tipos) | MVP — decisão de 14/11/2026 |
 | Cobrança condominial: boleto, Pix, cartão, vencimentos e inadimplência | MVP |
 | Controle de receitas e despesas do condomínio: lançamentos, categorias, evolução mensal, fechamento do mês e exportação | MVP |
 | Acordos de parcelamento de débitos | Versão 2 |
@@ -161,10 +161,11 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Ver as finanças do condomínio (resumo, categorias, evolução e lançamentos) | — | Sim | Sim | Em substituição | — | — | Sim |
 | Comentar lançamentos e meses das finanças | — | Sim | Sim | Em substituição | — | — | — |
 | Exportar as finanças (CSV e PDF) | — | Sim | Sim | Em substituição | — | — | Sim |
+| Consultar os nove relatórios gerenciais e exportar formatos de RN-RL-02 | — | — | — | — | — | — | Sim |
 
 **Perfis fora da matriz**
 
-- **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações e ver scores.
+- **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações, ver scores e acessar os novos relatórios/exportações RF-RL-01 a 11.
 - **Conselho fiscal:** sem síndico e subsíndico, conduz a eleição conforme RN-VO-13; isso não concede gestão administrativa geral. Julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
 - **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
 - **Proprietário não residente:** "Votar ou indicar procurador" e "Ver e pagar cobranças da própria unidade" (as de que é responsável financeiro). Também lê comunicados gerais, acompanha o contrato de locação e as multas e reclamações validadas contra a unidade e pede o cadastro, a renovação ou o encerramento do inquilino. Não reserva, não abre chamados, não reclama, não avalia funcionários e não vê a rotina do inquilino (RN-CD-19).
@@ -172,7 +173,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 ## 4. Requisitos funcionais
 
-São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, tarefas e testes.
+São 150 requisitos em 14 módulos, cada um com ID para histórias de usuário, tarefas e testes.
 
 ### 4.1 Acesso e conta
 
@@ -378,6 +379,24 @@ São 139 requisitos em 13 módulos, cada um com ID para histórias de usuário, 
 | RF-FI-23 | Fechar o mês e estornar lançamentos de mês fechado | Administradora, Suporte, Sistema | Fechamento no dia configurado do mês seguinte ou antes, pela administradora; mês fechado não edita, só estorna, com motivo e registro (RN-FI-27, RN-FI-28) |
 | RF-FI-24 | Comentar um lançamento ou o mês, inclusive depois do fechamento | Síndico, Subsíndico em substituição, Conselho fiscal | A administradora é avisada; o comentário não altera valores nem aprova o mês (RN-FI-31) |
 
+### 4.14 Relatórios gerenciais e exportações — MVP
+
+Decisão do Pedro em 14/11/2026: antecipar relatórios para o MVP e alinhar produto, design, protótipo e contratos. O catálogo abaixo é exclusivo da administradora vinculada ao condomínio. Não amplia acesso de suporte, síndico, subsíndico, conselho ou autogestão; permanecem suas consultas e exportações anteriores.
+
+| ID | Requisito | Perfil | Critério |
+| --- | --- | --- | --- |
+| RF-RL-01 | Consultar financeiro do condomínio | Administradora | Resumo, receitas/despesas, categorias, evolução e lançamentos; sem unidade, responsável financeiro ou dados pessoais além do fornecedor; filtros em RN-RL-02 |
+| RF-RL-02 | Consultar cobranças e pagamentos | Administradora | Unidade, competência, natureza, vencimento, estado, valor e pagamento confirmado; sem CPF, e-mail ou telefone; filtros em RN-RL-02 |
+| RF-RL-03 | Consultar inadimplência | Administradora | Unidade, total devido, vencimento e dias de atraso; gráficos somente agregados; filtros em RN-RL-02 |
+| RF-RL-04 | Consultar unidades, ocupação e locação | Administradora | Bloco/unidade, ocupação, tipo e vigência do contrato; sem moradores, documentos ou anexos; filtros em RN-RL-02 |
+| RF-RL-05 | Consultar funcionários e empresas | Administradora | Nome, setor/serviço, vínculo, empresa e situação; sem salário, documentos, score ou notas de pesquisa; filtros em RN-RL-02 |
+| RF-RL-06 | Consultar solicitações administrativas | Administradora | Identificador, tipo, datas, estado e tempo de tramitação; sem texto ou anexos privados; filtros em RN-RL-02 |
+| RF-RL-07 | Consultar avaliações de atendimento | Administradora | Média, quantidade e distribuição por funcionário/empresa conforme RN-CH-19; sem comentário, avaliador, unidade, chamado ou local; filtros em RN-RL-02 |
+| RF-RL-08 | Consultar reclamações gerenciais | Administradora | Quantidades por categoria, estado e prazo; sem pessoa, unidade, score, relato, conversa ou foto; filtros em RN-RL-02 |
+| RF-RL-09 | Consultar reservas gerenciais | Administradora | Quantidades por área, estado e uso; valores agregados; sem pessoa, unidade ou rotina individual; filtros em RN-RL-02 |
+| RF-RL-10 | Exportar os relatórios no formato permitido | Administradora | PDF/CSV/XLSX para tabelas; PNG/SVG só para gráficos agregados habilitados no catálogo; mesmos filtros e proteção da tela (RN-RL-04/05) |
+| RF-RL-11 | Acompanhar exportações e baixar arquivo privado | Administradora solicitante | Processamento assíncrono, estado por solicitação, download com acesso revalidado; revogação bloqueia acesso (RN-RL-06/07) |
+
 ## 5. Regras de negócio
 
 As regras completas, com IDs, valores padrão e parâmetros configuráveis, estão nas Regras de Negócio — CondomiFacil, que são a fonte oficial; os critérios de aceite estão nas Histórias de Usuário e Critérios de Aceite — CondomiFacil. Este resumo mostra as principais.
@@ -393,6 +412,7 @@ As regras completas, com IDs, valores padrão e parâmetros configuráveis, est�
 | Votações e mandatos | Um voto por unidade, do proprietário; o inquilino vota como procurador ou nas pautas sem despesa extraordinária; voto secreto; reeleição configurável, permitida por padrão; composição conselho/sub em revisão; ausência factual não bloqueia RN-VO-13 | 10 |
 | Planos | Preço por faixa de unidades; franquia de 10, 25 ou 50 solicitações no Gestão + Suporte; R$ 15 por solicitação extra | 11 |
 | Cobrança condominial | Módulo opcional; formas de pagamento escolhidas pela administradora; vencimento padrão dia 10; multa de até 2% e juros de 1% ao mês; inadimplência visível só a quem administra; unidade em atraso não vota; na unidade alugada, o inquilino paga as despesas ordinárias e o proprietário as extraordinárias | 12 |
+| Relatórios gerenciais | Nove tipos da administradora no MVP; projeções mínimas; PDF/CSV/XLSX e PNG/SVG agregados; geração privada e acesso revalidado | 15 |
 | Finanças do condomínio | Receitas de cobrança e de reservas entram sozinhas, pela data do pagamento; despesas por categoria lançadas pela administradora; mês fechado só aceita estorno, com motivo e registro; síndico, subsíndico em substituição e conselho fiscal veem e comentam; moradores não veem | 12.3 |
 
 ## 6. Fluxo da reclamação

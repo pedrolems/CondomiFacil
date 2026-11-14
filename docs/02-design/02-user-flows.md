@@ -72,6 +72,8 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 13.3 | Controlar receitas e despesas | Administradora, Suporte | Pagamento recebido ou conta a lançar | US-FI-07 a US-FI-09 |
 | 13.4 | Acompanhar as finanças do condomínio | Síndico, Subsíndico, Conselho fiscal | Conferência do mês | US-FI-07, US-FI-10 |
 | 14.1 | Notificações e direitos do titular (LGPD) | Todos | Preferência ou pedido | US-NO-01, US-LG-01 |
+| 18.1 | Consultar e filtrar relatórios | Administradora | Escolher condomínio e relatório | US-RL-01 |
+| 18.2 | Gerar, acompanhar e baixar exportação | Administradora solicitante | Exportar conjunto autorizado | US-RL-02, US-RL-03 |
 
 ## 3. Acesso e conta
 
@@ -1478,3 +1480,31 @@ Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma
 | Saldo separado do fundo de reserva e da conta de obras | Hoje as cobranças extraordinárias aparecem discriminadas na receita, mas não há saldo próprio do fundo | Produto e contabilidade |
 | Plano de contas e categorias da contabilidade | As 9 categorias de despesa podem não casar com o plano da contabilidade de cada administradora | Administradoras parceiras |
 | Cobrança em atraso como notificação obrigatória | Proposta da revisão de fluxos; não está nas RN nem no US-NO-01 | Produto |
+
+## 18. Relatórios e exportações da administradora — 14/11/2026
+
+MVP por decisão do Pedro. Rastreabilidade: RN-RL-01 a 08 → RF-RL-01 a 11 → US-RL-01 a 03 → DS 11.18 → protótipo admin/relatorios e admin/exportacoes-relatorios.
+
+### 18.1 Consultar e filtrar
+
+Administradora seleciona condomínio → Relatórios → tipo autorizado → filtros do catálogo → consultar → tabela, totais e gráficos agregados permitidos. A tela identifica período/base de data/fuso e referência de cálculo; mudar contexto limpa a consulta anterior. Busca direta passa pela mesma autorização. Suporte e outros perfis mantêm recortes legados, sem herdar o novo módulo.
+
+### 18.2 Gerar e acompanhar
+
+Escolher Exportar tabela/PDF/gráfico → formato compatível → revisar condomínio/filtros → solicitar → Solicitada → Em processamento → Pronta, Falhou ou Expirada. A central Exportações permite acompanhar pedidos próprios do condomínio. PDF/CSV/XLSX cobrem tabela filtrada completa; PNG/SVG só gráfico agregado com legenda e período.
+
+```mermaid
+flowchart TD
+ A[Consultar relatório autorizado] --> B[Escolher formato e revisar filtros]
+ B --> C[Solicitar exportação privada]
+ C --> D[Solicitada / Em processamento]
+ D --> E{Resultado}
+ E -->|Pronta| F[Revalidar acesso e autorizar download]
+ E -->|Falhou| G[Explicar e permitir nova solicitação]
+ E -->|Expirada| H[Solicitar nova geração]
+ F --> I{Vínculo e arquivo válidos?}
+ I -->|Sim| J[Baixar com autorização temporária]
+ I -->|Não| K[Indisponível sem revelar outro contexto]
+```
+
+Negativa de permissão, revogação ou mudança de tenant bloqueia consulta/download; job aceito não significa arquivo pronto. Timeout exige reconciliar pedido, não repeti-lo cegamente. Se apenas o link expirou e o arquivo continua válido, pedir novo acesso; se arquivo expirou, gerar novamente. Sem internet não há execução administrativa offline. Retenção/validade/limites e privacidade de pequenos grupos continuam pendentes, sem prazo novo. Contabilidade formal e parcelamento não entram neste fluxo.

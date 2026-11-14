@@ -24,7 +24,7 @@ O **MER (Modelo Entidade-Relacionamento)** explica quais informações existem n
 
 O documento cobre acesso, pessoas, unidades, funções, locação, planos da plataforma, regras configuráveis, reservas, visitantes, encomendas, chamados, reclamações, score, pesquisa, comunicação, reuniões, eleições, cobrança, pagamentos e finanças. Inclui os registros necessários à auditoria, às notificações, aos arquivos e à sincronização.
 
-**Ficam fora:** acordos de parcelamento e relatórios gerais da V2; contabilidade oficial; integração com catracas e interfones; registro de entrega de comida como encomenda; login para empresa de manutenção. As exportações financeiras CSV/PDF do MVP continuam incluídas. Ata e lista de presença são arquivos anexados pelo síndico, não documentos oficiais produzidos pelo sistema.
+**Ficam fora:** acordos de parcelamento da V2; contabilidade oficial; integração com catracas e interfones; registro de entrega de comida como encomenda; login para empresa de manutenção. As exportações financeiras CSV/PDF e os nove relatórios gerenciais da administradora (RN-RL-01 a 08) estão incluídos no MVP. Ata e lista de presença são arquivos anexados pelo síndico, não documentos oficiais produzidos pelo sistema.
 
 | Fonte | Uso neste modelo |
 | --- | --- |
@@ -688,7 +688,7 @@ erDiagram
 | `lancamento_financeiro` / C | `mes_id → mes_financeiro`, `categoria_id → categoria_financeira`, `tipo`, `origem`, `data_caixa`, `valor_centavos`, `sinal`, `fornecedor_ou_origem?`, `subservico?`, `descricao?`, `comprovante_id? → arquivo`, `recorrencia_id? → recorrencia_financeira`, `original_id? → lancamento_financeiro`, `estado`, `motivo_estorno?`, `registrado_por_id? → usuario`, `registrado_em` | Magnitude >0; sinal +1 normal, −1 estorno, multiplicado pela natureza receita/despesa. UQ recorrência/competência para gerados; UQ original para estorno administrativo. Categoria e tipo do estorno iguais ao original, efeito oposto |
 | `origem_lancamento` / C, acesso restrito | `lancamento_id → lancamento_financeiro`, `recebimento_id? → recebimento`, `devolucao_id? → devolucao`, `componente`, `valor_centavos`, `data_caixa`, `chave_evento_origem` | XOR recebimento/devolução; UQ origem/componente/efeito; impede duplicação de principal, multa, juros e taxa. Sem acesso do conselho/síndico à ligação individual |
 | `comentario_financeiro` / C | `mes_id? → mes_financeiro`, `lancamento_id? → lancamento_financeiro`, `autor_vinculo_id → vinculo_condominio`, `texto`, `criado_em` | Exatamente um alvo; autor síndico/sub substituto/conselho; imutável, inclusive em mês fechado; não aprova contas |
-| `exportacao_financeira` / C | `solicitante_vinculo_id → vinculo_condominio`, `filtros_json`, `formato`, `solicitada_em`, `concluida_em?`, `estado`, `arquivo_id? → arquivo` | CSV/PDF do mesmo filtro/projeção autorizada, sem unidade/responsável; exportação de cobrança individual é outro recurso, restrito ao executor administrativo autorizado (inclui a proposta da autogestão, sem acesso individual ao conselho) |
+| `exportacao_financeira` / C | `solicitante_vinculo_id → vinculo_condominio`, `filtros_json`, `formato`, `solicitada_em`, `concluida_em?`, `estado`, `arquivo_id? → arquivo` | CSV/PDF do mesmo filtro/projeção autorizada, sem unidade/responsável; exportação de cobrança individual é outro recurso, restrito à administradora (RF-FI-15); extensão de poderes de exportação na autogestão permanece em revisão, sem acesso individual ao conselho |
 
 **Granularidade proposta:** lançamentos avulsos são individuais. Receitas automáticas são organizadas por **dia de caixa, categoria, natureza e efeito**, com vínculos restritos em `origem_lancamento`; a leitura gerencial as agrega no período e mostra quantidade de cobranças pagas distintas. A categoria “Multas e juros por atraso” pode ter vários componentes sem contar a mesma cobrança duas vezes. Reservas pagas também são agregadas sem unidade/reservante no painel.
 
@@ -855,6 +855,7 @@ As referências por intervalo significam todos os requisitos daquele intervalo, 
 | Assembleias, procuração, eleição e votos | RN-VO-01 a RN-VO-08, RN-VO-10 a RN-VO-19; RF-VO-01 a RF-VO-11; SEG-06, SEG-16 | US-VO-01 a US-VO-03; UF 11; DS 11.7; ADR-009 proposto; P-03 bloqueante |
 | Cobrança e responsabilidades financeiras | RN-FI-01 a RN-FI-17, RN-FI-19, RN-FI-20; RF-FI-01 a RF-FI-13, RF-FI-15, RF-FI-16; SEG-17 | US-FI-01 a US-FI-05; UF 13.1 e 13.2; DS 11.8 |
 | Pagamentos, devoluções, conciliação e quarentena de eventos do gateway | RN-PG-01 a RN-PG-07; RN-CA-01 a RN-CA-06; RN-FI-13, RN-FI-17, RN-FI-19, RN-FI-23; RF-PG-01 a RF-PG-04; SEG-12, SEG-15, SEG-17 | US-AD-05, US-RE-03, US-RE-04, US-FI-03, US-FI-04; UF 5 e 13; ADR-002 (Asaas, aceito com ressalvas) |
+| Relatórios e exportações gerais | RN-RL-01 a 08; RF-RL-01 a 11; SEG-05, SEG-08, SEG-17, SEG-18 | US-RL-01 a 03; UF 18; DS 11.18; painel-web.md |
 | Finanças, recorrências, estornos, comentários e exportações | RN-FI-21 a RN-FI-32; RF-FI-17 a RF-FI-24; SEG-08, SEG-18 | US-FI-07 a US-FI-10; UF 13.3 e 13.4; DS 11.15 |
 | Notificações, direitos do titular e auditoria | RF-NO-01, RF-LG-01, RF-LG-02; SEG-01, SEG-02, SEG-08 a SEG-11, SEG-14; RN 14 | US-NO-01, US-LG-01; UF 14 e 15; DS 15; arq. 3.7 a 3.9 |
 | Isolamento e sincronização | SEG-05; RNF-06 a RNF-08, RNF-10, RNF-11, RNF-16, RNF-17; RN-OF-01 a RN-OF-06; RN-CH-04 | US-VI-04, US-CH-02; arq. 4; ADR-001, ADR-003, ADR-014 propostos |
@@ -926,3 +927,30 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 
 **Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+
+## Relatórios e exportações gerais — 14/11/2026
+
+Ampliação MVP: RN-RL-01 a 08 / RF-RL-01 a 11 / US-RL-01 a 03. Modelo lógico continua proposta, sem banco/migrações. Não criar cópias irrestritas dos dados dos domínios: relatórios são projeções mínimas autorizadas e não uma nova fonte de fatos financeiros.
+
+### Solicitação de exportação gerencial
+
+```mermaid
+erDiagram
+ CONDOMINIO ||--o{ EXPORTACAO_GERENCIAL : delimita
+ PESSOA ||--o{ EXPORTACAO_GERENCIAL : solicita
+ EXPORTACAO_GERENCIAL o|--o| ARQUIVO : gera_privado
+```
+
+
+| Campo lógico | Papel/integridade |
+| --- | --- |
+| id, condominio_id, solicitante_id | Identidade; FKs de condomínio/pessoa; solicitante do pedido, sem acesso pelo próximo operador |
+| tipo, formato, filtros_normalizados, versao_formato | Catálogo fechado RN-RL-02; compatibilidade tipo/formato validada |
+| referencia_calculo, criada_em, concluida_em | Referência explícita e tempos do processamento; snapshot/técnica de consistência pendentes |
+| estado, codigo_falha | Solicitada, Em processamento, Pronta, Falhou, Expirada; falha sem relatório/dados pessoais em log |
+| arquivo_id | FK para arquivo privado; somente Pronta com arquivo válido permite download |
+| expira_em | Nullable até política definida; não significa retenção ilimitada; validade precisa ser decidida antes de produção |
+
+RLS restringe a solicitante/tenant e função vigente da administradora; API e worker repetem autorização. O arquivo também revalida a permissão na leitura, sem herdar a regra de upload comum nem divulgar link público. Não dar acesso a outro operador só porque pertence à mesma empresa. Índices de tenant/solicitante/data e fila/estado devem ser definidos no modelo físico. Pedidos e downloads são auditados.
+
+Financeiro permanece sem unidade/responsável; cobranças por unidade são conjunto separado. Reclamações/reservas são agregadas; atendimento segue RN-CH-19. Nenhuma nova entidade de voto individual ou score público é criada. Retenção/eliminação e grupos pequenos aguardam revisão. Exportação financeira legada e sua entidade não são ampliadas silenciosamente; coordenador pode compartilhar infraestrutura por porta.

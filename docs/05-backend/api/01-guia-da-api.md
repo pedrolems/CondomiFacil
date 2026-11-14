@@ -596,7 +596,7 @@ Os caminhos ficam em `/v1/arquivos/*`, definidos em `openapi/comum.yaml`.
 | --- | --- | --- |
 | `x-rastreabilidade` | Cada operação dos YAML | IDs `RF-*`, `RN-*`, `US-*`, `SEG-*` que motivam a operação |
 | `x-lacunas` | Raiz de cada YAML | O que ficou sem fonte; vira pergunta ao Pedro |
-| Tabela RF -> operação | `README.md` desta pasta | Cobertura dos 139 RF do PRD; preenchida ao fim do plano |
+| Tabela RF -> operação | `README.md` desta pasta | Cobertura dos 150 RF do PRD; preenchida ao fim do plano |
 
 Documentos de origem:
 
@@ -625,3 +625,7 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 
 **Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+
+## Relatórios gerenciais — 14/11/2026
+
+MVP: RF-RL-01 a 11 / RN-RL-01 a 08. A interface administradora distingue consulta de projeção (POST /v1/administradora/relatorios/consulta, leitura com filtros tipados no corpo e paginação comum por limite/cursor na query) da geração assíncrona (POST /v1/administradora/relatorios/exportacoes). Catálogo GET /relatorios informa tipos/formatos; os paths abreviados continuam sob /v1/administradora. Esquemas fechados por tipo recusam campos não previstos; PNG/SVG só agregado e alvo gráfico, demais formatos para tabela. Geração usa Idempotency-Key estável; workers e download revalidam permissão vigente. GET de pedidos e POST /{exportacao_id}/download pertencem somente ao solicitante no tenant autorizado. O endpoint comum de arquivos também deve negar atalho que contorne essa política. Sem URLs públicas permanentes. Limites, retenção/validade e pequenos grupos pendentes; não inventar prazo/SLA.

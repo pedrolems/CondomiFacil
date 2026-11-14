@@ -170,7 +170,7 @@ flowchart LR
     P["Piloto<br/>M7<br/><small>1 a 3 condomínios</small>"]
     G3{{"Marco 3<br/>piloto aprovado"}}
     L["Lançamento<br/>M8<br/><small>lojas e primeiros clientes</small>"]
-    V2["Versão 2<br/>M9 a M11<br/><small>relatórios e acordos de débito</small>"]
+    V2["Versão 2<br/>M9 a M11<br/><small>acordos de débito</small>"]
     F["Futuro<br/>M12<br/><small>catracas e interfones</small>"]
 
     D --> DS --> G1 --> MVP --> G2 --> P --> G3 --> L --> V2 -.-> F
@@ -190,7 +190,12 @@ flowchart LR
 | MVP | M3 a M6 | App, versão web, API e cobrança condominial | Marco 2: parecer jurídico aprovado (SEG-16) |
 | Piloto | M7 | Uso real em 1 a 3 condomínios | Marco 3: piloto aprovado |
 | Lançamento | M8 | Publicação nas lojas e primeiros clientes | — |
-| Versão 2 | M9 a M11 | Relatórios e acordos de parcelamento de débitos | — |
+| Versão 2 | M9 a M11 | Acordos de parcelamento de débitos | — |
 | Futuro | M12 | Integração com catracas e interfones (a definir; hoje fora de escopo) | — |
 
-O MVP inclui todos os módulos do PRD, exceto relatórios e acordos de parcelamento; a cobrança condominial já está contada nos 4 meses do MVP e é o módulo que mais pesa no prazo. Os prazos são estimativas para uma equipe pequena e mudam com o tamanho do time.
+O MVP inclui todos os módulos do PRD, exceto acordos de parcelamento; a cobrança condominial já está contada nos 4 meses do MVP e é o módulo que mais pesa no prazo. Os prazos são estimativas para uma equipe pequena e mudam com o tamanho do time.
+
+
+### Revisão do escopo em 14/11/2026
+
+Pedro antecipou para o MVP os nove relatórios gerenciais da administradora e as exportações PDF/CSV/XLSX e PNG/SVG para gráficos agregados. O catálogo e os limites estão em RN-RL-01 a RN-RL-08 e RF-RL-01 a RF-RL-11. Não há contabilidade formal ou ampliação automática a outros perfis. A estimativa M3 a M6 precisa ser revista com essa ampliação, sem garantir o prazo anterior. Acordos de parcelamento permanecem V2.

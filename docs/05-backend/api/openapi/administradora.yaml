@@ -35,7 +35,536 @@ tags:
   description: Lista de entrada bloqueada.
 - name: governanca
   description: Mandatos, substituição do síndico e regras de reeleição.
+- name: relatorios
+  description: Relatórios gerenciais e exportações privadas exclusivos da administradora (MVP, 14/11/2026).
 paths:
+  /v1/administradora/relatorios:
+    get:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      operationId: administradoraListarCatalogoRelatorios
+      summary: Lista os nove relatórios gerenciais do MVP
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Catálogo com formatos e projeções permitidos; regras RN-RL-01 a 08.
+      responses:
+        '200':
+          description: Resultado autorizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemCatalogoRelatorio'
+              example:
+                - tipo: financeiro
+                  titulo: Financeiro do condomínio
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: cobrancas
+                  titulo: Cobranças e pagamentos
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                  permite_grafico: false
+                - tipo: inadimplencia
+                  titulo: Inadimplência
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: ocupacao
+                  titulo: Unidades, ocupação e locação
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: cadastros
+                  titulo: Funcionários e empresas
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                  permite_grafico: false
+                - tipo: solicitacoes
+                  titulo: Solicitações administrativas
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: atendimento
+                  titulo: Avaliações de atendimento
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: reclamacoes
+                  titulo: Reclamações gerenciais
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+                - tipo: reservas
+                  titulo: Reservas gerenciais
+                  formatos:
+                    - pdf
+                    - csv
+                    - xlsx
+                    - png
+                    - svg
+                  permite_grafico: true
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-01
+        - RF-RL-02
+        - RF-RL-03
+        - RF-RL-04
+        - RF-RL-05
+        - RF-RL-06
+        - RF-RL-07
+        - RF-RL-08
+        - RF-RL-09
+  /v1/administradora/relatorios/consulta:
+    post:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+        - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+        - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      operationId: administradoraConsultarRelatorio
+      summary: Consulta projeção filtrada de um relatório
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Leitura sem efeito de negócio. Paginação pelos parâmetros comuns
+        limite/cursor (padrão 20, máximo 100), envelope dados/paginacao; filtros tipados no corpo porque variam
+        por relatório; total do recorte completo. Resumos e gráficos usam só agregados autorizados, sem rótulos
+        de pessoas/unidades; não expor linhas nominais nos gráficos. Data/fuso/referência explícitos. Sem
+        histórico fictício: recusar recorte não calculável. Suprimir dado protegido ou negar consulta até
+        política de pequenos grupos validada.
+      responses:
+        '200':
+          description: Resultado autorizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoRelatorio'
+              example:
+                tipo: financeiro
+                referencia_calculo: '2026-11-14T10:00:00-03:00'
+                fuso: America/Fortaleza
+                total_registros: 1
+                resumos:
+                  - rotulo: Despesas
+                    valor: 400
+                    unidade: BRL
+                graficos: []
+                dados:
+                  - data: '2026-10-15'
+                    tipo: despesa
+                    categoria: Serviços terceirizados
+                    valor: 400
+                    fornecedor: Empresa Exemplo
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-01
+        - RF-RL-02
+        - RF-RL-03
+        - RF-RL-04
+        - RF-RL-05
+        - RF-RL-06
+        - RF-RL-07
+        - RF-RL-08
+        - RF-RL-09
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultaRelatorio'
+            example:
+              tipo: financeiro
+              filtros:
+                de: '2026-10-01'
+                ate: '2026-10-31'
+  /v1/administradora/relatorios/exportacoes:
+    post:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Chave estável da mesma solicitação e carga nos retries.
+          schema:
+            type: string
+      operationId: administradoraSolicitarExportacaoRelatorio
+      summary: Solicita exportação gerencial privada
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Assíncrona; conjunto completo filtrado em referência consistente; valida
+        combinação alvo/formato. Idempotency-Key reconcilia retry; não contém dados de relatório em URL ou logs.
+        Sem retenção/validade arbitrária.
+      responses:
+        '202':
+          description: Solicitação aceita para processamento privado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportacaoRelatorio'
+              example:
+                id: 00000001-0000-4000-8000-000000000001
+                tipo: financeiro
+                formato: xlsx
+                alvo: tabela
+                estado: solicitada
+                solicitada_em: '2026-11-14T10:00:00-03:00'
+                referencia_calculo: null
+                codigo_falha: null
+                filtros:
+                  de: '2026-10-01'
+                  ate: '2026-10-31'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-10
+        - RF-RL-11
+        - RN-RL-04
+        - RN-RL-06
+        - US-RL-02
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportarRelatorio'
+            example:
+              tipo: financeiro
+              formato: xlsx
+              alvo: tabela
+              filtros:
+                de: '2026-10-01'
+                ate: '2026-10-31'
+    get:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+        - $ref: ./componentes/comum.yaml#/components/parameters/Limite
+        - $ref: ./componentes/comum.yaml#/components/parameters/Cursor
+      operationId: administradoraListarExportacoesRelatorios
+      summary: Lista pedidos próprios de exportação
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Somente solicitante e condomínio correntes. Não vazar filtros/arquivos de
+        outro usuário.
+      responses:
+        '200':
+          description: Resultado autorizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExportacaoRelatorio'
+                  paginacao:
+                    $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+                required:
+                  - dados
+                  - paginacao
+              example:
+                dados:
+                  - id: 00000001-0000-4000-8000-000000000001
+                    tipo: financeiro
+                    formato: xlsx
+                    alvo: tabela
+                    estado: solicitada
+                    solicitada_em: '2026-11-14T10:00:00-03:00'
+                    referencia_calculo: null
+                    codigo_falha: null
+                    filtros:
+                      de: '2026-10-01'
+                      ate: '2026-10-31'
+                paginacao:
+                  proximo_cursor: null
+                  tem_mais: false
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-11
+        - RN-RL-07
+        - US-RL-03
+  /v1/administradora/relatorios/exportacoes/{exportacao_id}:
+    get:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+        - name: exportacao_id
+          in: path
+          required: true
+          description: Identificador do pedido privado.
+          schema:
+            type: string
+            format: uuid
+      operationId: administradoraObterExportacaoRelatorio
+      summary: Consulta um pedido próprio de exportação
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Somente o solicitante no condomínio autorizado. Estados mapeiam
+        Solicitada, Em processamento, Pronta, Falhou e Expirada. Não retorna URL assinada nem arquivo em
+        processamento.
+      responses:
+        '200':
+          description: Resultado autorizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportacaoRelatorio'
+              example:
+                id: 00000001-0000-4000-8000-000000000001
+                tipo: financeiro
+                formato: xlsx
+                alvo: tabela
+                estado: solicitada
+                solicitada_em: '2026-11-14T10:00:00-03:00'
+                referencia_calculo: null
+                codigo_falha: null
+                filtros:
+                  de: '2026-10-01'
+                  ate: '2026-10-31'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-11
+        - RN-RL-06
+        - RN-RL-07
+        - US-RL-03
+  /v1/administradora/relatorios/exportacoes/{exportacao_id}/download:
+    post:
+      tags:
+        - relatorios
+      security:
+        - bearerJwt: []
+      parameters:
+        - $ref: ./componentes/comum.yaml#/components/parameters/CondominioId
+        - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+        - name: exportacao_id
+          in: path
+          required: true
+          description: Identificador do pedido privado.
+          schema:
+            type: string
+            format: uuid
+      operationId: administradoraAutorizarDownloadRelatorio
+      summary: Autoriza download temporário de exportação pronta
+      description: >-
+        Exclusivo da administradora vinculada ao condomínio, sem herança de suporte/autogestão/outros perfis.
+        Validar função vigente e tenant; recurso de outro contexto não revela existência. Jobs são do
+        solicitante; worker revalida acesso antes de processar e a entrega revalida novamente. Não ampliar
+        RF-FI-15/22 por consequência. Revalida solicitante, tenant e função vigente. Somente pronta e arquivo
+        válido. Retorna autorização temporária, não torna objeto público. Arquivo expirado exige gerar; link
+        expirado pode ser renovado com mesma autorização vigente. Auditar acesso. Regra também é aplicada se
+        alguém tentar leitura pelo endpoint comum de arquivos.
+      responses:
+        '200':
+          description: Resultado autorizado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  url_temporaria:
+                    type: string
+                    format: uri
+                  expira_em:
+                    type: string
+                    format: date-time
+                required:
+                  - url_temporaria
+                  - expira_em
+              example:
+                url_temporaria: https://arquivos.example.test/temporario/assinatura-ficticia
+                expira_em: '2026-11-14T10:01:00-03:00'
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '404':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+        - RF-RL-11
+        - RN-RL-07
+        - US-RL-03
   /v1/administradora/blocos:
     get:
       operationId: administradoraListarBlocos
@@ -7926,6 +8455,1774 @@ components:
     bearerJwt:
       $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
   schemas:
+    FiltrosRelatorioFinanceiro:
+      type: object
+      additionalProperties: false
+      properties:
+        de:
+          type: string
+          format: date
+        ate:
+          type: string
+          format: date
+        categoria:
+          type: string
+        tipo:
+          type: string
+          enum:
+            - receita
+            - despesa
+        texto:
+          type: string
+      required: []
+    ConsultaRelatorioFinanceiro:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: financeiro
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioFinanceiro'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioFinanceiro:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: string
+          format: date
+        tipo:
+          type: string
+          enum:
+            - receita
+            - despesa
+        categoria:
+          type: string
+        valor:
+          type: number
+        fornecedor:
+          type:
+            - string
+            - 'null'
+      required:
+        - data
+        - tipo
+        - categoria
+        - valor
+        - fornecedor
+    ResultadoRelatorioFinanceiro:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: financeiro
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioFinanceiro'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioFinanceiro:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: financeiro
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioFinanceiro'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: financeiro
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioFinanceiro'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioCobrancas:
+      type: object
+      additionalProperties: false
+      properties:
+        de:
+          type: string
+          format: date
+        ate:
+          type: string
+          format: date
+        competencia:
+          type: string
+        bloco_id:
+          type: string
+          format: uuid
+        unidade_id:
+          type: string
+          format: uuid
+        estado:
+          type: string
+        natureza:
+          type: string
+          enum:
+            - ordinaria
+            - extraordinaria
+        base_data:
+          type: string
+          enum:
+            - vencimento
+            - pagamento
+      required: []
+    ConsultaRelatorioCobrancas:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cobrancas
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioCobrancas'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioCobrancas:
+      type: object
+      additionalProperties: false
+      properties:
+        unidade:
+          type: string
+        competencia:
+          type: string
+        natureza:
+          type: string
+        vencimento:
+          type: string
+          format: date
+        estado:
+          type: string
+        valor:
+          type: number
+        paga_em:
+          type:
+            - string
+            - 'null'
+          format: date-time
+      required:
+        - unidade
+        - competencia
+        - natureza
+        - vencimento
+        - estado
+        - valor
+        - paga_em
+    ResultadoRelatorioCobrancas:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cobrancas
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioCobrancas'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioCobrancas:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cobrancas
+        formato:
+          type: string
+          enum:
+            - pdf
+            - csv
+            - xlsx
+        alvo:
+          type: string
+          const: tabela
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioCobrancas'
+      required:
+        - tipo
+        - formato
+        - alvo
+        - filtros
+    FiltrosRelatorioInadimplencia:
+      type: object
+      additionalProperties: false
+      properties:
+        referencia:
+          type: string
+          format: date
+        bloco_id:
+          type: string
+          format: uuid
+        unidade_id:
+          type: string
+          format: uuid
+        atraso_de:
+          type: integer
+          minimum: 0
+        atraso_ate:
+          type: integer
+          minimum: 0
+      required: []
+    ConsultaRelatorioInadimplencia:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: inadimplencia
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioInadimplencia'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioInadimplencia:
+      type: object
+      additionalProperties: false
+      properties:
+        unidade:
+          type: string
+        total_devido:
+          type: number
+        vencimento:
+          type: string
+          format: date
+        dias_atraso:
+          type: integer
+          minimum: 0
+      required:
+        - unidade
+        - total_devido
+        - vencimento
+        - dias_atraso
+    ResultadoRelatorioInadimplencia:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: inadimplencia
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioInadimplencia'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioInadimplencia:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: inadimplencia
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioInadimplencia'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: inadimplencia
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioInadimplencia'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioOcupacao:
+      type: object
+      additionalProperties: false
+      properties:
+        bloco_id:
+          type: string
+          format: uuid
+        ocupacao:
+          type: string
+          enum:
+            - ocupada
+            - desocupada
+        contrato_fim_de:
+          type: string
+          format: date
+        contrato_fim_ate:
+          type: string
+          format: date
+      required: []
+    ConsultaRelatorioOcupacao:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: ocupacao
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioOcupacao'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioOcupacao:
+      type: object
+      additionalProperties: false
+      properties:
+        bloco:
+          type: string
+        unidade:
+          type: string
+        ocupacao:
+          type: string
+        tipo_ocupacao:
+          type:
+            - string
+            - 'null'
+        contrato_inicio:
+          type:
+            - string
+            - 'null'
+          format: date
+        contrato_fim:
+          type:
+            - string
+            - 'null'
+          format: date
+      required:
+        - bloco
+        - unidade
+        - ocupacao
+        - tipo_ocupacao
+        - contrato_inicio
+        - contrato_fim
+    ResultadoRelatorioOcupacao:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: ocupacao
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioOcupacao'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioOcupacao:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: ocupacao
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioOcupacao'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: ocupacao
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioOcupacao'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioCadastros:
+      type: object
+      additionalProperties: false
+      properties:
+        setor_servico:
+          type: string
+        empresa_id:
+          type: string
+          format: uuid
+        situacao:
+          type: string
+      required: []
+    ConsultaRelatorioCadastros:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cadastros
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioCadastros'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioCadastros:
+      type: object
+      additionalProperties: false
+      properties:
+        nome:
+          type: string
+        setor_servico:
+          type: string
+        vinculo:
+          type: string
+        empresa:
+          type:
+            - string
+            - 'null'
+        situacao:
+          type: string
+      required:
+        - nome
+        - setor_servico
+        - vinculo
+        - empresa
+        - situacao
+    ResultadoRelatorioCadastros:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cadastros
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioCadastros'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioCadastros:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: cadastros
+        formato:
+          type: string
+          enum:
+            - pdf
+            - csv
+            - xlsx
+        alvo:
+          type: string
+          const: tabela
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioCadastros'
+      required:
+        - tipo
+        - formato
+        - alvo
+        - filtros
+    FiltrosRelatorioSolicitacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        de:
+          type: string
+          format: date
+        ate:
+          type: string
+          format: date
+        base_data:
+          type: string
+          enum:
+            - abertura
+            - conclusao
+        tipo:
+          type: string
+        estado:
+          type: string
+      required: []
+    ConsultaRelatorioSolicitacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: solicitacoes
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioSolicitacoes'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioSolicitacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+        aberta_em:
+          type: string
+          format: date-time
+        concluida_em:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        estado:
+          type: string
+        tempo_tramitacao_horas:
+          type:
+            - number
+            - 'null'
+      required:
+        - id
+        - tipo
+        - aberta_em
+        - concluida_em
+        - estado
+        - tempo_tramitacao_horas
+    ResultadoRelatorioSolicitacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: solicitacoes
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioSolicitacoes'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioSolicitacoes:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: solicitacoes
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioSolicitacoes'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: solicitacoes
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioSolicitacoes'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioAtendimento:
+      type: object
+      additionalProperties: false
+      properties:
+        funcionario_id:
+          type: string
+          format: uuid
+        empresa_id:
+          type: string
+          format: uuid
+        ordenacao:
+          type: string
+          enum:
+            - media
+            - quantidade
+      required: []
+    ConsultaRelatorioAtendimento:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: atendimento
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioAtendimento'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioAtendimento:
+      type: object
+      additionalProperties: false
+      properties:
+        referencia:
+          type: string
+        tipo:
+          type: string
+          enum:
+            - funcionario
+            - empresa
+        media:
+          type:
+            - number
+            - 'null'
+        quantidade:
+          type: integer
+          minimum: 0
+        estrelas_1:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        estrelas_2:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        estrelas_3:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        estrelas_4:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+        estrelas_5:
+          type:
+            - integer
+            - 'null'
+          minimum: 0
+      required:
+        - referencia
+        - tipo
+        - media
+        - quantidade
+        - estrelas_1
+        - estrelas_2
+        - estrelas_3
+        - estrelas_4
+        - estrelas_5
+    ResultadoRelatorioAtendimento:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: atendimento
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioAtendimento'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioAtendimento:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: atendimento
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioAtendimento'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: atendimento
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioAtendimento'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioReclamacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        de:
+          type: string
+          format: date
+        ate:
+          type: string
+          format: date
+        categoria:
+          type: string
+        estado:
+          type: string
+      required: []
+    ConsultaRelatorioReclamacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: reclamacoes
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioReclamacoes'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioReclamacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        categoria:
+          type: string
+        estado:
+          type: string
+        prazo:
+          type: string
+        quantidade:
+          type: integer
+          minimum: 0
+      required:
+        - categoria
+        - estado
+        - prazo
+        - quantidade
+    ResultadoRelatorioReclamacoes:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: reclamacoes
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioReclamacoes'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioReclamacoes:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: reclamacoes
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReclamacoes'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: reclamacoes
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReclamacoes'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    FiltrosRelatorioReservas:
+      type: object
+      additionalProperties: false
+      properties:
+        de:
+          type: string
+          format: date
+        ate:
+          type: string
+          format: date
+        area_id:
+          type: string
+          format: uuid
+        estado:
+          type: string
+        paga:
+          type: boolean
+      required: []
+    ConsultaRelatorioReservas:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: reservas
+        filtros:
+          $ref: '#/components/schemas/FiltrosRelatorioReservas'
+      required:
+        - tipo
+        - filtros
+    LinhaRelatorioReservas:
+      type: object
+      additionalProperties: false
+      properties:
+        area:
+          type: string
+        estado:
+          type: string
+        uso:
+          type: string
+        paga:
+          type: boolean
+        quantidade:
+          type: integer
+          minimum: 0
+        valor_agregado:
+          type: number
+      required:
+        - area
+        - estado
+        - uso
+        - paga
+        - quantidade
+        - valor_agregado
+    ResultadoRelatorioReservas:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          const: reservas
+        referencia_calculo:
+          type: string
+          format: date-time
+        fuso:
+          type: string
+        total_registros:
+          type: integer
+          minimum: 0
+        resumos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              rotulo:
+                type: string
+              valor:
+                type: number
+              unidade:
+                type: string
+            required:
+              - rotulo
+              - valor
+              - unidade
+        graficos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              titulo:
+                type: string
+              serie:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    rotulo:
+                      type: string
+                    valor:
+                      type: number
+                  required:
+                    - rotulo
+                    - valor
+            required:
+              - titulo
+              - serie
+        dados:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinhaRelatorioReservas'
+        paginacao:
+          $ref: ./componentes/comum.yaml#/components/schemas/Paginacao
+      required:
+        - tipo
+        - referencia_calculo
+        - fuso
+        - total_registros
+        - dados
+        - resumos
+        - graficos
+        - paginacao
+    ExportarRelatorioReservas:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: reservas
+            formato:
+              type: string
+              enum:
+                - pdf
+                - csv
+                - xlsx
+            alvo:
+              type: string
+              const: tabela
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReservas'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+        - type: object
+          additionalProperties: false
+          properties:
+            tipo:
+              type: string
+              const: reservas
+            formato:
+              type: string
+              enum:
+                - png
+                - svg
+            alvo:
+              type: string
+              const: grafico
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReservas'
+          required:
+            - tipo
+            - formato
+            - alvo
+            - filtros
+    ConsultaRelatorio:
+      oneOf:
+        - $ref: '#/components/schemas/ConsultaRelatorioFinanceiro'
+        - $ref: '#/components/schemas/ConsultaRelatorioCobrancas'
+        - $ref: '#/components/schemas/ConsultaRelatorioInadimplencia'
+        - $ref: '#/components/schemas/ConsultaRelatorioOcupacao'
+        - $ref: '#/components/schemas/ConsultaRelatorioCadastros'
+        - $ref: '#/components/schemas/ConsultaRelatorioSolicitacoes'
+        - $ref: '#/components/schemas/ConsultaRelatorioAtendimento'
+        - $ref: '#/components/schemas/ConsultaRelatorioReclamacoes'
+        - $ref: '#/components/schemas/ConsultaRelatorioReservas'
+      discriminator:
+        propertyName: tipo
+        mapping:
+          financeiro: '#/components/schemas/ConsultaRelatorioFinanceiro'
+          cobrancas: '#/components/schemas/ConsultaRelatorioCobrancas'
+          inadimplencia: '#/components/schemas/ConsultaRelatorioInadimplencia'
+          ocupacao: '#/components/schemas/ConsultaRelatorioOcupacao'
+          cadastros: '#/components/schemas/ConsultaRelatorioCadastros'
+          solicitacoes: '#/components/schemas/ConsultaRelatorioSolicitacoes'
+          atendimento: '#/components/schemas/ConsultaRelatorioAtendimento'
+          reclamacoes: '#/components/schemas/ConsultaRelatorioReclamacoes'
+          reservas: '#/components/schemas/ConsultaRelatorioReservas'
+    ResultadoRelatorio:
+      oneOf:
+        - $ref: '#/components/schemas/ResultadoRelatorioFinanceiro'
+        - $ref: '#/components/schemas/ResultadoRelatorioCobrancas'
+        - $ref: '#/components/schemas/ResultadoRelatorioInadimplencia'
+        - $ref: '#/components/schemas/ResultadoRelatorioOcupacao'
+        - $ref: '#/components/schemas/ResultadoRelatorioCadastros'
+        - $ref: '#/components/schemas/ResultadoRelatorioSolicitacoes'
+        - $ref: '#/components/schemas/ResultadoRelatorioAtendimento'
+        - $ref: '#/components/schemas/ResultadoRelatorioReclamacoes'
+        - $ref: '#/components/schemas/ResultadoRelatorioReservas'
+      discriminator:
+        propertyName: tipo
+        mapping:
+          financeiro: '#/components/schemas/ResultadoRelatorioFinanceiro'
+          cobrancas: '#/components/schemas/ResultadoRelatorioCobrancas'
+          inadimplencia: '#/components/schemas/ResultadoRelatorioInadimplencia'
+          ocupacao: '#/components/schemas/ResultadoRelatorioOcupacao'
+          cadastros: '#/components/schemas/ResultadoRelatorioCadastros'
+          solicitacoes: '#/components/schemas/ResultadoRelatorioSolicitacoes'
+          atendimento: '#/components/schemas/ResultadoRelatorioAtendimento'
+          reclamacoes: '#/components/schemas/ResultadoRelatorioReclamacoes'
+          reservas: '#/components/schemas/ResultadoRelatorioReservas'
+    ExportarRelatorio:
+      oneOf:
+        - $ref: '#/components/schemas/ExportarRelatorioFinanceiro'
+        - $ref: '#/components/schemas/ExportarRelatorioCobrancas'
+        - $ref: '#/components/schemas/ExportarRelatorioInadimplencia'
+        - $ref: '#/components/schemas/ExportarRelatorioOcupacao'
+        - $ref: '#/components/schemas/ExportarRelatorioCadastros'
+        - $ref: '#/components/schemas/ExportarRelatorioSolicitacoes'
+        - $ref: '#/components/schemas/ExportarRelatorioAtendimento'
+        - $ref: '#/components/schemas/ExportarRelatorioReclamacoes'
+        - $ref: '#/components/schemas/ExportarRelatorioReservas'
+      discriminator:
+        propertyName: tipo
+        mapping:
+          financeiro: '#/components/schemas/ExportarRelatorioFinanceiro'
+          cobrancas: '#/components/schemas/ExportarRelatorioCobrancas'
+          inadimplencia: '#/components/schemas/ExportarRelatorioInadimplencia'
+          ocupacao: '#/components/schemas/ExportarRelatorioOcupacao'
+          cadastros: '#/components/schemas/ExportarRelatorioCadastros'
+          solicitacoes: '#/components/schemas/ExportarRelatorioSolicitacoes'
+          atendimento: '#/components/schemas/ExportarRelatorioAtendimento'
+          reclamacoes: '#/components/schemas/ExportarRelatorioReclamacoes'
+          reservas: '#/components/schemas/ExportarRelatorioReservas'
+      description: >-
+        PNG/SVG somente com alvo=grafico e conjunto agregado; PDF/CSV/XLSX com alvo=tabela. A API valida
+        combinação, filtros, campos e autorização. Sem período arbitrário em atendimento.
+    ItemCatalogoRelatorio:
+      type: object
+      additionalProperties: false
+      properties:
+        tipo:
+          type: string
+          enum:
+            - financeiro
+            - cobrancas
+            - inadimplencia
+            - ocupacao
+            - cadastros
+            - solicitacoes
+            - atendimento
+            - reclamacoes
+            - reservas
+        titulo:
+          type: string
+        formatos:
+          type: array
+          items:
+            type: string
+            enum:
+              - pdf
+              - csv
+              - xlsx
+              - png
+              - svg
+        permite_grafico:
+          type: boolean
+      required:
+        - tipo
+        - titulo
+        - formatos
+        - permite_grafico
+    ExportacaoRelatorio:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+          enum:
+            - financeiro
+            - cobrancas
+            - inadimplencia
+            - ocupacao
+            - cadastros
+            - solicitacoes
+            - atendimento
+            - reclamacoes
+            - reservas
+        formato:
+          type: string
+          enum:
+            - pdf
+            - csv
+            - xlsx
+            - png
+            - svg
+        alvo:
+          type: string
+          enum:
+            - tabela
+            - grafico
+        estado:
+          type: string
+          enum:
+            - solicitada
+            - em_processamento
+            - pronta
+            - falhou
+            - expirada
+        solicitada_em:
+          type: string
+          format: date-time
+        referencia_calculo:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        codigo_falha:
+          type:
+            - string
+            - 'null'
+        filtros:
+          type: object
+          description: Filtros normalizados validados pela variante correspondente ao tipo; propriedades definidas no oneOf.
+      required:
+        - id
+        - tipo
+        - formato
+        - alvo
+        - estado
+        - solicitada_em
+        - referencia_calculo
+        - codigo_falha
+        - filtros
+      oneOf:
+        - properties:
+            tipo:
+              const: financeiro
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioFinanceiro'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: cobrancas
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioCobrancas'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: inadimplencia
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioInadimplencia'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: ocupacao
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioOcupacao'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: cadastros
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioCadastros'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: solicitacoes
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioSolicitacoes'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: atendimento
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioAtendimento'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: reclamacoes
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReclamacoes'
+          required:
+            - tipo
+            - filtros
+        - properties:
+            tipo:
+              const: reservas
+            filtros:
+              $ref: '#/components/schemas/FiltrosRelatorioReservas'
+          required:
+            - tipo
+            - filtros
     BlocoAdministradora:
       type: object
       required:

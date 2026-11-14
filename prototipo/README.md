@@ -79,3 +79,9 @@ As [19 escolhas aprovadas](../docs/01-produto/05-decisoes-de-complementacao.md) 
 | Administradora > Assinatura da plataforma | Consulta cobrança assistida/manual separada do dinheiro condominial; cliente pode anotar contato comercial, sem emitir/baixar cobrança nem agir como equipe da plataforma | 19A |
 
 A tolerância controlada de refresh (16A), operador LGPD, privacidade do acesso histórico/moderação, retenção/logout da fila, sigilo/substituição do voto e integrações Asaas continuam condições de desenho/validação externa. O protótipo não demonstra essas garantias técnicas. As simulações não substituem testes de implementação ou validação visual com usuários.
+
+## Relatórios do MVP — revisão de 14/11/2026
+
+Administradora > Relatórios (`#/admin/relatorios`) mostra catálogo de nove tipos, filtros, tabela e gráfico agregado quando permitido. PDF/CSV/XLSX representam tabela; PNG/SVG só gráficos agregados. “Solicitar exportação” cria pedido local em Exportações (`#/admin/exportacoes-relatorios`); simule conclusão, falha, expiração e revogação de acesso. O pedido mantém seu condomínio original ao trocar contexto.
+
+Tudo é simulação em memória: nenhum PDF/XLSX/PNG/SVG real é gerado; “Simular download” mostra confirmação explícita, sem baixar arquivo falso. Relatórios novos só da administradora; não ampliam suporte/autogestão ou exportações financeiras legadas. Rastreabilidade: RN-RL-01 a 08 → RF-RL-01 a 11 → US-RL-01 a 03 → UF18 → DS11.18 → `js/telas/relatorios.js`.

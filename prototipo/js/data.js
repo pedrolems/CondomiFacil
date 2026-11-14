@@ -352,7 +352,7 @@ const ADMIN_NAV = [
   ['visao-geral', 'Visão geral', 'layout-dashboard'], ['implantacao', 'Implantação', 'rocket'], ['unidades', 'Unidades e moradores', 'house'],
   ['funcionarios', 'Funcionários', 'id-card'], ['areas', 'Áreas e regras', 'calendar-days'], ['reclamacoes', 'Reclamações', 'message-square-warning'],
   ['cancelamentos', 'Cancelar pelo condomínio', 'calendar-x'], ['eleicoes', 'Eleições', 'vote'], ['recebimentos-pendentes', 'Recebimentos em análise', 'receipt'], ['assinatura', 'Assinatura da plataforma', 'file-text'],
-  ['cobranca', 'Cobrança', 'receipt'], ['financas', 'Finanças', 'wallet'], ['comunicados', 'Comunicados', 'megaphone'], ['reunioes', 'Reuniões e mandatos', 'vote'],
+  ['cobranca', 'Cobrança', 'receipt'], ['financas', 'Finanças', 'wallet'], ['relatorios', 'Relatórios', 'chart-no-axes-combined'], ['exportacoes-relatorios', 'Exportações', 'download'], ['comunicados', 'Comunicados', 'megaphone'], ['reunioes', 'Reuniões e mandatos', 'vote'],
   ['solicitacoes', 'Solicitações', 'inbox'], ['bloqueio', 'Lista de bloqueio', 'ban'], '-', ['configuracoes', 'Configurações', 'settings'],
 ];
 

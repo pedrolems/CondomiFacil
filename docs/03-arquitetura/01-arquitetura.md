@@ -243,7 +243,7 @@ sequenceDiagram
 
 ### 3.2 Web
 
-- **Mesmo projeto Expo**, exportado como site estático (`expo export -p web`) e servido por CDN (Proposta). Painel lateral por perfil (DS 11.9): Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Finanças, Comunicados, Reuniões, Solicitações, Configurações.
+- **Mesmo projeto Expo**, exportado como site estático (`expo export -p web`) e servido por CDN (Proposta). Painel lateral por perfil (DS 11.9): Visão geral, Unidades e moradores, Funcionários, Áreas e regras, Reclamações, Cobrança, Finanças, Comunicados, Reuniões, Solicitações, Configurações; Relatórios e Exportações apenas para administradora (RN-RL-01).
 - **Telas densas:** tabelas com cabeçalhos marcados, formulários de uma coluna (máx. 640), importação por planilha com prévia de erros, navegação só por teclado com anel de foco e "Pular para o conteúdo" (DS 11.9, RNF-12). O componente `DataTable` precisa de implementação específica para web (arquivo `.web.tsx`, com HTML semântico `<table>`), porque React Native puro não gera tabela semântica. Risco: é o ponto em que React Native Web mais "briga" com acessibilidade; incluir axe no CI da web (DS 14).
 - **Sessão na web (Proposta):** o refresh token vai em cookie `httpOnly`, `Secure`, `SameSite=Lax`, e o access token fica só em memória, porque a web não tem armazenamento seguro equivalente ao do aparelho. Evita roubo de token por XSS.
 - **Painel da plataforma:** mesmo cliente web, acessível só ao admin da plataforma, que não acessa dados de condomínios (seção 4.4). Detalhes do painel além de "condomínios, planos, suporte" são lacuna.
@@ -270,6 +270,7 @@ sequenceDiagram
 | `governanca` | Reuniões, pautas, votações, eleições, atas | RF-VO; RN-VO |
 | `cobranca` | Taxa condominial, inadimplência, lembretes | RF-FI-01 a 16; RN-FI |
 | `financas` | Lançamentos, categorias, fechamento de mês, estorno, exportação | RF-FI-17 a 24; RN-FI-21 a 32 |
+| `relatorios` | Projeções mínimas e exportações privadas do catálogo da administradora | RF-RL-01 a 11; RN-RL-01 a 08 |
 | `notificacoes` | Preferências, push, e-mail | RF-NO; US-NO-01 |
 | `arquivos` | Upload e URLs assinadas | PRD 10 |
 | `lgpd` | Cópia e exclusão de dados | RF-LG; SEG-11 |
@@ -1054,6 +1055,7 @@ Nuvem e região do piloto (o MVP usa Supabase e Render gratuitos, ADR-004); CI/C
 | 3.9.2 Anonimato | RF-PE-04 | RN-RC-01, RN-RC-10, RN-RC-12, RN-RC-16, RN-RC-19, RN-SC-02, RN-SC-12, RN-PE-08, RN-PE-09, RN-CH-19 a 21, RN-RE-05, RN-FI-30 | — | SEG-07, SEG-18 | DS 15 |
 | 3.10 Votações | RF-VO-01 a 11 | RN-VO-01 a 19, RN-FI-11, RN-GE-03 | — | SEG-06 | — |
 | 3.11 Finanças | RF-FI-17 a 24 | RN-FI-21 a 32 (12.3 e 12.4) | — | SEG-08, SEG-18 | UF 13.3, 13.4 |
+| Relatórios gerenciais no MVP (revisão 14/11/2026) | RF-RL-01 a 11 | RN-RL-01 a 08 | RNF-01 | SEG-05, SEG-08, SEG-17, SEG-18 | US-RL-01 a 03; UF 18; DS 11.18; painel-web.md |
 | 4 Multi-tenant (4.1 a 4.11) | RF-AD-07, RF-AD-17, RF-AC-04 | RN-CD-05, RN-CD-16, RN-CD-17, RN-PL-06, RN-GE-01 a 03, RN 13 | RNF-01, RNF-10, RNF-11, RNF-17 | SEG-05, SEG-09, SEG-13, SEG-14, SEG-17, SEG-18 | AGENTS.md (RLS por condomínio e unidade) |
 | 5 Stacks | RF-AC-06 | — | RNF-02, RNF-04, RNF-16, RNF-18 | SEG-12 | PRD 10; UF 17 |
 | 6 Ambientes | — | — | RNF-09, RNF-13, RNF-16, RNF-17, RNF-18 | SEG-01, SEG-02 | AGENTS.md (branches, regra de commit); UF 15 |
@@ -1077,3 +1079,11 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 
 **Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+
+## Relatórios gerenciais no MVP — 14/11/2026
+
+Escopo decidido: RN-RL-01 a 08 e RF-RL-01 a 11. Desenho técnico continua proposta. Interface HTTP da administradora consome módulo de relatórios com projeções mínimas por domínio e coordenador de exportação, sem copiar regras de cobrança/finanças. Novos relatórios não são herdados pelo suporte ou autogestão.
+
+A consulta usa contexto autorizado e paginação; geração assíncrona é job sob demanda (não nova rotina diária), com solicitante, tenant, filtros normalizados, formato e referência consistente. Revalidar acesso no processamento e na entrega; gravar arquivo privado e auditar pedido/download. Objetos não ficam públicos. Retenção, concorrência, limites, consistência temporal e pequenos grupos dependem de validação.
+
+Controller coordena, serviços de domínio são Information Expert, portas separam armazenamento/formatos (SOLID/GRASP); Adapter implementa a integração de arquivos e Strategy os geradores PDF/CSV/XLSX/PNG/SVG sem duplicar autorização ou cálculos. Não escolher biblioteca geradora nem aceitar ADR por consequência. Render gratuito com sono não garante prazo de geração no piloto. Exportações legadas RF-FI-15/22 permanecem separadas e com permissões atuais. Contrato proposto: catálogo, consulta e jobs em `administradora.yaml`; UI em [painel-web.md](../06-frontend/painel-web.md).

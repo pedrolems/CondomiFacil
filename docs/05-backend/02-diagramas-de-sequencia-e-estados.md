@@ -21,7 +21,7 @@
 11. [Cobrança e finanças](#financas)
 12. [Plataforma, LGPD e serviços transversais](#transversais)
 13. [As 21 rotinas](#rotinas)
-14. [Rastreabilidade e cobertura dos 13 épicos](#rastreabilidade)
+14. [Rastreabilidade e cobertura dos 14 épicos](#rastreabilidade)
 15. [Pendências e critérios de validação](#pendencias)
 16. [Complementação e inventário por ciclo](#complementacao)
 
@@ -1263,7 +1263,7 @@ sequenceDiagram
     end
 ```
 
-**Falhas/efeitos:** extra requer descrição/tipo/valor/unidades/vencimento; valor total ou por unidade segue pendência. Multa por infração vai ao responsável ordinário e avisa proprietário; eventual reemissão segue RN-FI-20. Mesmo evento repetido não é pagamento duplicado; baixa manual seguida de confirmação deve conciliar origem, sem esconder recebimento. Abatimento não reconhece nova receita de caixa. Crédito após troca de responsável permanece pendente. Cancelar cobrança não implica devolução já concluída. CSV individual de cobranças só executor administrativo autorizado, inclusive na proposta de autogestão; não é a exportação agregada de S32. Acordos de parcelamento são V2.
+**Falhas/efeitos:** extra requer descrição/tipo/valor/unidades/vencimento; valor total ou por unidade segue pendência. Multa por infração vai ao responsável ordinário e avisa proprietário; eventual reemissão segue RN-FI-20. Mesmo evento repetido não é pagamento duplicado; baixa manual seguida de confirmação deve conciliar origem, sem esconder recebimento. Abatimento não reconhece nova receita de caixa. Crédito após troca de responsável permanece pendente. Cancelar cobrança não implica devolução já concluída. CSV individual de cobranças só administradora; poderes de exportação na autogestão continuam em revisão; não é a exportação agregada de S32. Acordos de parcelamento são V2.
 
 <a id="e08"></a>
 ### E08 — Cobrança do MVP
@@ -1502,9 +1502,9 @@ Fonte de numeração/frequência: [RN §14][rn] e [backend §5.2][back]. Todas p
 **Execução proposta:** Template Method abre contexto, verifica chave por efeito/janela, executa, registra e trata falha. Processar 15 antes de 16 e 18 antes de 19 conforme backend. Acordar após atraso não permite pular validações de estado. Propostas de QR dinâmico, consulta de pendências, limpeza técnica, exportação, processamento de webhook e conciliação ficam fora das 21, com frequência/retenção próprias a validar.
 
 <a id="rastreabilidade"></a>
-## 14. Rastreabilidade e cobertura dos 13 épicos
+## 14. Rastreabilidade e cobertura dos 14 épicos
 
-A matriz cobre os **13 épicos** por comportamento; não afirma que cada RF ganhou uma figura exclusiva nem que as operações propostas do contrato atual foram implementadas. Os IDs RN/RF/US remetem às fontes vinculadas. Intervalos não incluem IDs ausentes: para score, RN-SC-06/07 não são criados. Para operações exatas de cada RF, consultar a [tabela do contrato][api]. A política de acesso limita todos os perfis citados, inclusive suporte.
+A matriz cobre os **14 épicos** por comportamento; não afirma que cada RF ganhou uma figura exclusiva nem que as operações propostas do contrato atual foram implementadas. Os IDs RN/RF/US remetem às fontes vinculadas. Intervalos não incluem IDs ausentes: para score, RN-SC-06/07 não são criados. Para operações exatas de cada RF, consultar a [tabela do contrato][api]. A política de acesso limita todos os perfis citados, inclusive suporte.
 
 | Épico das [histórias][us] | Sequências e estados | Regras e requisitos de referência | Fluxos e contrato | Protótipo / limite |
 | --- | --- | --- | --- | --- |
@@ -1522,7 +1522,9 @@ A matriz cobre os **13 épicos** por comportamento; não afirma que cada RF ganh
 | 12 — Notificações e LGPD | S01/S34/S35/S36 | RF-NO-01, RF-LG-01/02, RN-CD-18, SEG-08 a SEG-11; US-NO-01, US-LG-01 | [UF 14/15][uf]; [comum][oa-comum], [eventos][eventos] | [Morador][p-mor]; e-mail/expurgo/arquivo reais ausentes |
 | 13 — Cobrança e finanças | S09/S10/S30/S31/S32/S35; E08/E09/E10 | RN-FI-01 a RN-FI-17 e RN-FI-19 a RN-FI-32; RF-FI-01 a RF-FI-13 e RF-FI-15 a RF-FI-24; US-FI-01 a US-FI-05 e US-FI-07 a US-FI-10 | [UF 13][uf]; [administradora][oa-adm], [morador][oa-mor], [proprietário][oa-prop], [síndico][oa-sind], [conselho][oa-conselho] | [Finanças][p-fin], [admin][p-admin], [morador][p-mor]; CSV/PDF e recebimentos simulados |
 
-**Exclusão explícita:** RN-FI-18, RF-FI-14 e US-FI-06 tratam acordos da V2. Relatórios gerais, contabilidade oficial, equipamentos de controle de acesso e login de empresa de manutenção continuam fora do MVP. Ata/lista de presença são anexos, não geração oficial de documentos.
+| 14 — Relatórios gerenciais | Fluxo e estados da seção Relatórios e exportações — 14/11/2026 | RN-RL-01 a 08; RF-RL-01 a 11; US-RL-01 a 03 | UF 18; administradora.yaml | prototipo/js/telas/relatorios.js; geração/download simulados |
+
+**Exclusão explícita:** RN-FI-18, RF-FI-14 e US-FI-06 tratam acordos da V2. Contabilidade oficial, equipamentos de controle de acesso e login de empresa de manutenção continuam fora do MVP. Ata/lista de presença são anexos, não geração oficial de documentos.
 
 <a id="pendencias"></a>
 ## 15. Pendências e critérios de validação
@@ -1812,3 +1814,20 @@ Em 12/11/2026, verificação estrutural local contabilizou **52 blocos Mermaid**
 [p-func]: ../../prototipo/js/telas/funcionarios.js
 [p-fin]: ../../prototipo/js/telas/financas.js
 [p-core]: ../../prototipo/js/core.js
+
+## Relatórios e exportações — 14/11/2026
+
+RN-RL-01 a 08 / RF-RL-01 a 11 / US-RL-01 a 03. A administradora consulta projeção autorizada → solicita job privado → worker revalida contexto, calcula referência consistente e gera arquivo → solicitante consulta → download revalida função e vínculo vigentes. Sem ampliação para suporte/autogestão.
+
+```mermaid
+stateDiagram-v2
+ [*] --> Solicitada
+ Solicitada --> Em_processamento
+ Em_processamento --> Pronta
+ Em_processamento --> Falhou
+ Pronta --> Expirada
+ Falhou --> [*]
+ Expirada --> [*]
+```
+
+Falha oferece nova solicitação; arquivo Expirado exige nova geração. Link expirado pode ser renovado enquanto o arquivo e acesso forem válidos; validade/retencão continuam a definir. Contrato técnico permanece proposto.

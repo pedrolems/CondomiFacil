@@ -15,7 +15,8 @@ docs/
   03-arquitetura/   Documento de arquitetura e ADRs (ver abaixo)
   04-banco-de-dados/ MER/DER do banco (ver abaixo)
   05-backend/       Documentação do backend (ver abaixo) e contrato da API em 05-backend/api/
-  06-frontend/ ... 09-infra/   Vazias (.gitkeep): frontend, segurança, qualidade, infra
+  06-frontend/     frontend.md (mobile) e painel-web.md (administradora)
+  07-seguranca/ ... 09-infra/   Vazias (.gitkeep): segurança, qualidade, infra
 prototipo/          Wireframes navegáveis em HTML/CSS/JS puro (sem build)
 graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 ```
@@ -25,9 +26,9 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 | Arquivo | Conteúdo | IDs que define |
 | --- | --- | --- |
 | `01-visao-de-produto.md` | Problema, personas, proposta de valor, mercado, modelo de negócio, riscos, roadmap | — |
-| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (139), `RNF-*` (18), `SEG-*` (18) |
-| `03-regras-de-negocio.md` | Regras detalhadas por módulo, glossário, catálogo de parâmetros configuráveis, rotinas automáticas | `RN-XX-nn` (CA, CD, CH, CO, EN, FI, GE, OF, PE, PG, PL, RC, RE, SC, VI, VO) |
-| `04-historias-de-usuario.md` | 13 épicos, 71 histórias com critérios de aceite; tabela de cobertura RF -> US | `US-XX-nn` |
+| `02-prd.md` | Escopo MVP x V2, planos e preços, 11 perfis, matriz de permissões, requisitos, stack técnica | `RF-*` (150), `RNF-*` (18), `SEG-*` (18) |
+| `03-regras-de-negocio.md` | Regras detalhadas por módulo, glossário, catálogo de parâmetros configuráveis, rotinas automáticas | `RN-XX-nn` (CA, CD, CH, CO, EN, FI, GE, OF, PE, PG, PL, RC, RE, RL, SC, VI, VO) |
+| `04-historias-de-usuario.md` | 14 épicos, 74 histórias com critérios de aceite; tabela de cobertura RF -> US | `US-XX-nn` |
 
 ### Documentos de design (`docs/02-design/`)
 
@@ -71,7 +72,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 - **Portaria:** registro de entrada em até 2 toques, sem diálogo de confirmação (usa "Desfazer"), funcionando offline com fila de sincronização. Em Áreas, consulta reservas do dia e marca Em andamento, Cumprida ou Não comparecimento conforme RN-RE-13; vistoria inclusive de paga não usada exige internet. Falta paga não gera perda de pontos nem reembolso automático.
 - **Limpeza offline:** em conclusões do mesmo ciclo, vale o menor horário registrado pelo celular, mesmo enviado depois (RN-CH-04). Avaliação da conclusão superada fica apenas no histórico, fora das médias e sem transferência; a efetiva pode receber nova avaliação na janela configurada desde sua disponibilização. A correção não reinicia as 48h de reabertura. Desempate exato e relógio incorreto continuam propostas técnicas no ADR-014.
 - **Finanças do condomínio:** com administradora, ela edita e síndico/conselho só leem e comentam; no Essencial com autogestão, a proposta de distribuição local (RN-PL-08/RN-FI-29) põe síndico ou sub em substituição na execução e conselho na fiscalização; mês fechado só se altera por estorno. Receitas de cobrança e reservas entram automaticamente e agregadas, sem unidade. Não é contabilidade formal.
-- **Fora de escopo:** contabilidade oficial (balancete, parecer, ata), catracas e interfones, entrega de comida por app. **Versão 2:** relatórios e acordos de parcelamento.
+- **Fora de escopo:** contabilidade oficial (balancete, parecer, ata), catracas e interfones, entrega de comida por app. **MVP (14/11/2026):** nove relatórios gerenciais para administradora, PDF/CSV/XLSX e PNG/SVG só de gráficos agregados, com jobs privados e acesso revalidado (RN-RL-01 a 08). Novos relatórios não ampliam acessos de outros perfis. **Versão 2:** acordos de parcelamento.
 - **Stack planejada (PRD seção 10 e ADRs 002, 004 e 005):** React Native + TypeScript com Expo (Android, iOS e web via React Native Web), Node.js + NestJS, PostgreSQL com Row Level Security, WebSockets para a lista da portaria, SQLite ou WatermelonDB offline, Asaas como gateway de pagamento (ADR-002), Supabase (só PostgreSQL e Storage compatível com S3, região São Paulo) e Render (API, WebSocket e worker) para construir o MVP em dev e staging, sem custo (ADR-004; a nuvem do piloto com dados reais é revisão obrigatória antes do piloto), Resend para e-mail (ADR-005), Expo Push/FCM, Sentry. Decisões de Pedro de 10/11/2026, aceitas com ressalvas. No plano gratuito do Render o worker roda no mesmo serviço web da API e as rotinas param quando o serviço dorme.
 - **Roadmap (estimativa):** Descoberta M1, Design M2 (marco: protótipo validado), MVP M3 a M6 (marco: parecer jurídico SEG-16), Piloto M7 em 1 a 3 condomínios, Lançamento M8, V2 M9 a M11.
 
@@ -110,7 +111,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 
 ## O que já está pronto
 
-- Visão de Produto, PRD, Regras de Negócio e Histórias de Usuário (13 épicos, 71 histórias cobrindo 139 requisitos funcionais, conforme a tabela de cobertura).
+- Visão de Produto, PRD, Regras de Negócio e Histórias de Usuário (14 épicos, 74 histórias cobrindo 150 requisitos funcionais, conforme a tabela de cobertura).
 - Design System e User Flows completos, revisados e alinhados aos docs de produto.
 - Protótipo navegável com os fluxos de todos os perfis, incluindo as últimas adições: finanças do condomínio, entregas esperadas, listas de visitantes, avaliação de chamados, urgência e ordenação de chamados, semáforo de prazo de reclamação, política de locação e interface do subsíndico.
 - Portaria com reservas do dia e registro de uso/vistoria: Em andamento, Cumprida e Não comparecimento, inclusive em reserva paga não usada; limpeza mantém vistoria (decisão de Pedro em 08/11/2026).
@@ -127,7 +128,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
    - Cobrança em atraso como notificação obrigatória (proposta, ainda fora das RN e do US-NO-01).
 2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso.
 3. **Decidir o perfil Manutenção:** incluir no PRD ou descartar do protótipo.
-4. **Validar os ADRs de `docs/03-arquitetura/adr/`**: os ADRs 002, 004 e 005 já estão aceitos com ressalvas (a nuvem do piloto tem revisão obrigatória do ADR-004 antes do piloto com dados reais); aceitar, rejeitar ou ajustar os demais (dependem de PoC, custo ou parecer). Validar também o contrato da API de `docs/05-backend/api/` e decidir as pendências consolidadas em `api/README.md` e **preencher as pastas vazias de `docs/`** na ordem natural: 06-frontend (estrutura Expo, offline, tokens do Design System), 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
+4. **Validar os ADRs de `docs/03-arquitetura/adr/`**: os ADRs 002, 004 e 005 já estão aceitos com ressalvas (a nuvem do piloto tem revisão obrigatória do ADR-004 antes do piloto com dados reais); aceitar, rejeitar ou ajustar os demais (dependem de PoC, custo ou parecer). Validar também o contrato da API de `docs/05-backend/api/` e decidir as pendências consolidadas em `api/README.md` e **preencher as pastas ainda vazias de `docs/`** na ordem natural: 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
 5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 
@@ -135,3 +136,7 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 
 - Existe grafo de conhecimento em `graphify-out/` (`/graphify` para consultar ou regenerar). Para perguntas de arquitetura e relação entre documentos, consulte o grafo primeiro.
 - Os documentos são grandes (100 KB cada nos de design). Leia por seção, usando os índices de `##`, em vez de abrir o arquivo inteiro.
+
+## Relatórios e painel web — 14/11/2026
+
+Pedro autorizou antecipar relatórios ao MVP e alinhar documentação, contratos e protótipo. Fontes: RN-RL-01 a 08; RF-RL-01 a 11; US-RL-01 a 03; `docs/06-frontend/painel-web.md`. Protótipo em Administradora > Relatórios/Exportações, com dados e processamento simulados. Contratos e arquitetura continuam propostas, sem backend implementado e sem aceitação automática de ADRs.

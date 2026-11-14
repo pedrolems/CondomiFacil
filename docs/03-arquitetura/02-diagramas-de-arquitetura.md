@@ -920,3 +920,20 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 
 **Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+
+## Relatórios gerenciais do MVP — 14/11/2026
+
+Proposta técnica alinhada a RN-RL-01 a 08 e RF-RL-01 a 11, sem aceite automático de ADR.
+
+```mermaid
+flowchart LR
+ W[Painel da administradora] -->|Contexto e filtros| A[API: autorização vigente]
+ A --> P[Projeções mínimas por domínio]
+ A --> Q[Solicitação privada de exportação]
+ Q --> J[Worker: formato e referência consistente]
+ J --> S[Arquivo privado]
+ W -->|Consultar job próprio| A
+ A -->|Revalidar antes do download| S
+```
+
+Sem novos acessos de suporte ou outros perfis. Exportação é trabalho sob demanda; limites e retenção continuam pendentes.

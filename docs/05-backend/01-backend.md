@@ -120,6 +120,7 @@ apps/api/
       governanca/
       cobranca/
       financas/
+      relatorios/                 projeções e exportações privadas da administradora
       notificacoes/
       arquivos/
       lgpd/
@@ -215,8 +216,8 @@ O PRD 3 lista **11 perfis**. A matriz de permissões tem 7 colunas (Morador, Sí
 | Subsíndico | `sindico/` e `morador/` | Subconjunto de `sindico/` fora da substituição; todo `sindico/` em substituição | Sem pasta própria, ver decisão abaixo |
 | Funcionário de limpeza | `limpeza/` | `chamados`, `reservas` (vistoria), `convivencia` (próprio score e recurso), `sync` | Também usa `interfaces/sync/` (offline) |
 | Funcionário de portaria | `portaria/` | `visitantes`, `encomendas`, `reservas` (do dia e vistoria), `chamados` (abrir), `comunicados` (responder), `condominio` (blocos e portarias), `sync` | Também usa `interfaces/websocket/` e `interfaces/sync/` |
-| Administradora | `administradora/` | `condominio`, `configuracao`, `cobranca`, `pagamentos`, `financas`, `convivencia` (consulta e julgamento por RN-RC-03 e RN-RC-07), `comunicados`, `visitantes` (lista de bloqueio), `governanca` (regras de reeleição) | Painel web com vários condomínios (arq. 4.4) |
-| Suporte da plataforma | `plataforma/` (abrir contexto) e `administradora/` (operar) | Os da administradora, **exceto** `convivencia` (reclamações e scores), mais `auditoria` (SEG-13) | Age como administradora em cadastros, configurações e cobrança (PRD 3, D-02) |
+| Administradora | `administradora/` | `condominio`, `configuracao`, `cobranca`, `pagamentos`, `financas`, `relatorios` (catálogo exclusivo), `convivencia` (consulta e julgamento por RN-RC-03 e RN-RC-07), `comunicados`, `visitantes` (lista de bloqueio), `governanca` (regras de reeleição) | Painel web com vários condomínios (arq. 4.4) |
+| Suporte da plataforma | `plataforma/` (abrir contexto) e `administradora/` (operar) | Os da administradora, **exceto** `relatorios` (catálogo novo) e `convivencia` (reclamações e scores), mais `auditoria` (SEG-13) | Age como administradora em cadastros, configurações e cobrança (PRD 3, D-02) |
 | Admin da plataforma | `plataforma/` | `plataforma`, `condominio` (cadastro de condomínio e plano), `configuracao` (padrões de plataforma), `auditoria` | Só o painel da plataforma, sem tabelas de tenant (arq. 4.4) |
 | Conselho fiscal | `conselho-fiscal/` e `morador/` | `financas` (leitura, comentário, exportação), `convivencia` (julga nos casos do PRD 3), `governanca` (condução eleitoral pela interface comum, RN-VO-13) | "Também são moradores" (PRD 3): usa as duas pastas |
 | Proprietário não residente | `proprietario-nao-residente/` | `governanca` (voto e procurador), `cobranca`, `pagamentos`, `condominio` (contrato de locação), `convivencia` (visão limitada, RN-RC-16), `comunicados` (leitura de gerais) | Ver decisão 1 |
@@ -465,7 +466,7 @@ Implementação proposta: como o envio pode vir até 12 h antes do horário calc
 
 ### 5.3 Jobs fora da tabela das 21
 
-Também são jobs (D12, arq. 3.6, 3.7, 3.11): processamento de webhook do gateway, conciliação com o gateway (arq. 3.6, SEG-17), envio de push e e-mail e debounce da lista de visitantes (RN-VI-17), exportações de finanças (CSV e PDF) e despacho do outbox. Todos abrem o `TenantContext` de um condomínio, exceto o despacho do outbox e a conciliação global, que enumeram condomínios.
+Também são jobs (D12, arq. 3.6, 3.7, 3.11): processamento de webhook do gateway, conciliação com o gateway (arq. 3.6, SEG-17), envio de push e e-mail e debounce da lista de visitantes (RN-VI-17), exportações de finanças (CSV e PDF), relatórios gerenciais privados do catálogo RN-RL-02 e despacho do outbox. Todos abrem o `TenantContext` de um condomínio, exceto o despacho do outbox e a conciliação global, que enumeram condomínios.
 
 ### 5.4 Jobs com atraso programado
 
@@ -674,3 +675,11 @@ Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 
 **Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+
+## Relatórios gerenciais no MVP — 14/11/2026
+
+Escopo decidido: RN-RL-01 a 08 e RF-RL-01 a 11. Desenho técnico continua proposta. Interface HTTP da administradora consome módulo de relatórios com projeções mínimas por domínio e coordenador de exportação, sem copiar regras de cobrança/finanças. Novos relatórios não são herdados pelo suporte ou autogestão.
+
+A consulta usa contexto autorizado e paginação; geração assíncrona é job sob demanda (não nova rotina diária), com solicitante, tenant, filtros normalizados, formato e referência consistente. Revalidar acesso no processamento e na entrega; gravar arquivo privado e auditar pedido/download. Objetos não ficam públicos. Retenção, concorrência, limites, consistência temporal e pequenos grupos dependem de validação.
+
+Controller coordena, serviços de domínio são Information Expert, portas separam armazenamento/formatos (SOLID/GRASP); Adapter implementa a integração de arquivos e Strategy os geradores PDF/CSV/XLSX/PNG/SVG sem duplicar autorização ou cálculos. Não escolher biblioteca geradora nem aceitar ADR por consequência. Render gratuito com sono não garante prazo de geração no piloto. Exportações legadas RF-FI-15/22 permanecem separadas e com permissões atuais. Contrato proposto: catálogo, consulta e jobs em `administradora.yaml`; UI em [painel-web.md](../06-frontend/painel-web.md).

@@ -1,0 +1,9 @@
+# Dependências, artefatos e segredos locais.
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.env
+.env.*
+!.env.example

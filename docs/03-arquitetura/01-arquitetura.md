@@ -156,7 +156,7 @@ flowchart TB
 **Estrutura por módulos (Proposta).** Uma pasta por módulo de produto, espelhando os épicos das histórias de usuário, mais camadas compartilhadas:
 
 ```
-apps/mobile/src/
+frontend/apps/mobile/src/
   design/          tokens.ts, ThemeProvider, components/ (DS 17)
   core/            api client, auth, sessão, tenant (condomínio e unidade ativos), erros transversais (UF 15)
   offline/         banco local, fila (outbox), sincronização, divergências
@@ -165,7 +165,7 @@ apps/mobile/src/
   navegacao/       abas por perfil (DS 12)
 ```
 
-- **Tokens do Design System (decidido, DS 17):** `src/design/tokens.ts` único (palette, light, dark, space, radius, motion) consumido por `ThemeProvider`; componentes base em `src/design/components`. Hex solto ou tamanho solto é apontado no code review. No monorepo proposto, esse arquivo vira o pacote `packages/design-tokens` (seção 5.3), o que preserva a regra "um único arquivo de tokens".
+- **Tokens do Design System (decidido, DS 17):** `src/design/tokens.ts` único (palette, light, dark, space, radius, motion) consumido por `ThemeProvider`; componentes base em `src/design/components`. Hex solto ou tamanho solto é apontado no code review. No monorepo proposto, esse arquivo vira o pacote `frontend/packages/design-tokens` (seção 5.3), o que preserva a regra "um único arquivo de tokens".
 - **Unidade ativa:** o `UnitSwitcher` no topo define condomínio e unidade ativos (RN-CD-05, RF-AC-04). Toda chamada à API leva esses dois valores (seção 4.3).
 - **Erros transversais (UF 15):** "Sem internet" (faixa, envio desabilitado, texto digitado vira rascunho), sessão expirada (volta ao login e depois à tela), erro do servidor (Tentar de novo + monitoramento), "Estas informações mudaram. Atualizamos a tela.", versão obrigatória ("Atualize o app para continuar."). Tratados em um interceptor único do cliente de API.
 - **Versão mínima do cliente (Proposta):** o app envia `X-App-Version`; a API responde 426 abaixo da versão mínima, o que dispara a tela de atualização obrigatória. Política de versões mínimas é lacuna.
@@ -286,7 +286,7 @@ Nomes dos módulos são proposta; a lista exata de prefixos RF por épico está 
 
 **Regras transversais (Proposta).**
 
-- Validação de entrada com esquemas compartilhados (Zod em `packages/shared-types`), os mesmos no app e na API.
+- Validação estrutural com esquemas a gerar dos contratos OpenAPI/AsyncAPI em `packages/shared-types`, consumidos pelo app e pela API (ADR-015). Não manter esquemas Zod manuais concorrentes; a ferramenta depende de prova de conceito.
 - Todo acesso a dados passa por um `TenantContext` que abre uma transação com o contexto da sessão (seção 4.3). Não há acesso ao banco fora dele.
 - Eventos de domínio (ex.: `visitante.cadastrado`, `pagamento.confirmado`) são gravados numa tabela `evento_saida` na mesma transação da mudança (padrão outbox transacional) e despachados pelo worker para tempo real, push e e-mail. Isso evita perder notificação se o processo cair.
 - Limites de taxa e anti-abuso: lacuna; proposta de partida: limite por IP e por e-mail nos endpoints de acesso (SEG-04) e por usuário nos demais.
@@ -715,7 +715,7 @@ Obrigatórios no CI, bloqueiam o merge (reforçam RNF-11 e SEG-05; detalhe em `0
 
 ### 5.2 Decisões em aberto: critérios e recomendação
 
-**Gateway, nuvem e e-mail foram decididos pelo Pedro em 10/11/2026** (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas); as comparações abaixo ficam como histórico, seguidas da decisão. **As demais recomendações continuam "proposta, a decidir".** Cada uma deveria virar um ADR (seção 9).
+**Gateway, nuvem e e-mail foram decididos pelo Pedro em 10/11/2026** (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas); as comparações abaixo ficam como histórico, seguidas da decisão. **A organização e as fontes dos contratos foram decididas em 14/11/2026 (ADR-015); as demais recomendações continuam "proposta, a decidir".** Cada uma deveria virar um ADR (seção 9).
 
 #### Banco local do aparelho (SQLite x WatermelonDB)
 
@@ -785,30 +785,37 @@ Opções: (A) AWS em São Paulo (RDS PostgreSQL, ECS Fargate ou App Runner, S3, 
 | Distribuição de eventos entre instâncias | `LISTEN/NOTIFY` no MVP; Redis pub/sub depois | Mesma lógica |
 | Biblioteca WebSocket | Socket.IO (reconexão, fallback) | Alternativa `ws` com menos peso |
 | Estado e cache no cliente | TanStack Query | Chave por condomínio e unidade |
-| Validação | Zod nos dois lados | Tipos compartilhados |
-| Monorepo | pnpm + Turborepo | Seção 5.3 |
+| Validação | Esquemas gerados de OpenAPI/AsyncAPI nos dois lados | ADR-015; gerador e eventual saída Zod dependem de PoC |
+| Monorepo | pnpm; Turborepo quando houver tarefas executáveis | Decisão de Pedro em 14/11/2026, ADR-015 e seção 5.3 |
 | Testes | Jest/Vitest; Testcontainers para PostgreSQL (RLS real); Playwright na web; Maestro ou Detox no app | Detalhe em `08-qualidade` |
 | Carga | k6 | RNF-17 |
 
-### 5.3 Monorepo sugerido
+### 5.3 Organização técnica e workspaces
 
-**Proposta.** Um único repositório, gerenciado com pnpm e Turborepo, para compartilhar tipos e tokens:
+**Decisão de Pedro em 14/11/2026 ([ADR-015](adr/015-workspaces-e-contratos-compartilhados.md)).** Um workspace pnpm na raiz preserva os agrupamentos backend/frontend e centraliza contratos e ferramentas comuns:
 
-```
+```text
 condomifacil/
-  apps/
-    mobile/              Expo: app Android, iOS e web (React Native Web)
-    api/                 NestJS: API, WebSocket e worker (dois pontos de entrada)
-  packages/
-    design-tokens/       tokens.ts (palette, light, dark, space, radius, motion), fontes
-    ui/                  componentes base do Design System (Button, DataTable, SyncIndicator...)
-    shared-types/        esquemas Zod, DTOs, enums de estados (StatusBadge), erros
-    config/              ESLint, TypeScript, Prettier compartilhados
-  infra/                 IaC e scripts (docs/09-infra)
-  docs/                  documentação (já existe hoje na raiz)
+  package.json                   raiz privada; versões e scripts ainda pendentes
+  pnpm-workspace.yaml            backend/apps/*, frontend/apps/*, frontend/packages/*, packages/*
+  backend/apps/api/              NestJS: API, WebSocket e worker; estrutura preparatória
+  frontend/apps/mobile/          Expo Android, iOS e web (React Native Web)
+  frontend/apps/catalogo-componentes/  catálogo de componentes
+  frontend/packages/design-tokens/    fonte única dos tokens do DS
+  frontend/packages/ui/           componentes base de apresentação
+  packages/shared-types/          tipos e esquemas a gerar de OpenAPI/AsyncAPI
+  packages/config/                presets de TypeScript, ESLint e Prettier
+  docs/                           fontes documentais e contratos
+  prototipo/                      referência HTML existente
 ```
 
-Regras: `apps/*` dependem de `packages/*`, nunca o contrário; `packages/design-tokens` é a única fonte de tokens (DS 17); `shared-types` não importa NestJS nem React Native. Aqui "web" fica em `apps/mobile` porque o PRD diz "pelo mesmo projeto Expo".
+`backend/` e `frontend/` são agrupamentos, sem instalações independentes. Antes da primeira instalação, fixar versões compatíveis de Node/pnpm e `packageManager` na raiz; gerar e versionar um único `pnpm-lock.yaml` real. Ainda não há lockfile, dependências, scripts ou aplicações executáveis. Pacotes privados têm nomes únicos. Cada consumidor declara suas dependências reais; pacotes internos usam `workspace:*`, e presets de ferramentas entram em `devDependencies`. Não depender de aliases de caminhos para substituir ligações entre pacotes.
+
+Apps dependem de pacotes; pacotes nunca dependem dos apps. `shared-types` não importa NestJS, React Native ou entidades de banco. `ui` pode depender de tokens e contratos públicos, sem buscar dados ou sessão. A web continua em `frontend/apps/mobile`, no mesmo projeto Expo. `packages/config` compartilha regras comuns com presets próprios de Node/NestJS e Expo/React Native; variáveis de ambiente, segredos e parâmetros de negócio ficam fora dele.
+
+**Fonte dos contratos:** OpenAPI 3.1 para HTTP, AsyncAPI 3.0 para mensagens de tempo real. `packages/shared-types` conterá tipos e esquemas estruturais gerados, inclusive entradas e respostas por perfil, estados e códigos públicos de erro. Não manter DTOs/esquemas manuais equivalentes como segunda fonte. Regras dinâmicas e autorização continuam no servidor. A ferramenta geradora, sua versão, exports e compilação dependem de PoC antes da implementação, cobrindo os recursos efetivamente usados de JSON Schema, referências entre arquivos, enums, nulabilidade, obrigatoriedade, composição, validação em execução e consumo Node/Expo. Zod só será saída de geração se a semântica for preservada. Geração determinística e testes de conformidade devem impedir divergências; o CI futuro regenerará e detectará artefatos desatualizados. Nada disso está implementado nesta preparação.
+
+**Turborepo:** adoção aprovada para quando existirem tarefas executáveis, com geração antes dos consumidores, build em ordem de dependência e cache com entradas/saídas explícitas. Não há configuração fictícia de tarefas nesta etapa. A decisão não aceita os demais ADRs nem o conteúdo ainda proposto dos contratos.
 
 ## 6. Ambientes
 
@@ -979,9 +986,9 @@ flowchart LR
 
 **Resumo:** gateway, nuvem e e-mail foram decididos em 10/11/2026 (ADR-002, 004 e 005, com ressalvas); o que falta decidir é, sobretudo, parecer jurídico, política operacional (RPO e RTO, retenção) e a revisão da nuvem antes do piloto; cada decisão está registrada como ADR em [`docs/03-arquitetura/adr/`](adr/README.md).
 
-### 9.1 Decisões a registrar como ADR (Proposta)
+### 9.1 Registro das decisões e propostas em ADR
 
-Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; os demais ainda estão sem validação (estado Proposto).
+Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; o ADR-015 foi aceito em 14/11/2026 quanto à organização e às fontes dos contratos, com versões e gerador pendentes. Os demais ainda estão sem validação (estado Proposto).
 
 | ADR sugerido | Decisão | Estado | Depende de |
 | --- | --- | --- | --- |
@@ -999,6 +1006,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 | [ADR-012](adr/012-fuso-horario-por-condominio.md) | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
 | [ADR-014](adr/014-primeira-conclusao-sync.md) | Menor horário do celular definido em RN-CH-04; implementação, empate exato e relógio incorreto | Proposta técnica, critério de produto definido em 08/11/2026 | Engenharia e exceções de produto |
+| [ADR-015](adr/015-workspaces-e-contratos-compartilhados.md) | Workspace pnpm único, contratos OpenAPI/AsyncAPI canônicos e Turborepo futuro | Aceito nesse escopo por Pedro em 14/11/2026 | Gerador e versões pendentes de validação |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)
 

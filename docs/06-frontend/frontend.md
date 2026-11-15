@@ -2,7 +2,7 @@
 
 **Autor do produto:** Pedro Lemos  
 **Data:** 14/11/2026  
-**Estado:** proposta técnica para revisão do Pedro; não aceita. O projeto está em Design, sem aplicativo implementado.
+**Estado:** proposta técnica para revisão do Pedro; organização do workspace e fontes dos contratos aprovadas em 14/11/2026 (ADR-015); demais escolhas não aceitas. O projeto está em Design, sem aplicativo implementado.
 
 ## 1. Objetivo, escopo e fontes
 
@@ -29,10 +29,10 @@ O grafo de conhecimento foi consultado para localizar relações entre fontes; s
 
 ### 2.1 Organização proposta
 
-A arquitetura já propõe `apps/mobile` e pacotes compartilhados. Recomenda-se organizar a borda de navegação por perfil e o código funcional por domínio, evitando copiar a mesma reserva ou chamado para cada perfil. Os nomes abaixo são uma proposta de implementação futura, não pastas já existentes.
+A organização aprovada por Pedro em 14/11/2026 (ADR-015) preserva `frontend/apps/mobile` e `frontend/packages/{ui,design-tokens}`; `packages/shared-types` e `packages/config` ficam na raiz. Um workspace pnpm único coordena backend e frontend. Recomenda-se organizar a borda de navegação por perfil e o código funcional por domínio, evitando copiar a mesma reserva ou chamado para cada perfil. A árvore abaixo descreve a estrutura preparatória; os arquivos ainda não implementam o aplicativo. As demais escolhas de implementação continuam propostas.
 
 ```text
-apps/mobile/
+frontend/apps/mobile/
   app.config.ts                 configuração Expo por ambiente, links e permissões
   src/
     app/                        rotas e layouts; sem regras de negócio
@@ -80,11 +80,12 @@ apps/mobile/
       seguranca/                armazenamento seguro e limpeza de contexto
       observabilidade/          erros sem conteúdo pessoal ou tokens
   assets/                       fontes e recursos locais
-packages/
+frontend/packages/
   design-tokens/                paleta, temas, tipografia, espaço e movimento
   ui/                           componentes base do Design System
-  shared-types/                 DTOs, esquemas e estados compartilhados
-  config/                       configuração de ferramentas
+packages/                       na raiz do repositório
+  shared-types/                 tipos e esquemas a gerar de OpenAPI/AsyncAPI
+  config/                       presets de ferramentas por plataforma
 ```
 
 Dentro de cada módulo, separar `telas/`, `componentes/`, `aplicacao/` (casos de uso e hooks), `dominio/` (tipos e políticas locais) e `dados/` (consultas, mutações e mapeamento de DTOs), conforme houver necessidade. Não criar camadas vazias apenas para cumprir a árvore. Testes futuros ficam junto ao comportamento ou na suíte de integração do app.
@@ -100,7 +101,7 @@ Dentro de cada módulo, separar `telas/`, `componentes/`, `aplicacao/` (casos de
 | HTTP, banco, câmera e push | Portas pequenas com adaptadores de infraestrutura; permite substituir bibliotecas e simular falhas. GoF Adapter |
 | Operações offline | Política específica por tipo de operação, com fila única de coordenação. Strategy somente onde visitante e conclusão exigem comportamentos diferentes |
 | Mudança de contexto e eventos | Observadores invalidam consultas e atualizam projeções; não concedem permissão por evento. Observer |
-| Compartilhamento | `apps/*` dependem de `packages/*`; pacotes não dependem dos apps. `shared-types` não importa NestJS ou React Native |
+| Compartilhamento | Apps em `backend/apps/*` e `frontend/apps/*` dependem de pacotes declarados no workspace raiz; pacotes não dependem dos apps. `shared-types` não importa NestJS ou React Native; contratos vêm de OpenAPI/AsyncAPI, sem cópias manuais |
 
 Os componentes usam tokens do Design System, Inter e Lucide, temas claro/escuro e a preferência “Igual ao aparelho”. Estado usa texto e ícone, com toque mínimo de 48 dp e 56 dp na portaria. Score não usa verde/vermelho. Fontes e recursos necessários à operação offline devem estar disponíveis no binário, sem depender de CDN.
 

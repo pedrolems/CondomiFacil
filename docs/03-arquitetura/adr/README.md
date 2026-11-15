@@ -27,11 +27,11 @@ A fonte das decisões é [`../01-arquitetura.md`](../01-arquitetura.md) (seção
 | **Substituído** | Trocado por outro ADR, que é citado no cabeçalho |
 | **Obsoleto** | Deixou de se aplicar (ex.: o componente saiu do projeto), sem substituto |
 
-Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; os demais continuam sem validação.
+Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Os demais continuam sem validação.
 
 ## Como criar um novo ADR
 
-1. Pegue o próximo número livre (hoje, 015) e crie `NNN-titulo-curto-em-kebab-case.md` nesta pasta.
+1. Pegue o próximo número livre (hoje, 016) e crie `NNN-titulo-curto-em-kebab-case.md` nesta pasta.
 2. Copie a estrutura de um ADR existente e preencha todas as seções. Datas em dd/mm/aaaa.
 3. Confirme cada ID citado (RF, RNF, SEG, RN, US) nos documentos de `docs/01-produto/`.
 4. Comece em **Em aberto** ou **Proposto**. Nunca em Aceito.
@@ -58,3 +58,4 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | 012 | [Fuso horário e faixas de horário das rotinas por condomínio](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | Produto |
 | 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | Custo (RNF-18) |
 | 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |
+| 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | Gerador depende de PoC; versões pendentes |

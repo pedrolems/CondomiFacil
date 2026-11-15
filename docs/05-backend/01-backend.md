@@ -15,7 +15,7 @@
 
 ## 1. Objetivo, status e como ler
 
-**Objetivo.** Descrever como o backend do CondomiFacil será organizado quando o código começar (marco MVP, M3 a M6): estrutura de pastas do `apps/api`, padrões de código, rotinas agendadas e integrações com serviços externos. O documento traduz para o nível de código o que a arquitetura já propõe; não cria regra de negócio nem muda requisito.
+**Objetivo.** Descrever como o backend do CondomiFacil será organizado quando o código começar (marco MVP, M3 a M6): estrutura de pastas do `backend/apps/api`, padrões de código, rotinas agendadas e integrações com serviços externos. O documento traduz para o nível de código o que a arquitetura já propõe; não cria regra de negócio nem muda requisito.
 
 **O que este documento não repete.** Componentes, multi-tenant, segurança e ambientes estão em [`01-arquitetura.md`](../03-arquitetura/01-arquitetura.md); diagramas C4 em [`02-diagramas-de-arquitetura.md`](../03-arquitetura/02-diagramas-de-arquitetura.md); tabelas e colunas em [`01-mer-e-der.md`](../04-banco-de-dados/01-mer-e-der.md). Aqui só entram referências a eles.
 
@@ -34,7 +34,7 @@ Fontes citadas por ID: RF, RNF, SEG (PRD), RN (regras de negócio), ADR (adr/), 
 
 **Decidido (PRD 10):** backend em Node.js e TypeScript com NestJS, PostgreSQL com Row Level Security, WebSockets para a lista da portaria e jobs no backend.
 
-**Proposta (arq. 3.3, 5.3, D6):** monólito modular, um único repositório de código e um único deploy lógico. O `apps/api` tem **dois pontos de entrada** sobre o mesmo código: o processo da **API** (HTTP, WebSocket, sincronização offline e webhooks) e o processo do **worker** (jobs, despacho do outbox, sem HTTP). Escalam separadamente. Microsserviços não se justificam para a equipe e a escala previstas (RNF-10, arq. 4.10).
+**Proposta (arq. 3.3, 5.3, D6):** monólito modular, um único repositório de código e um único deploy lógico. O `backend/apps/api` tem **dois pontos de entrada** sobre o mesmo código: o processo da **API** (HTTP, WebSocket, sincronização offline e webhooks) e o processo do **worker** (jobs, despacho do outbox, sem HTTP). Escalam separadamente. Microsserviços não se justificam para a equipe e a escala previstas (RNF-10, arq. 4.10).
 
 ```mermaid
 flowchart LR
@@ -79,12 +79,12 @@ Leitura: a seta de `modulos` para `integracoes` passa por **portas** (interfaces
 
 As duas se encontram em uma única direção: **interface -> módulo**. Um perfil consome vários módulos; um módulo atende vários perfis. A regra de negócio de reservas existe uma vez só, em `modulos/reservas/`, mesmo sendo chamada pelas interfaces `morador`, `portaria` e `limpeza`.
 
-### 3.1 Árvore do `apps/api`
+### 3.1 Árvore do `backend/apps/api`
 
-Dentro do monorepo da arq. 5.3 (`apps/api`, `packages/shared-types`, `packages/config`):
+Dentro do monorepo da arq. 5.3 (`backend/apps/api`, `packages/shared-types`, `packages/config`):
 
 ```
-apps/api/
+backend/apps/api/
   src/
     main.api.ts                    ponto de entrada da API (HTTP + WebSocket)
     main.worker.ts                 ponto de entrada do worker (sem HTTP)
@@ -152,7 +152,7 @@ apps/api/
   package.json
 ```
 
-Fora do `apps/api`: `packages/shared-types` (esquemas Zod, DTOs de entrada, enums de estado e códigos de erro), `packages/config` (ESLint, TypeScript, Prettier). Migrações SQL ficam fora de `src` (pasta `db/migracoes/` do `apps/api`, local exato Proposta, ADR-008 e `04-banco-de-dados`).
+Fora do `backend/apps/api`: `packages/shared-types` na raiz (tipos e esquemas estruturais gerados de OpenAPI/AsyncAPI, incluindo entrada e resposta por perfil, estados e códigos públicos de erro), `packages/config` na raiz (presets ESLint, TypeScript e Prettier; sem ambiente ou segredos). Decisão de Pedro em 14/11/2026, ADR-015; backend e frontend participam de um workspace pnpm único. Migrações SQL ficam fora de `src` (pasta `db/migracoes/` do `backend/apps/api`, local exato Proposta, ADR-008 e `04-banco-de-dados`).
 
 ### 3.2 Um módulo expandido: `reservas`
 
@@ -234,14 +234,14 @@ O PRD 3 lista **11 perfis**. A matriz de permissões tem 7 colunas (Morador, Sí
 
 ### 3.4 Regra de ouro: a pasta organiza, não protege
 
-- **Controllers de interface não têm regra de negócio.** Só leem a requisição, validam a entrada com o esquema Zod de `shared-types`, chamam **um** caso de uso do módulo e montam o DTO de resposta do perfil. Nenhum `if` sobre regra de domínio (prazo, estado, valor, quem pode julgar) mora em controller.
+- **Controllers de interface não têm regra de negócio.** Só leem a requisição, validam a entrada com o esquema gerado do contrato em `shared-types`, chamam **um** caso de uso do módulo e montam o DTO de resposta do perfil. Nenhum `if` sobre regra de domínio (prazo, estado, valor, quem pode julgar) mora em controller.
 - **A autorização é sempre validada nos guards e na RLS, nunca pela pasta.** Estar em `morador/` não dá nem tira permissão. Todo controller, em qualquer pasta, passa pela cadeia de guards (D11) e abre o `TenantContext`; a RLS é a última barreira (arq. 3.3.1, 4.3). Mover um arquivo de pasta não pode abrir acesso.
-- **O DTO de resposta é por perfil, na interface.** O caso de uso devolve dados do domínio; cada pasta de interface os converte em DTO sem campos de identidade protegida (arq. 3.9.2; exemplo: o alvo da reclamação nunca recebe o autor, ADR-010). O teste de vazamento roda por DTO e por perfil (seção 4.8).
+- **O mapeador de resposta é por perfil, na interface.** O tipo de transporte é gerado do contrato em `packages/shared-types`, sem redefinição manual. O caso de uso devolve dados do domínio; cada pasta de interface os converte no DTO gerado sem campos de identidade protegida (arq. 3.9.2; exemplo: o alvo da reclamação nunca recebe o autor, ADR-010). O teste de vazamento roda por DTO e por perfil (seção 4.8).
 - **Esconder botão não é controle de acesso** (UF 15); a API valida sempre.
 
 ## 4. Padrões de código
 
-**Decidido (AGENTS.md):** o código segue SOLID, GRASP e GoF, com inversão de dependência por portas e adaptadores. Todo o resto desta seção é Proposta, salvo onde marcado.
+**Decidido (AGENTS.md):** o código segue SOLID, GRASP e GoF, com inversão de dependência por portas e adaptadores. As demais escolhas desta seção são propostas, salvo a fonte dos contratos e a geração compartilhada aprovadas no ADR-015 ou onde marcado.
 
 ### 4.1 Camadas e fluxo de requisição
 
@@ -254,7 +254,7 @@ Fluxo oficial de D11 (Proposta), com a pasta onde cada etapa vive:
 | 3. Contexto | Vínculo com `X-Condominio-Id` e `X-Unidade-Id`; senão `403` | `compartilhado/autorizacao/` |
 | 4. Perfil e papel por mandato | Papel efetivo hoje; substituição é dado; senão `403` | `compartilhado/autorizacao/` |
 | 5. Unidade | Dono do dado, por exemplo SEG-17 | `compartilhado/autorizacao/` |
-| 6. Validação | Esquema Zod de `shared-types` | `interfaces/http/<perfil>/` |
+| 6. Validação | Esquema gerado do contrato em `shared-types` | `interfaces/http/<perfil>/` |
 | 7. TenantContext | `BEGIN` e `set_config(..., true)` com condomínio, usuário, unidade e papel | `compartilhado/tenant/` |
 | 8. Caso de uso | Aplica regras RN, usa repositórios e portas | `modulos/<dominio>/aplicacao/` |
 | 9. Mesma transação | Grava `evento_saida` e `auditoria` junto da mudança | `compartilhado/outbox/`, `modulos/auditoria/` |
@@ -263,7 +263,7 @@ Fluxo oficial de D11 (Proposta), com a pasta onde cada etapa vive:
 ```mermaid
 flowchart LR
     C["Controller de interface<br/>(só traduz)"] --> G["Guards<br/>(cadeia D11)"]
-    G --> V["Validação Zod"]
+    G --> V["Validação estrutural pelo contrato"]
     V --> T["TenantContext.executar(...)"]
     T --> U["Caso de uso"]
     U --> D["Dominio<br/>(regras)"]
@@ -308,7 +308,7 @@ Exemplos concretos, todos Proposta:
 | --- | --- |
 | Idioma | Domínio em **português** (`reserva`, `cobranca`, `vinculo`), coerente com as RN e o MER/DER; termos técnicos já usados nos docs em inglês (`TenantContext`, `PaymentGateway`, `Mailer`, `outbox`) ficam como estão |
 | Pastas e arquivos | `kebab-case`, sem acento (`conselho-fiscal`, `criar-reserva.caso-de-uso.ts`) |
-| Sufixos | `.module.ts`, `.controller.ts`, `.guard.ts`, `.caso-de-uso.ts`, `.entidade.ts`, `.repositorio.ts` (porta) e `.repositorio-sql.ts` (implementação), `.porta.ts`, `.adaptador.ts`, `.rotina.ts`, `.evento.ts`, `.consumidor.ts`, `.dto.ts` (resposta por perfil), `.schema.ts` (Zod, em `shared-types`), `.spec.ts` (unidade, ao lado do arquivo) |
+| Sufixos | `.module.ts`, `.controller.ts`, `.guard.ts`, `.caso-de-uso.ts`, `.entidade.ts`, `.repositorio.ts` (porta) e `.repositorio-sql.ts` (implementação), `.porta.ts`, `.adaptador.ts`, `.rotina.ts`, `.evento.ts`, `.consumidor.ts`, `.dto.ts` (mapeamento da resposta por perfil, sem redefinir contrato), artefatos de tipos/esquemas gerados em `shared-types` (nomes definidos com o gerador), `.spec.ts` (unidade, ao lado do arquivo) |
 | Classes | `PascalCase` (`CriarReservaCasoDeUso`, `AdaptadorAsaas`, provedor escolhido em 10/11/2026) |
 | Eventos | `<entidade>.<fato no passado>` (`visitante.cadastrado`, `pagamento.confirmado`, nomes dos docs) |
 | Parâmetros | Chaves do catálogo RN 13 exatamente como estão (`reserva.lembrete_antecedencia_horas`) |
@@ -316,11 +316,11 @@ Exemplos concretos, todos Proposta:
 
 ### 4.4 Validação de entrada
 
-**Proposta (arq. 3.3):** esquemas Zod em `packages/shared-types`, os mesmos no app e na API. O controller valida com o esquema antes de chamar o caso de uso; valor fora da faixa de parâmetro é recusado com a faixa na mensagem (RN 13). Regras que dependem de dados (ex.: "data não futura nem em mês fechado", RN-FI) ficam no domínio e no banco, não só no esquema. Valores monetários em inteiros, centavos (arq. 3.6, RN 12).
+**Decisão de Pedro em 14/11/2026 (ADR-015):** tipos e esquemas estruturais gerados a partir de OpenAPI (HTTP) e AsyncAPI (tempo real), em `packages/shared-types`, compartilhados pelo app e pela API. Não manter Zod/DTOs manuais equivalentes como segunda fonte. Gerador, versão e eventual saída Zod dependem de PoC que preserve a semântica dos contratos, antes da implementação; ver arquitetura 5.3. Regeneração determinística e testes de conformidade serão obrigatórios no CI futuro. O controller valida com o esquema antes de chamar o caso de uso; valor fora da faixa de parâmetro é recusado com a faixa na mensagem (RN 13). Regras que dependem de dados (ex.: "data não futura nem em mês fechado", RN-FI) ficam no domínio e no banco, não só no esquema. Valores monetários em inteiros, centavos (arq. 3.6, RN 12).
 
 ### 4.5 Tratamento de erros padronizado
 
-Formato único de erro (Proposta): `{ codigo, mensagem, detalhes?, request_id }`, com `codigo` definido em `shared-types` e o texto mostrado ao usuário vindo dos padrões do Design System (UF 15 e DS 13.4). O filtro global em `compartilhado/erros/` converte erros de domínio e de infraestrutura.
+Formato único de erro (Proposta): `{ codigo, mensagem, detalhes?, request_id }`, com `codigo` definido no contrato e gerado em `shared-types` e o texto mostrado ao usuário vindo dos padrões do Design System (UF 15 e DS 13.4). O filtro global em `compartilhado/erros/` converte erros de domínio e de infraestrutura.
 
 | Situação | HTTP | Origem |
 | --- | --- | --- |
@@ -328,7 +328,7 @@ Formato único de erro (Proposta): `{ codigo, mensagem, detalhes?, request_id }`
 | Sem vínculo com o condomínio ou a unidade; sem permissão para o papel efetivo | `403` | Guards de contexto, papel e unidade; UF 15 |
 | Versão do app abaixo do mínimo | `426` | Guard de versão (Proposta, D11); UF 15 ("Atualize o app para continuar.") |
 | Recurso de outro condomínio | `404` | Indistinguível de "não existe", nunca `403` que confirme existência (arq. 4.11) |
-| Entrada inválida | `400` | Validação Zod |
+| Entrada inválida | `400` | Validação estrutural pelo contrato |
 | Regra de negócio violada (ex.: horário fora da antecedência) | `422` | Erro de domínio (código HTTP da regra de negócio: Proposta) |
 | Conflito (horário já reservado, dado alterado por outra pessoa, voto repetido) | `409` | RN-RE-04, `EXCLUDE` no banco, UF 15 ("Estas informações mudaram...") |
 | Limite de taxa excedido | `429` | Lacuna de limites (arq. 3.3); proposta de partida por IP e e-mail |

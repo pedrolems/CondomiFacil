@@ -34,10 +34,10 @@ As regras de produto prevalecem sobre uma opção visual ou exemplo de story. O 
 
 | Camada | Conteúdo | Limite |
 | --- | --- | --- |
-| `packages/design-tokens` | Paleta, temas, tipografia, espaçamento, raios e movimento das seções 4 a 9 do DS | Sem React, API, sessão ou regras de negócio; valores centralizados |
-| `packages/ui` | Componentes base, layout e apresentações puras reutilizáveis | Recebe propriedades e callbacks; não consulta API, banco local, cache, sessão ou SDK de pagamento |
-| `apps/mobile/src/modulos/<dominio>/componentes` | Composições que conhecem a linguagem e a projeção autorizada do domínio | Reutiliza a base; casos de uso e camada de dados coordenam efeitos, prazos e permissões |
-| `apps/mobile/src/compartilhado/componentes` | Composições usadas em vários módulos do app | Só promover para `packages/ui` quando a dependência de domínio puder ser removida |
+| `frontend/packages/design-tokens` | Paleta, temas, tipografia, espaçamento, raios e movimento das seções 4 a 9 do DS | Sem React, API, sessão ou regras de negócio; valores centralizados |
+| `frontend/packages/ui` | Componentes base, layout e apresentações puras reutilizáveis | Recebe propriedades e callbacks; não consulta API, banco local, cache, sessão ou SDK de pagamento |
+| `frontend/apps/mobile/src/modulos/<dominio>/componentes` | Composições que conhecem a linguagem e a projeção autorizada do domínio | Reutiliza a base; casos de uso e camada de dados coordenam efeitos, prazos e permissões |
+| `frontend/apps/mobile/src/compartilhado/componentes` | Composições usadas em vários módulos do app | Só promover para `frontend/packages/ui` quando a dependência de domínio puder ser removida |
 | Catálogos Storybook | Stories, documentação de uso, fixtures e provedores de demonstração | Somente desenvolvimento/revisão; não constitui fonte de dados nem parte da navegação do produto |
 
 Não criar uma cópia de cada componente por perfil. A mesma base atende aos perfis; a aplicação fornece apenas as ações e os dados autorizados naquele contexto. Esconder um botão não substitui a autorização da API.
@@ -61,7 +61,7 @@ SOLID se aplica à responsabilidade de cada componente e à separação de apres
 Os caminhos abaixo são futuros e complementam a árvore de `frontend.md`; não representam arquivos já criados.
 
 ```text
-packages/
+frontend/packages/
   design-tokens/
     src/
       palette.ts
@@ -89,7 +89,7 @@ packages/
           DataTable.stories.tsx
         ...
       index.ts
-apps/
+frontend/apps/
   mobile/
     src/
       modulos/<dominio>/componentes/
@@ -103,7 +103,7 @@ apps/
     fixtures/                   exemplos sintéticos comuns ao catálogo
 ```
 
-O DS 17 usa `src/design/tokens.ts` e `src/design/components` para ilustrar tokens e componentes. Nesta proposta de monorepo, o primeiro papel é distribuído nos arquivos de `packages/design-tokens`, e o segundo fica em `packages/ui`. A separação em arquivos não cria fontes independentes de valores. Os nomes técnicos existentes no DS, como `Button`, `Card` e `StatusBadge`, são preservados; nomes de stories, rótulos e documentação permanecem em português do Brasil.
+O DS 17 usa `src/design/tokens.ts` e `src/design/components` para ilustrar tokens e componentes. Nesta proposta de monorepo, o primeiro papel é distribuído nos arquivos de `frontend/packages/design-tokens`, e o segundo fica em `frontend/packages/ui`. A separação em arquivos não cria fontes independentes de valores. Os nomes técnicos existentes no DS, como `Button`, `Card` e `StatusBadge`, são preservados; nomes de stories, rótulos e documentação permanecem em português do Brasil.
 
 O catálogo web importa as mesmas exportações da biblioteca e, quando necessário, composições isoladas do app com dependências substituídas por fixtures. O aplicativo não importa o catálogo, stories ou suas configurações. O caminho exato de inicialização nativa deve ser validado com o SDK Expo e a versão Storybook escolhidos na implementação.
 
@@ -155,7 +155,7 @@ As propriedades listadas são contratos de apresentação propostos, não uma AP
 | `DataTable` | Colunas e linhas autorizadas, ordenação/filtros/seleção e paginação controlados | Expandida e apresentação em cartões na faixa compacta; cabeçalhos semânticos, números à direita, valores anulados com selo além do risco, vazio/erro/carregando. Página não representa total exportável | [10.22 Tabela](../02-design/01-design-system.md#1022-tabela-web), 11.9 e 11.15 |
 | `Onboarding` | Sequência recebida de 3 a 5 etapas, índice, Continuar/Pular e callbacks | Por perfil, etapa em texto, primeira/última e revisão pela ajuda; persistência da conclusão fica no módulo acesso (RF-AC-08) | [10.24 Onboarding](../02-design/01-design-system.md#1024-onboarding) |
 
-`StatusBadge`, `ScoreMeter`, `SyncIndicator` e similares podem ter uma apresentação pura em `packages/ui`; a seleção da projeção, dos estados permitidos e das ações pertence ao módulo. Mapas de estados compartilhados devem ter uma única definição tipada, coerente com DS 4.5/17 e contratos, sem copiar regras entre stories, telas e perfis.
+`StatusBadge`, `ScoreMeter`, `SyncIndicator` e similares podem ter uma apresentação pura em `frontend/packages/ui`; a seleção da projeção, dos estados permitidos e das ações pertence ao módulo. Mapas de estados compartilhados devem ter uma única definição tipada, coerente com DS 4.5/17 e contratos, sem copiar regras entre stories, telas e perfis.
 
 ## 4. Composições reutilizáveis por domínio
 

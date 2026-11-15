@@ -344,7 +344,7 @@ Cadeia de guards do fluxo oficial de `01-backend.md` 4.1 (Proposta). A pasta org
 | 3. Contexto | Vínculo do usuário com `X-Condominio-Id` e `X-Unidade-Id` | `403` |
 | 4. Perfil e papel por mandato | Papel efetivo naquele condomínio, hoje. A substituição do síndico é dado (RN-CD-12, RN-CD-28) | `403` |
 | 5. Unidade | Dono do dado (por exemplo, situação financeira só a quem a SEG-17 permite) | `403` |
-| 6. Validação | Esquema Zod de `shared-types` | `400` |
+| 6. Validação | Esquema gerado do contrato em `shared-types` | `400` |
 | 7. TenantContext | Transação com condomínio, usuário, unidade e papel; a RLS é a última barreira | `404` quando o recurso é de outro condomínio |
 
 ### Quais rotas levam cabeçalhos de contexto (Proposta)
@@ -509,7 +509,7 @@ Formato único (Proposta; `01-backend.md` 4.5):
 
 | Situação | HTTP | Origem |
 | --- | --- | --- |
-| Entrada inválida | `400` | Validação Zod |
+| Entrada inválida | `400` | Validação estrutural pelo contrato |
 | Sessão expirada ou inválida | `401` | Guard de autenticação |
 | Sem vínculo com o condomínio ou a unidade; sem permissão para o papel efetivo | `403` | Guards de contexto, papel e unidade |
 | Recurso inexistente ou de outro condomínio | `404` | Indistinguíveis (arquitetura 4.11) |
@@ -522,7 +522,7 @@ Formato único (Proposta; `01-backend.md` 4.5):
 
 ### Valores de `codigo` transversais (Proposta)
 
-Em `SNAKE_MAIUSCULO`, definidos em `shared-types`. Textos de UF 15 são palavra por palavra; onde a coluna "Texto" diz Proposta, o texto não existe em UF 15 e precisa de validação do Pedro.
+Em `SNAKE_MAIUSCULO`, definidos no contrato e gerados em `shared-types`. Textos de UF 15 são palavra por palavra; onde a coluna "Texto" diz Proposta, o texto não existe em UF 15 e precisa de validação do Pedro.
 
 | `codigo` | HTTP | Texto | Origem do texto |
 | --- | --- | --- | --- |

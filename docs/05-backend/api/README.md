@@ -2,6 +2,8 @@
 
 **Estado:** Proposta de 10/11/2026, não aceita pelo Pedro. É o contrato escrito antes do código (design-first); não existe backend. Tudo o que não vem de decisão do Pedro nem do PRD está marcado **Proposta**.
 
+**Organização e fonte dos contratos — decisão de Pedro em 14/11/2026:** [ADR-015](../../03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md). OpenAPI 3.1 é a fonte dos contratos HTTP e AsyncAPI 3.0 a fonte das mensagens de tempo real. Tipos e esquemas estruturais serão gerados em `packages/shared-types` na raiz, compartilhados pelo backend/frontend no workspace pnpm único. Não manter esquemas Zod/DTOs manuais equivalentes como segunda fonte. Ferramenta e versão dependem de PoC antes da implementação, cobrindo referências, recursos JSON Schema usados, entradas, respostas por perfil, eventos e consumo Node/Expo. O CI futuro validará as fontes, regenerará os artefatos de forma determinística e detectará diferenças; testes de conformidade complementarão a geração. Nenhum gerador, esquema ou CI está implementado. Essa decisão não aceita o conteúdo ainda proposto dos contratos.
+
 ## Índice dos arquivos
 
 | Arquivo | Conteúdo | Estado |

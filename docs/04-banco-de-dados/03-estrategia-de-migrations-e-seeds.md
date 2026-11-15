@@ -28,7 +28,7 @@ Uma **migration** é uma mudança ordenada e rastreável no esquema ou em dados 
 | [ADR-008](../03-arquitetura/adr/008-orm-query-builder-migracoes.md) | Controle explícito da conexão/transação; Kysely ou Drizzle ainda dependem de verificação; migrations precisam expressar recursos nativos do PostgreSQL |
 | [MER/DER §§2, 4, 5, 6, 9 e 10](01-mer-e-der.md) | Histórico, vínculos, integridade composta, operações indivisíveis, sigilo e pendências antes do modelo físico |
 | [Política de acesso §§3, 5, 6 e 8](02-politica-de-acesso-a-dados.md) | Acesso por ação, tenant, unidade, função e vigência; privilégios de banco não equivalem aos perfis do produto |
-| [Backend §§3.1, 4.7, 4.9 e 6.7](../05-backend/01-backend.md) | Monólito NestJS; diretório futuro `apps/api/db/migracoes/`; outbox, auditoria e testes com PostgreSQL real |
+| [Backend §§3.1, 4.7, 4.9 e 6.7](../05-backend/01-backend.md) | Monólito NestJS; diretório futuro `backend/apps/api/db/migracoes/`; outbox, auditoria e testes com PostgreSQL real |
 | [ADR-004](../03-arquitetura/adr/004-nuvem-regiao-residencia-dados.md) e [ADR-013](../03-arquitetura/adr/013-rpo-rto-backup-pitr.md) | Supabase/Render gratuitos apenas para construção em dev/staging; piloto exige revisão de recuperação e custo |
 | [RN §§11 a 14](../01-produto/03-regras-de-negocio.md), [PRD](../01-produto/02-prd.md) e [histórias](../01-produto/04-historias-de-usuario.md) | Planos, parâmetros, finanças, rotinas, requisitos de isolamento, backup e critérios de aceite |
 | [Complementação de 12/11](../01-produto/05-decisoes-de-complementacao.md) e [autogestão de 13/11](../01-produto/06-autogestao-e-conducao-eleitoral.md) | Episódios de score, dinheiro tardio, exportação assíncrona, modalidade autogestão e condução eleitoral, preservando questões ainda abertas |
@@ -58,7 +58,7 @@ Os padrões de projeto servem a responsabilidades concretas: **Factory** cria da
 ### 3.1 Estrutura futura
 
 ```text
-apps/api/
+backend/apps/api/
   db/
     migracoes/
       V202611130001__criar_estrutura_inicial.sql
@@ -122,7 +122,7 @@ No Supabase, preferir conexão direta PostgreSQL com TLS e validação do certif
 Exemplo sem segredos, destinado à futura configuração fixada e testada:
 
 ```properties
-flyway.locations=filesystem:apps/api/db/migracoes
+flyway.locations=filesystem:backend/apps/api/db/migracoes
 flyway.defaultSchema=infra_migracoes
 flyway.schemas=infra_migracoes,condomifacil
 flyway.createSchemas=false
@@ -339,15 +339,15 @@ O tester solicita ao responsável da rodada um ambiente de teste identificado e 
 Comandos ilustrativos, **não disponíveis nem executados hoje**:
 
 ```text
-flyway -configFiles=apps/api/db/flyway.conf info
-flyway -configFiles=apps/api/db/flyway.conf migrate
-flyway -configFiles=apps/api/db/flyway.conf validate
+flyway -configFiles=backend/apps/api/db/flyway.conf info
+flyway -configFiles=backend/apps/api/db/flyway.conf migrate
+flyway -configFiles=backend/apps/api/db/flyway.conf validate
 
-pnpm --filter api db:seed --cenario autogestao --manifesto rodada-001
-pnpm --filter api db:verificar
+pnpm --filter @condomifacil/api db:seed --cenario autogestao --manifesto rodada-001
+pnpm --filter @condomifacil/api db:verificar
 ```
 
-Os scripts `pnpm` são contratos de ergonomia propostos, não definição do gerenciador de pacotes do monorepo nem comandos que já existam. A implementação escolherá o gerenciador conforme o repositório futuro. Nenhum comando de reset de banco hospedado será exposto ao tester.
+O pnpm foi escolhido por Pedro em 14/11/2026 (ADR-015), com workspace e lockfile únicos na raiz. Os scripts acima continuam contratos de ergonomia propostos: ainda não existem e não podem ser executados nesta estrutura preparatória. Nenhum comando de reset de banco hospedado será exposto ao tester.
 
 ## 10. Critérios de validação e pendências
 

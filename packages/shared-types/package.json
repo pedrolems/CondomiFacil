@@ -1,0 +1,5 @@
+{
+  "name": "@condomifacil/shared-types",
+  "private": true,
+  "description": "Tipos e esquemas de transporte a gerar dos contratos OpenAPI e AsyncAPI."
+}

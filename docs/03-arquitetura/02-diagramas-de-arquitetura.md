@@ -427,7 +427,7 @@ Fontes: arq. 6.1 a 6.9; RNF-09, RNF-13, RNF-17, RNF-18; SEG-01, SEG-02; ADR-004,
 
 **Resumo:** o backend é um monólito modular (Proposta). Dezenove módulos de domínio, entre eles `sync` (Proposta deste documento), usam uma camada interna comum (`TenantContext`, guards, outbox, portas de gateway e e-mail). `tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio. Todos os nomes são Proposta (arq. 3.3).
 
-**Regras comuns a todos os módulos (Proposta):** acesso a dados só pelo `TenantContext`; validação com Zod em `shared-types`; eventos de domínio no outbox `evento_saida`; auditoria na mesma transação; papéis resolvidos no servidor a cada requisição (JWT sem papéis, ADR-007).
+**Regras comuns a todos os módulos (Proposta):** acesso a dados só pelo `TenantContext`; validação com esquemas gerados dos contratos em `shared-types` (ADR-015); eventos de domínio no outbox `evento_saida`; auditoria na mesma transação; papéis resolvidos no servidor a cada requisição (JWT sem papéis, ADR-007).
 
 ### 4.1 Visão geral dos módulos (D6)
 
@@ -724,7 +724,7 @@ flowchart TB
     CTX["Guard de contexto<br/>vínculo com condomínio e unidade"]
     PAPEL["Guard de perfil e papel por mandato<br/>papel efetivo hoje; substituição é dado"]
     UNID["Guard de unidade<br/>dono do dado, ex.: SEG-17"]
-    VALID["Validação de entrada<br/>Zod de shared-types"]
+    VALID["Validação de entrada<br/>Esquemas gerados de shared-types"]
     TCTX["TenantContext<br/>BEGIN e set_config com condominio_id,<br/>usuario_id, unidade_id e papel"]
     SERV["Serviço do módulo de domínio<br/>regras RN"]
     BANCO[("PostgreSQL, papel app_user<br/>RLS forçada, falha fechada")]

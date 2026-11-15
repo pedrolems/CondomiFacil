@@ -6,6 +6,12 @@ O CondomiFacil é um projeto de aplicativo de gestão de condomínios para o Bra
 
 Autor e responsável pelo produto: [Pedro Lemos](https://github.com/pedrolems).
 
+## Organização técnica
+
+A estrutura preparatória usa um workspace pnpm na raiz, mantendo [backend](backend/README.md) e [frontend](frontend/README.md). [Contratos compartilhados](packages/shared-types/README.md) e [presets de ferramentas](packages/config/README.md) têm uma única localização em `packages/`. OpenAPI/AsyncAPI serão a fonte de geração dos tipos e esquemas; ferramenta e versões dependem de validação antes da implementação. Turborepo será configurado quando houver tarefas executáveis. Decisão de Pedro em 14/11/2026: [ADR-015](docs/03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md).
+
+Ainda não há dependências, lockfile ou scripts executáveis. Antes da primeira instalação, fixar Node/pnpm e `packageManager`, então gerar um único lockfile real na raiz. O protótipo continua independente dessa preparação.
+
 ## Navegação
 
 - [Como rodar localmente](#como-rodar-localmente)

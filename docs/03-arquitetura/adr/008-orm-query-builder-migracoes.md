@@ -16,7 +16,7 @@ Restrições que vêm da arquitetura multi-tenant ([ADR-001](001-multi-tenant-rl
 - Recursos específicos de PostgreSQL entram no desenho: RLS, `EXCLUDE USING gist` para conflito de reservas (sem sobreposição de área e intervalo), gatilhos de imutabilidade em `lancamento` e `auditoria`, funções `SECURITY DEFINER`, `LISTEN/NOTIFY`. O código de migração precisa expressá-los em SQL.
 - Migrações rodam com papel **dono**, distinto do `app_user`, em etapa separada do deploy. Somente para frente, no padrão expandir e contrair, com índices em modo concorrente (arquitetura 6.6).
 - Toda migração que cria tabela de tenant inclui `condominio_id`, RLS e política; o teste de catálogo de RLS quebra o build se faltar.
-- Tipos compartilhados entre app e API por esquemas Zod em `packages/shared-types`.
+- Tipos e esquemas estruturais compartilhados entre app e API serão gerados de OpenAPI/AsyncAPI em `packages/shared-types`, conforme ADR-015 (decisão de Pedro em 14/11/2026); o gerador depende de PoC e não há Zod manual como fonte concorrente.
 
 ## Opções consideradas
 

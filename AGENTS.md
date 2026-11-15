@@ -100,10 +100,70 @@ HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && py
 - Git: branch de trabalho `docs/design-system-e-user-flows`; também existem `develop`, `staging` e `main`. **Nenhum commit vai para uma branch sem validação do Pedro.** Antes de commitar ou enviar ao `origin`, mostre o que será incluído e peça aprovação; o Pedro diz para qual ou quais branches o commit deve ir. Sem essa indicação, não commite, não faça merge ou fast-forward entre branches e não dê push. Aprovação para uma branch ou para um commit não vale para os próximos. Commits em português, descrevendo o conjunto da mudança.
 - `graphify-out/` é gerado pela skill graphify e não vai para o git.
 
+## Padrão de commits e pull requests
+
+### Commits
+
+Adotar **Conventional Commits**: `tipo(escopo): descrição`. O tipo e o escopo ficam em minúsculas; a descrição é em português, começa com verbo no infinitivo e resume o resultado, sem ponto final. O escopo identifica o módulo ou documento e pode ser omitido quando a mudança for transversal.
+
+| Tipo | Quando usar |
+| --- | --- |
+| `feat` | Nova funcionalidade |
+| `fix` | Correção de comportamento ou defeito |
+| `docs` | Documentação, regras e contratos escritos antes da implementação |
+| `refactor` | Reorganização de código sem mudar o comportamento |
+| `test` | Criação ou ajuste de testes |
+| `style` | Formatação de código sem mudança de comportamento |
+| `perf` | Melhoria de desempenho |
+| `build` | Dependências, empacotamento e ferramentas de build |
+| `ci` | Automação de integração e entrega |
+| `chore` | Manutenção que não se encaixa nos tipos anteriores |
+| `revert` | Reversão de uma alteração, identificando o commit revertido no corpo |
+
+Exemplos: `docs(readme): incluir manuais por perfil`, `docs(api): alinhar contrato de reservas` e `fix(portaria): corrigir registro de saída offline`. Para uma quebra de compatibilidade, usar `!` antes dos dois-pontos e explicar o impacto e a migração no corpo com `BREAKING CHANGE:`.
+
+Cada commit deve formar uma mudança coerente e revisável. No corpo, quando necessário, explicar o motivo, os IDs de requisitos/regras relacionados e os impactos. **O formato não autoriza commit ou push:** continuam obrigatórias a aprovação do Pedro e a indicação das branches conforme a regra de Git acima.
+
+### Pull requests (PRs)
+
+Usar título no mesmo formato dos commits, descrevendo o conjunto final da mudança. O texto fica em português e segue este modelo, com detalhe proporcional ao tamanho da alteração:
+
+```markdown
+## Problema
+Qual necessidade ou falha motivou a mudança.
+
+## Alteração
+O que passa a acontecer e quais documentos, telas ou módulos foram afetados.
+Incluir IDs de rastreabilidade quando aplicável.
+
+## Validação
+Quais verificações foram executadas e seus resultados.
+Se alguma não foi executada, informar qual e por quê.
+
+## Pendências e riscos
+Limitações, decisões pendentes ou impactos relevantes; escrever "Nenhum identificado" quando aplicável.
+```
+
+Definir a branch de destino conforme a indicação do Pedro; não presumir `main`. Ao mudar o escopo, atualizar título e descrição para refletir a entrega final. Abrir um PR não autoriza merge, promoção entre branches ou push adicional; as regras de aprovação de Git continuam valendo.
+
+## Padrão de code review
+
+- Revisar o diff e o contexto necessário, inclusive em documentação e protótipo. Priorizar regras de negócio, permissões, privacidade, isolamento de dados, fluxo offline, pagamentos, acessibilidade e rastreabilidade conforme o escopo.
+- Apresentar primeiro os achados, do mais grave para o menos grave. Cada achado usa o formato **`[P1] Título objetivo — arquivo:linha`**, seguido do cenário que causa o problema, da consequência e da evidência. Referenciar RN/RF/US quando isso sustentar a conclusão.
+- Usar **P0** para problema crítico que impede o uso ou a entrega e exige ação imediata; **P1** para falha grave que deve ser corrigida antes de integrar; **P2** para falha relevante de impacto limitado; **P3** para problema menor concreto. Não inflar a gravidade.
+- Relatar problemas introduzidos pela mudança ou diretamente afetados por ela, com evidência verificável. Não tratar preferência pessoal, risco hipotético ou decisão de produto ainda proposta como defeito confirmado. Separar dúvidas e sugestões opcionais dos achados.
+- Encerrar com as verificações feitas e as limitações da revisão. Se não houver achados, declarar **"Nenhum problema identificado na revisão"**, sem afirmar ausência garantida de defeitos.
+- A revisão não autoriza alterações fora do escopo nem substitui a validação do Pedro para commit, push ou integração entre branches.
+
 ## Delegação a subagentes
 
-- **Toda tarefa é executada por um subagente, um subagente por tarefa.** Se o Pedro pedir várias tarefas, cada uma vai para um subagente próprio.
-- O modelo da sessão não executa as tarefas. Ele orquestra os subagentes: passa o contexto, acompanha o andamento e revisa tudo o que eles alterarem ou criarem antes de reportar ao Pedro.
+- **A delegação é obrigatória: toda tarefa é executada por um subagente, um subagente por tarefa**, salvo as exceções explícitas abaixo. Se o Pedro pedir várias tarefas, cada uma vai para um subagente próprio; não concentrar pedidos independentes em um único subagente.
+- O modelo da sessão atua como **orquestrador e revisor**. Ele define as tarefas, passa o contexto, acompanha o andamento e revisa tudo o que os subagentes alterarem ou criarem antes de reportar ao Pedro. Não assume a execução de uma tarefa delegada para contornar essa regra.
+- Cada delegação deve informar: objetivo e resultado esperado, fontes e decisões já aprovadas, arquivos que podem ser alterados, limites do pedido, critérios de aceite e verificações necessárias. O subagente deve ler as instruções aplicáveis e preservar alterações preexistentes.
+- Executar tarefas em paralelo somente quando forem independentes e não disputarem os mesmos arquivos. Se houver dependência ou arquivo compartilhado, ordenar as tarefas; não sobrescrever o trabalho de outro agente nem reverter alterações alheias para resolver conflitos.
+- O subagente comunica dúvidas, necessidade de ampliar escopo e bloqueios ao orquestrador antes de decidir ou alterar além do autorizado. Quando houver pergunta ao Pedro sem resposta, o orquestrador pausa o desenvolvimento e as alterações de **todos** os subagentes, conforme as convenções de trabalho. Silêncio não permite retomada.
+- A entrega de cada subagente deve listar arquivos alterados, resultado obtido, verificações e resultados, além de pendências ou limitações. Nenhum subagente pode commitar, fazer push, merge ou promover branches sem a autorização específica do Pedro prevista na regra de Git.
+- **A entrega do subagente não é aprovação automática.** O orquestrador inspeciona os diffs, confere escopo, critérios de aceite e rastreabilidade, valida as evidências e solicita correções ao responsável quando necessário. Só então apresenta ao Pedro o resultado e eventuais pendências, sem atribuir como realizada uma verificação que não ocorreu.
 - Ficam fora desse padrão, e o modelo da sessão faz diretamente:
   - alterações simples, quando o Pedro pede só uma alteração pontual;
   - commit, push ou PR, quando o pedido é só isso (a regra de git acima continua valendo);

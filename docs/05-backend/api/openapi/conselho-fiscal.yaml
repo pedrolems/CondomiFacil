@@ -1274,9 +1274,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaIniciada:
-              summary: Uma conversa por reclamação (MER/DER 4.8; código Proposta)
+              summary: Uma conversa por reclamação (MER/DER 4.8; RN-RC-04; código padronizado em 16/11/2026, antes RECLAMACAO_CONVERSA_JA_INICIADA; código Proposta)
               value:
-                codigo: RECLAMACAO_CONVERSA_JA_INICIADA
+                codigo: RECLAMACAO_ESTADO_INVALIDO
                 mensagem: A conversa com o alvo já foi iniciada.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
             pendente:
@@ -1340,9 +1340,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaDecidida:
-              summary: Decisão única por reclamação (MER/DER 4.8; código Proposta)
+              summary: Decisão única por reclamação (MER/DER 4.8; RN-RC-04, RN-RC-05; código padronizado em 16/11/2026, antes RECLAMACAO_JA_DECIDIDA; código Proposta)
               value:
-                codigo: RECLAMACAO_JA_DECIDIDA
+                codigo: RECLAMACAO_ESTADO_INVALIDO
                 mensagem: Esta reclamação já foi decidida.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
             pendente:

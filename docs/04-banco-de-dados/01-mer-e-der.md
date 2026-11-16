@@ -34,7 +34,7 @@ O documento cobre acesso, pessoas, unidades, funções, locação, planos da pla
 | [Design System](../02-design/01-design-system.md) | Visibilidade, termos de interface e padrões de apresentação |
 | [User Flows](../02-design/02-user-flows.md) | Sequências de ação, erros e pendências da seção 17 |
 | [Arquitetura](../03-arquitetura/01-arquitetura.md) e [diagramas](../03-arquitetura/02-diagramas-de-arquitetura.md) | Propostas de isolamento, sincronização, pagamentos, arquivos e auditoria |
-| [Índice dos ADRs](../03-arquitetura/adr/README.md) | Propostas ou questões em aberto; ADRs 002 (Asaas), 004 (Supabase + Render) e 005 (Resend) aceitos em 10/11/2026, com ressalvas, e 015 (organização do repositório e fontes) aceito em 14/11/2026; os demais, incluindo o 016, seguem Propostos |
+| [Índice dos ADRs](../03-arquitetura/adr/README.md) | Propostas ou questões em aberto; ADRs 002 (Asaas), 004 (Supabase + Render) e 005 (Resend) aceitos em 10/11/2026, com ressalvas, e 015 (organização do repositório e fontes) aceito em 14/11/2026, quanto à organização e às fontes; e 016 (painel web como site estático do Render em dev e staging, com revisão obrigatória antes do piloto) aceito em 16/11/2026, com ressalvas; os demais seguem Propostos |
 | [README do protótipo](../../prototipo/README.md) | Referência de navegação e simulações, sem transformar dados fictícios em regras |
 
 O grafo de conhecimento foi consultado para localizar as relações entre documentos. Ele foi gerado antes de parte da arquitetura e serve como índice auxiliar, não como fonte normativa.

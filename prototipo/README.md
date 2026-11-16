@@ -67,7 +67,7 @@ As [19 escolhas aprovadas](../docs/01-produto/05-decisoes-de-complementacao.md) 
 
 | Onde testar | Comportamento | Escolhas |
 | --- | --- | --- |
-| Morador > Reserva paga > Cancelar | 12h exatas estão no reembolso; menos de12h avisa ausência de devolução | 1A |
+| Morador > Reserva paga > Cancelar | 12h exatas estão no reembolso; menos de 12h avisa ausência de devolução | 1A |
 | Síndico > Gestão > Cancelar pelo condomínio; Administradora > Cancelar pelo condomínio; Áreas > Bloquear para manutenção | Motivo obrigatório, autoria/auditoria em memória; Aguardando pagamento cancela sem devolução; paga registra reembolso solicitado, sem fingir devolução concluída. Sub fora da substituição é recusado também pela rota direta | 2A/3A |
 | Administradora > Recebimentos em análise | Simula dinheiro em reserva expirada/cancelada e cobrança cancelada sem reativar; registra encaminhamento assistido. Outra opção paga Emitida após vencimento antes da rotina e mostra Paga com atraso. Confirmação pelas telas Pix/cartão também preserva dinheiro de entidade cancelada/expirada | 4A/5A/6A |
 | Morador > Chamado concluído de manutenção > Reabrir; Síndico > Gestão > Manutenção > detalhe | Mantém Reaberto até triagem explícita para Orçamento/Agendado; sub fora da substituição não tria | 7A |

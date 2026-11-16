@@ -1105,9 +1105,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 ja:
-                  summary: Unidade já votou (RN-VO-01)
+                  summary: Unidade já votou (RN-VO-01; código decidido em 16/11/2026)
                   value:
-                    codigo: VOTO_UNIDADE_JA_VOTOU
+                    codigo: VOTACAO_VOTO_JA_REGISTRADO
                     mensagem: Esta unidade já votou nesta pauta.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 dadoAlterado:
@@ -1115,6 +1115,12 @@ paths:
                   value:
                     codigo: CONFLITO_DADO_ALTERADO
                     mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                encerrada:
+                  summary: Votação encerrada (RN-VO-10; código padronizado em 16/11/2026, antes VOTACAO_ENCERRADA, 422)
+                  value:
+                    codigo: VOTACAO_ESTADO_INVALIDO
+                    mensagem: Esta votação já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
@@ -1137,12 +1143,6 @@ paths:
                   value:
                     codigo: VOTO_INQUILINO_PAUTA_COM_DESPESA_EXTRAORDINARIA
                     mensagem: Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                encerrada:
-                  summary: Votação encerrada (RN-VO-10)
-                  value:
-                    codigo: VOTACAO_ENCERRADA
-                    mensagem: Esta votação já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
@@ -1729,6 +1729,22 @@ paths:
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Cobrança já paga ou cancelada (RN 12.2; código padronizado em 16/11/2026, antes COBRANCA_NAO_PAGAVEL, 422)
+                  value:
+                    codigo: COBRANCA_ESTADO_INVALIDO
+                    mensagem: Esta cobrança não está em aberto.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -1744,12 +1760,6 @@ paths:
                   value:
                     codigo: COBRANCA_MEIO_NAO_ACEITO
                     mensagem: Esta forma de pagamento não está ativa neste condomínio.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Cobrança já paga ou cancelada
-                  value:
-                    codigo: COBRANCA_NAO_PAGAVEL
-                    mensagem: Esta cobrança não está em aberto.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)

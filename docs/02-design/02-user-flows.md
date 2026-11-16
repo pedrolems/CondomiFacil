@@ -463,7 +463,7 @@ flowchart TD
 | Cancelar depois do prazo de reembolso | "Faltam menos de 12h. Se cancelar, o valor não será devolvido." | Confirma ou mantém | RN-CA-03 |
 | Reembolso falhou no gateway | Push: "Seu reembolso está atrasado. Já estamos resolvendo." A administradora recebe alerta | Acompanha no histórico | RN-CA-04, SEG-17 |
 | Reserva já começou | Sem botão de cancelar | — | RN-CA-01 |
-| Chegou pelo atalho do push de lembrete | Detalhe da reserva com "Cancelar reserva"; vale o mesmo aviso de reembolso (integral até 12h antes, depois sem reembolso). Cancelar não tira pontos | Confirma ou mantém | RN-RE-14, RN-CA-02, RN-CA-03 |
+| Chegou pelo atalho do push de lembrete | Detalhe da reserva com "Cancelar reserva"; vale o mesmo aviso de reembolso (integral com 12h ou mais de antecedência, igualdade incluída; com menos de 12h, sem reembolso). Cancelar não tira pontos | Confirma ou mantém | RN-RE-14, RN-CA-02, RN-CA-03 |
 
 **Decisão de 12/11/2026:** cancelamento pelo condomínio é executado pelo síndico, subsíndico em substituição, administradora ou suporte autorizado, com motivo obrigatório, autoria e auditoria. Aguardando pagamento também vira Cancelada pelo condomínio; sem recebimento, não há devolução. Recebimento posterior à expiração/cancelamento é registrado e abre pendência assistida, sem recuperar horário, reativar reserva ou devolver automaticamente.
 

@@ -205,9 +205,7 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
-        '422':
-          description: Regra violada.
+          description: Conflito de estado ou de dado.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -217,10 +215,16 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 estado:
-                  summary: Chamado já concluído
+                  summary: Chamado já concluído (RN-CH-04; código padronizado em 16/11/2026, antes CHAMADO_ESTADO_NAO_PERMITE_ATENDIMENTO, 422)
                   value:
-                    codigo: CHAMADO_ESTADO_NAO_PERMITE_ATENDIMENTO
+                    codigo: CHAMADO_ESTADO_INVALIDO
                     mensagem: Este chamado não está aberto para atendimento.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -232,6 +236,7 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro503
       x-rastreabilidade:
       - RF-CH-02
+      - RN-CH-04
       - US-CH-02
   /v1/limpeza/chamados/{chamado_id}/conclusao:
     post:
@@ -476,7 +481,27 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+          description: Conflito de estado ou de dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                emAndamento:
+                  summary: Não comparecimento em reserva Em andamento (RN-RE-13; código padronizado em 16/11/2026, antes VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO, 422)
+                  value:
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: O uso já foi constatado nesta reserva.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra violada.
           headers:
@@ -492,12 +517,6 @@ paths:
                   value:
                     codigo: VISTORIA_NAO_COMPARECIMENTO_ANTES_DO_FIM
                     mensagem: O não comparecimento só pode ser registrado depois do fim do horário.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                emAndamento:
-                  summary: Não comparecimento em reserva Em andamento
-                  value:
-                    codigo: VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO
-                    mensagem: O uso já foi constatado nesta reserva.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 checklist:
                   summary: Cumprida sem checklist (obrigatoriedade Proposta)

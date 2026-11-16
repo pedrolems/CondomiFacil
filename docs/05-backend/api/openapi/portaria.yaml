@@ -504,6 +504,12 @@ paths:
                     codigo: CONFLITO_DADO_ALTERADO
                     mensagem: Estas informações mudaram. Atualizamos a tela.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estadoInvalido:
+                  summary: Visita que já entrou (RN 8.3; código padronizado em 16/11/2026, antes VISITA_ESTADO_NAO_PERMITE_ENTRADA, 422)
+                  value:
+                    codigo: VISITA_ESTADO_INVALIDO
+                    mensagem: Esta visita não está esperando entrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra violada no registro de entrada.
           headers:
@@ -522,12 +528,6 @@ paths:
                     detalhes:
                     - campo: decisao_bloqueio.motivo
                       mensagem: Informe o motivo.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estadoInvalido:
-                  summary: Visita que já entrou
-                  value:
-                    codigo: VISITA_ESTADO_NAO_PERMITE_ENTRADA
-                    mensagem: Esta visita não está esperando entrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -634,7 +634,7 @@ paths:
     post:
       operationId: portariaRegistrarSaida
       summary: Registra a saída de um visitante
-      description: Registra a saída, em 1 toque e com Desfazer (RF-VI-06, RN-VI-17). Só vale para visita "Entrou" ou "Autorizado por interfone" (RN 8.3). Sem internet, vai pela fila de `POST /v1/sync` com tipo `saida_visita` (RN-OF-03). Visita já encerrada pela rotina "saída não registrada" responde `422` aqui; na sincronização vira no-op com aviso (Proposta, arquitetura 3.1.1).
+      description: Registra a saída, em 1 toque e com Desfazer (RF-VI-06, RN-VI-17). Só vale para visita "Entrou" ou "Autorizado por interfone" (RN 8.3). Sem internet, vai pela fila de `POST /v1/sync` com tipo `saida_visita` (RN-OF-03). Visita já encerrada pela rotina "saída não registrada" responde `409` `VISITA_ESTADO_INVALIDO` aqui (decisão de 16/11/2026, guia seção 8); na sincronização vira no-op com aviso (Proposta, arquitetura 3.1.1).
       tags:
       - visitantes
       security:
@@ -692,9 +692,7 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
-        '422':
-          description: Regra violada.
+          description: Conflito de estado ou de dado.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -704,10 +702,16 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 semEntrada:
-                  summary: Visita sem entrada registrada
+                  summary: Visita sem entrada registrada (RN 8.3; código padronizado em 16/11/2026, antes VISITA_ESTADO_NAO_PERMITE_SAIDA, 422)
                   value:
-                    codigo: VISITA_ESTADO_NAO_PERMITE_SAIDA
+                    codigo: VISITA_ESTADO_INVALIDO
                     mensagem: Esta visita não tem entrada registrada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -795,9 +799,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaDesfeito:
-                  summary: Desfazer repetido
+                  summary: Desfazer repetido (RN-VI-17; código padronizado em 16/11/2026, antes EVENTO_JA_DESFEITO; código Proposta)
                   value:
-                    codigo: EVENTO_JA_DESFEITO
+                    codigo: VISITA_ESTADO_INVALIDO
                     mensagem: Este registro já foi desfeito.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -951,9 +955,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaConfirmada:
-                  summary: Confirmação repetida
+                  summary: Confirmação repetida (RN-OF-04; código padronizado em 16/11/2026, antes DIVERGENCIA_JA_CONFIRMADA; código Proposta)
                   value:
-                    codigo: DIVERGENCIA_JA_CONFIRMADA
+                    codigo: DIVERGENCIA_ESTADO_INVALIDO
                     mensagem: Esta divergência já foi confirmada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -1343,9 +1347,7 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
-        '422':
-          description: Regra violada.
+          description: Conflito de estado ou de dado.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -1355,10 +1357,16 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaRetirada:
-                  summary: Encomenda já retirada
+                  summary: Encomenda já retirada (RN-EN-06; código padronizado em 16/11/2026, antes ENCOMENDA_ESTADO_NAO_PERMITE_CORRECAO, 422)
                   value:
-                    codigo: ENCOMENDA_ESTADO_NAO_PERMITE_CORRECAO
+                    codigo: ENCOMENDA_ESTADO_INVALIDO
                     mensagem: Só é possível corrigir a unidade de uma encomenda ainda não retirada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -1432,7 +1440,27 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+          description: Conflito de estado ou de dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Encomenda já retirada ou devolvida (RN 9.1; código padronizado em 16/11/2026, antes ENCOMENDA_ESTADO_NAO_PERMITE_RETIRADA, 422)
+                  value:
+                    codigo: ENCOMENDA_ESTADO_INVALIDO
+                    mensagem: Esta encomenda não está disponível para retirada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra violada.
           headers:
@@ -1448,12 +1476,6 @@ paths:
                   value:
                     codigo: ENCOMENDA_RETIRANTE_NAO_E_DA_UNIDADE
                     mensagem: Escolha um morador desta unidade.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Encomenda já retirada ou devolvida
-                  value:
-                    codigo: ENCOMENDA_ESTADO_NAO_PERMITE_RETIRADA
-                    mensagem: Esta encomenda não está disponível para retirada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -1604,7 +1626,27 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+          description: Conflito de estado ou de dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Reserva que não está Confirmada (RN-RE-13; código padronizado em 16/11/2026, antes RESERVA_ESTADO_NAO_ADMITE_USO, 422)
+                  value:
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: Esta reserva não admite marcação de uso.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra violada.
           headers:
@@ -1620,12 +1662,6 @@ paths:
                   value:
                     codigo: RESERVA_INICIO_NAO_CHEGOU
                     mensagem: O horário da reserva ainda não começou.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Reserva que não está Confirmada
-                  value:
-                    codigo: RESERVA_ESTADO_NAO_ADMITE_USO
-                    mensagem: Esta reserva não admite marcação de uso.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -1706,7 +1742,33 @@ paths:
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro409
+          description: Conflito de estado ou de dado.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Reserva sem uso possível (RN-RE-09, RN-RE-13; código padronizado em 16/11/2026, antes RESERVA_ESTADO_NAO_ADMITE_VISTORIA, 422)
+                  value:
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: Esta reserva não admite vistoria.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                dadoAlterado:
+                  summary: Dado alterado por outra pessoa (texto de UF 15)
+                  value:
+                    codigo: CONFLITO_DADO_ALTERADO
+                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                emAndamento:
+                  summary: Não comparecimento em reserva Em andamento (RN-RE-13; código padronizado em 16/11/2026, antes VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO, 422)
+                  value:
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: O uso já foi constatado nesta reserva.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra violada na vistoria.
           headers:
@@ -1723,12 +1785,6 @@ paths:
                     codigo: VISTORIA_NAO_COMPARECIMENTO_ANTES_DO_FIM
                     mensagem: O não comparecimento só pode ser registrado depois do fim do horário.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                emAndamento:
-                  summary: Não comparecimento em reserva Em andamento
-                  value:
-                    codigo: VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO
-                    mensagem: O uso já foi constatado nesta reserva.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 checklist:
                   summary: Cumprida sem checklist (obrigatoriedade Proposta)
                   value:
@@ -1740,12 +1796,6 @@ paths:
                   value:
                     codigo: VISTORIA_CUMPRIDA_ANTES_DO_TERMINO_DO_USO
                     mensagem: A vistoria só pode ser feita depois do término do uso.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Reserva sem uso possível
-                  value:
-                    codigo: RESERVA_ESTADO_NAO_ADMITE_VISTORIA
-                    mensagem: Esta reserva não admite vistoria.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426

@@ -1368,8 +1368,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -1379,9 +1379,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 vinculoEncerrado:
-                  summary: Vínculo sem vigência (histórico mantido, RN-CD-07)
+                  summary: Vínculo sem vigência (histórico mantido, RN-CD-07; código padronizado em 16/11/2026, antes VINCULO_JA_ENCERRADO, 422)
                   value:
-                    codigo: VINCULO_JA_ENCERRADO
+                    codigo: VINCULO_ESTADO_INVALIDO
                     mensagem: Este morador já saiu da unidade.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -2313,8 +2313,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -2324,9 +2324,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaResolvida:
-                  summary: Solicitação fora do estado pendente (RF-AD-02)
+                  summary: Solicitação fora do estado pendente (RF-AD-02; código padronizado em 16/11/2026, antes SOLICITACAO_JA_RESOLVIDA, 422)
                   value:
-                    codigo: SOLICITACAO_JA_RESOLVIDA
+                    codigo: SOLICITACAO_ESTADO_INVALIDO
                     mensagem: Esta solicitação já foi atendida ou recusada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -2399,8 +2399,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -2410,9 +2410,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaResolvida:
-                  summary: Solicitação fora do estado pendente (RF-AD-02)
+                  summary: Solicitação fora do estado pendente (RF-AD-02; código padronizado em 16/11/2026, antes SOLICITACAO_JA_RESOLVIDA, 422)
                   value:
-                    codigo: SOLICITACAO_JA_RESOLVIDA
+                    codigo: SOLICITACAO_ESTADO_INVALIDO
                     mensagem: Esta solicitação já foi atendida ou recusada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -2655,8 +2655,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -2666,9 +2666,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 encerrado:
-                  summary: Contrato com `encerrado_em` preenchido (RN-CD-21)
+                  summary: Contrato com `encerrado_em` preenchido (RN-CD-21; código padronizado em 16/11/2026, antes CONTRATO_JA_ENCERRADO, 422)
                   value:
-                    codigo: CONTRATO_JA_ENCERRADO
+                    codigo: CONTRATO_ESTADO_INVALIDO
                     mensagem: Este contrato já foi encerrado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -2738,8 +2738,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -2749,9 +2749,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 encerrado:
-                  summary: Contrato com `encerrado_em` preenchido (RN-CD-21)
+                  summary: Contrato com `encerrado_em` preenchido (RN-CD-21; código padronizado em 16/11/2026, antes CONTRATO_JA_ENCERRADO, 422)
                   value:
-                    codigo: CONTRATO_JA_ENCERRADO
+                    codigo: CONTRATO_ESTADO_INVALIDO
                     mensagem: Este contrato já foi encerrado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -3915,8 +3915,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -3926,9 +3926,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaEncerrado:
-                  summary: Bloqueio com `fim` já no passado (RN-CD-15)
+                  summary: Bloqueio com `fim` já no passado (RN-CD-15; código padronizado em 16/11/2026, antes BLOQUEIO_JA_ENCERRADO, 422)
                   value:
-                    codigo: BLOQUEIO_JA_ENCERRADO
+                    codigo: BLOQUEIO_ESTADO_INVALIDO
                     mensagem: Este bloqueio já foi encerrado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -4170,8 +4170,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -4181,9 +4181,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaEncerrado:
-                  summary: Mandato com `fim` já registrado (RN-VO-15)
+                  summary: Mandato com `fim` já registrado (RN-VO-15; código padronizado em 16/11/2026, antes MANDATO_JA_ENCERRADO, 422)
                   value:
-                    codigo: MANDATO_JA_ENCERRADO
+                    codigo: MANDATO_ESTADO_INVALIDO
                     mensagem: Este mandato já foi encerrado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -4298,6 +4298,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro401
         '403':
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaAtiva:
+                  summary: Período ativo já existente (RN-CD-12; código padronizado em 16/11/2026, antes SUBSTITUICAO_JA_ATIVA, 422)
+                  value:
+                    codigo: SUBSTITUICAO_ESTADO_INVALIDO
+                    mensagem: A substituição já está ativa.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -4313,12 +4329,6 @@ paths:
                   value:
                     codigo: SUBSTITUICAO_SEM_SUBSINDICO
                     mensagem: O condomínio não tem subsíndico com mandato vigente.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                jaAtiva:
-                  summary: Período ativo já existente (RN-CD-12)
-                  value:
-                    codigo: SUBSTITUICAO_JA_ATIVA
-                    mensagem: A substituição já está ativa.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -4373,8 +4383,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro401
         '403':
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -4384,9 +4394,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 inativa:
-                  summary: Nenhum período ativo (RN-CD-12)
+                  summary: Nenhum período ativo (RN-CD-12; código padronizado em 16/11/2026, antes SUBSTITUICAO_NAO_ATIVA, 422)
                   value:
-                    codigo: SUBSTITUICAO_NAO_ATIVA
+                    codigo: SUBSTITUICAO_ESTADO_INVALIDO
                     mensagem: Não há substituição ativa para desativar.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -5345,8 +5355,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -5356,9 +5366,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 paga:
-                  summary: Cobrança em estado Paga (RN 12.2)
+                  summary: Cobrança em estado Paga (RN 12.2; código padronizado em 16/11/2026, antes COBRANCA_PAGA_NAO_PODE_SER_CANCELADA, 422)
                   value:
-                    codigo: COBRANCA_PAGA_NAO_PODE_SER_CANCELADA
+                    codigo: COBRANCA_ESTADO_INVALIDO
                     mensagem: Esta cobrança já foi paga e não pode ser cancelada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -5437,8 +5447,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -5448,9 +5458,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 cancelada:
-                  summary: Cobrança em estado Cancelada (RN 12.2)
+                  summary: Cobrança em estado Cancelada (RN 12.2; código padronizado em 16/11/2026, antes COBRANCA_CANCELADA_NAO_ADMITE_BAIXA, 422)
                   value:
-                    codigo: COBRANCA_CANCELADA_NAO_ADMITE_BAIXA
+                    codigo: COBRANCA_ESTADO_INVALIDO
                     mensagem: Esta cobrança foi cancelada e não aceita baixa.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -5743,8 +5753,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -5754,9 +5764,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaTratada:
-                  summary: Um tratamento por recebimento (RN-FI-19)
+                  summary: Um tratamento por recebimento (RN-FI-19; código padronizado em 16/11/2026, antes DUPLICIDADE_JA_TRATADA, 422)
                   value:
-                    codigo: DUPLICIDADE_JA_TRATADA
+                    codigo: DUPLICIDADE_ESTADO_INVALIDO
                     mensagem: Este pagamento em duplicidade já foi tratado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -5999,8 +6009,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -6010,9 +6020,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaResolvida:
-                  summary: Divergência fora do estado aberto (SEG-17)
+                  summary: Divergência fora do estado aberto (SEG-17; código padronizado em 16/11/2026, antes DIVERGENCIA_JA_RESOLVIDA, 422)
                   value:
-                    codigo: DIVERGENCIA_JA_RESOLVIDA
+                    codigo: DIVERGENCIA_ESTADO_INVALIDO
                     mensagem: Esta divergência já foi resolvida.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -6754,6 +6764,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaEstornado:
+                  summary: Original já Estornado (RN-FI-28; código padronizado em 16/11/2026, antes LANCAMENTO_JA_ESTORNADO, 422)
+                  value:
+                    codigo: LANCAMENTO_ESTADO_INVALIDO
+                    mensagem: Este lançamento já foi estornado.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -6769,12 +6795,6 @@ paths:
                   value:
                     codigo: ESTORNO_SO_EM_MES_FECHADO
                     mensagem: Este mês está aberto. Edite ou exclua o lançamento.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                jaEstornado:
-                  summary: Original já Estornado (RN-FI-28)
-                  value:
-                    codigo: LANCAMENTO_JA_ESTORNADO
-                    mensagem: Este lançamento já foi estornado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 estornoDeEstorno:
                   summary: Lançamento em estado Estorno (RN-FI-28)
@@ -6918,6 +6938,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                jaFechado:
+                  summary: Mês sem reabertura (RN-FI-28; código padronizado em 16/11/2026, antes MES_JA_FECHADO, 422)
+                  value:
+                    codigo: MES_FINANCEIRO_ESTADO_INVALIDO
+                    mensagem: Este mês já está fechado.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -6933,12 +6969,6 @@ paths:
                   value:
                     codigo: MES_AINDA_NAO_ENCERRADO
                     mensagem: O mês só pode ser fechado depois do último dia.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                jaFechado:
-                  summary: Mês sem reabertura (RN-FI-28)
-                  value:
-                    codigo: MES_JA_FECHADO
-                    mensagem: Este mês já está fechado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
@@ -7243,8 +7273,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7254,9 +7284,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaEncerrada:
-                  summary: Recorrência com fim definido (RN-FI-26)
+                  summary: Recorrência com fim definido (RN-FI-26; código padronizado em 16/11/2026, antes RECORRENCIA_JA_ENCERRADA, 422)
                   value:
-                    codigo: RECORRENCIA_JA_ENCERRADA
+                    codigo: RECORRENCIA_ESTADO_INVALIDO
                     mensagem: Esta recorrência já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -12144,7 +12174,7 @@ components:
         motivo:
           type: string
           examples:
-          - Cancelamento até 12h antes do início
+          - Cancelamento com 12h ou mais de antecedência do início
         solicitada_em:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         estado:

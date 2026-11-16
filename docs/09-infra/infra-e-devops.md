@@ -1,8 +1,8 @@
 # Infra e DevOps — CondomiFacil
 
-**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 16/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
 
-**Estado:** documentação de planejamento, antes do código. A Vercel para o web é decisão de Pedro neste pedido; a decisão formal de hospedagem do painel web está no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto, ainda não aceito). Para os demais componentes, este documento escolhe manter **Render para API, WebSocket e processamento de jobs, e Supabase para PostgreSQL e arquivos**, conforme o ADR-004, aceito com ressalvas apenas para construir o MVP em dev e staging. A hospedagem do piloto com dados reais continua sujeita à revisão obrigatória desse ADR. As políticas operacionais abaixo detalham uma proposta; não declaram infraestrutura provisionada nem aceitam os ADRs ainda propostos.
+**Estado:** documentação de planejamento, antes do código. A hospedagem do painel web está no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas por Pedro em 16/11/2026: site estático do Render, plano gratuito, em dev e staging, com revisão obrigatória antes do piloto com dados reais, junto com o ADR-004 (Vercel Pro rejeitada por custo recorrente; Vercel Hobby fora por ser de uso não comercial). Para os demais componentes, este documento escolhe manter **Render para API, WebSocket e processamento de jobs, e Supabase para PostgreSQL e arquivos**, conforme o ADR-004, aceito com ressalvas apenas para construir o MVP em dev e staging. A hospedagem do piloto com dados reais continua sujeita à revisão obrigatória desse ADR. As políticas operacionais abaixo detalham uma proposta; não declaram infraestrutura provisionada nem aceitam os ADRs ainda propostos.
 
 ## Índice
 
@@ -42,7 +42,7 @@ O grafo de conhecimento de 12/11/2026 foi consultado para localizar relações e
 
 | Componente | Hospedagem planejada | Motivo e limites |
 | --- | --- | --- |
-| Web, incluindo painel da administradora | **Vercel** | Escolha de Pedro, a formalizar no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto); entrega do frontend e separação das configurações por ambiente. Mantém React Native Web/Expo do PRD; não pressupõe Next.js |
+| Web, incluindo painel da administradora | **Render, site estático (plano gratuito)** | [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas em 16/11/2026, só para dev e staging: um site estático por ambiente, sem custo; o site estático não dorme. Mantém React Native Web/Expo do PRD; não pressupõe Next.js. Produção/piloto a definir na revisão antes do piloto |
 | API HTTP NestJS e Socket.IO da portaria | **Render, serviço web** | Mantém a decisão existente e um processo de longa duração para HTTP e WebSocket |
 | Worker e rotinas | **Render** | Reutiliza o mesmo código de domínio e integrações da API. No gratuito, executa junto ao serviço web; serviço dedicado pago é candidato na revisão do piloto |
 | Banco | **Supabase PostgreSQL, São Paulo** | PostgreSQL gerenciado com RLS e menor esforço operacional. Só o backend acessa o banco |
@@ -56,7 +56,7 @@ O grafo de conhecimento de 12/11/2026 foi consultado para localizar relações e
 
 ```mermaid
 flowchart LR
-    W["Web Expo / React Native Web<br/>Vercel"] -->|HTTPS| A["API NestJS + Socket.IO<br/>Render"]
+    W["Web Expo / React Native Web<br/>Render, site estático"] -->|HTTPS| A["API NestJS + Socket.IO<br/>Render"]
     M["App Android / iOS<br/>Expo"] -->|HTTPS e WSS| A
     A -->|TLS| B["PostgreSQL com RLS<br/>Supabase São Paulo"]
     A --> O["Arquivos privados<br/>Supabase Storage"]
@@ -72,11 +72,11 @@ No gratuito, o bloco do worker compartilha o serviço da API. Cliente só envia/
 
 O [Render gratuito](https://render.com/docs/free) suspende serviços web após 15 minutos sem tráfego de entrada; a retomada pode levar cerca de um minuto. O sistema de arquivos é efêmero e não há instância gratuita de background worker. Quando a API dorme, o worker acoplado também para: não há garantia de horários de rotina, recebimento contínuo de eventos ou prazo de relatórios. Banco, fila durável e arquivos ficam fora do disco da API. Não usar o PostgreSQL gratuito do Render.
 
-O Render não lista região brasileira; as [regiões publicadas](https://render.com/docs/regions) exigem tráfego internacional entre API e banco em São Paulo. A região da API deve ser registrada no provisionamento e aferida por latência real, sem presumir que estar nos EUA atende RNF-01/RNF-05. A cadeia Vercel/Render/Resend/Sentry/Expo também entra na avaliação de subprocessadores e transferência internacional dos documentos de segurança.
+O Render não lista região brasileira; as [regiões publicadas](https://render.com/docs/regions) exigem tráfego internacional entre API e banco em São Paulo. A região da API deve ser registrada no provisionamento e aferida por latência real, sem presumir que estar nos EUA atende RNF-01/RNF-05. A cadeia Render/Supabase/Resend/Sentry/Expo também entra na avaliação de subprocessadores e transferência internacional dos documentos de segurança.
 
 O [Supabase gratuito pode pausar projetos de baixa atividade em sete dias](https://supabase.com/docs/guides/platform/free-project-pausing). Seus limites devem ser conferidos antes de criar dois projetos independentes para dev e staging; não compartilhar o mesmo banco entre esses ambientes para contornar quota. Backup automático de plano pago não deve ser presumido no gratuito (seção 7).
 
-**Vercel não significa custo zero para este SaaS.** O Hobby é restrito a uso pessoal não comercial segundo as [diretrizes de uso](https://vercel.com/docs/limits/fair-use-guidelines). Planejar um plano compatível com uso comercial, como Pro, e validar condições/orçamento antes de provisionar, inclusive para desenvolvimento do produto. O [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto) é o lugar da decisão e das alternativas. A escolha de Vercel não revoga silenciosamente a premissa de custo zero do ADR-004: esta é uma diferença a reconciliar na revisão. Não há contratação autorizada por este documento.
+**Painel web sem custo no MVP.** O [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (aceito com ressalvas em 16/11/2026) publica o painel como site estático do Render no plano gratuito, coerente com o custo zero do ADR-004. A Vercel foi descartada: o Hobby é restrito a uso pessoal não comercial e o Pro gera custo recorrente. O site estático não dorme, mas a API no serviço web gratuito continua dormindo; a primeira chamada após inatividade pode esperar o serviço acordar. Limites do site estático gratuito (banda, minutos de build, pré-visualização, redirecionamento de rotas da SPA): **a confirmar** na documentação oficial do Render. Não há contratação autorizada por este documento.
 
 Para o piloto, manter Render e Supabase em planos adequados é o primeiro candidato por continuidade operacional, mas **não é aprovação de produção**. São bloqueadores: serviço sem suspensão, processamento contínuo, recuperação demonstrada, desempenho, custo e análise de residência de dados. Se os resultados não atenderem, a revisão do ADR-004 deve comparar alternativas com região brasileira antes de receber dados reais.
 
@@ -86,7 +86,7 @@ Para o piloto, manter Render e Supabase em planos adequados é o primeiro candid
 | --- | --- | --- | --- | --- |
 | Finalidade | Desenvolvimento individual | Integração e testes iniciais | Aceitação e ensaios com dados fictícios | Operação com usuários reais |
 | Branch de referência proposta | Branch da tarefa | `develop` | `staging` | `main` |
-| Web | Servidor local | Projeto Vercel próprio | Projeto Vercel próprio | Projeto Vercel próprio |
+| Web | Servidor local | Site estático do Render próprio (gratuito) | Site estático do Render próprio (gratuito) | A definir na revisão antes do piloto (ADR-016 e ADR-004) |
 | API/worker | Processos locais | Render gratuito, compartilhados | Render gratuito, compartilhados | Provedor/plano após revisão |
 | Banco | PostgreSQL descartável | Projeto Supabase dev | Projeto Supabase staging | Projeto exclusivo após revisão |
 | Arquivos | Emulador S3 | Buckets exclusivos dev | Buckets exclusivos staging | Buckets exclusivos de produção |
@@ -95,7 +95,7 @@ Para o piloto, manter Render e Supabase em planos adequados é o primeiro candid
 | Push | Desligado ou teste | Aparelhos de teste autorizados | Aparelhos de teste autorizados | Destinatários reais autorizados |
 | Dados | Fictícios | Fictícios | Fictícios | Reais, somente após os gates |
 
-Três projetos web separados evitam depender de ambientes personalizados de um plano específico da Vercel. Cada projeto precisa de vínculo explícito com a branch e com a API do seu ambiente, sem implantação de branches arbitrárias nos domínios estáveis. Preview por PR é opcional, protegido, usa só dados fictícios e API de teste; não cria backend ou banco de produção por PR.
+Um site estático separado por ambiente (dev e staging) mantém a separação do ADR-011. Cada site precisa de vínculo explícito com a branch e com a API do seu ambiente, sem implantação de branches arbitrárias nos endereços estáveis. Preview por PR no site estático gratuito: **a confirmar**; se existir, é opcional, protegido, usa só dados fictícios e API de teste e não cria backend ou banco de produção por PR.
 
 Não copiar dump de produção para local, CI, dev ou staging, mesmo sob rótulo de anonimização. Ensaio de desastre com dados reais ocorre em **recinto isolado de produção**, com os mesmos controles e acesso restrito, sem ser o staging comum. Testes de restauração em staging utilizam backups fictícios.
 
@@ -107,9 +107,9 @@ Nenhum domínio do produto foi informado ou verificado como registrado. A tabela
 
 | Nome planejado | Destino | Finalidade |
 | --- | --- | --- |
-| `app.<dominio-do-produto>` | Vercel produção | Web e painel autenticado |
-| `dev.app.<dominio-do-produto>` | Vercel dev | Integração fictícia |
-| `staging.app.<dominio-do-produto>` | Vercel staging | Aceitação fictícia |
+| `app.<dominio-do-produto>` | Web de produção (hospedagem a definir na revisão antes do piloto) | Web e painel autenticado |
+| `dev.app.<dominio-do-produto>` | Render, site estático dev | Integração fictícia |
+| `staging.app.<dominio-do-produto>` | Render, site estático staging | Aceitação fictícia |
 | `api.<dominio-do-produto>` | API de produção | HTTP `/v1`, WSS e endpoints de webhook previstos no contrato |
 | `dev.api.<dominio-do-produto>` | Render dev | API e webhook sandbox |
 | `staging.api.<dominio-do-produto>` | Render staging | API e webhook sandbox |
@@ -121,7 +121,7 @@ Na construção, podem ser usados endereços fornecidos pelos provedores até ha
 Procedimento futuro de configuração:
 
 1. Pedro define e registra o domínio na conta do produto, com MFA, recuperação e renovação acompanhada. Registrar responsáveis por registrador, DNS e cobrança.
-2. Adicionar cada domínio ao projeto/serviço correto e obter os registros de verificação e roteamento no painel do provedor. Não copiar IP fixo de exemplo. A [documentação de domínios da Vercel](https://vercel.com/docs/domains/working-with-domains/add-a-domain) orienta o vínculo e a configuração de DNS.
+2. Adicionar cada domínio ao projeto/serviço correto e obter os registros de verificação e roteamento no painel do provedor. Não copiar IP fixo de exemplo. Domínio próprio no site estático gratuito do Render: **a confirmar** na documentação oficial.
 3. Publicar os registros indicados, preservar registros de e-mail existentes e validar propagação, certificado HTTPS e conexão WSS. Redirecionar HTTP para HTTPS.
 4. Configurar origem exata de cada web na lista de CORS da sua API, callbacks e links de acesso/recuperação; não aceitar qualquer subdomínio de preview nem usar curinga com credenciais.
 5. Registrar os webhooks do Asaas no ambiente correspondente, com autenticação própria. O caminho segue o contrato de webhooks; domínio é roteamento, não autenticação.
@@ -131,7 +131,7 @@ Procedimento futuro de configuração:
 
 ### 5.1 Estado e responsabilidade
 
-**Ferramenta escolhida para a proposta: GitHub Actions**, integrando repositório, verificações e publicação. Vercel cuida do build/entrega web; Render recebe a versão da API/worker. Isso centraliza evidências e evita manter um servidor de CI. Não há workflow criado por este documento, e recursos de proteção/aprovação precisam ser conferidos no plano do repositório antes da implementação.
+**Ferramenta escolhida para a proposta: GitHub Actions**, integrando repositório, verificações e publicação. O Render faz o build e a entrega do site estático web e recebe a versão da API/worker; a publicação parte da branch vinculada a cada ambiente (detalhes do deploy automático do site estático gratuito: **a confirmar**). Isso centraliza evidências e evita manter um servidor de CI. Não há workflow criado por este documento, e recursos de proteção/aprovação precisam ser conferidos no plano do repositório antes da implementação.
 
 A regra do projeto permanece: **antes de cada commit/push, Pedro aprova o conjunto e as branches de destino**. CI verde ou autorização de um commit anterior não substitui essa aprovação. Promoções entre branches não são feitas autonomamente; o mapeamento do ADR-011 continua proposto. Nenhum recurso deve publicar em produção só porque foi conectado ao Git.
 
@@ -166,8 +166,8 @@ flowchart TD
 - O job de migration usa credencial própria, conexão direta ou pooler de sessão e exclusão mútua por ambiente; não roda no bootstrap da API nem do worker. Seguir o procedimento de [migrations e seeds](../04-banco-de-dados/03-estrategia-de-migrations-e-seeds.md), inclusive mudanças aditivas e correções para frente.
 - O backend usa papel de aplicação sem `BYPASSRLS`; migrador, jobs e backup têm acessos próprios delimitados. A PoC verifica pg-boss e `LISTEN/NOTIFY` com conexão direta/sessão, sem presumir compatibilidade com pooler de transação.
 - Publicar API compatível com clientes antigos, concluir verificações de saúde e só então disponibilizar web compatível. Drenar jobs/conexões no encerramento e garantir reconexão de Socket.IO; não prometer deploy sem queda só por usar um PaaS.
-- Na Vercel, separar build de liberação dos domínios de produção e impedir promoção que contorne o gate. Uma [promoção de Preview pode reconstruir com variáveis de produção](https://vercel.com/docs/deployments/promoting-a-deployment); por isso testar o candidato construído para produção antes de associar o domínio. Publicação por Git e por CI não devem competir pelo mesmo domínio.
-- URLs públicas do Expo entram no build: manter o mesmo commit e dependências, mas gerar e testar o artefato web específico de cada ambiente. Não afirmar que um bundle de staging com URL embutida é idêntico ao de produção. O Expo documenta os [alvos de exportação web](https://docs.expo.dev/guides/publishing-websites); validar SPA/estático e rotas profundas na PoC da Vercel.
+- No site estático do Render, cada ambiente publica a partir da sua branch vinculada; impedir publicação que contorne o gate de aprovação. Publicação por Git e por CI não devem competir pelo mesmo site. A hospedagem web de produção é definida na revisão antes do piloto.
+- URLs públicas do Expo entram no build: manter o mesmo commit e dependências, mas gerar e testar o artefato web específico de cada ambiente. Não afirmar que um bundle de staging com URL embutida é idêntico ao de produção. O Expo documenta os [alvos de exportação web](https://docs.expo.dev/guides/publishing-websites); validar SPA/estático e rotas profundas (redirecionamento de rotas no site estático do Render: **a confirmar**).
 - Retorno de código seleciona imagem anterior da API/worker e deployment web anterior compatíveis. Isso não desfaz migrations nem recupera dados perdidos. Corrigir esquema para frente sempre que possível; restauração só pelo procedimento de incidente.
 - EAS/OTA segue o ADR-011, ainda proposto: canais separados, `runtimeVersion` compatível, teste de retorno e novo binário para mudança nativa. Aprovação do web não equivale a aprovação de lançamento nas lojas.
 
@@ -179,7 +179,7 @@ PR de origem não confiável não recebe segredos nem permissão de publicação
 
 O catálogo contém **nomes e finalidades, sem valores**. Os nomes são convenções propostas para a implementação; não significam que uma variável já exista. O futuro `.env.example` deve conter apenas nomes vazios e instruções. Não versionar `.env` real, certificados privados, tokens, exports de painéis ou arquivo de credencial de serviço.
 
-Separar ambientes e consumidores. Segredos do backend ficam no cofre/configuração protegida do Render; tokens de publicação em segredos protegidos do CI; configuração pública web no projeto Vercel correto. Variáveis são fornecidas em tempo de build ou execução conforme o consumidor. Na Vercel, [mudanças de variáveis exigem novo deployment para ter efeito](https://vercel.com/docs/environment-variables).
+Separar ambientes e consumidores. Segredos do backend ficam no cofre/configuração protegida do Render; tokens de publicação em segredos protegidos do CI; configuração pública web no site estático do Render do ambiente correto. Variáveis são fornecidas em tempo de build ou execução conforme o consumidor. No site estático, a configuração pública entra no build: mudar uma variável exige novo build para ter efeito.
 
 Tudo que vai ao navegador/app pode ser inspecionado, inclusive `EXPO_PUBLIC_*`. Nenhuma chave privada de Supabase/S3, Asaas, Resend, banco, JWT ou publicação pode ser prefixada assim ou entrar no bundle. A escolha de variáveis protegidas no painel não torna segredo um valor compilado no frontend.
 
@@ -213,9 +213,7 @@ Tudo que vai ao navegador/app pode ser inspecionado, inclusive `EXPO_PUBLIC_*`. 
 | `FCM_CREDENTIALS_REF` | Adaptador push, se acesso direto for necessário | Referência secreta; não adicionar credencial direta se Expo Push já cobrir o fluxo |
 | `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `RELEASE_ID` | API/worker | Configuração de ingestão, ambiente e correlação de versão |
 | `SENTRY_AUTH_TOKEN` | CI de sourcemaps/releases | Segredo de publicação; não é DSN e não vai ao cliente |
-| `VERCEL_TOKEN` | CI, caso publicação por CLI seja adotada | Segredo de publicação limitado ao escopo necessário |
-| `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | CI de publicação web | Identificadores do destino, separados por ambiente |
-| `RENDER_DEPLOY_HOOK_URL` | CI, se deploy hook for adotado | Segredo: URL autoriza publicação; não expor em logs |
+| `RENDER_DEPLOY_HOOK_URL` | CI, se deploy hook for adotado (API/worker; site estático web: a confirmar) | Segredo: URL autoriza publicação; não expor em logs |
 | `BACKUP_DATABASE_URL` | Executor de backup | Segredo com permissão específica; não reutilizar migrador ou API |
 | `BACKUP_DESTINATION_REF`, `BACKUP_ENCRYPTION_KEY_REF` | Executor de backup/restauro | Referências privadas de destino e cifragem, separadas do recurso de origem |
 | `RESTORE_MODE` | Recinto de recuperação | Configuração proposta para bloquear efeitos externos; deve ser reforçada por isolamento de rede e credenciais |
@@ -288,7 +286,7 @@ Incluir cenário de exclusão e revogação após o backup, pagamento já proces
 | Logs e Sentry | Correlação por requisição/release, mascaramento e minimização; sem tokens, dados de cartão, votos, textos privados ou anexos pessoais |
 | Custo | Orçamento consolidado e por serviço/ambiente; alertas em 80% e 100%, conforme RNF-18 |
 
-O orçamento inclui Vercel comercial, Render computação/worker, Supabase banco/Storage/PITR, transferência entre regiões, cópia externa, Resend, Sentry, EAS, registrador e lojas. Valores serão estimados na contratação; não há cotação nem compromisso de custo neste documento. Alertas não equivalem a teto rígido: validar os mecanismos de limite e cobrança de cada provedor. Produção não deve ser desligada automaticamente como resposta genérica ao limite de gasto.
+No MVP (dev e staging), o painel web não tem custo de hospedagem (site estático gratuito do Render, ADR-016). O orçamento inclui Render computação/worker, a hospedagem web definida na revisão antes do piloto, Supabase banco/Storage/PITR, transferência entre regiões, cópia externa, Resend, Sentry, EAS, registrador e lojas. Valores serão estimados na contratação; não há cotação nem compromisso de custo neste documento. Alertas não equivalem a teto rígido: validar os mecanismos de limite e cobrança de cada provedor. Produção não deve ser desligada automaticamente como resposta genérica ao limite de gasto.
 
 Contas e recursos ficam sob controle do produto, com MFA, menor privilégio e inventário de proprietários/recuperação. Pedro aprova publicações; execução técnica, resposta a incidente e substitutos ainda precisam ser designados antes do piloto. Provisionamento futuro deve ser reproduzível em `infra/`, com configuração versionada sem segredos; não é necessário introduzir Kubernetes ou outra plataforma para o escopo atual.
 
@@ -296,16 +294,16 @@ Contas e recursos ficam sob controle do produto, com MFA, menor privilégio e in
 
 | Item | Situação / condição de saída |
 | --- | --- |
-| Vercel web | Decisão de Pedro em 14/11/2026; validar plano comercial, exportação Expo, domínios e proteção de publicação |
+| Web (site estático do Render) | ADR-016 aceito com ressalvas em 16/11/2026 para dev e staging; confirmar limites do plano gratuito, exportação Expo, rotas da SPA, domínios e proteção de publicação; revisão obrigatória da hospedagem antes do piloto, junto com o ADR-004 |
 | API/worker e dados | Render + Supabase mantidos para construção; revisão do ADR-004 obrigatória antes de dados reais |
 | Continuidade e desempenho | Demonstrar processo contínuo, reconexão, jobs e metas RNF-01/02/05/09; gratuito não comprova |
 | Backup e arquivos | Diário/sete dias/mensal; destino independente, consistência banco/objetos e recuperação comprovados |
 | RPO/RTO/PITR | ADR-013 segue proposto; fechar metas, plano e orçamento antes do piloto |
 | CI/CD e mobile | ADR-011 segue proposto; validar responsáveis, proteção das branches, gates, artefatos, EAS e rollback |
 | Banco/fila/identidade | Validar decisões ainda propostas, privilégios e PoCs, sem aceitar ADR-001/006/007/008/010/014 por consequência |
-| LGPD | Inventário de subprocessadores incluindo Vercel, regiões, acessos de suporte, transferências, retenção e exclusões/restauro revisados |
+| LGPD | Inventário de subprocessadores (Render, Supabase, Resend, Sentry, Expo, Asaas), regiões, acessos de suporte, transferências, retenção e exclusões/restauro revisados |
 | Domínios e contas | Nome, titularidade, DNS, renovação, MFA e recuperação confirmados |
 
 Este documento cobre ambientes e promoção (arquitetura §6, ADR-011), hospedagem (ADR-004), segredos (SEG-02), isolamento (RNF-11), backup/recuperação (RNF-13, ADR-013), desempenho/disponibilidade (RNF-01/02/05/09), validação offline/carga (RNF-16/17), orçamento (RNF-18) e privacidade/financeiro (SEG-11/17/18). Jobs de relatórios seguem RN-RL-01 a 08, sem ampliar acesso de perfis.
 
-**Reconciliação futura:** a decisão web Vercel e os detalhes operacionais aqui propostos precisam ser refletidos na arquitetura/ADR-004/ADR-011 e no inventário de subprocessadores quando Pedro autorizar essa revisão. Este pedido cria somente o documento de Infra e DevOps; não altera fontes anteriores, regras de produto, contratos ou protótipo. As páginas oficiais dos provedores vinculadas ao longo do texto foram consultadas em 14/11/2026; condições e ferramentas devem ser revalidadas no provisionamento. O [changelog do Supabase](https://supabase.com/changelog.md) também foi consultado; fixar versões de CLI/ferramentas antes de automatizar, sem copiar comandos antigos como garantia de compatibilidade.
+**Reconciliação futura:** a hospedagem web do ADR-016 (site estático do Render, 16/11/2026) já está refletida na arquitetura; os detalhes operacionais aqui propostos precisam ser refletidos no ADR-004/ADR-011 e no inventário de subprocessadores quando Pedro autorizar essa revisão. Este pedido cria somente o documento de Infra e DevOps; não altera fontes anteriores, regras de produto, contratos ou protótipo. As páginas oficiais dos provedores vinculadas ao longo do texto foram consultadas em 14/11/2026; condições e ferramentas devem ser revalidadas no provisionamento. O [changelog do Supabase](https://supabase.com/changelog.md) também foi consultado; fixar versões de CLI/ferramentas antes de automatizar, sem copiar comandos antigos como garantia de compatibilidade.

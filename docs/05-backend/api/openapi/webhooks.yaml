@@ -22,7 +22,8 @@ info:
        Repetição responde `200` sem reprocessar.
     3. Evento sem correlação válida (autenticação inválida, conta ou transação desconhecida) vai para
        `evento_gateway_quarentena` (global, fora do RLS dos condomínios). Quarentena com **token
-       válido** responde `200` (para o provedor não repetir); **token inválido** responde `401`.
+       válido** responde `200` (para o provedor não repetir); **token inválido** responde `401`
+       (decisão de Pedro em 08/11/2026, confirmada em 16/11/2026).
     4. Responde rápido e processa em job. Transições de estado são monotônicas.
     5. A resposta `200` tem o mesmo corpo para evento novo, repetido ou em quarentena: o provedor não
        aprende nada sobre o estado interno.
@@ -31,9 +32,10 @@ info:
     e o texto de cada transição estão em `../02-eventos-e-webhooks.md`; as chamadas que o backend faz
     ao provedor, em `../03-integracoes-externas.md`.
 
-    **Webhook do Resend: Proposta.** Nenhum documento de produto ou arquitetura o exige; serve para
-    acompanhar a entrega de e-mails (por exemplo, falha de entrega do código de acesso). Só entra se o
-    Pedro aprovar.
+    **Webhook do Resend: no contrato por decisão de Pedro em 16/11/2026.** Serve para acompanhar a
+    entrega de e-mails (por exemplo, falha de entrega do código de acesso). A assinatura enviada pelo
+    Resend é verificada antes de qualquer processamento; assinatura ausente ou inválida responde `401`.
+    A saída de dados de e-mail do Brasil (LGPD, ADR-005) continua pendente.
 servers:
   - url: https://api.example.invalid
     description: Endereço público da API de cada ambiente (a definir; o webhook precisa de URL pública).
@@ -41,7 +43,7 @@ tags:
   - name: pagamentos
     description: Confirmação de pagamento, reembolso e situação da subconta, vindos do gateway (módulo `pagamentos`).
   - name: notificacoes
-    description: Eventos de entrega de e-mail, vindos do provedor (módulo `notificacoes`). Proposta.
+    description: Eventos de entrega de e-mail, vindos do provedor (módulo `notificacoes`). No contrato por decisão de 16/11/2026.
 paths:
   /webhooks/pagamentos/asaas:
     post:
@@ -249,12 +251,15 @@ paths:
   /webhooks/email/resend:
     post:
       operationId: webhookResendReceberEvento
-      summary: Recebe um evento de entrega de e-mail do Resend (Proposta)
+      summary: Recebe um evento de entrega de e-mail do Resend
       description: |
-        **Proposta: nenhum documento o exige.** Recebe os eventos de entrega do Resend e atualiza o
-        estado da entrega do e-mail (`entrega_notificacao`, MER/DER 4.12). A assinatura (cabeçalhos
-        `svix-id`, `svix-timestamp` e `svix-signature`) é verificada sobre o corpo bruto antes de
-        qualquer outro passo. O `svix-id` serve de chave de idempotência. A resposta de acesso
+        **No contrato por decisão de Pedro em 16/11/2026.** Recebe os eventos de entrega do Resend e
+        atualiza o estado da entrega do e-mail (`entrega_notificacao`, MER/DER 4.12). **Verificação
+        obrigatória da assinatura** enviada pelo Resend (cabeçalhos `svix-id`, `svix-timestamp` e
+        `svix-signature`, esquema Svix), sobre o corpo bruto, antes de qualquer outro passo; algoritmo
+        e tolerância de relógio conforme a documentação oficial, a confirmar na implementação.
+        Assinatura ausente ou inválida responde `401` e o evento não é processado nem altera
+        `entrega_notificacao`. O `svix-id` serve de chave de idempotência. A resposta de acesso
         (`/v1/acesso/codigo`) continua igual para e-mail cadastrado ou não (RN-CD-02): falha de entrega
         nunca é mostrada ao cliente da API.
 
@@ -415,14 +420,17 @@ components:
       name: svix-signature
       description: |
         Assinatura Svix do corpo bruto, junto com `svix-id` e `svix-timestamp`. O segredo de assinatura
-        é próprio do endpoint e fica no cofre. Verificação sobre o corpo bruto, sem reserializar o JSON
-        (Proposta; o webhook do Resend é Proposta).
+        é próprio do endpoint e fica no cofre. Verificação obrigatória sobre o corpo bruto, sem
+        reserializar o JSON; ausente ou inválida responde `401` (decisão de Pedro em 16/11/2026).
+        Algoritmo e tolerância de relógio conforme a documentação oficial do Resend, a confirmar na
+        implementação.
   responses:
     WebhookNaoAutenticado:
       description: |
-        Autenticação do provedor ausente ou inválida (token do Asaas ou assinatura do Resend). O evento
-        não é processado; vai para a quarentena com o mínimo necessário (SEG-17). Não revela qual parte
-        falhou.
+        Autenticação do provedor ausente ou inválida (token do Asaas ou assinatura do Resend; decisões de
+        Pedro em 08/11/2026 e 16/11/2026). O evento não é processado. No Asaas, vai para a quarentena
+        com o mínimo necessário (SEG-17); no Resend, não altera `entrega_notificacao`. Não revela qual
+        parte falhou.
       headers:
         X-Request-Id:
           $ref: './componentes/comum.yaml#/components/headers/XRequestId'
@@ -586,7 +594,7 @@ x-lacunas:
   - Corpo dos eventos tratados sem exemplo completo (`PAYMENT_UPDATED`, `PAYMENT_CREDIT_CARD_CAPTURE_REFUSED`, `PAYMENT_DELETED`, `PAYMENT_REFUND_IN_PROGRESS`, `PAYMENT_CHARGEBACK_DISPUTE`, `PAYMENT_AWAITING_CHARGEBACK_REVERSAL`): exemplos só com `object` e `id`, os campos que a documentação do Asaas mostra; o resto a confirmar no sandbox.
   - Retenção da quarentena de webhooks: lacuna (MER/DER P-09). Nenhum prazo é inventado.
   - Limite de taxa deste endpoint e proteção contra volume de requisições com token inválido: lacuna (guia, seção 10).
-  - Webhook do Resend: Proposta, sem requisito de origem; critério de resposta que o Resend considera sucesso e tolerância de `svix-timestamp` não constam na documentação consultada.
+  - 'Webhook do Resend: mantido no contrato com verificação obrigatória da assinatura e `401` para assinatura ausente ou inválida (decisão de Pedro em 16/11/2026). Continuam a confirmar na implementação: algoritmo da assinatura, tolerância de `svix-timestamp` e critério de resposta que o Resend considera sucesso. Continua pendente a saída de dados de e-mail do Brasil (LGPD, ADR-005).'
   - Textos e `codigo` `WEBHOOK_NAO_AUTENTICADO`: Proposta, sem origem em UF 15.
 
 x-decisoes-12-11-2026:

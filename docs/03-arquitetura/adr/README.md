@@ -23,13 +23,13 @@ A fonte das decisões é [`../01-arquitetura.md`](../01-arquitetura.md) (seção
 | **Em aberto** | Ainda não há recomendação fechada; faltam dados (custo, prova de conceito, parecer) |
 | **Proposto** | Há uma recomendação fundamentada, aguardando validação do Pedro |
 | **Aceito** | O Pedro validou; vale para o projeto |
-| **Aceito, com ressalvas** | O Pedro validou, com condições ou revisão obrigatória registradas no ADR (ex.: 002, 004 e 005, em 10/11/2026) |
+| **Aceito, com ressalvas** | O Pedro validou, com condições ou revisão obrigatória registradas no ADR (ex.: 002, 004 e 005, em 10/11/2026; 016, em 16/11/2026) |
 | **Aceito quanto a ...** | O Pedro validou só o escopo indicado; o restante do ADR segue pendente (ex.: 015, em 14/11/2026, quanto à organização e às fontes dos contratos) |
 | **Rejeitado** | Avaliado e recusado; permanece registrado com o motivo |
 | **Substituído** | Trocado por outro ADR, que é citado no cabeçalho |
 | **Obsoleto** | Deixou de se aplicar (ex.: o componente saiu do projeto), sem substituto |
 
-Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Os demais, incluindo o ADR-016 (proposto em 15/11/2026), continuam sem validação.
+Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Em 16/11/2026 aceitou, com ressalvas, o ADR-016 (painel web como site estático do Render em dev e staging, com revisão obrigatória antes do piloto). Os demais continuam sem validação.
 
 ## Como criar um novo ADR
 
@@ -61,4 +61,4 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | 10/11/2026 | Custo (RNF-18) |
 | 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | 12/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |
 | 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | 14/11/2026 | Gerador depende de PoC; versões pendentes |
-| 016 | [Hospedagem do painel web](016-hospedagem-do-painel-web.md) | Proposto | 15/11/2026 | 15/11/2026 | Orçamento (RNF-18); condições comerciais do provedor; subprocessadores |
+| 016 | [Hospedagem do painel web](016-hospedagem-do-painel-web.md) | Aceito, com ressalvas (Render, site estático, só MVP) | 15/11/2026 | 16/11/2026 | Revisão obrigatória antes do piloto com dados reais, junto com o ADR-004; limites do plano gratuito a confirmar |

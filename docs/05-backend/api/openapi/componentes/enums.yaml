@@ -31,7 +31,11 @@ components:
         `confirmada` Confirmada; `em_andamento` Em andamento; `expirada` Expirada; `cancelada`
         Cancelada; `cancelada_com_reembolso` Cancelada com reembolso; `cancelada_sem_reembolso`
         Cancelada sem reembolso; `cancelada_pelo_condominio` Cancelada pelo condomínio; `cumprida`
-        Aguardando pagamento pode ir a Cancelada pelo condomínio (RN-CA-05, decisão de 12/11/2026), sem devolução se não houve recebimento. Cumprida (antes chamada Realizada); `nao_comparecimento` Não comparecimento.
+        Cumprida (antes chamada Realizada); `nao_comparecimento` Não comparecimento.
+        Estado inicial (RN-RE-02, RN-RE-03; confirmado em 16/11/2026): reserva paga nasce `aguardando_pagamento`;
+        gratuita nasce `confirmada`. Aguardando pagamento pode ir a Cancelada pelo condomínio (RN-CA-05,
+        decisão de 12/11/2026), sem devolução se não houve recebimento. Transição não permitida responde
+        `409` com `RESERVA_ESTADO_INVALIDO` (guia, seção 8).
       enum:
         - aguardando_pagamento
         - confirmada

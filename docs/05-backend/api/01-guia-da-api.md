@@ -194,7 +194,7 @@ paths:
     post:
       operationId: moradorCriarReserva
       summary: Cria uma reserva
-      description: Cria a reserva da área no horário pedido. Horário já ocupado responde 409 (RN-RE-04).
+      description: Cria a reserva da área no horário pedido. Gratuita nasce `confirmada`; paga nasce `aguardando_pagamento` (RN-RE-02, RN-RE-03). Horário já ocupado responde 409 (RN-RE-04). O exemplo de 201 é de área gratuita.
       tags: [reservas]
       security:
         - bearerJwt: []
@@ -513,8 +513,8 @@ Formato único (Proposta; `01-backend.md` 4.5):
 | Sessão expirada ou inválida | `401` | Guard de autenticação |
 | Sem vínculo com o condomínio ou a unidade; sem permissão para o papel efetivo | `403` | Guards de contexto, papel e unidade |
 | Recurso inexistente ou de outro condomínio | `404` | Indistinguíveis (arquitetura 4.11) |
-| Conflito (horário já reservado, dado alterado por outra pessoa, voto repetido) | `409` | RN-RE-04, `EXCLUDE` no banco |
-| Regra de negócio violada | `422` | Erro de domínio (código HTTP da regra: Proposta) |
+| Conflito (horário já reservado, dado alterado por outra pessoa, voto repetido, transição de estado não permitida) | `409` | RN-RE-04, RN-VO-01, `EXCLUDE` no banco; voto repetido e transição de estado: decisão de Pedro em 16/11/2026 |
+| Regra de negócio violada sem conflito de estado | `422` | Erro de domínio (decisão de Pedro em 16/11/2026: `422` fica para regra violada que não é conflito de estado) |
 | Versão do app abaixo do mínimo | `426` | Guard de versão |
 | Limite de taxa excedido | `429` | Com `Retry-After` |
 | Erro do servidor | `500` | Enviado ao Sentry com dados filtrados |
@@ -544,6 +544,17 @@ A situação "Sem internet" de UF 15 não é erro da API: é do cliente (a requi
 ### Códigos específicos de regra de negócio
 
 Os arquivos de perfil acrescentam códigos de `422` e `409` próprios da regra do caso, no padrão `<MODULO>_<REGRA>` em `SNAKE_MAIUSCULO` (por exemplo, `RESERVA_HORARIO_INDISPONIVEL`, ligado a RN-RE-04). Cada código novo cita a RN de origem em `x-rastreabilidade` da operação. Código sem RN de origem vai para `x-lacunas`.
+
+**Códigos decididos por Pedro em 16/11/2026:**
+
+| `codigo` | HTTP | Quando | Origem |
+| --- | --- | --- | --- |
+| `VOTACAO_VOTO_JA_REGISTRADO` | `409` | A unidade já tem voto registrado na pauta ou na eleição (online ou presencial). Também é o `motivo` de recusa por item no registro de votos presenciais | RN-VO-01, RN-VO-11 |
+| `<MODULO>_ESTADO_INVALIDO` | `409` | A ação pede uma transição que o estado atual do recurso não permite (por exemplo, cancelar reserva já cancelada ou expirada, marcar uso de reserva que não está Confirmada) | Ciclo de vida do módulo nas RN (por exemplo, RN 7.4, RN 8.3, RN 9.1, RN-CH-05) |
+
+Em uso no contrato: `RESERVA_ESTADO_INVALIDO`, `VISITA_ESTADO_INVALIDO`, `ENCOMENDA_ESTADO_INVALIDO`, `CHAMADO_ESTADO_INVALIDO`, `VINCULO_ESTADO_INVALIDO`, `SOLICITACAO_ESTADO_INVALIDO`, `CONTRATO_ESTADO_INVALIDO`, `BLOQUEIO_ESTADO_INVALIDO`, `MANDATO_ESTADO_INVALIDO`, `SUBSTITUICAO_ESTADO_INVALIDO`, `COBRANCA_ESTADO_INVALIDO`, `DUPLICIDADE_ESTADO_INVALIDO`, `DIVERGENCIA_ESTADO_INVALIDO`, `LANCAMENTO_ESTADO_INVALIDO`, `MES_FINANCEIRO_ESTADO_INVALIDO`, `RECORRENCIA_ESTADO_INVALIDO`, `AUTORIZACAO_ESTADO_INVALIDO`, `ACESSO_ESTADO_INVALIDO`, `VOTACAO_ESTADO_INVALIDO`, `REUNIAO_ESTADO_INVALIDO`, `ENTREGA_ESTADO_INVALIDO`, `RECLAMACAO_ESTADO_INVALIDO`, `SUGESTAO_ESTADO_INVALIDO` e `RECURSO_ESTADO_INVALIDO`. Substituíram `VOTO_UNIDADE_JA_VOTOU`, `UNIDADE_JA_VOTOU` (motivo do voto presencial), `CHAMADO_TRANSICAO_INVALIDA`, `CHAMADO_ESTADO_NAO_PERMITE_ATENDIMENTO`, `VISITA_ESTADO_NAO_PERMITE_ENTRADA`, `VISITA_ESTADO_NAO_PERMITE_SAIDA`, `ENCOMENDA_ESTADO_NAO_PERMITE_CORRECAO`, `ENCOMENDA_ESTADO_NAO_PERMITE_RETIRADA`, `RESERVA_ESTADO_NAO_ADMITE_USO` e `RESERVA_ESTADO_NAO_ADMITE_VISTORIA` (os de estado estavam em `422`), e o `CONFLITO_DADO_ALTERADO` usado para reserva já cancelada. Na padronização dos `*_JA_<ESTADO>` e afins (decisão de Pedro em 16/11/2026), todos antes em `422`, substituíram também: `VINCULO_JA_ENCERRADO`, `SOLICITACAO_JA_RESOLVIDA`, `CONTRATO_JA_ENCERRADO`, `BLOQUEIO_JA_ENCERRADO`, `MANDATO_JA_ENCERRADO`, `SUBSTITUICAO_JA_ATIVA` e `SUBSTITUICAO_NAO_ATIVA` (na administradora), `COBRANCA_PAGA_NAO_PODE_SER_CANCELADA`, `COBRANCA_CANCELADA_NAO_ADMITE_BAIXA`, `COBRANCA_NAO_PAGAVEL`, `DUPLICIDADE_JA_TRATADA`, `DIVERGENCIA_JA_RESOLVIDA`, `LANCAMENTO_JA_ESTORNADO`, `MES_JA_FECHADO`, `RECORRENCIA_JA_ENCERRADA`, `AUTORIZACAO_JA_ENCERRADA`, `ACESSO_JA_ENCERRADO`, `VOTACAO_ENCERRADA`, `VOTO_PRESENCIAL_REUNIAO_ENCERRADA`, `ATA_REUNIAO_NAO_ENCERRADA` (vira `REUNIAO_ESTADO_INVALIDO`), `ENTREGA_NAO_EDITAVEL`, `RESERVA_NAO_AGUARDA_PAGAMENTO` e `VISTORIA_NAO_COMPARECIMENTO_EM_ANDAMENTO` (viram `RESERVA_ESTADO_INVALIDO`), `CHAMADO_NAO_CONCLUIDO` e `CHAMADO_URGENCIA_NAO_AJUSTAVEL` (viram `CHAMADO_ESTADO_INVALIDO`) e `ENCOMENDA_NAO_ESTA_COM_PRAZO_VENCIDO` (vira `ENCOMENDA_ESTADO_INVALIDO`). `CONFLITO_DADO_ALTERADO` continua para dado alterado por outra pessoa. Regra temporal, de prazo ou de cadastro que não é conflito de estado (por exemplo, `RESERVA_JA_INICIADA`, RN-CA-01; `PROCURACAO_UNIDADE_JA_VOTOU`, cujo significado mudaria) segue em `422`. Na padronização dos códigos de estado que já respondiam `409` com nome fora do padrão (decisão de Pedro em 16/11/2026), substituíram ainda: `RECLAMACAO_JA_DECIDIDA` e `RECLAMACAO_CONVERSA_JA_INICIADA` (viram `RECLAMACAO_ESTADO_INVALIDO`, em `sindico.yaml` e `conselho-fiscal.yaml`), `SUGESTAO_JA_DECIDIDA` (vira `SUGESTAO_ESTADO_INVALIDO`), `REUNIAO_JA_ENCERRADA` (vira `REUNIAO_ESTADO_INVALIDO`), `SUBSTITUICAO_JA_ATIVA` e `SUBSTITUICAO_JA_INATIVA` (viram `SUBSTITUICAO_ESTADO_INVALIDO`, em `sindico.yaml`, alinhado à administradora), `RECURSO_JA_DECIDIDO` (vira `RECURSO_ESTADO_INVALIDO`), `EVENTO_JA_DESFEITO` (vira `VISITA_ESTADO_INVALIDO`) e `DIVERGENCIA_JA_CONFIRMADA` (vira `DIVERGENCIA_ESTADO_INVALIDO`). Os textos de `mensagem` desses códigos continuam Proposta. Códigos ainda a decidir estão nas pendências do `README.md` (atualização de 16/11/2026, itens 7 e 8).
+
+**Exceção documentada: mês financeiro fechado em `422`** (decisão de Pedro em 16/11/2026). `LANCAMENTO_EM_MES_FECHADO`, `LANCAMENTO_DE_MES_FECHADO_SO_ESTORNA` e `ESTORNO_SO_EM_MES_FECHADO` dependem do estado do mês, mas ficam em `422` com os nomes atuais: são regras que dizem ao app qual ação oferecer (editar ou estornar, RN-FI-25 e RN-FI-28), não conflito de estado genérico. Não viram `MES_FINANCEIRO_ESTADO_INVALIDO`.
 
 ## 9. Idempotência
 

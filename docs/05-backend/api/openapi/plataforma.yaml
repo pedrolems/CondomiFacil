@@ -1082,8 +1082,8 @@ paths:
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -1093,9 +1093,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaEncerrada:
-                  summary: Autorização com `fim` registrado (SEG-13)
+                  summary: Autorização com `fim` registrado (SEG-13; código padronizado em 16/11/2026, antes AUTORIZACAO_JA_ENCERRADA, 422)
                   value:
-                    codigo: AUTORIZACAO_JA_ENCERRADA
+                    codigo: AUTORIZACAO_ESTADO_INVALIDO
                     mensagem: Esta autorização já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
@@ -1260,8 +1260,8 @@ paths:
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          description: Regra de negócio violada.
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -1271,9 +1271,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaEncerrado:
-                  summary: Acesso com `encerrado_em` (SEG-13)
+                  summary: Acesso com `encerrado_em` (SEG-13; código padronizado em 16/11/2026, antes ACESSO_JA_ENCERRADO, 422)
                   value:
-                    codigo: ACESSO_JA_ENCERRADO
+                    codigo: ACESSO_ESTADO_INVALIDO
                     mensagem: Este acesso já foi encerrado.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':

@@ -362,8 +362,8 @@ paths:
           $ref: '#/components/responses/Erro403ForaDaSubstituicao'
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          $ref: '#/components/responses/Erro422UrgenciaChamado'
+        '409':
+          $ref: '#/components/responses/Erro409UrgenciaChamado'
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -528,6 +528,8 @@ paths:
           $ref: '#/components/responses/Erro403ForaDaSubstituicao'
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          $ref: '#/components/responses/Erro409EstadoChamado'
         '422':
           $ref: '#/components/responses/Erro422EstadoChamado'
         '426':
@@ -542,6 +544,7 @@ paths:
       - RF-CH-04
       - RN-CH-05
       - RN-CH-06
+      - RN-CH-07
       - RN-CD-28
       - US-CH-03
   /v1/sindico/chamados/{chamado_id}/conclusao:
@@ -2290,7 +2293,7 @@ paths:
                 - pauta_id: 000001fe-1111-4222-8333-0000000001fe
                   unidade_id: 00000259-1111-4222-8333-000000000259
                   resultado: recusado
-                  motivo: UNIDADE_JA_VOTOU
+                  motivo: VOTACAO_VOTO_JA_REGISTRADO
                   substituiu_voto_do_inquilino: false
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
@@ -2300,8 +2303,8 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          $ref: '#/components/responses/Erro422VotoPresencial'
+        '409':
+          $ref: '#/components/responses/Erro409VotoPresencial'
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -2385,8 +2388,8 @@ paths:
           $ref: '#/components/responses/Erro403ForaDaSubstituicao'
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          $ref: '#/components/responses/Erro422Ata'
+        '409':
+          $ref: '#/components/responses/Erro409Ata'
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -3868,8 +3871,8 @@ paths:
           $ref: '#/components/responses/Erro403ForaDaSubstituicao'
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
-        '422':
-          $ref: '#/components/responses/Erro422Devolucao'
+        '409':
+          $ref: '#/components/responses/Erro409Devolucao'
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -4469,8 +4472,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1unidades~1{unidade_id}~1mudancas-de-morador/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1unidades~1{unidade_id}~1mudancas-de-morador/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1unidades~1{unidade_id}~1mudancas-de-morador/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1unidades~1{unidade_id}~1mudancas-de-morador/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1unidades~1{unidade_id}~1mudancas-de-morador/post/responses/426'
         '429':
@@ -4953,8 +4956,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1renovacao/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1renovacao/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1renovacao/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1renovacao/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1renovacao/post/responses/426'
         '429':
@@ -4993,8 +4996,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1encerramento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1encerramento/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1encerramento/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1encerramento/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1contratos-de-locacao~1{contrato_id}~1encerramento/post/responses/426'
         '429':
@@ -5544,8 +5547,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1bloqueios-de-entrada~1{bloqueio_id}~1encerramento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1bloqueios-de-entrada~1{bloqueio_id}~1encerramento/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1bloqueios-de-entrada~1{bloqueio_id}~1encerramento/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1bloqueios-de-entrada~1{bloqueio_id}~1encerramento/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1bloqueios-de-entrada~1{bloqueio_id}~1encerramento/post/responses/426'
         '429':
@@ -6023,8 +6026,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1cancelamento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1cancelamento/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1cancelamento/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1cancelamento/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1cancelamento/post/responses/426'
         '429':
@@ -6064,8 +6067,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1baixa-manual/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1baixa-manual/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1baixa-manual/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1baixa-manual/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1cobrancas~1{cobranca_id}~1baixa-manual/post/responses/426'
         '429':
@@ -6215,8 +6218,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1duplicidades~1{recebimento_id}~1tratamento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1duplicidades~1{recebimento_id}~1tratamento/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1duplicidades~1{recebimento_id}~1tratamento/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1duplicidades~1{recebimento_id}~1tratamento/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1duplicidades~1{recebimento_id}~1tratamento/post/responses/426'
         '429':
@@ -6331,8 +6334,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1divergencias~1{divergencia_id}~1resolucao/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1divergencias~1{divergencia_id}~1resolucao/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1divergencias~1{divergencia_id}~1resolucao/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1divergencias~1{divergencia_id}~1resolucao/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1pagamentos~1divergencias~1{divergencia_id}~1resolucao/post/responses/426'
         '429':
@@ -6600,6 +6603,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1lancamentos~1{lancamento_id}~1estorno/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1lancamentos~1{lancamento_id}~1estorno/post/responses/404'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1lancamentos~1{lancamento_id}~1estorno/post/responses/409'
         '422':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1lancamentos~1{lancamento_id}~1estorno/post/responses/422'
         '426':
@@ -6672,6 +6677,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1meses~1{competencia}~1fechamento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1meses~1{competencia}~1fechamento/post/responses/404'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1meses~1{competencia}~1fechamento/post/responses/409'
         '422':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1meses~1{competencia}~1fechamento/post/responses/422'
         '426':
@@ -6815,8 +6822,8 @@ paths:
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1recorrencias~1{recorrencia_id}~1encerramento/post/responses/403'
         '404':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1recorrencias~1{recorrencia_id}~1encerramento/post/responses/404'
-        '422':
-          $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1recorrencias~1{recorrencia_id}~1encerramento/post/responses/422'
+        '409':
+          $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1recorrencias~1{recorrencia_id}~1encerramento/post/responses/409'
         '426':
           $ref: './administradora.yaml#/paths/~1v1~1administradora~1financas~1recorrencias~1{recorrencia_id}~1encerramento/post/responses/426'
         '429':
@@ -7399,8 +7406,8 @@ components:
                 codigo: RECLAMACAO_JULGADOR_IMPEDIDO
                 mensagem: Você não pode julgar esta reclamação porque faz parte dela.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-    Erro422UrgenciaChamado:
-      description: Ajuste de urgência fora da regra.
+    Erro409UrgenciaChamado:
+      description: Ajuste de urgência em chamado que não está aberto (transição de estado não permitida; decisão de 16/11/2026, guia seção 8).
       headers:
         X-Request-Id:
           $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7410,13 +7417,13 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             chamadoEncerrado:
-              summary: Chamado já concluído (código Proposta, texto Proposta)
+              summary: Chamado já concluído (RN-CH-11; código padronizado em 16/11/2026, antes CHAMADO_URGENCIA_NAO_AJUSTAVEL, 422; código Proposta, texto Proposta)
               value:
-                codigo: CHAMADO_URGENCIA_NAO_AJUSTAVEL
+                codigo: CHAMADO_ESTADO_INVALIDO
                 mensagem: Só é possível ajustar a urgência de um chamado em aberto.
                 detalhes:
                 - campo: urgencia
-                  codigo: CHAMADO_URGENCIA_NAO_AJUSTAVEL
+                  codigo: CHAMADO_ESTADO_INVALIDO
                   mensagem: O chamado já foi concluído.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro422EmpresaChamado:
@@ -7435,8 +7442,8 @@ components:
                 codigo: CHAMADO_NAO_E_DE_MANUTENCAO
                 mensagem: Só chamados de manutenção têm empresa. Os de limpeza são atendidos pela equipe do condomínio.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-    Erro422EstadoChamado:
-      description: Mudança de estado fora da regra.
+    Erro409EstadoChamado:
+      description: Transição de estado do chamado não permitida (decisão de 16/11/2026, guia seção 8).
       headers:
         X-Request-Id:
           $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7446,11 +7453,27 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             foraDeSequencia:
-              summary: Estado fora da sequência aberto, orçamento, agendado, concluído (UF 8.3; código Proposta)
+              summary: Estado fora da sequência aberto, orçamento, agendado, concluído (RN-CH-05, RN-CH-07, UF 8.3; texto Proposta)
               value:
-                codigo: CHAMADO_TRANSICAO_INVALIDA
+                codigo: CHAMADO_ESTADO_INVALIDO
                 mensagem: Este chamado não pode ir para o estado escolhido agora.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+            dadoAlterado:
+              summary: Dado alterado por outra pessoa (texto de UF 15)
+              value:
+                codigo: CONFLITO_DADO_ALTERADO
+                mensagem: Estas informações mudaram. Atualizamos a tela.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro422EstadoChamado:
+      description: Mudança de estado recusada por regra que não é conflito de estado.
+      headers:
+        X-Request-Id:
+          $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+      content:
+        application/json:
+          schema:
+            $ref: ./componentes/comum.yaml#/components/schemas/Erro
+          examples:
             chamadoDeLimpeza:
               summary: Chamado de limpeza (código Proposta)
               value:
@@ -7547,9 +7570,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaIniciada:
-              summary: Uma conversa por reclamação (MER/DER 4.8; código Proposta)
+              summary: Uma conversa por reclamação (MER/DER 4.8; RN-RC-04; código padronizado em 16/11/2026, antes RECLAMACAO_CONVERSA_JA_INICIADA; código Proposta)
               value:
-                codigo: RECLAMACAO_CONVERSA_JA_INICIADA
+                codigo: RECLAMACAO_ESTADO_INVALIDO
                 mensagem: A conversa com o alvo já foi iniciada.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
             pendente:
@@ -7613,9 +7636,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaDecidida:
-              summary: Decisão única por reclamação (MER/DER 4.8; código Proposta)
+              summary: Decisão única por reclamação (MER/DER 4.8; RN-RC-04, RN-RC-05; código padronizado em 16/11/2026, antes RECLAMACAO_JA_DECIDIDA; código Proposta)
               value:
-                codigo: RECLAMACAO_JA_DECIDIDA
+                codigo: RECLAMACAO_ESTADO_INVALIDO
                 mensagem: Esta reclamação já foi decidida.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
             pendente:
@@ -7680,9 +7703,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaDecidida:
-              summary: Já enviada ou descartada (código Proposta)
+              summary: Já enviada ou descartada (RN-CO-05; código padronizado em 16/11/2026, antes SUGESTAO_JA_DECIDIDA; código Proposta)
               value:
-                codigo: SUGESTAO_JA_DECIDIDA
+                codigo: SUGESTAO_ESTADO_INVALIDO
                 mensagem: Esta sugestão já foi enviada ou descartada.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro422Reuniao:
@@ -7715,13 +7738,13 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaEncerrada:
-              summary: Encerramento único (código Proposta)
+              summary: Encerramento único (RN-VO-10; código padronizado em 16/11/2026, antes REUNIAO_JA_ENCERRADA; código Proposta)
               value:
-                codigo: REUNIAO_JA_ENCERRADA
+                codigo: REUNIAO_ESTADO_INVALIDO
                 mensagem: Esta reunião já foi encerrada.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-    Erro422VotoPresencial:
-      description: Registro de voto presencial fora da regra.
+    Erro409VotoPresencial:
+      description: Registro de voto presencial com a votação encerrada (transição de estado não permitida; decisão de 16/11/2026, guia seção 8).
       headers:
         X-Request-Id:
           $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7731,13 +7754,13 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             reuniaoEncerrada:
-              summary: Votação já encerrada (RN-VO-10; código Proposta)
+              summary: Votação já encerrada (RN-VO-10; código padronizado em 16/11/2026, antes VOTO_PRESENCIAL_REUNIAO_ENCERRADA, 422; código Proposta)
               value:
-                codigo: VOTO_PRESENCIAL_REUNIAO_ENCERRADA
+                codigo: VOTACAO_ESTADO_INVALIDO
                 mensagem: A reunião já foi encerrada. Não é possível registrar votos.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-    Erro422Ata:
-      description: Ata fora da regra.
+    Erro409Ata:
+      description: Ata em reunião ainda não encerrada (estado não permite; decisão de 16/11/2026, guia seção 8).
       headers:
         X-Request-Id:
           $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7747,9 +7770,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             semEncerramento:
-              summary: Ata só depois da reunião (RN-VO-12; código Proposta)
+              summary: Ata só depois da reunião (RN-VO-12; código padronizado em 16/11/2026, antes ATA_REUNIAO_NAO_ENCERRADA, 422; código Proposta)
               value:
-                codigo: ATA_REUNIAO_NAO_ENCERRADA
+                codigo: REUNIAO_ESTADO_INVALIDO
                 mensagem: Anexe a ata depois de encerrar a reunião.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro409Resultado:
@@ -7871,19 +7894,19 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             jaAtiva:
-              summary: Código Proposta
+              summary: Substituição já ativa (RN-CD-12; código padronizado em 16/11/2026, antes SUBSTITUICAO_JA_ATIVA; código Proposta)
               value:
-                codigo: SUBSTITUICAO_JA_ATIVA
+                codigo: SUBSTITUICAO_ESTADO_INVALIDO
                 mensagem: A substituição já está ativa.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
             jaInativa:
-              summary: Código Proposta
+              summary: Substituição já desativada (RN-CD-12; código padronizado em 16/11/2026, antes SUBSTITUICAO_JA_INATIVA; código Proposta)
               value:
-                codigo: SUBSTITUICAO_JA_INATIVA
+                codigo: SUBSTITUICAO_ESTADO_INVALIDO
                 mensagem: A substituição já está desativada.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-    Erro422Devolucao:
-      description: Devolução fora da regra.
+    Erro409Devolucao:
+      description: Devolução de encomenda que não está com prazo vencido (transição de estado não permitida; decisão de 16/11/2026, guia seção 8).
       headers:
         X-Request-Id:
           $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -7893,9 +7916,9 @@ components:
             $ref: ./componentes/comum.yaml#/components/schemas/Erro
           examples:
             foraDoPrazo:
-              summary: Só "Prazo vencido" vai a "Devolvida" (RN 9.1; código Proposta)
+              summary: Só "Prazo vencido" vai a "Devolvida" (RN 9.1; código padronizado em 16/11/2026, antes ENCOMENDA_NAO_ESTA_COM_PRAZO_VENCIDO, 422; código Proposta)
               value:
-                codigo: ENCOMENDA_NAO_ESTA_COM_PRAZO_VENCIDO
+                codigo: ENCOMENDA_ESTADO_INVALIDO
                 mensagem: Só é possível devolver encomenda com prazo de guarda vencido.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
   schemas:
@@ -8979,7 +9002,7 @@ components:
           type:
           - string
           - 'null'
-          description: '`UNIDADE_JA_VOTOU` quando recusado ("Esta unidade já votou pelo app.", RN-VO-11).'
+          description: '`VOTACAO_VOTO_JA_REGISTRADO` quando recusado ("Esta unidade já votou pelo app.", RN-VO-01, RN-VO-11; código padronizado em 16/11/2026, antes `UNIDADE_JA_VOTOU`).'
         substituiu_voto_do_inquilino:
           type: boolean
           description: Voto presencial do proprietário substitui o do inquilino (RN-VO-11, RN-VO-18).
@@ -9746,7 +9769,7 @@ components:
           - $ref: ./componentes/comum.yaml#/components/schemas/DataHora
           - type: 'null'
 x-lacunas:
-- "RN-CH-07, decisão de 12/11/2026: manutenção Reaberto passa por triagem explícita para Orçamento ou Agendado. Outras transições fora de sequência e código CHAMADO_TRANSICAO_INVALIDA continuam proposta."
+- "RN-CH-07, decisão de 12/11/2026: manutenção Reaberto passa por triagem explícita para Orçamento ou Agendado. Outras transições fora de sequência continuam proposta. Código decidido em 16/11/2026: transição não permitida responde 409 CHAMADO_ESTADO_INVALIDO (antes CHAMADO_TRANSICAO_INVALIDA, 422); o texto da mensagem segue Proposta."
 - 'Chamado "aberto" em RN-CH-11: tratado como não concluído; ajustar urgência de chamado concluído responde 422
   (interpretação Proposta).'
 - 'Estado de `empresa_manutencao` (ativa ou não) não é definido nos docs: omitido do DTO.'

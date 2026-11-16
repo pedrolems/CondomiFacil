@@ -6,7 +6,7 @@
 
 ## 1. Escopo, fontes e sequência
 
-Este guia cobre Google Play para Android e App Store para iOS, com interface em português do Brasil. A versão web da Vercel (hospedagem proposta no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), Proposto) tem publicação própria e não substitui a distribuição nativa. A stack planejada é React Native, TypeScript e Expo, com API NestJS. EAS Build, EAS Submit e OTA continuam propostas do ADR-011; o guia não o aceita automaticamente.
+Este guia cobre Google Play para Android e App Store para iOS, com interface em português do Brasil. A versão web (site estático do Render em dev e staging, conforme o [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas em 16/11/2026) tem publicação própria e não substitui a distribuição nativa. A stack planejada é React Native, TypeScript e Expo, com API NestJS. EAS Build, EAS Submit e OTA continuam propostas do ADR-011; o guia não o aceita automaticamente.
 
 | Documento do projeto | Aplicação neste guia |
 | --- | --- |

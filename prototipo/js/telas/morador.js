@@ -134,7 +134,7 @@ def(RES, 'reserva-resumo', 'Resumo da reserva', 'Reservas (5.1)', ctx => {
     tab: 'reservas', top: { title: 'Confirmar reserva', back: p + '/area/' + a.id },
     body: `<div class="stack">
       ${card({ icon: a.ico, title: a.nome, sub: `${dia}/${mm} · ${slot}`, badge: a.paga ? badge('Paga · ' + money(a.valor), 'info') : badge('Gratuita', 'neutral') })}
-      ${banner('info', 'info', a.paga ? 'Cancelamento com reembolso até 12h antes do início. Depois disso, o valor não é devolvido.' : 'Você pode cancelar até o início da reserva. Faltar sem cancelar conta para o seu score.', { inline: true })}
+      ${banner('info', 'info', a.paga ? 'Cancelando com 12h ou mais de antecedência, você recebe o valor de volta. Com menos de 12h, o valor não é devolvido.' : 'Você pode cancelar até o início da reserva. Faltar sem cancelar conta para o seu score.', { inline: true })}
       ${a.paga ? `<div class="card"><div class="row-between"><span>Valor da reserva</span><b class="num">${money(a.valor)}</b></div><p class="help" style="margin:0">O horário fica guardado por 24h ou até o início da reserva, o que vier antes, enquanto o pagamento não é confirmado.</p></div>` : ''}
       ${row({ icon: 'circle-help', title: 'Regras da área', sub: 'Capacidade, horários e limpeza', on: () => sheet(`<h2 class="t-title-md">Regras · ${a.nome}</h2><ul class="t-body"><li>${a.cap}.</li><li>Reservas de 24h a 60 dias antes.</li><li>Até 2 reservas por unidade, por mês, nesta área.</li><li>Depois do uso, a portaria ou a limpeza faz a vistoria.</li></ul>`) })}
     </div>`,
@@ -277,7 +277,7 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
       ${card({ icon: a.ico, title: a.nome, sub: `${r.dia} · ${r.hora}`, badge: st(r.estado) })}
       ${lr ? row({ icon: 'list-checks', title: `Lista: ${lrQ.total} ${lrQ.total === 1 ? 'pessoa' : 'pessoas'}`, sub: `${esc(lr.titulo)} · ${lrQ.chegaram} chegaram`, on: p + '/lista-visitantes/' + lr.id }) : sugereLista(r) ? bannerLista(r, p) : ''}
       ${r.valor ? `<div class="card"><div class="row-between"><span>Valor</span><b class="num">${money(r.valor)}</b></div>${r.estado === 'Aguardando pagamento' ? `<p class="t-body-sm c-warning row" style="margin:0">${ic('clock')}Pague até ${r.prazo} ou o horário é liberado.</p>` : ''}</div>` : ''}
-      ${r.estado === 'Confirmada' && a.paga ? banner('info', 'info', 'Cancelamento com reembolso até 12h antes do início.', { inline: true }) : ''}
+      ${r.estado === 'Confirmada' && a.paga ? banner('info', 'info', 'Cancelando com 12h ou mais de antecedência, você recebe o valor de volta.', { inline: true }) : ''}
       ${r.estado === 'Cancelada pelo condomínio' ? banner('info', 'info', `O condomínio cancelou esta reserva. Motivo: ${esc(r.motivoCancelamento || 'Manutenção')}. ${r.reembolso ? 'Reembolso solicitado, acompanhe no histórico.' : 'Sem devolução quando não houve recebimento.'}`,  { inline: true }) : ''}
       ${r.estado.startsWith('Cancelada com') ? row({ icon: 'file-check', title: 'Comprovante do reembolso', on: () => toast('Comprovante baixado.') }) : ''}
     </div>`,
@@ -931,7 +931,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-funcion
     ['gauge', 'Score', 'Cada pessoa começa com 100 em cada novo vínculo de moradia. Saldo, histórico e recuperação são separados por unidade; ninguém herda o score de quem saiu. Reclamações e faltas afetam só esse vínculo. A regularidade recupera 5 pontos a cada 2 meses. Com 60 ou menos, as reservas gratuitas ficam pausadas só para você nesta unidade. Funcionários e síndico profissional sem unidade têm score individual por condomínio; a pesquisa mensal só altera o score funcional dos funcionários.'],
     ['message-square-warning', 'Reclamações', 'O julgador conversa com quem foi indicado antes de decidir. Quem foi indicado nunca sabe quem reclamou. Reclamações falsas ou desproporcionais tiram pontos de quem reclamou.'],
     ['undo-2', 'Recurso', 'Quem perdeu pontos pode recorrer uma vez, em até 7 dias.'],
-    ['calendar-days', 'Reservas', 'De 24h a 60 dias antes, até 2 por mês em cada área. Áreas pagas: cancelamento com reembolso até 12h antes.'],
+    ['calendar-days', 'Reservas', 'De 24h a 60 dias antes, até 2 por mês em cada área. Áreas pagas: cancelando com 12h ou mais de antecedência, você recebe o valor de volta.'],
     ['key-round', 'Unidade alugada', 'O inquilino é o morador habilitado e usa todas as funções de morador. Quem vota é o proprietário; o inquilino vota como procurador dele ou nas pautas sem despesa extraordinária. O inquilino paga as despesas ordinárias e o proprietário, as extraordinárias.'],
   ].map(([i, t, d]) => card({ icon: i, title: t, body: d })).join('')}</div>`,
 }));

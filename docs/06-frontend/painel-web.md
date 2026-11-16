@@ -38,7 +38,7 @@ O painel começa pela seleção de um condomínio autorizado. O cabeçalho mant�
 
 Na faixa expandida, listas usam tabelas com busca, filtros, ordenação e paginação; formulários seguem o limite de largura do Design System. Em telas menores, a navegação lateral pode ser recolhida e as tabelas adaptadas, mantendo as mesmas permissões. O painel administrativo exige internet; não herda a fila offline da portaria ou limpeza.
 
-Componentes compartilhados incluem tabela, filtros, paginação, indicador de estado, resumo financeiro, gráfico com tabela equivalente, seletor de formato e acompanhamento da exportação. Tokens, temas, escrita e acessibilidade seguem o Design System; estado não é comunicado somente por cor. A hospedagem do painel web é objeto do [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto; Vercel como proposta), ainda não aceito.
+Componentes compartilhados incluem tabela, filtros, paginação, indicador de estado, resumo financeiro, gráfico com tabela equivalente, seletor de formato e acompanhamento da exportação. Tokens, temas, escrita e acessibilidade seguem o Design System; estado não é comunicado somente por cor. A hospedagem do painel web segue o [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas em 16/11/2026: site estático do Render, plano gratuito, em dev e staging, com revisão obrigatória antes do piloto com dados reais.
 
 ### 2.1 Rotas e páginas propostas
 

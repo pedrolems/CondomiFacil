@@ -417,7 +417,7 @@ flowchart LR
 - **Conciliação diária (SEG-17):** job compara o que o gateway diz ter recebido com o que o sistema marcou como pago e abre alerta para a administradora nas diferenças. Cobre webhooks perdidos.
 - **Pagamento fora do app:** baixa manual pela administradora com comprovante e motivo, auditada (RF-FI-10).
 - **Pagamento em duplicidade:** alerta à administradora, que devolve pelo gateway ou abate na próxima cobrança, auditado (RN-FI-19).
-- **Reembolso:** integral se cancelado até 12 h antes (parâmetro 0 a 168 h); cancelamento pelo condomínio é sempre integral; Pix em até 2 dias úteis, cartão estornado pela operadora (RN-CA-01 a RN-CA-06, RN-PG-07, RF-PG-03/04). Estados: solicitado, em processamento, concluído, falhou. Falha: push ao morador e alerta à administradora (UF 5.2). Estorno financeiro automático na mesma categoria (RN-FI-23).
+- **Reembolso:** integral se cancelado 12h ou mais antes do início (igualdade incluída, RN-CA-02) (parâmetro 0 a 168 h); cancelamento pelo condomínio é sempre integral; Pix em até 2 dias úteis, cartão estornado pela operadora (RN-CA-01 a RN-CA-06, RN-PG-07, RF-PG-03/04). Estados: solicitado, em processamento, concluído, falhou. Falha: push ao morador e alerta à administradora (UF 5.2). Estorno financeiro automático na mesma categoria (RN-FI-23).
 - **Reserva e concorrência:** o primeiro pedido bloqueia o horário (RN-RE-04). No banco, restrição de exclusão (`EXCLUDE USING gist` sobre área e intervalo de tempo, para reservas ativas) garante meta de 0 conflitos independentemente de corrida entre requisições. A rotina 1 expira reservas não pagas (RN-RE-03).
 - **Valores:** inteiros em centavos, nunca ponto flutuante. Multa e juros calculados no servidor, segunda via sempre atualizada (RN 12).
 - **Gateway fora do ar:** reserva mantém o horário até o fim do prazo; cobrança mantém o vencimento (UF 5.1, 13.1). Chamadas ao gateway com tempo limite, nova tentativa com recuo e disjuntor (Proposta).
@@ -837,7 +837,7 @@ Apps dependem de pacotes; pacotes nunca dependem dos apps. `shared-types` não i
 | Dados | Fictícios (semente) | Fictícios | Fictícios (gerador de carga com 5.000 unidades) | Reais |
 | Sentry | Desligado | Projeto dev | Projeto staging | Projeto produção |
 
-**Hospedagem do painel web (Proposta, 15/11/2026):** o plano Hobby da Vercel é restrito a uso pessoal não comercial; hospedagem, plano e custo do cliente web estão em [ADR-016](adr/016-hospedagem-do-painel-web.md) e não alteram o ADR-004 (aceito).
+**Hospedagem do painel web (aceita com ressalvas, 16/11/2026):** site estático do Render, plano gratuito, um por ambiente em dev e staging, sem custo ([ADR-016](adr/016-hospedagem-do-painel-web.md)). Vercel Pro rejeitada (custo recorrente) e Vercel Hobby fora (uso não comercial). Produção e piloto com dados reais: revisão obrigatória antes do piloto, junto com o ADR-004 (aceito, não alterado). Limites do site estático gratuito: a confirmar.
 
 ### 6.2 Dados e LGPD
 
@@ -991,7 +991,7 @@ flowchart LR
 
 ### 9.1 Registro das decisões e propostas em ADR
 
-Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; o ADR-015 foi aceito em 14/11/2026 quanto à organização e às fontes dos contratos, com versões e gerador pendentes. Os demais, incluindo o ADR-016 (proposto em 15/11/2026), ainda estão sem validação (estado Proposto).
+Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; o ADR-015 foi aceito em 14/11/2026 quanto à organização e às fontes dos contratos, com versões e gerador pendentes. Em 16/11/2026 o ADR-016 (hospedagem do painel web) foi aceito, com ressalvas, para dev e staging, com revisão obrigatória antes do piloto. Os demais ainda estão sem validação (estado Proposto).
 
 | ADR sugerido | Decisão | Estado | Depende de |
 | --- | --- | --- | --- |
@@ -1010,7 +1010,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
 | [ADR-014](adr/014-primeira-conclusao-sync.md) | Menor horário do celular definido em RN-CH-04; implementação, empate exato e relógio incorreto | Proposta técnica, critério de produto definido em 08/11/2026 | Engenharia e exceções de produto |
 | [ADR-015](adr/015-workspaces-e-contratos-compartilhados.md) | Workspace pnpm único, contratos OpenAPI/AsyncAPI canônicos e Turborepo futuro | Aceito nesse escopo por Pedro em 14/11/2026 | Gerador e versões pendentes de validação |
-| [ADR-016](adr/016-hospedagem-do-painel-web.md) | Hospedagem do painel web (Vercel em plano comercial como proposta; o Hobby não serve ao produto) | Proposta (15/11/2026) | Orçamento (RNF-18); condições do provedor; subprocessadores |
+| [ADR-016](adr/016-hospedagem-do-painel-web.md) | Hospedagem do painel web (site estático do Render, plano gratuito, em dev e staging; Vercel Pro rejeitada, Hobby fora) | Aceito, com ressalvas (16/11/2026) | Revisão obrigatória antes do piloto, junto com o ADR-004; limites do plano gratuito a confirmar |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)
 

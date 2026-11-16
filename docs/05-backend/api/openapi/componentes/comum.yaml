@@ -288,7 +288,7 @@ components:
                 mensagem: Não encontramos o que você procurou.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro409:
-      description: Conflito de estado ou de dado (horário já reservado, dado alterado por outra pessoa, voto repetido).
+      description: Conflito de estado ou de dado (horário já reservado, dado alterado por outra pessoa, voto repetido, transição de estado não permitida; guia, seção 8).
       headers:
         X-Request-Id:
           $ref: '#/components/headers/XRequestId'

@@ -802,7 +802,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 1. Lista de áreas em cartões (foto, nome, selo "Paga · R$ 150,00" ou "Gratuita").
 2. Calendário e horários da área (10.19 e 4.6).
-3. Resumo com regras de cancelamento em destaque ("Cancelamento com reembolso até 12h antes do início") e o botão "Reservar" ou "Reservar e pagar".
+3. Resumo com regras de cancelamento em destaque ("Cancelando com 12h ou mais de antecedência, você recebe o valor de volta") e o botão "Reservar" ou "Reservar e pagar".
 4. Para a paga: escolha de Pix (primeira opção, RF-PG-01) ou cartão. O Pix mostra QR Code, botão "Copiar código Pix" e o tempo restante para pagar ("Pague até 14h30 de amanhã ou o horário é liberado").
 
 Ao cancelar depois do prazo de reembolso, o diálogo avisa antes de confirmar (RN-CA-03).
@@ -1230,6 +1230,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 16/11/2026 | Texto das regras de cancelamento no resumo da reserva (11.4) de "Cancelamento com reembolso até 12h antes do início" para "Cancelando com 12h ou mais de antecedência, você recebe o valor de volta"; sem componente nem token novo | Alinhar texto à RN-CA-02, igualdade incluída: "até 12h antes" era ambíguo; decisão do Pedro de 16/11/2026 confirma reembolso integral com antecedência maior ou igual a 12h (configurável) |
 | 15/11/2026 | Tokens `chart-1` e `chart-2` definidos na seção 4 (referência a `blue.700`/`blue.300` e `coral.500`); totais de lançamentos em `type.label.sm` (antes `type.label.md`, inexistente); mapa 8.3 ampliado com `list-checks`, `package-open`, `chevrons-up`, `equal`, `chevron-down`, `trending-up/down`, `minus`, `arrow-down-to-line`, `arrow-up-from-line`, `paperclip`, `user-x`, `trash-2` e `copy`; condução eleitoral com a restrição do suporte ao Gestão + Suporte (11.7, 11.2, 11.17); cabeçalho em dd/mm/aaaa | Auditoria de consistência de 15/11/2026: tokens e ícones usados sem definição, e decisão do Pedro de 15/11/2026 sobre o suporte da plataforma |
 | 14/11/2026 | Relatórios gerenciais antecipados para MVP; nove tipos, PDF/CSV/XLSX e PNG/SVG agregados; central privada assíncrona (11.18) | Decisão do Pedro e autorização de alinhamento; preservar acesso da administradora e privacidade |
 | 13/11/2026 | Condução eleitoral por precedência local em qualquer plano (11.7), designação restrita à eleição e Essencial com autogestão (11.17), incluindo simulação de administração local | Decisão de Pedro: funcionamento sem administradora ou suporte pago; distribuição detalhada de funções fica como proposta para revisão, preservando sigilo e fiscalização |

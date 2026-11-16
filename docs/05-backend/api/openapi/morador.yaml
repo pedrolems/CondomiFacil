@@ -213,11 +213,11 @@ paths:
                   valor_centavos: 15000
                   foto_id: null
                   regras:
-                    antecedencia_minima_horas: 24
-                    antecedencia_maxima_dias: 60
+                    reserva.antecedencia_min_horas: 24
+                    reserva.antecedencia_max_dias: 60
                     reserva.limite_mensal_por_unidade: 2
-                    prazo_reembolso_horas: 12
-                    prazo_pagamento_horas: 24
+                    reserva.prazo_cancelamento_reembolso_horas: 12
+                    reserva.prazo_pagamento_horas: 24
                 paginacao:
                   proximo_cursor: null
                   tem_mais: false
@@ -510,28 +510,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReservaMorador'
-              example:
-                id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
-                area_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
-                area_nome: Salão de festas
-                inicio: '2026-11-20T18:00:00-03:00'
-                fim: '2026-11-20T22:00:00-03:00'
-                estado: confirmada
-                tipo: paga
-                valor_centavos: 15000
-                criada_em: '2026-11-10T14:30:00-03:00'
-                pagar_ate: null
-                sugerir_lista_visitantes: true
-                lista_vinculada: null
-                cancelamento_previsto:
-                  direito_reembolso: true
-                  valor_reembolso_centavos: 15000
-                  aviso: null
-                comprovantes:
-                - tipo: pagamento
-                  arquivo_id: 9e4d2b71-6a3c-4f58-b0d1-2c7e5a8f3b19
-                  emitido_em: '2026-11-10T14:35:00-03:00'
-                cancelamento: null
+              examples:
+                paga:
+                  summary: Área paga, nasce Aguardando pagamento (RN-RE-03); prazo padrão de 24h
+                  value:
+                    id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
+                    area_id: 7a1d3c55-0e2b-4c8f-b1a4-9d6e5f302b18
+                    area_nome: Salão de festas
+                    inicio: '2026-11-20T18:00:00-03:00'
+                    fim: '2026-11-20T22:00:00-03:00'
+                    estado: aguardando_pagamento
+                    tipo: paga
+                    valor_centavos: 15000
+                    criada_em: '2026-11-10T14:30:00-03:00'
+                    pagar_ate: '2026-11-11T14:30:00-03:00'
+                    sugerir_lista_visitantes: false
+                    lista_vinculada: null
+                    cancelamento_previsto: null
+                    comprovantes: []
+                    cancelamento: null
+                gratuita:
+                  summary: Área gratuita, nasce Confirmada (RN-RE-02)
+                  value:
+                    id: 5b2e8d47-3c1f-4a6b-9e0d-7f4a1c2b3d58
+                    area_id: 2c8e4f61-5a3b-4d7c-8e1f-0a9b6c5d4e27
+                    area_nome: Churrasqueira
+                    inicio: '2026-11-21T12:00:00-03:00'
+                    fim: '2026-11-21T16:00:00-03:00'
+                    estado: confirmada
+                    tipo: gratuita
+                    valor_centavos: 0
+                    criada_em: '2026-11-10T14:30:00-03:00'
+                    pagar_ate: null
+                    sugerir_lista_visitantes: true
+                    lista_vinculada: null
+                    cancelamento_previsto: null
+                    comprovantes: []
+                    cancelamento: null
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
@@ -773,6 +788,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Reserva não está aguardando pagamento (RN 7.4; código padronizado em 16/11/2026, antes RESERVA_NAO_AGUARDA_PAGAMENTO, 422)
+                  value:
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: Esta reserva não está aguardando pagamento.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -788,12 +819,6 @@ paths:
                   value:
                     codigo: RESERVA_PRAZO_DE_PAGAMENTO_VENCIDO
                     mensagem: Sua reserva expirou porque o pagamento não foi concluído.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Reserva não está aguardando pagamento
-                  value:
-                    codigo: RESERVA_NAO_AGUARDA_PAGAMENTO
-                    mensagem: Esta reserva não está aguardando pagamento.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
@@ -844,7 +869,7 @@ paths:
     post:
       operationId: moradorCancelarReserva
       summary: Cancela uma reserva
-      description: Cancela até o início (RN-CA-01) e libera o horário na hora (RN-CA-06). Paga cancelada com antecedência maior ou igual a 12h, inclusive igualdade (configurável) tem reembolso integral, Pix em até 2 dias úteis ou estorno no cartão (RN-CA-02, RN-CA-04); depois disso cancela sem reembolso, com aviso antes de confirmar (RN-CA-03). A lista de visitantes vinculada é cancelada junto (RN-VI-14). Não tira pontos.
+      description: Cancela até o início (RN-CA-01) e libera o horário na hora (RN-CA-06). Paga cancelada com antecedência maior ou igual a 12h antes do início, igualdade incluída (`reserva.prazo_cancelamento_reembolso_horas`, configurável; decisão de Pedro confirmada em 16/11/2026), tem reembolso integral, Pix em até 2 dias úteis ou estorno no cartão (RN-CA-02, RN-CA-04); depois disso cancela sem reembolso, com aviso antes de confirmar (RN-CA-03). A lista de visitantes vinculada é cancelada junto (RN-VI-14). Não tira pontos.
       tags:
       - reservas
       security:
@@ -915,10 +940,10 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 ja:
-                  summary: Reserva já cancelada ou expirada
+                  summary: Reserva já cancelada, expirada ou em estado que não admite cancelamento (RN 7.4; código decidido em 16/11/2026, texto Proposta)
                   value:
-                    codigo: CONFLITO_DADO_ALTERADO
-                    mensagem: Estas informações mudaram. Atualizamos a tela.
+                    codigo: RESERVA_ESTADO_INVALIDO
+                    mensagem: Esta reserva não pode mais ser cancelada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 dadoAlterado:
                   summary: Dado alterado por outra pessoa (texto de UF 15)
@@ -2644,6 +2669,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Entrega que já chegou (RN-EN-09; código padronizado em 16/11/2026, antes ENTREGA_NAO_EDITAVEL, 422)
+                  value:
+                    codigo: ENTREGA_ESTADO_INVALIDO
+                    mensagem: Esta entrega já chegou e não pode mais ser alterada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -2654,12 +2695,6 @@ paths:
               schema:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
-                estado:
-                  summary: Entrega que já chegou (RN-EN-09)
-                  value:
-                    codigo: ENTREGA_NAO_EDITAVEL
-                    mensagem: Esta entrega já chegou e não pode mais ser alterada.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 limite:
                   summary: Reagendar estoura o limite (RN-EN-08)
                   value:
@@ -2727,6 +2762,22 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro403
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Entrega que já chegou (RN-EN-09; código padronizado em 16/11/2026, antes ENTREGA_NAO_EDITAVEL, 422)
+                  value:
+                    codigo: ENTREGA_ESTADO_INVALIDO
+                    mensagem: Esta entrega já chegou e não pode mais ser cancelada.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -2737,12 +2788,6 @@ paths:
               schema:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
-                estado:
-                  summary: Entrega que já chegou (RN-EN-09)
-                  value:
-                    codigo: ENTREGA_NAO_EDITAVEL
-                    mensagem: Esta entrega já chegou e não pode mais ser cancelada.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
                   value:
@@ -3172,6 +3217,12 @@ paths:
                     codigo: CONFLITO_DADO_ALTERADO
                     mensagem: Estas informações mudaram. Atualizamos a tela.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                estado:
+                  summary: Chamado ainda não concluído (RN-CH-15; código padronizado em 16/11/2026, antes CHAMADO_NAO_CONCLUIDO, 422)
+                  value:
+                    codigo: CHAMADO_ESTADO_INVALIDO
+                    mensagem: Só é possível avaliar um chamado concluído.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -3193,12 +3244,6 @@ paths:
                   value:
                     codigo: CHAMADO_AVALIACAO_BASE_INVALIDA
                     mensagem: Sem fotos, marque que conferiu pessoalmente.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Chamado ainda não concluído
-                  value:
-                    codigo: CHAMADO_NAO_CONCLUIDO
-                    mensagem: Só é possível avaliar um chamado concluído.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
@@ -4711,9 +4756,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 ja:
-                  summary: Unidade já votou (RN-VO-01)
+                  summary: Unidade já votou (RN-VO-01; código decidido em 16/11/2026)
                   value:
-                    codigo: VOTO_UNIDADE_JA_VOTOU
+                    codigo: VOTACAO_VOTO_JA_REGISTRADO
                     mensagem: Esta unidade já votou nesta pauta.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 dadoAlterado:
@@ -4721,6 +4766,12 @@ paths:
                   value:
                     codigo: CONFLITO_DADO_ALTERADO
                     mensagem: Estas informações mudaram. Atualizamos a tela.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                encerrada:
+                  summary: Votação encerrada (RN-VO-10; código padronizado em 16/11/2026, antes VOTACAO_ENCERRADA, 422)
+                  value:
+                    codigo: VOTACAO_ESTADO_INVALIDO
+                    mensagem: Esta votação já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
@@ -4743,12 +4794,6 @@ paths:
                   value:
                     codigo: VOTO_INQUILINO_PAUTA_COM_DESPESA_EXTRAORDINARIA
                     mensagem: Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                encerrada:
-                  summary: Votação encerrada (RN-VO-10)
-                  value:
-                    codigo: VOTACAO_ENCERRADA
-                    mensagem: Esta votação já foi encerrada.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
@@ -5574,6 +5619,22 @@ paths:
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
+        '409':
+          description: Transição de estado não permitida (decisão de 16/11/2026, guia seção 8).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                estado:
+                  summary: Cobrança já paga ou cancelada (RN 12.2; código padronizado em 16/11/2026, antes COBRANCA_NAO_PAGAVEL, 422)
+                  value:
+                    codigo: COBRANCA_ESTADO_INVALIDO
+                    mensagem: Esta cobrança não está em aberto.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '422':
           description: Regra de negócio violada.
           headers:
@@ -5589,12 +5650,6 @@ paths:
                   value:
                     codigo: COBRANCA_MEIO_NAO_ACEITO
                     mensagem: Esta forma de pagamento não está ativa neste condomínio.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                estado:
-                  summary: Cobrança já paga ou cancelada
-                  value:
-                    codigo: COBRANCA_NAO_PAGAVEL
-                    mensagem: Esta cobrança não está em aberto.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 regraDeNegocio:
                   summary: Regra violada, exemplo genérico (texto Proposta)
@@ -5926,18 +5981,23 @@ components:
           - type: 'null'
         regras:
           type: object
-          description: Regras efetivas da área, resolvidas pela herança plataforma, condomínio e área (RF-AD-07). Valores são parâmetros configuráveis (RN 13); os do exemplo são os padrões das regras.
+          description: Regras efetivas da área, resolvidas pela herança plataforma, condomínio e área (RF-AD-07). Valores são parâmetros configuráveis (RN 13); os do exemplo são os padrões das regras. As chaves são as do catálogo de parâmetros (RN 13), fonte da verdade (decisão de Pedro em 16/11/2026).
           properties:
-            antecedencia_minima_horas:
+            reserva.antecedencia_min_horas:
               type: integer
-            antecedencia_maxima_dias:
+              description: Antecedência mínima em horas (RN-RE-06).
+            reserva.antecedencia_max_dias:
               type: integer
+              description: Antecedência máxima em dias (RN-RE-06).
             reserva.limite_mensal_por_unidade:
               type: integer
-            prazo_reembolso_horas:
+              description: Reservas por mês, por área, por unidade (RN-RE-07).
+            reserva.prazo_cancelamento_reembolso_horas:
               type: integer
-            prazo_pagamento_horas:
+              description: Antecedência mínima, em horas, para cancelamento com reembolso integral; vale maior ou igual, igualdade incluída (RN-CA-02).
+            reserva.prazo_pagamento_horas:
               type: integer
+              description: Prazo de pagamento da reserva paga, em horas (RN-RE-03).
     IntervaloAreaMorador:
       type: object
       description: Intervalo que não está livre. Tudo o que não aparece está livre. Nunca identifica unidade nem morador (RN-RE-05).

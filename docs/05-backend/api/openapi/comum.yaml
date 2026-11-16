@@ -2090,9 +2090,9 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 jaDecidido:
-                  summary: Segunda decisão do mesmo recurso (código e texto Proposta)
+                  summary: Segunda decisão do mesmo recurso (RN-RC-07; código padronizado em 16/11/2026, antes RECURSO_JA_DECIDIDO; código e texto Proposta)
                   value:
-                    codigo: RECURSO_JA_DECIDIDO
+                    codigo: RECURSO_ESTADO_INVALIDO
                     mensagem: Este recurso já foi decidido.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':

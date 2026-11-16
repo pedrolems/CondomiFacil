@@ -95,13 +95,13 @@ Contrato em `openapi/webhooks.yaml`. Ficam fora de `/v1` e sem `Authorization`, 
 | Webhook | Endereço | Autenticação do provedor | Idempotência | Estado |
 | --- | --- | --- | --- | --- |
 | Asaas | `POST /webhooks/pagamentos/asaas` | **Token** no cabeçalho `asaas-access-token`, comparado em tempo constante. **Não é assinatura HMAC** do corpo | `id` do evento (único por provedor) em `evento_gateway` | Decisão do Pedro (gateway); mecanismo Proposta |
-| Resend | `POST /webhooks/email/resend` | Assinatura Svix (`svix-id`, `svix-timestamp`, `svix-signature`) sobre o corpo bruto | `svix-id` | **Proposta: nenhum doc o exige** |
+| Resend | `POST /webhooks/email/resend` | Assinatura Svix (`svix-id`, `svix-timestamp`, `svix-signature`) sobre o corpo bruto, verificada antes de processar; ausente ou inválida responde `401` | `svix-id` | **No contrato por decisão do Pedro em 16/11/2026**; algoritmo e tolerância a confirmar na implementação |
 
 **Fluxo do Asaas (SEG-17, Proposta):**
 
 1. Recebe o **corpo bruto** e valida o token antes de qualquer outra coisa.
 2. Grava `evento_gateway` com unicidade por provedor e id do evento. Se já existe, responde `200` sem reprocessar.
-3. **Quarentena:** evento sem correlação válida (token inválido, conta ou transação desconhecida) vai para `evento_gateway_quarentena` (global, fora do RLS dos condomínios; motivo, estado Em quarentena, Correlacionado ou Descartado). Com token **válido**, responde `200` (para o Asaas não repetir); com token **inválido**, `401`. Ao correlacionar depois, cria o `evento_gateway` no condomínio certo, sem confiar no condomínio enviado no corpo (decisão do Pedro em 08/11/2026).
+3. **Quarentena:** evento sem correlação válida (token inválido, conta ou transação desconhecida) vai para `evento_gateway_quarentena` (global, fora do RLS dos condomínios; motivo, estado Em quarentena, Correlacionado ou Descartado). Com token **válido**, responde `200` (para o Asaas não repetir); com token **inválido**, `401` (confirmado em 16/11/2026). Ao correlacionar depois, cria o `evento_gateway` no condomínio certo, sem confiar no condomínio enviado no corpo (decisão do Pedro em 08/11/2026).
 4. Responde `200` rápido e processa em job. O job resolve o condomínio pela cobrança, reserva ou tentativa referenciada e abre o `TenantContext` (a RLS vale).
 5. Transições monotônicas: evento atrasado de "pendente" não desfaz "pago".
 6. **Conciliação diária** compara o que o Asaas diz ter recebido com o que o sistema marcou como pago e abre alerta à administradora nas diferenças. Cobre webhook perdido e fila pausada (o Asaas pode interromper a fila após 15 falhas consecutivas de entrega).
@@ -207,7 +207,7 @@ sequenceDiagram
 - **Recebimentos excepcionais:** regras de produto resolvidas em 12/11/2026 na seção 6.3; mapeamento de eventos e instante efetivo continuam dependentes da PoC Asaas, não realizada.
 - **Multa e juros:** o cálculo é do servidor (RN-FI-08); se o Asaas também aplica multa e juros configurados na cobrança, e como evitar cobrança em dobro, é **a confirmar**.
 - **Chargeback, prazos reais de confirmação, KYC da subconta:** lacunas do ADR-002 e da UF 17.
-- **Webhook do Resend:** Proposta; precisa de aprovação do Pedro para existir.
+- **Webhook do Resend:** mantido no contrato por decisão do Pedro em 16/11/2026, com verificação obrigatória da assinatura (`401` se ausente ou inválida). A saída de dados de e-mail do Brasil (LGPD, ADR-005) continua pendente.
 - **Conteúdo exato dos eventos do Asaas, reenvio e fila pausada:** ver `openapi/webhooks.yaml` (`x-lacunas`) e `03-integracoes-externas.md`, seção 9.
 - **Escala do WebSocket** (conexões por instância) e **retenção** de `evento_gateway_quarentena` e do outbox: lacunas (arquitetura 3.4 e 9.3, MER/DER P-09).
 - **`01-backend.md` e SEG-17** ainda dizem "assinatura" para o webhook do Asaas; o correto, pela documentação do Asaas, é token no cabeçalho. A correção é de outra tarefa.

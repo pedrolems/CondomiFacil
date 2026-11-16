@@ -27,7 +27,7 @@ O runbook é um roteiro para reconhecer, delimitar, conter, corrigir e verificar
 | [Arquitetura](../03-arquitetura/01-arquitetura.md), seções 3, 6, 8 e 9 | Componentes, monitoramento, isolamento e recuperação |
 | [Backend](../05-backend/01-backend.md), seções 4 a 6 | Idempotência, outbox, execução de rotinas e adaptadores |
 | [Integrações externas](../05-backend/api/03-integracoes-externas.md) e [eventos/webhooks](../05-backend/api/02-eventos-e-webhooks.md) | Cadeias de entrega, recibos, autenticação e conciliação |
-| [Infra e DevOps](infra-e-devops.md), seções 2 a 9 | Vercel web, Render API/worker, Supabase, ambientes, publicação, cópias e restauração |
+| [Infra e DevOps](infra-e-devops.md), seções 2 a 9 | Render (site estático web e API/worker), Supabase, ambientes, publicação, cópias e restauração |
 | [Segurança](../07-seguranca/seguranca.md), seções 8 e 9; [LGPD](../07-seguranca/lgpd.md) | Papéis, severidade, evidências, comunicação e dados pessoais |
 | [Plano de testes](../08-qualidade/01-plano-de-testes.md) | Ensaios de isolamento, offline, carga, integrações e recuperação |
 | [ADR-004](../03-arquitetura/adr/004-nuvem-regiao-residencia-dados.md), [ADR-006](../03-arquitetura/adr/006-fila-agendador-eventos.md) e [ADR-013](../03-arquitetura/adr/013-rpo-rto-backup-pitr.md) | Limites da construção gratuita; fila e metas de recuperação ainda propostas |
@@ -57,7 +57,7 @@ As janelas de avaliação de latência, a cadência da sonda, a definição oper
 
 - **Dev e staging gratuitos:** somente dados fictícios e sandbox. O Render pode suspender o serviço; API, WebSocket e worker compartilhados param juntos. Um processo de API saudável não prova que jobs estão sendo consumidos. Monitoramento não deve ser usado como artifício para contornar a suspensão do plano.
 - **Banco e arquivos:** Supabase apenas como PostgreSQL e Storage, acessados pelo backend conforme o desenho existente. Pausa, quotas e ausência de garantias de recuperação do gratuito impedem apresentá-lo como produção validada.
-- **Web:** Vercel conforme Infra e DevOps (hospedagem do painel web: [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), Proposto). A web pode abrir normalmente durante queda da API; verificar ambos os caminhos. A escolha não pressupõe Next.js nem funcionalidades adicionais.
+- **Web:** site estático do Render, plano gratuito, em dev e staging, conforme Infra e DevOps (hospedagem do painel web: [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas em 16/11/2026; revisão obrigatória antes do piloto). O site estático não dorme, mas a API gratuita sim: a web pode abrir normalmente durante queda ou suspensão da API; verificar ambos os caminhos. A escolha não pressupõe Next.js nem funcionalidades adicionais.
 - **Notificações de teste:** dev/staging usam caixa de saída falsa para e-mail; push só em aparelhos de teste autorizados. Silêncio do Resend nesse ambiente não indica falha de envio real.
 - **Piloto:** continuidade, capacidade, monitoramento externo, responsáveis e recuperação devem ser demonstrados na revisão do ADR-004. RPO/RTO do ADR-013 seguem propostos; não apresentar 15 minutos/quatro horas como compromisso aprovado.
 
@@ -70,7 +70,7 @@ As janelas de avaliação de latência, a cadência da sonda, a definição oper
 | Disponibilidade externa | Verificação fora da API/worker e da dependência monitorada | Detectar falha mesmo se o serviço cair; ferramenta e canal ainda a selecionar |
 | Saúde e prontidão | Verificação mínima do processo e checagem das dependências necessárias | Separar vivo de apto a atender; rotas exatas ainda não definidas; resposta pública sem detalhes internos |
 | Métricas de aplicação | API, Socket.IO, worker, outbox, adaptadores e clientes de teste | Identificar em que etapa o fluxo parou; métricas propostas, ainda sem instrumentação |
-| Infraestrutura | Painéis/logs autorizados de Vercel, Render e Supabase | Capacidade, reinícios, implantação, conexões e quotas; disponibilidade das métricas depende do plano |
+| Infraestrutura | Painéis/logs autorizados de Render (site estático e API/worker) e Supabase | Capacidade, reinícios, implantação, conexões e quotas; disponibilidade das métricas depende do plano |
 | Erros | Sentry e logs sanitizados, previstos no PRD | Correlacionar falha e versão; quota ou queda do Sentry não pode silenciar o monitor externo |
 | Evidência de negócio | `execucao_rotina`, estado de jobs/outbox, entregas e eventos do gateway | Confirmar efeitos e atrasos; acesso técnico delimitado, sem consulta indiscriminada ao conteúdo |
 
@@ -153,7 +153,7 @@ Modelo de aviso operacional: “Identificamos falha em [funcionalidade/ambiente]
 
 ### RB-02 — Web indisponível ou quebrada após publicação
 
-**Diagnosticar:** verificar DNS, certificado, disponibilidade Vercel, publicação ativa, carregamento de arquivos e erros de inicialização. Comparar versão/configuração pública com a API correta, origem CORS e Socket.IO. Checar se o problema se limita a navegador/cache ou ocorre em cliente novo.
+**Diagnosticar:** verificar DNS, certificado, disponibilidade do site estático do Render, publicação ativa, carregamento de arquivos e erros de inicialização. Comparar versão/configuração pública com a API correta, origem CORS e Socket.IO. Checar se o problema se limita a navegador/cache ou ocorre em cliente novo.
 
 **Conter/recuperar:** usar retorno do artefato web compatível com API/esquema, conforme Infra e DevOps; corrigir DNS/configuração com registro do estado anterior. Não inserir segredos no build para corrigir autenticação. Preservar rascunhos quando possível; limpeza de cache do navegador só após avaliar dados locais pendentes.
 

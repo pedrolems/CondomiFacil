@@ -173,7 +173,7 @@ function fForm(edit) {
   if (!fPodeEditar()) return;
   const e = edit || null;
   if (!FORM.ftp) Object.assign(FORM, { ftp: e ? e.tipo : 'despesa', fdata: e ? e.data : FIN().hoje, fcategoria: e ? e.cat : 'energia', fserv: e ? e.sub : 'Elevador', fval: e ? String(e.valor).replace('.', ',') : '', fforn: e ? e.forn : '', fdesc: e ? e.desc : '', frec: e ? e.rec : false, fcomp: e && e.comp ? [1] : [] });
-  const tp = FORM.ftp, cats = tp === 'receita' ? (FIN().cobrancaAtiva ? { outras: FIN_CATS_R.outras } : { outras: FIN_CATS_R.outras, taxa: FIN_CATS_R.taxa, extras: 'Fundo de reserva' }) : FIN_CATS_D;
+  const tp = FORM.ftp, cats = tp === 'receita' ? (FIN().cobrancaAtiva ? { outras: FIN_CATS_R.outras } : { outras: FIN_CATS_R.outras, taxa: FIN_CATS_R.taxa, fundo_reserva: FIN_CATS_R.fundo_reserva }) : FIN_CATS_D;
   if (!cats[FORM.fcategoria]) FORM.fcategoria = Object.keys(cats)[0];
   const E = () => FORM.ferr || {};
   sheet(() => `<h2 class="t-title-md">${e ? 'Editar lançamento' : 'Novo lançamento'}</h2>

@@ -1,6 +1,6 @@
 # API do CondomiFacil: contrato
 
-**Estado:** Proposta de 10/11/2026, não aceita pelo Pedro. É o contrato escrito antes do código (design-first); não existe backend. Tudo o que não vem de decisão do Pedro nem do PRD está marcado **Proposta**.
+**Estado:** Proposta de 10/11/2026, atualizada em 15/11/2026, não aceita pelo Pedro. É o contrato escrito antes do código (design-first); não existe backend. Tudo o que não vem de decisão do Pedro nem do PRD está marcado **Proposta**.
 
 **Organização e fonte dos contratos — decisão de Pedro em 14/11/2026:** [ADR-015](../../03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md). OpenAPI 3.1 é a fonte dos contratos HTTP e AsyncAPI 3.0 a fonte das mensagens de tempo real. Tipos e esquemas estruturais serão gerados em `packages/shared-types` na raiz, compartilhados pelo backend/frontend no workspace pnpm único. Não manter esquemas Zod/DTOs manuais equivalentes como segunda fonte. Ferramenta e versão dependem de PoC antes da implementação, cobrindo referências, recursos JSON Schema usados, entradas, respostas por perfil, eventos e consumo Node/Expo. O CI futuro validará as fontes, regenerará os artefatos de forma determinística e detectará diferenças; testes de conformidade complementarão a geração. Nenhum gerador, esquema ou CI está implementado. Essa decisão não aceita o conteúdo ainda proposto dos contratos.
 
@@ -217,6 +217,8 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | `webhooks.yaml` | 2 |
 | **Total** | **430** |
 
+Os 430 já incluem as 82 operações de `/v1/sindico/gestao/` (contadas em `sindico.yaml`) e as 6 operações de relatórios (contadas em `administradora.yaml`); não há soma adicional. Conferido em 15/11/2026 contra os YAML.
+
 As rotas de tempo real não são operações OpenAPI: estão em `asyncapi/tempo-real.yaml`. `webhooks.yaml` tem 2 operações (Asaas e Resend).
 
 ## Pendências para o Pedro decidir
@@ -274,7 +276,7 @@ Colhidas dos `x-lacunas` dos arquivos YAML e agrupadas por tema (30 itens; os de
 | --- | --- | --- |
 | 26 | Granularidade dos horários reserváveis (hora cheia, blocos fixos ou intervalo livre) e horário de funcionamento da área | `morador.yaml` (0) |
 | 27 | Consulta da quarentena de eventos do gateway: o MER/DER 4.10 diz que o Admin da plataforma a lê, mas não há ID de produto nem operação | `plataforma.yaml` (2) |
-| 28 | "Fundo de reserva" avulsa com a cobrança desligada: a RN-FI-24 a cita e a lista de categorias da RN-FI-32 não tem essa categoria, então não há código para ela (pergunta ao Pedro); "Taxa condominial" avulsa já tem o código `taxa_condominial` | `administradora.yaml` (8) |
+| 28 | **Resolvida em 15/11/2026:** "Fundo de reserva" avulsa (cobrança desligada) tem o código `fundo_reserva` (RN-FI-24, RN-FI-32); "Taxa condominial" avulsa usa `taxa_condominial` | `administradora.yaml` |
 | 29 | Módulo `visitantes` ausente para o proprietário não residente em `01-backend.md` 3.3, embora RF-VI-13 e RN-VI-10 deem a ele o cadastro de hóspede de temporada | `proprietario-nao-residente.yaml` (5) |
 | 30 | A administradora pode denunciar conteúdo? A RN-RC-13 diz "qualquer usuário"; a matriz do PRD 3 dá "—" a ela em "Denunciar conteúdo ofensivo" | `comum.yaml` (0), PRD 3 |
 
@@ -287,9 +289,9 @@ Operações acrescentadas: cancelamento condominial por síndico/administradora;
 
 ## Atualização de autogestão e eleições — 13/11/2026
 
-Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
-**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+**Impacto no contrato:** a condução eleitoral é atendida pelas interfaces de síndico, conselho e comum (e, para administradora e suporte autorizado, pela interface da administradora). A autorização é contextual por condomínio, mandato, ausência/vacância e concessão, e é revalidada em cada leitura e ação; administradora e suporte não são pré-requisito. O proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. A auditoria registra ações, nunca voto individual; resultado só após encerramento. Suporte autorizado em condomínio do plano Essencial recebe `403`.
 
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 

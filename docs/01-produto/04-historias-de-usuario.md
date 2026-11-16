@@ -1,6 +1,6 @@
 # Histórias de Usuário e Critérios de Aceite — CondomiFacil
 
-Nov 4, 2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 ## Como ler
 
@@ -739,7 +739,7 @@ Requisitos: RF-VO-05, RF-VO-06, RF-VO-08 · RN-VO-04, RN-VO-05, RN-VO-07, RN-VO-
 - [ ] Dado um empate, quando a eleição encerra, então um segundo turno entre os empatados é aberto em até 7 dias.
 - [ ] Dado síndico e subsíndico eleitos da mesma unidade, quando o resultado sai, então assume como subsíndico o próximo mais votado.
 
-- [ ] Dado qualquer plano, quando se abre ou encerra eleição, então RN-VO-13 autoriza o síndico; ausente/vago, o subsíndico; sem ambos, o conselho; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora e suporte autorizado também podem conduzir quando presentes.
+- [ ] Dado qualquer plano, quando se abre ou encerra eleição, então RN-VO-13 autoriza o síndico; ausente/vago, o subsíndico; sem ambos, o conselho; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada também pode conduzir quando presente; suporte autorizado também pode, somente no Gestão + Suporte (RN-VO-13).
 - [ ] Dado um condutor autorizado, quando age, então a ação é auditada sem revelar votos e o resultado só aparece após encerramento; a permissão eleitoral não concede administração geral.
 - [ ] Dado proprietário sem concessão válida ou condutor fora da condição autorizada, quando tenta abrir/encerrar, então o acesso é negado, sem autoconcessão.
 - [ ] Segundo turno empatado ou ausência de elegível publica inconclusivo e encaminha ao condutor de RN-VO-13, sem vencedor automático nem dependência de administradora.
@@ -953,7 +953,7 @@ Como administradora, quero escolher relatório, filtros e formato para obter o m
 Requisitos: RF-RL-10 · RN-RL-03 a RN-RL-06.
 
 - PDF/CSV/XLSX exportam a tabela; PNG/SVG somente gráficos agregados habilitados no catálogo. Formato incompatível é recusado pelo servidor.
-- Pedido aceito mostra Solicitada e o identificador; não promete arquivo pronto. A geração é privada e assíncrona.
+- Pedido aceito mostra Solicitada e o identificador; depois segue para Em processamento, sem prometer arquivo pronto. A geração é privada e assíncrona.
 - Arquivo contém todo o recorte com totais consistentes, sem colunas ocultas por permissão, fórmulas injetadas, dados pessoais em metadados ou anexos privados.
 - Falha de rede não gera duplicação silenciosa de pedido; o resultado é reconciliado antes da repetição.
 
@@ -964,7 +964,7 @@ Como administradora solicitante, quero acompanhar o processamento e baixar o arq
 Requisitos: RF-RL-11 · RN-RL-06/07/08.
 
 - A central lista apenas pedidos próprios do condomínio autorizado e permite voltar ao detalhe.
-- Estados possuem texto e ícone; Pronta permite baixar, Falhou explica e permite nova solicitação, Expirada requer nova geração.
+- Estados (Solicitada, Em processamento, Pronta, Falhou e Expirada, como em RN-RL-06) possuem texto e ícone; Pronta permite baixar, Falhou explica e permite nova solicitação, Expirada requer nova geração.
 - A API revalida acesso na consulta e download; outra pessoa, outro condomínio ou vínculo revogado não recebe arquivo nem link.
 - Link temporário expirado pode ser renovado só enquanto arquivo e autorização forem válidos; arquivo expirado exige gerar novamente.
 - São auditados pedido e acesso sem copiar relatório para logs; prazo de retenção e validade continuam pendentes de dimensionamento.

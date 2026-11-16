@@ -3,7 +3,7 @@ info:
   title: CondomiFacil API - sincronização offline
   version: 0.1.0-proposta
   description: |-
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Interface transversal `/v1/sync`, usada pela portaria (visitantes, RN-OF-01 a RN-OF-06) e pela limpeza (conclusão de chamados, RN-CH-04). Os outros perfis são online-only.
+    **Proposta de 10/11/2026, atualizada em 12/11/2026**, não aceita pelo Pedro. Interface transversal `/v1/sync`, usada pela portaria (visitantes, RN-OF-01 a RN-OF-06) e pela limpeza (conclusão de chamados, RN-CH-04). Os outros perfis são online-only.
 
     **Decidido:** o escopo offline (só portaria e limpeza); `op_id` único, reenvio sem duplicar e carga diferente recusada (MER 4.12); divergência de portaria aplicada pelo servidor (arquitetura 3.1.1) e confirmada por interfone (RN-OF-04), sem aviso ao síndico (RN-OF-05); em conclusões do mesmo ciclo vale o menor horário registrado pelo celular, mesmo enviado depois (RN-CH-04, decisão de Pedro em 08/11/2026).
 

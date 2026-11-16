@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 15/11/2026.
 
 **Escopo:** comportamento do MVP, documentado antes do código. Não existe backend, banco ou integração implementada. Este documento não aceita ADRs, altera regras ou transforma simulações do protótipo em operações reais.
 
@@ -20,7 +20,7 @@
 10. [Reuniões e eleições](#votacoes)
 11. [Cobrança e finanças](#financas)
 12. [Plataforma, LGPD e serviços transversais](#transversais)
-13. [As 21 rotinas](#rotinas)
+13. [As 22 rotinas](#rotinas)
 14. [Rastreabilidade e cobertura dos 14 épicos](#rastreabilidade)
 15. [Pendências e critérios de validação](#pendencias)
 16. [Complementação e inventário por ciclo](#complementacao)
@@ -28,7 +28,9 @@
 <a id="leitura"></a>
 ## 1. Leitura e fontes
 
-**Atualização de 13/11/2026:** nas sequências de cadastro, configuração, cobrança, conciliação e finanças, executor administrativo autorizado significa administradora vinculada, suporte legitimado no Gestão + Suporte, ou gestão local no Essencial autogestão (RN-PL-08/RN-FI-29). A distribuição síndico executor/substituto/conselho fiscalizador é proposta a revisar, sem poder irrestrito do conselho. O caminho por solicitações S05 continua para condomínio com administradora/Gestão + Suporte; na autogestão a gestão local executa em interface própria, sem franquia administrativa. A primeira habilitação, mudança de mandato/substituição e concessão eleitoral permanecem lacunas de autorização; não se concedem por analogia.
+**Regra de produto de 13/11/2026, atualizada em 15/11/2026:** ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
+
+**Impacto nestes diagramas (13/11/2026):** nas sequências de cadastro, configuração, cobrança, conciliação e finanças, executor administrativo autorizado significa administradora vinculada, suporte no Gestão + Suporte, ou gestão local no Essencial autogestão (RN-PL-08/RN-FI-29). A distribuição síndico executor/substituto/conselho fiscalizador é proposta a revisar, sem poder irrestrito do conselho. O caminho por solicitações S05 continua para condomínio com administradora/Gestão + Suporte; na autogestão a gestão local executa em interface própria, sem franquia administrativa. A primeira habilitação, mudança de mandato/substituição e concessão eleitoral permanecem lacunas de autorização; não se concedem por analogia.
 
 ### 1.1 Classificação
 
@@ -1032,7 +1034,7 @@ sequenceDiagram
     end
 ```
 
-**Falhas/efeitos:** decisão de administradora/conselho não tem recurso no app. Se partes impedem julgamento e não há administradora/conselho, aguarda atribuição e alerta cadastro de conselho sem revelar caso ao suporte. Sem recurso em sete dias, rotina 12 encerra. Score limita 0–100; ≤60 bloqueia gratuitas só da pessoa/unidade, volta ao passar de 60. Regularidade é de cada perfil, com reinício apenas nos eventos definidos. Recurso após saída reverte perfil original, nunca novo episódio 100; reversão devolve somente a perda efetivamente aplicada, vinculada à penalidade original: 3→0 por penalidade nominal10 devolve3, com teto100 (12/11/2026). Score é referência, não julgamento público; não usar verde/vermelho.
+**Falhas/efeitos:** decisão de administradora/conselho não tem recurso no app. Se partes impedem julgamento e não há administradora/conselho, aguarda atribuição e alerta cadastro de conselho sem revelar caso ao suporte. Sem recurso em sete dias, rotina 12 encerra. Score limita 0–100; ≤60 bloqueia gratuitas só da pessoa/unidade, volta ao passar de 60. Regularidade é de cada perfil, com reinício apenas nos eventos definidos. Recurso após saída reverte perfil original, nunca novo episódio 100; reversão devolve somente a perda efetivamente aplicada, vinculada à penalidade original: 3→0 por penalidade nominal 10 devolve 3, com teto 100 (12/11/2026). Score é referência, não julgamento público; não usar verde/vermelho.
 
 <a id="e07"></a>
 ### E07 — Reclamação
@@ -1193,7 +1195,7 @@ sequenceDiagram
     end
 ```
 
-**Falhas/pendências:** inquilino pode se candidatar salvo convenção, mas não ganha voto eleitoral próprio por isso. Profissional é contratado/recontratado fora da eleição. A ausência factual de sub/conselho mantém alerta de composição a revisar, sem bloquear a condução eleitoral aprovada pelo proprietário designado quando não há nenhum órgão. Abertura/encerramento seguem RN-VO-13 de 13/11/2026 em qualquer plano; administradora/suporte autorizado também podem. Prova de ausência, designação inicial e concessão temporária ainda dependem de revisão. Segundo empate ou ausência de elegível é inconclusivo e encaminhado sem vencedor automático; ciclo completo de candidatura ainda não definido. Não expor voto individual em histórico ou auditoria.
+**Falhas/pendências:** inquilino pode se candidatar salvo convenção, mas não ganha voto eleitoral próprio por isso. Profissional é contratado/recontratado fora da eleição. A ausência factual de sub/conselho mantém alerta de composição a revisar, sem bloquear a condução eleitoral aprovada pelo proprietário designado quando não há nenhum órgão. Abertura/encerramento seguem RN-VO-13 de 13/11/2026 em qualquer plano; administradora vinculada também pode; suporte autorizado também pode somente no Gestão + Suporte. Prova de ausência, designação inicial e concessão temporária ainda dependem de revisão. Segundo empate ou ausência de elegível é inconclusivo e encaminhado sem vencedor automático; ciclo completo de candidatura ainda não definido. Não expor voto individual em histórico ou auditoria.
 
 <a id="financas"></a>
 ## 11. Cobrança e finanças
@@ -1315,7 +1317,7 @@ sequenceDiagram
     W-->>L: Arquivo privado acessível por S36
 ```
 
-**Falhas/efeitos:** avulso não pode ter data futura/fechada; despesa exige fornecedor. Recorrência fixa ajusta dia ao último do mês curto; encerrar só afeta futuro. Automático não edita/exclui manualmente: corrigir na origem. Receita bruta e taxa Administração separadas; folha só total, sem salários individuais. Fechamento padrão dia 10 seguinte; mês não reabre. Estorno administrativo é novo lançamento no mês corrente, mesma categoria, valor oposto; não estornar estorno. Comentário é imutável, avisa administradora, não muda valores nem aprova contas. Receitas automáticas de cobrança e reservas são apresentadas agregadas, sem unidade. Filtros/exportação preservam esse recorte; CSV de cobranças individual é outra autorização. Exportação assíncrona e agregação diária por categoria foram decididas em12/11/2026; TTL/retenção e receita avulsa Fundo de reserva seguem pendentes.
+**Falhas/efeitos:** avulso não pode ter data futura/fechada; despesa exige fornecedor. Recorrência fixa ajusta dia ao último do mês curto; encerrar só afeta futuro. Automático não edita/exclui manualmente: corrigir na origem. Receita bruta e taxa Administração separadas; folha só total, sem salários individuais. Fechamento padrão dia 10 seguinte; mês não reabre. Estorno administrativo é novo lançamento no mês corrente, mesma categoria, valor oposto; não estornar estorno. Comentário é imutável, avisa administradora, não muda valores nem aprova contas. Receitas automáticas de cobrança e reservas são apresentadas agregadas, sem unidade. Filtros/exportação preservam esse recorte; CSV de cobranças individual é outra autorização. Exportação assíncrona e agregação diária por categoria foram decididas em 12/11/2026; a categoria de receita avulsa "Fundo de reserva" (`fundo_reserva`, RN-FI-32) foi decidida em 15/11/2026; TTL/retenção seguem pendentes.
 
 <a id="e09"></a>
 ### E09 — Lançamento financeiro
@@ -1415,7 +1417,7 @@ sequenceDiagram
 <a id="s35"></a>
 ### S35 — Worker, notificações e conciliação
 
-**Objetivo:** recuperar efeitos externos sem repetir negócio. **Pré:** outbox/execução duráveis ou horário de conciliação devido. **Pós:** efeito despachado com resultado rastreado, ou pendência recuperável. **Fontes:** backend §4.7/5/6, RN §14, US-NO-01, RF-NO-01; [eventos][eventos], [integrações][integracoes], [comum][oa-comum]; [morador][p-mor] para preferências, sem simular infraestrutura real.
+**Objetivo:** recuperar efeitos externos sem repetir negócio. **Pré:** outbox/execução duráveis ou horário da rotina 22 (conciliação) devido. **Pós:** efeito despachado com resultado rastreado, ou pendência recuperável. **Fontes:** backend §4.7/5/6, RN §14, US-NO-01, RF-NO-01; [eventos][eventos], [integrações][integracoes], [comum][oa-comum]; [morador][p-mor] para preferências, sem simular infraestrutura real.
 
 ```mermaid
 sequenceDiagram
@@ -1434,7 +1436,7 @@ sequenceDiagram
         N->>B: Registrar entrega sem apagar notificação interna
         N->>X: Consultar recibos quando aplicável
     end
-    opt Conciliação diária
+    opt Conciliação diária (rotina 22)
         W->>G: Consultar recebimentos por conta e referência
         G-->>W: Fatos financeiros
         W->>B: Comparar com eventos e recebimentos locais
@@ -1443,7 +1445,7 @@ sequenceDiagram
     end
 ```
 
-**Falhas/efeitos:** API/worker podem cair após envio e antes do recibo: entrega externa pode repetir, mas efeito de negócio não duplica. Preferências não desligam decisão de reclamação nem divergência para porteiro. Push de evento humano sai na hora; de rotina da madrugada agenda 09h, salvo regra específica do lembrete de reserva. Texto genérico e detalhe autenticado. Recibos Expo após cerca de 15 min; `DeviceNotRegistered` remove token. Conciliação cobre webhook perdido/fila pausada, sem ignorar pagamento real nem resolver automaticamente casos tardios sem regra. Fan-out abre um tenant por execução; logs sem carga sensível e registro em `execucao_rotina`. Despacho, conciliação, exportação e debounce não aumentam a lista oficial de 21 rotinas.
+**Falhas/efeitos:** API/worker podem cair após envio e antes do recibo: entrega externa pode repetir, mas efeito de negócio não duplica. Preferências não desligam decisão de reclamação nem divergência para porteiro. Push de evento humano sai na hora; de rotina da madrugada agenda 09h, salvo regra específica do lembrete de reserva. Texto genérico e detalhe autenticado. Recibos Expo após cerca de 15 min; `DeviceNotRegistered` remove token. Conciliação cobre webhook perdido/fila pausada, sem ignorar pagamento real nem resolver automaticamente casos tardios sem regra. Fan-out abre um tenant por execução; logs sem carga sensível e registro em `execucao_rotina`. A conciliação diária é a rotina 22 do catálogo (seção 13; decisão de Pedro em 15/11/2026, SEG-17). Despacho, exportação e debounce não aumentam a lista oficial de 22 rotinas.
 
 <a id="s36"></a>
 ### S36 — Arquivos privados e leitura autorizada
@@ -1471,7 +1473,7 @@ sequenceDiagram
 **Falhas/privacidade:** upload sem confirmação pode deixar órfão; manutenção técnica depende de retenção definida. Fotos offline usam referência estável/operação e sobem antes da conclusão no contrato atual, sem duplicar efeitos. Imagem de reclamação, comprovante, ata e exportação herdam a autorização da origem; conhecer chave/ID não basta. Limites específicos (como comprovante financeiro até 10 MB e cinco fotos de conclusão) vêm das RN, não de regra universal. Expiração exata das URLs, hash, antivírus e retenção seguem pendentes.
 
 <a id="rotinas"></a>
-## 13. As 21 rotinas
+## 13. As 22 rotinas
 
 Fonte de numeração/frequência: [RN §14][rn] e [backend §5.2][back]. Todas precisam de log e efeito idempotente. Horários são locais do condomínio; implementação de fuso/agendador continua proposta. “Madrugada” significa 00h–06h; push decorrente espera 09h conforme S35. As duas etapas de 10 e 20 continuam sendo uma rotina cada.
 
@@ -1498,8 +1500,9 @@ Fonte de numeração/frequência: [RN §14][rn] e [backend §5.2][back]. Todas p
 | 19 | Fechar mês, madrugada no dia configurado | RN-FI-28; S32/E10: sem reabrir; serializar com lançamentos |
 | 20 | Fim da locação, desativação madrugada e aviso 09h | RN-CD-21; S06: avisar antecipadamente e desativar após tolerância sem renovação, com efeitos da mudança |
 | 21 | Lembrete de reserva, a cada 5 min | RN-RE-14, RF-RE-10; S12: confirmada antes do envio, único/opcional, antecipação para 21h quando calculado entre 00h e 08h59 |
+| 22 | Conciliação diária com o gateway, madrugada | SEG-17; S35/S10: compara cobranças e pagamentos locais com o Asaas, aplica a lógica idempotente de S10 e registra divergências para tratamento; global, enumera condomínios; decisão de Pedro em 15/11/2026 |
 
-**Execução proposta:** Template Method abre contexto, verifica chave por efeito/janela, executa, registra e trata falha. Processar 15 antes de 16 e 18 antes de 19 conforme backend. Acordar após atraso não permite pular validações de estado. Propostas de QR dinâmico, consulta de pendências, limpeza técnica, exportação, processamento de webhook e conciliação ficam fora das 21, com frequência/retenção próprias a validar.
+**Execução proposta:** Template Method abre contexto, verifica chave por efeito/janela, executa, registra e trata falha. Processar 15 antes de 16 e 18 antes de 19 conforme backend. Acordar após atraso não permite pular validações de estado. Propostas de QR dinâmico, consulta de pendências, limpeza técnica, exportação, processamento de webhook ficam fora das 22, com frequência/retenção próprias a validar.
 
 <a id="rastreabilidade"></a>
 ## 14. Rastreabilidade e cobertura dos 14 épicos
@@ -1535,7 +1538,7 @@ Os identificadores abaixo são locais desta seção. Complementam, sem substitui
 
 | Tema | Limite mantido e impacto |
 | --- | --- |
-| Igualdade em 12 h — resolvida | Antecedência maior ou igual ao prazo configurado, inclusive12h exatas (RN-CA-02, Pedro12/11/2026) |
+| Igualdade em 12 h — resolvida | Antecedência maior ou igual ao prazo configurado, inclusive 12 h exatas (RN-CA-02, Pedro, 12/11/2026) |
 | Cancelamento pelo condomínio — resolvido | Síndico/sub em substituição/administradora/suporte autorizado com motivo/auditoria; Aguardando pagamento pode cancelar sem devolução se não recebeu |
 | Confirmação tardia — regra resolvida, integração pendente | Registrar recebimento e pendência assistida sem recuperar horário/reativar entidade; Emitida paga após vencimento classifica Paga com atraso pelo instante efetivo |
 | Asaas | KYC, conta principal CNPJ, subconta/split, prazo real de boleto/Pix, validade de QR, dupla multa, eventos/retentativas, chargeback e estados completos de tentativa/devolução exigem PoC |
@@ -1605,7 +1608,7 @@ Complementação de 12/11/2026. A contagem passa a **38 sequências, 11 máquina
 | Sessão e renovação | S04/S37/C02 | Parcial | Escolha 16A aprova direção de tolerância; mecanismo/janela e revisão ADR-007 pendentes; access expirado não encerra sessão |
 | Solicitação administrativa | S05/E11 | Completo no recorte do contrato proposto | RN-CD-06/23, RN-PL-03/05; `SolicitacaoAdministradora.estado`; alinhamento transacional entre atendimento e efeito ainda necessário |
 | Moradia, locação e dependentes | S06 | Parcial | RN-CD-07/18–26, MER §4.2; vigências e efeitos representados; sem máquina integral de contrato |
-| Mandato e substituição | S07/S29 | Parcial | RN-CD-10–14/27/28; reatribuição vigente decidida em8A; ciclos completos e sigilo eleitoral ainda pendentes |
+| Mandato e substituição | S07/S29 | Parcial | RN-CD-10–14/27/28; reatribuição vigente decidida em 8A; ciclos completos e sigilo eleitoral ainda pendentes |
 | Reserva e disputa de intervalo/limite mensal | S08–S13/E01 | Completo no recorte de regras; integração parcial | Escolhas 1A–4A: igualdade, atores, AP→Cancelada pelo condomínio e pendência tardia definidos; PoC/concorrência ainda exigidas |
 | Tentativa de pagamento e aptidão da conta | S09/S10/S30 | Bloqueado para ciclo completo | RN-PG-01–07; MER §4.10, integrações Asaas; §15.3; retorno do cliente não confirma pagamento |
 | Devolução e compensação financeira | S11/S31 | Bloqueado para ciclo completo | Arquitetura §3.6, eventos §5; rótulos propostos sem enum completo; §15.3 |
@@ -1628,7 +1631,7 @@ Complementação de 12/11/2026. A contagem passa a **38 sequências, 11 máquina
 | Plano, assinatura, fatura e suporte | S05/S33 | Parcial | Escolha 19A: cobrança assistida/manual separada definida; enum/ciclo técnico de fatura e canal de preço ainda não definidos |
 | Pedido LGPD e exportação pessoal | S34/S36 | Bloqueado para ciclo completo | RF-LG-01/02; `PedidoLgpdComum.estado` sem valores; operador/retenção/falhas: §15.3 |
 | Notificação, arquivo e exportação financeira | S35/S36/S32 | Parcial | Escolha 18A define acompanhamento/arquivo privado; TTL, antivírus, retenção e entrega técnica ainda pendentes |
-| Rotinas e recuperação de efeitos | Seção 13/S35 | Completo no inventário das 21; execução técnica parcial | RN §14/backend §5; atrasos, ordem e deduplicação documentados; nuvem gratuita não garante cumprimento de horários |
+| Rotinas e recuperação de efeitos | Seção 13/S35 | Completo no inventário das 22; execução técnica parcial | RN §14/backend §5; atrasos, ordem e deduplicação documentados; nuvem gratuita não garante cumprimento de horários |
 
 <a id="e11"></a>
 ### E11 — Solicitação administrativa no contrato proposto
@@ -1774,7 +1777,7 @@ Funcionário sem respostas não sofre ajuste. Fechamento não cria resposta para
 
 ### 16.2 Verificação documental desta complementação
 
-Em 12/11/2026, verificação estrutural local contabilizou **52 blocos Mermaid** (38 sequências, 11 máquinas de estados e 3 fluxogramas), sem IDs duplicados, âncoras internas ausentes, referências Markdown indefinidas ou arquivos locais referenciados inexistentes. Os blocos condicionais/repetições das sequências estão balanceados. Os três `operationId` citados nos complementos (`comumRenovar`, `administradoraAtenderSolicitacaoDeCadastro`, `administradoraRecusarSolicitacaoDeCadastro`) e o esquema `SolicitacaoAdministradora` existem nos respectivos arquivos atuais.
+Em 12/11/2026 (contagem conferida em 15/11/2026, já com o diagrama de relatórios de 14/11/2026), verificação estrutural local contabilizou **53 blocos Mermaid** (38 sequências, 12 máquinas de estados e 3 fluxogramas), sem IDs duplicados, âncoras internas ausentes, referências Markdown indefinidas ou arquivos locais referenciados inexistentes. Os blocos condicionais/repetições das sequências estão balanceados. Os três `operationId` citados nos complementos (`comumRenovar`, `administradoraAtenderSolicitacaoDeCadastro`, `administradoraRecusarSolicitacaoDeCadastro`) e o esquema `SolicitacaoAdministradora` existem nos respectivos arquivos atuais.
 
 **Limitação:** não havia renderizador Mermaid disponível no ambiente utilizado; não houve renderização nem análise por parser Mermaid. A checagem estrutural não garante sintaxe completa ou legibilidade visual. Renderizar todos os blocos localmente permanece na etapa 5 da seção 15.4; nenhum documento foi enviado a editor online. Não foram executados testes de backend ou PoC, pois esta alteração é exclusivamente documental.
 
@@ -1821,13 +1824,19 @@ RN-RL-01 a 08 / RF-RL-01 a 11 / US-RL-01 a 03. A administradora consulta projeç
 
 ```mermaid
 stateDiagram-v2
- [*] --> Solicitada
- Solicitada --> Em_processamento
- Em_processamento --> Pronta
- Em_processamento --> Falhou
- Pronta --> Expirada
- Falhou --> [*]
- Expirada --> [*]
+ state "Solicitada" as SO
+ state "Em processamento" as EP
+ state "Pronta" as PR
+ state "Falhou" as FA
+ state "Expirada" as EX
+ [*] --> SO
+ SO --> EP
+ EP --> PR
+ EP --> FA
+ PR --> PR: renovar link de download
+ PR --> EX
+ FA --> [*]
+ EX --> [*]
 ```
 
-Falha oferece nova solicitação; arquivo Expirado exige nova geração. Link expirado pode ser renovado enquanto o arquivo e acesso forem válidos; validade/retencão continuam a definir. Contrato técnico permanece proposto.
+Estados de exportação (RN-RL-06): `solicitada`, `em_processamento`, `pronta`, `falhou`, `expirada`. Falha oferece nova solicitação; arquivo Expirado exige nova geração (novo job). A renovação vale só para o link de download e não muda o estado: ocorre em Pronta (laço `Pronta` → `Pronta`) enquanto o arquivo e o acesso forem válidos; validade/retenção continuam a definir. Contrato técnico permanece proposto.

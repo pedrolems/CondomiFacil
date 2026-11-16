@@ -4,7 +4,7 @@ info:
   version: 0.1.0-proposta
   summary: Componentes transversais reutilizados por `$ref` pelos arquivos OpenAPI de cada interface.
   description: |
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Este arquivo não expõe operações: guarda
+    **Proposta de 10/11/2026, atualizada em 10/11/2026**, não aceita pelo Pedro. Este arquivo não expõe operações: guarda
     esquemas, parâmetros, cabeçalhos, respostas de erro e o esquema de segurança que os outros
     arquivos de `docs/05-backend/api/openapi/` usam por
     `$ref: './componentes/comum.yaml#/components/...'`.

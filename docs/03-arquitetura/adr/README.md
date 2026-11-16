@@ -23,15 +23,17 @@ A fonte das decisões é [`../01-arquitetura.md`](../01-arquitetura.md) (seção
 | **Em aberto** | Ainda não há recomendação fechada; faltam dados (custo, prova de conceito, parecer) |
 | **Proposto** | Há uma recomendação fundamentada, aguardando validação do Pedro |
 | **Aceito** | O Pedro validou; vale para o projeto |
+| **Aceito, com ressalvas** | O Pedro validou, com condições ou revisão obrigatória registradas no ADR (ex.: 002, 004 e 005, em 10/11/2026) |
+| **Aceito quanto a ...** | O Pedro validou só o escopo indicado; o restante do ADR segue pendente (ex.: 015, em 14/11/2026, quanto à organização e às fontes dos contratos) |
 | **Rejeitado** | Avaliado e recusado; permanece registrado com o motivo |
 | **Substituído** | Trocado por outro ADR, que é citado no cabeçalho |
 | **Obsoleto** | Deixou de se aplicar (ex.: o componente saiu do projeto), sem substituto |
 
-Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Os demais continuam sem validação.
+Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Os demais, incluindo o ADR-016 (proposto em 15/11/2026), continuam sem validação.
 
 ## Como criar um novo ADR
 
-1. Pegue o próximo número livre (hoje, 016) e crie `NNN-titulo-curto-em-kebab-case.md` nesta pasta.
+1. Pegue o próximo número livre (hoje, 017) e crie `NNN-titulo-curto-em-kebab-case.md` nesta pasta.
 2. Copie a estrutura de um ADR existente e preencha todas as seções. Datas em dd/mm/aaaa.
 3. Confirme cada ID citado (RF, RNF, SEG, RN, US) nos documentos de `docs/01-produto/`.
 4. Comece em **Em aberto** ou **Proposto**. Nunca em Aceito.
@@ -42,20 +44,21 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 
 ## Índice
 
-| Nº | Título | Estado | Data | Depende de |
-| --- | --- | --- | --- | --- |
-| 001 | [Multi-tenant com banco compartilhado, `condominio_id` e RLS](001-multi-tenant-rls.md) | Proposto | 06/11/2026 | Prova de conceito de RLS com carga |
-| 002 | [Gateway de pagamento](002-gateway-de-pagamento.md) | Aceito, com ressalvas (Asaas) | 10/11/2026 | Prova de conceito como verificação; KYC, chargeback e prazos reais; marco 2 |
-| 003 | [Banco local do aparelho e sincronização offline](003-banco-local-e-sync-offline.md) | Proposto | 06/11/2026 | Prova de conceito de criptografia e fila |
-| 004 | [Provedor de nuvem, região e residência de dados](004-nuvem-regiao-residencia-dados.md) | Aceito, com ressalvas (Supabase + Render, só MVP) | 10/11/2026 | Revisão obrigatória antes do piloto com dados reais (custo, LGPD, PITR) |
-| 005 | [E-mail transacional](005-email-transacional.md) | Aceito, com ressalvas (Resend) | 10/11/2026 | Teste de entregabilidade; LGPD (dados fora do Brasil); revisão do ADR-004 |
-| 006 | [Fila, agendador e distribuição de eventos](006-fila-agendador-eventos.md) | Proposto | 06/11/2026 | Carga esperada |
-| 007 | [Autorização com papéis no servidor, JWT sem papéis e refresh rotativo](007-autorizacao-jwt-sem-papeis.md) | Proposto | 06/11/2026 | Revisão de segurança |
-| 008 | [ORM ou query builder e migrações](008-orm-query-builder-migracoes.md) | Proposto | 06/11/2026 | Controle de transação |
-| 009 | [Votação com registro separado do conteúdo e limite de sigilo](009-votacao-sigilo.md) | Proposto | 06/11/2026 | Parecer jurídico (SEG-16) |
-| 010 | [Anonimato com identidade separada, HMAC e limites mínimos](010-anonimato-identidade-separada.md) | Proposto | 06/11/2026 | Parecer jurídico |
-| 011 | [Ambientes, branches, promoção, EAS e OTA](011-ambientes-branches-eas-ota.md) | Proposto | 06/11/2026 | Equipe |
-| 012 | [Fuso horário e faixas de horário das rotinas por condomínio](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | Produto |
-| 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | Custo (RNF-18) |
-| 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |
-| 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | Gerador depende de PoC; versões pendentes |
+| Nº | Título | Estado | Data | Atualizado em | Depende de |
+| --- | --- | --- | --- | --- | --- |
+| 001 | [Multi-tenant com banco compartilhado, `condominio_id` e RLS](001-multi-tenant-rls.md) | Proposto | 06/11/2026 | 06/11/2026 | Prova de conceito de RLS com carga |
+| 002 | [Gateway de pagamento](002-gateway-de-pagamento.md) | Aceito, com ressalvas (Asaas) | 10/11/2026 | 10/11/2026 | Prova de conceito como verificação; KYC, chargeback e prazos reais; marco 2 |
+| 003 | [Banco local do aparelho e sincronização offline](003-banco-local-e-sync-offline.md) | Proposto | 06/11/2026 | 12/11/2026 | Prova de conceito de criptografia e fila |
+| 004 | [Provedor de nuvem, região e residência de dados](004-nuvem-regiao-residencia-dados.md) | Aceito, com ressalvas (Supabase + Render, só MVP) | 10/11/2026 | 10/11/2026 | Revisão obrigatória antes do piloto com dados reais (custo, LGPD, PITR) |
+| 005 | [E-mail transacional](005-email-transacional.md) | Aceito, com ressalvas (Resend) | 10/11/2026 | 10/11/2026 | Teste de entregabilidade; LGPD (dados fora do Brasil); revisão do ADR-004 |
+| 006 | [Fila, agendador e distribuição de eventos](006-fila-agendador-eventos.md) | Proposto | 06/11/2026 | 06/11/2026 | Carga esperada |
+| 007 | [Autorização com papéis no servidor, JWT sem papéis e refresh rotativo](007-autorizacao-jwt-sem-papeis.md) | Proposto | 06/11/2026 | 15/11/2026 | Revisão de segurança |
+| 008 | [ORM ou query builder e migrações](008-orm-query-builder-migracoes.md) | Proposto | 06/11/2026 | 14/11/2026 | Controle de transação |
+| 009 | [Votação com registro separado do conteúdo e limite de sigilo](009-votacao-sigilo.md) | Proposto | 06/11/2026 | 15/11/2026 | Parecer jurídico (SEG-16) |
+| 010 | [Anonimato com identidade separada, HMAC e limites mínimos](010-anonimato-identidade-separada.md) | Proposto | 06/11/2026 | 12/11/2026 | Parecer jurídico |
+| 011 | [Ambientes, branches, promoção, EAS e OTA](011-ambientes-branches-eas-ota.md) | Proposto | 06/11/2026 | 10/11/2026 | Equipe |
+| 012 | [Fuso horário e faixas de horário das rotinas por condomínio](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | 15/11/2026 | Produto |
+| 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | 10/11/2026 | Custo (RNF-18) |
+| 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | 12/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |
+| 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | 14/11/2026 | Gerador depende de PoC; versões pendentes |
+| 016 | [Hospedagem do painel web](016-hospedagem-do-painel-web.md) | Proposto | 15/11/2026 | 15/11/2026 | Orçamento (RNF-18); condições comerciais do provedor; subprocessadores |

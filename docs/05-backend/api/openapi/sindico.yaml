@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CondomiFacil API - interface do síndico, subsíndico e síndico profissional
   version: 0.1.0-proposta
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do
     PRD (caminhos, nomes de campos, códigos de erro, filtros, ordenações padrão) é Proposta; o guia `../01-guia-da-api.md`
     é a fonte das convenções.
 
@@ -1111,7 +1111,7 @@ paths:
                     unidade_identificacao: Bloco A, 201
                   voce_e_o_julgador: true
                   semaforo:
-                    cor: amarelo
+                    situacao: prazo_se_esgotando
                     texto: Prazo se esgotando
                     vence_em: '2026-11-17'
                 paginacao:
@@ -1192,7 +1192,7 @@ paths:
                   unidade_identificacao: Bloco A, 201
                 voce_e_o_julgador: true
                 semaforo:
-                  cor: amarelo
+                  situacao: prazo_se_esgotando
                   texto: Prazo se esgotando
                   vence_em: '2026-11-17'
                 descricao: Música alta depois da meia-noite.
@@ -1281,7 +1281,7 @@ paths:
                   unidade_identificacao: Bloco A, 201
                 voce_e_o_julgador: true
                 semaforo:
-                  cor: amarelo
+                  situacao: prazo_se_esgotando
                   texto: Prazo se esgotando
                   vence_em: '2026-11-17'
                 descricao: Música alta depois da meia-noite.
@@ -1351,7 +1351,7 @@ paths:
             schema:
               $ref: '#/components/schemas/DecidirReclamacaoSindico'
             example:
-              resultado: negada
+              resultado: negar
               motivo_negativa: nao_procede_boa_fe
       responses:
         '200':
@@ -3208,7 +3208,7 @@ paths:
               example:
                 id: 00000334-1111-4222-8333-000000000334
                 formato: csv
-                estado: concluida
+                estado: pronta
                 solicitada_em: '2026-11-10T11:30:00-03:00'
                 concluida_em: '2026-11-10T11:30:08-03:00'
                 nome_arquivo: financeiro-2026-10.csv
@@ -3498,7 +3498,7 @@ paths:
               example:
                 dados:
                 - id: 0000038f-1111-4222-8333-00000000038f
-                  tipo: incluir
+                  tipo: cadastro
                   unidade_id: 00000384-1111-4222-8333-000000000384
                   descricao: Incluir morador na unidade 302
                   estado: pendente
@@ -3547,7 +3547,7 @@ paths:
             schema:
               $ref: '#/components/schemas/CriarSolicitacaoSindico'
             example:
-              tipo: incluir
+              tipo: cadastro
               unidade_id: 00000384-1111-4222-8333-000000000384
               descricao: Incluir morador na unidade 302
               confirmou_excedente: false
@@ -3563,7 +3563,7 @@ paths:
                 $ref: '#/components/schemas/SolicitacaoSindico'
               example:
                 id: 0000038f-1111-4222-8333-00000000038f
-                tipo: incluir
+                tipo: cadastro
                 unidade_id: 00000384-1111-4222-8333-000000000384
                 descricao: Incluir morador na unidade 302
                 estado: pendente
@@ -7150,15 +7150,15 @@ components:
       name: semaforo
       in: query
       required: false
-      description: Uma ou mais cores do semáforo, separadas por vírgula.
+      description: Uma ou mais situações do semáforo do prazo (`situacao`), separadas por vírgula.
       schema:
         type: array
         items:
           type: string
           enum:
-          - verde
-          - amarelo
-          - vermelho
+          - no_prazo
+          - prazo_se_esgotando
+          - prazo_esgotado
       style: form
       explode: false
     ALulgarFiltroSindico:
@@ -8319,19 +8319,19 @@ components:
       description: Semáforo do prazo de decisão (RN-RC-17 a RN-RC-19). Só no DTO do julgador e só em Aberta e Em
         conversa com o alvo; é informação, não bloqueia a decisão.
       required:
-      - cor
+      - situacao
       - texto
       - vence_em
       properties:
-        cor:
+        situacao:
           type: string
           enum:
-          - verde
-          - amarelo
-          - vermelho
+          - no_prazo
+          - prazo_se_esgotando
+          - prazo_esgotado
         texto:
           type: string
-          description: Texto sempre junto da cor, por exemplo "No prazo", "Prazo se esgotando" ou "Prazo esgotado"
+          description: Texto sempre junto da situação, por exemplo "No prazo", "Prazo se esgotando" ou "Prazo esgotado"
             (RN-RC-17).
         vence_em:
           $ref: ./componentes/comum.yaml#/components/schemas/Data
@@ -8523,8 +8523,8 @@ components:
         resultado:
           type: string
           enum:
-          - validada
-          - negada
+          - validar
+          - negar
         gravidade_final:
           type:
           - string
@@ -9155,10 +9155,11 @@ components:
       - multas_por_infracao
       - aluguel_de_areas
       - outras_receitas
+      - fundo_reserva
       description: 'Categoria fixa de RN-FI-32 (códigos sem acento são Proposta de nomenclatura). Despesas: energia,
         agua_e_esgoto, gas, servicos_terceirizados, folha_de_funcionarios, manutencao_e_obras, seguros, administracao,
         outros. Receitas: taxa_condominial, cobrancas_extras, multas_e_juros_por_atraso, multas_por_infracao, aluguel_de_areas,
-        outras_receitas.'
+        outras_receitas, fundo_reserva (receita avulsa, só com o módulo de cobrança desligado, RN-FI-24).'
     ValorPorCategoriaFinancasSindico:
       type: object
       required:
@@ -9497,8 +9498,8 @@ components:
       properties:
         estado:
           type: string
-          enum: [solicitada, em_processamento, concluida, falhou]
-          description: Códigos técnicos propostos de acompanhamento assíncrono; arquivo somente quando concluída.
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoExportacao
+          description: Acompanhamento assíncrono (RN-RL-06); arquivo somente quando `pronta`.
         id:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         formato:
@@ -9563,7 +9564,8 @@ components:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         tipo:
           type: string
-          description: '`incluir`, `alterar` ou `remover` (UF 4.2) ou `cobranca_extra` (nome Proposto).'
+          $ref: ./componentes/enums.yaml#/components/schemas/TipoSolicitacao
+          description: '`cadastro`, `alteracao` ou `remocao` (UF 4.2) ou `cobranca_extra` (nome Proposto).'
         unidade_id:
           oneOf:
           - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
@@ -9656,11 +9658,8 @@ components:
       - descricao
       properties:
         tipo:
-          type: string
-          enum:
-          - incluir
-          - alterar
-          - remover
+          $ref: ./componentes/enums.yaml#/components/schemas/TipoSolicitacao
+          description: Para o síndico, `cadastro`, `alteracao` ou `remocao` (antes `incluir`, `alterar`, `remover`).
         unidade_id:
           oneOf:
           - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
@@ -9773,7 +9772,7 @@ x-lacunas:
   para votação): `estado` é texto livre nesses DTOs e os exemplos usam códigos ilustrativos.'
 - 'Formato de `quorum_regra`: "definido conforme a convenção" (RN-VO-02), sem estrutura nos docs; texto livre.'
 - 'RN-VO-16 (unidade em atraso não vota) em voto presencial: os docs não dizem se vale; não modelado.'
-- "Atualização de 13/11/2026: abertura e encerramento na interface comum seguem RN-VO-13 em qualquer plano: síndico; ausente/vago, sub; sem ambos, conselho; sem todos, proprietário designado. Administradora e suporte autorizado também podem. A concessão inicial e prova de ausência seguem pendentes."
+- "Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13. Impacto aqui: abertura e encerramento na interface comum seguem a sequência de RN-VO-13; a concessão inicial e a prova de ausência seguem pendentes. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano."
 - "Apuração do turno é computada pelo sistema após encerramento autorizado pelo condutor legitimado de RN-VO-13 em qualquer plano. Segundo empate ou ausência de elegível resulta inconclusivo, sem vencedor automático (RN-VO-07). Sigilo e substituição ainda exigem proposta."
 - "Exportação financeira assíncrona com consulta e arquivo privado aprovada em 12/11/2026, para todo pedido. Códigos técnicos de acompanhamento são proposta; TTL, retenção e limites operacionais continuam pendentes."
 - Códigos sem acento das categorias financeiras, de `autor_papel` e de `origem` são Proposta de nomenclatura; os

@@ -1,6 +1,7 @@
 # Plano de testes — CondomiFacil
 
 **Data:** 14/11/2026  
+**Atualizado em:** 15/11/2026  
 **Status:** Proposta para revisão de Pedro Lemos.  
 **Fase:** Design, antes da implementação. Não existem app, API, banco, migrações ou suítes automatizadas; o protótipo HTML simula comportamentos.
 
@@ -32,8 +33,8 @@ O plano cobre os 11 perfis do PRD, os planos Essencial e Gestão + Suporte, cond
 
 | Prioridade proposta | Risco | Exemplos |
 | --- | --- | --- |
-| P0 — crítica | Vazamento, perda de fatos, reserva duplicada, dinheiro ou voto incorretos | Isolamento; concorrência de reservas; baixa/reembolso duplicados; fila offline; voto secreto e único; revogação de acesso |
-| P1 — alta | Fluxo essencial interrompido ou regra aplicada à pessoa/unidade errada | Primeiro acesso; score por vínculo; locação; chamados; vistoria; cobrança; relatórios privados |
+| P0 — crítica | Vazamento, perda de fatos, reserva duplicada, dinheiro ou voto incorretos | Isolamento; concorrência de reservas; baixa/reembolso duplicados; fila offline; voto secreto e único; revogação de acesso; chamados (conclusões concorrentes); cobrança e finanças; score por vínculo; relatórios privados |
+| P1 — alta | Fluxo essencial interrompido ou regra aplicada à pessoa/unidade errada | Primeiro acesso; locação; vistoria; limites e cancelamento de reservas; demais fluxos essenciais |
 | P2 — complementar | Problemas de apresentação e caminhos secundários | Textos, filtros, estados vazios e ajustes visuais; elevar para P0/P1 se impedirem acesso ou expuserem dados |
 
 Todos os módulos do MVP entram na cobertura: acesso e conta, cadastros, reservas/pagamentos, visitantes/portaria, encomendas/entregas esperadas, chamados, reclamações/score, pesquisa, comunicação, reuniões/eleições, planos/suporte, notificações/LGPD, cobrança/finanças e os nove relatórios da administradora. Parcelamento da V2 e contabilidade oficial ficam fora. Pendência não vira comportamento aprovado por existir no protótipo.
@@ -199,7 +200,7 @@ Dentro do mesmo condomínio, repetir por unidade, blocos da portaria e função.
 | CT-CH-01/P0 — conclusões concorrentes | Mesmo ciclo: conclusão de horário anterior chega depois, inclusive após avaliação da primeira recebida; reenviar operação | Menor horário do celular prevalece, ambas no histórico, sem nova conclusão por reenvio; nota superada fora das médias/sem transferência, nova janela desde correção e sem reiniciar reabertura de 48h (RN-CH-04/07/15/17; US-CH-02/04) |
 | CT-RE-02/P1 — vistoria e faltas | Usada/não usada, antes/depois do fim, gratuita/paga, sem internet e conclusão antecipada | RN-RE-09/10/13: falta paga sem pontos/reembolso; intervalo não liberado antes do fim; sem fila offline; limpeza não marca início (US-RE-06; UF 5.3) |
 | CT-RE-03/P1 — limites e cancelamento | Score 60/61, limite mensal, atraso ligado/desligado, cancelar em torno de 12h, lembrete em torno de 09:00 e confirmação após envio | Bloqueios por pessoa/unidade corretos, canceladas fora da contagem, regras de reembolso e único push com antecipação às 21:00 quando aplicável (RN-RE-06 a 08/11/14; RN-CA; US-RE-02/04/05) |
-| CT-PG-02/P0 — dinheiro e eventos | Webhook inválido, duplicado, fora de ordem, conta desconhecida, reembolso falha, conciliação e baixa manual concorrentes | Validar token/correlação no servidor; não confiar em condomínio do corpo; dinheiro real preservado, sem baixa/receita/reembolso duplicados; falha não vira sucesso (SEG-12/17; US-RE-03/04; US-FI-03/04; eventos e webhooks 5 a 7) |
+| CT-PG-02/P0 — dinheiro e eventos | Webhook inválido, duplicado, fora de ordem, conta desconhecida, reembolso falha, conciliação diária (rotina 22) e baixa manual concorrentes | Validar token/correlação no servidor; não confiar em condomínio do corpo; dinheiro real preservado, sem baixa/receita/reembolso duplicados; falha não vira sucesso (SEG-12/17; US-RE-03/04; US-FI-03/04; eventos e webhooks 5 a 7) |
 | CT-CD-01/P1 — vínculos/locação | Trocar ocupante, pessoa com duas unidades, fim do contrato e alteração de mandato/substituição | Morador habilitado e responsável vigentes; score inicia em 100 por novo vínculo sem herança/cruzamento; dívidas anteriores não transferidas silenciosamente; permissões revogadas (RN-CD; RN-SC; US-AC-05; US-AD-03/07/10/11) |
 | CT-RC-01/P0 — reclamação e score | Alvo síndico, autor/alvo/julgador distintos, prazo, recurso, novos vínculos e consulta do suporte | Julgador autorizado sem conflito, defesa/recurso conforme RN, auditoria, identidade protegida e score restrito; não aplicar ao vínculo errado (RN-RC; RN-SC; SEG-07/08; US-RS-01 a 08) |
 | CT-VO-01/P0 — voto e eleição | Duas tentativas online/presencial, procurador, proprietário substitui inquilino em pauta permitida, atraso, encerramento e condutor substituto | Um voto vigente por unidade conforme regra, conteúdo secreto separado da participação, resultado só após encerramento, empate/inconclusivo sem vencedor automático; permissão temporária restrita (RN-VO; SEG-06; US-VO-02/03). Concessão técnica pendente não se presume aprovada |

@@ -1,6 +1,6 @@
 # Roadmap de desenvolvimento do CondomiFacil
 
-**Data de elaboração:** 15/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
+**Data de elaboração:** 15/11/2026. **Atualizado em:** 15/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
 
 **Estado:** plano detalhado para revisão e acompanhamento. O projeto está em Design, com documentação, protótipo HTML navegável e estruturas preparatórias de backend/frontend. Não há aplicativo, API, banco, integrações ou infraestrutura operacional implementados. Criar este roadmap não autoriza iniciar o MVP, contratar serviços, executar PoCs, publicar, commitar ou enviar alterações.
 
@@ -88,7 +88,7 @@ As pastas `07-seguranca`, `08-qualidade` e `09-infra` **já têm documentos**. A
 | Asaas | [ADR-002](03-arquitetura/adr/002-gateway-de-pagamento.md), aceito com ressalvas em 10/11/2026 | PoC, KYC, conta principal, confirmação, devolução, chargeback, eventos e conciliação |
 | Supabase PostgreSQL/Storage + Render API/WebSocket/jobs para construir em dev/staging | [ADR-004](03-arquitetura/adr/004-nuvem-regiao-residencia-dados.md), aceito com ressalvas | Revisão obrigatória antes do piloto real; custo, residência/transferências, disponibilidade, backup/PITR e recuperação. No Render gratuito jobs param quando o serviço dorme |
 | Resend | [ADR-005](03-arquitetura/adr/005-email-transacional.md), aceito com ressalvas | Entregabilidade, transferências de dados e condições de operação |
-| Vercel para web | [Infra, estado](09-infra/infra-e-devops.md) | Provisionamento, ambientes, domínio, acesso, publicação e verificação efetiva |
+| Vercel para web (hospedagem do painel web: [ADR-016](03-arquitetura/adr/016-hospedagem-do-painel-web.md), Proposto, ainda não aceito) | [Infra, estado](09-infra/infra-e-devops.md) | Provisionamento, ambientes, domínio, acesso, publicação e verificação efetiva |
 | Biblioteca própria, tokens compartilhados e Storybook principal web/complementar nativo | [Biblioteca, seção 1](06-frontend/biblioteca-de-componentes.md) | Implementação, versões e configuração; Storybook não substitui validação do fluxo integrado |
 | Workspace pnpm único; `shared-types` e `config` na raiz; OpenAPI/AsyncAPI como fontes canônicas; Turborepo quando houver tarefas executáveis | [ADR-015](03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md), aceito quanto à organização e às fontes | Fixar Node/pnpm e `packageManager`, gerar lockfile real, provar geração/validação determinística e consumo Expo/Node, definir ferramentas/versões |
 | Complementações de 12/11/2026 | [19 escolhas](01-produto/05-decisoes-de-complementacao.md) | Desenhos técnicos e validações externas mantêm seus estados; a antiga restrição eleitoral da escolha 12A foi substituída em 13/11 |

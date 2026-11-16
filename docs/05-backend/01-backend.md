@@ -1,6 +1,6 @@
 # Backend: CondomiFacil
 
-**Status:** Proposta, em 09/11/2026; atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
+**Status:** Proposta, em 09/11/2026; atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md); atualizada em 15/11/2026 (rotina 22 de conciliação diária e referência ao registro de autogestão e condução eleitoral). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
 
 ## Índice
 
@@ -128,7 +128,7 @@ backend/apps/api/
       plataforma/
       sync/
 
-    rotinas/                       MECANISMO de jobs: agendador, catálogo das 21 rotinas, entrada do worker
+    rotinas/                       MECANISMO de jobs: agendador, catálogo das 22 rotinas, entrada do worker
     integracoes/                   ADAPTADORES de serviços externos (implementam portas)
       pagamento/                   adaptador do Asaas (`AdaptadorAsaas`), o único a implementar (ADR-002)
       email/                       adaptador do Resend (ADR-005) e caixa de saída falsa
@@ -206,7 +206,7 @@ Os módulos seguem a tabela 4.6 de D (responsabilidade e dependências). `tempo-
 
 ### 3.3 Perfis, pastas de interface e módulos consumidos
 
-O PRD 3 lista **11 perfis**. A matriz de permissões tem 7 colunas (Morador, Síndico morador, Síndico profissional, Subsíndico, Limpeza, Portaria, Administradora); os outros 4 estão em "Perfis fora da matriz" (Suporte da plataforma, Admin da plataforma, Conselho fiscal, Proprietário não residente). As 9 pastas abaixo cobrem os 11 perfis; o critério é **"o conjunto de telas e de DTOs de resposta é diferente?"**, não "o rótulo é diferente".
+O PRD 3 lista **11 perfis**. A matriz de permissões tem 7 colunas (Morador, Síndico morador, Síndico profissional, Subsíndico, Limpeza, Portaria, Administradora); os outros 4 estão em "Perfis fora da matriz" (Suporte da plataforma, Admin da plataforma, Conselho fiscal, Proprietário não residente). As 9 pastas de perfil abaixo (mais `comum/`, sem perfil próprio, para o que é de todos) cobrem os 11 perfis; o critério é **"o conjunto de telas e de DTOs de resposta é diferente?"**, não "o rótulo é diferente".
 
 | Perfil (PRD 3) | Pasta de interface | Módulos que consome (via `index.ts`) | Observação de agrupamento |
 | --- | --- | --- | --- |
@@ -376,7 +376,7 @@ A estratégia completa será escrita em `docs/08-qualidade/`; aqui ficam os nív
 
 ## 5. Rotinas agendadas (jobs)
 
-**Decidido:** jobs no backend (PRD 10); 21 rotinas (RN 14); cada execução registrada em log (RN 14).
+**Decidido:** jobs no backend (PRD 10); 22 rotinas das RN 14 (a 22ª é a conciliação diária com o gateway, decisão de Pedro em 15/11/2026, SEG-17); cada execução registrada em log (RN 14).
 
 ### 5.1 Mecanismo
 
@@ -407,7 +407,7 @@ flowchart TB
 
 **Proposta técnica (fora das RN):** o contrato de `RotinaBase` tem `executar(contexto, janela)` e `chaveDeIdempotencia(contexto, janela)`. A janela é o período a processar (dia local, mês, intervalo de 5 min).
 
-### 5.2 As 21 rotinas
+### 5.2 As 22 rotinas
 
 Frequências, fan-out e origem vêm de arq. 3.5 e RN 14. A coluna do módulo dono segue D (4.8), Proposta.
 
@@ -434,6 +434,7 @@ Frequências, fan-out e origem vêm de arq. 3.5 e RN 14. A coluna do módulo don
 | 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | Por condomínio | `financas` | RN-FI-28 |
 | 20 | Fim de contrato de locação | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | Por condomínio | `condominio` | RN-CD-21 |
 | 21 | Lembrete de reserva (envio antecipado para 21:00 da noite anterior se o horário calculado cair entre 00:00 e 08:59 locais) | A cada 5 min | Por condomínio (parâmetro e fuso por condomínio); idempotente por reserva | `reservas` (envio pelo `notificacoes`) | RN-RE-14, RF-RE-10 |
+| 22 | Conciliação diária com o gateway | Diária, madrugada (00:00 a 06:00 local; ordem do catálogo, ADR-012) | Global, enumera condomínios | `pagamentos` | SEG-17; arq. 3.6; decisão de Pedro em 15/11/2026 |
 
 **Rotina 21 em detalhe (decidido nas RN).** Envia **uma única vez** um push ao morador que fez a reserva **Confirmada**, com `reserva.lembrete_antecedencia_horas` de antecedência (padrão 24 h, faixa de 1 a 72 h, por condomínio). Ignora reserva aguardando pagamento, cancelada, cancelada pelo condomínio, expirada ou confirmada depois do horário de envio (inclusive depois das 21:00 antecipadas, confirmado por Pedro em 09/11/2026). Canal só push, opcional e ligado por padrão (preferência `lembrete de reserva`), com atalho para ver e cancelar (RN-RE-14, RF-RE-10, MER/DER 4.12). **Horário de envio (decisão de Pedro em 09/11/2026, RN-RE-14).** O horário calculado é `inicio - parametro`, no fuso do condomínio. Se a hora local dele estiver entre 00:00 e 08:59, o envio é antecipado para as 21:00 do dia anterior à data local desse horário calculado, nunca adiado; entre 09:00 e 23:59, o envio é o próprio horário calculado. Exemplo: início sábado 02:00, parâmetro 24 h, calculado sexta 02:00, envio quinta 21:00. A rotina continua a cada 5 min e não passa pela fila das 09:00 do `notificacoes` (6.4).
 
@@ -461,12 +462,12 @@ Implementação proposta: como o envio pode vir até 12 h antes do horário calc
 **Notas sobre a tabela.**
 
 - A rotina 5 não é cron: é consumidor do evento de alteração de score (D12).
-- Horário das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14): as que não têm horário próprio (4, 7, 12, 14, 15, 16, 18, 19) rodam na faixa de madrugada, de 00:00 a 06:00 no fuso do condomínio, em sequência; as que enviam lembrete ou aviso a pessoas (8, 11, 17) rodam às 09:00 locais. As rotinas 10 e 20 têm duas etapas com horários diferentes, sem virar rotina nova (continuam 21 no total): efeito de regra na madrugada e aviso às 09:00. **Motivo (SRP):** separar a mudança de estado do envio do aviso dá a cada etapa uma única razão para mudar e permite repetir uma etapa sem repetir a outra. Na proposta, cada etapa é um método da mesma classe `*.rotina.ts`, com chave de idempotência própria no catálogo (`executarEfeito` e `executarAviso`). **Push gerado por rotina da madrugada** (4, 7, 12, 15, 16 e etapas de efeito de 10 e 20): o evento sai do outbox na hora, e o `notificacoes` agenda o envio para as 09:00 locais (ver 6.4). **Proposta técnica (fora das RN):** o catálogo guarda a faixa de cada rotina (`meia-noite`, `madrugada` ou `09:00`), o mesmo disparo horário do ADR-012 enfileira o que venceu naquela hora, e dentro da madrugada a ordem é a do catálogo, com a 15 antes da 16 e a 18 antes da 19.
-- As rotinas 1 e 21 rodam a cada 5 min. Para a 21, enfileirar um job para todo condomínio a cada 5 min pode ser desperdício em condomínio sem reservas; **Proposta técnica (fora das RN):** o enumerador pode filtrar condomínios com reserva confirmada na janela antes de enfileirar.
+- Horário das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14): as que não têm horário próprio (4, 7, 12, 14, 15, 16, 18, 19, 22) rodam na faixa de madrugada, de 00:00 a 06:00 no fuso do condomínio, em sequência; as que enviam lembrete ou aviso a pessoas (8, 11, 17) rodam às 09:00 locais. As rotinas 10 e 20 têm duas etapas com horários diferentes, sem virar rotina nova (continuam 22 no total): efeito de regra na madrugada e aviso às 09:00. **Motivo (SRP):** separar a mudança de estado do envio do aviso dá a cada etapa uma única razão para mudar e permite repetir uma etapa sem repetir a outra. Na proposta, cada etapa é um método da mesma classe `*.rotina.ts`, com chave de idempotência própria no catálogo (`executarEfeito` e `executarAviso`). **Push gerado por rotina da madrugada** (4, 7, 12, 15, 16 e etapas de efeito de 10 e 20): o evento sai do outbox na hora, e o `notificacoes` agenda o envio para as 09:00 locais (ver 6.4). **Proposta técnica (fora das RN):** o catálogo guarda a faixa de cada rotina (`meia-noite`, `madrugada` ou `09:00`), o mesmo disparo horário do ADR-012 enfileira o que venceu naquela hora, e dentro da madrugada a ordem é a do catálogo, com a 15 antes da 16 e a 18 antes da 19.
+- As rotinas 1 e 21 rodam a cada 5 min. A **rotina 22** compara as cobranças e os pagamentos locais com o gateway (Asaas) e registra as divergências para tratamento (SEG-17); aplica a mesma máquina de estados monotônica do webhook e não duplica baixa. Para a 21, enfileirar um job para todo condomínio a cada 5 min pode ser desperdício em condomínio sem reservas; **Proposta técnica (fora das RN):** o enumerador pode filtrar condomínios com reserva confirmada na janela antes de enfileirar.
 
-### 5.3 Jobs fora da tabela das 21
+### 5.3 Jobs fora da tabela das 22
 
-Também são jobs (D12, arq. 3.6, 3.7, 3.11): processamento de webhook do gateway, conciliação com o gateway (arq. 3.6, SEG-17), envio de push e e-mail e debounce da lista de visitantes (RN-VI-17), exportações de finanças (CSV e PDF), relatórios gerenciais privados do catálogo RN-RL-02 e despacho do outbox. Todos abrem o `TenantContext` de um condomínio, exceto o despacho do outbox e a conciliação global, que enumeram condomínios.
+Também são jobs (D12, arq. 3.6, 3.7, 3.11): processamento de webhook do gateway, conciliação por consulta e processamento de webhook (a conciliação diária é a rotina 22), envio de push e e-mail e debounce da lista de visitantes (RN-VI-17), exportações de finanças (CSV e PDF), relatórios gerenciais privados do catálogo RN-RL-02 e despacho do outbox. Todos abrem o `TenantContext` de um condomínio, exceto o despacho do outbox e a rotina 22 (conciliação global), que enumeram condomínios.
 
 ### 5.4 Jobs com atraso programado
 
@@ -501,7 +502,7 @@ Cuidados: o job de atraso precisa ser **cancelável ou reconferido** na execuç�
 
 **Proposta técnica (fora das RN): renovação de QR dinâmico vencido.** Um job (por condomínio, frequência a definir) encontra cobranças ainda em aberto cujo QR Pix já expirou no provedor e pede novo QR, sem alterar valor nem vencimento da cobrança. Evita que o morador abra uma cobrança válida e encontre um QR morto. Não gera cobrança nova nem notificação obrigatória. Depende do que o provedor chamar de validade do QR.
 
-**Proposta técnica (fora das RN): conciliação por consulta.** Além da conciliação diária de arq. 3.6 (SEG-17), um job consulta o gateway sobre pagamentos pendentes além do prazo esperado de confirmação, para os quais o webhook não chegou, e aplica a mesma máquina de estados monotônica do webhook, de modo que consultar e receber o webhook juntos não duplica a baixa (`evento_gateway` com a unicidade do MER/DER 4.10). Divergências persistentes abrem alerta para a administradora.
+**Proposta técnica (fora das RN): conciliação por consulta.** Além da conciliação diária (rotina 22, SEG-17), um job consulta o gateway sobre pagamentos pendentes além do prazo esperado de confirmação, para os quais o webhook não chegou, e aplica a mesma máquina de estados monotônica do webhook, de modo que consultar e receber o webhook juntos não duplica a baixa (`evento_gateway` com a unicidade do MER/DER 4.10). Divergências persistentes abrem alerta para a administradora.
 
 **Pendente do ADR-002 (Aceito com ressalvas; falta a prova de conceito no sandbox e os prazos reais):** validade do QR Pix, se o QR é estático ou dinâmico, API de consulta e listagem de recebimentos e prazos reais de confirmação de boleto e Pix. O provedor é o Asaas (decisão de Pedro em 10/11/2026); os jobs acima ficam atrás da porta `PaymentGateway` (`consultar`) e esses pontos se confirmam na prova de conceito no sandbox e no piloto.
 
@@ -518,7 +519,7 @@ Cuidados: o job de atraso precisa ser **cancelável ou reconferido** na execuç�
 | 13 | Limpeza de dados offline | Manda os aparelhos da portaria e da limpeza apagarem a cópia do dia; o app também apaga sozinho na primeira abertura de um novo dia | RN-OF-06, SEG-09, ADR-003 | Servidor orienta; a limpeza é local. A forma de o aparelho receber a ordem é detalhe do protocolo de sync |
 | 14 | Anonimização de visitantes | Nome, documento e arquivos identificáveis de visitas mais antigas que `visitante.retencao_meses` (padrão 6, faixa 1 a 12) | RN 8.4, SEG-10, MER/DER 6.2 | Preserva o fato não identificável |
 
-**Proposta técnica (fora das RN): manutenção de dados técnicos.** Job de limpeza (por condomínio onde o dado é de tenant), fora da lista das 21, para dados que não têm valor de negócio nem de prova:
+**Proposta técnica (fora das RN): manutenção de dados técnicos.** Job de limpeza (por condomínio onde o dado é de tenant), fora da lista das 22, para dados que não têm valor de negócio nem de prova:
 
 | Alvo | Critério (Proposta) | Observação |
 | --- | --- | --- |
@@ -630,7 +631,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 
 **Inconsistências encontradas nas fontes (sem correção aqui).**
 
-- A arq. 3.5 e as RN 14 chamam a conciliação diária de "job" fora das 21 rotinas, enquanto SEG-17 a trata como requisito; este documento a mantém fora do catálogo de 21 (seção 5.3).
+Nenhuma pendente após 15/11/2026.
 
 ## 8. Rastreabilidade
 
@@ -649,7 +650,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 | 4.7 a 4.8 Transações, logs | arq. 3.3, 3.9.1, 4.3, 6.8; SEG-08; ADR-006, ADR-009, ADR-010; RN 14 |
 | 4.9 Testes | arq. 4.11, 6.3, 6.7; RNF-16; ADR-010 |
 | 5.1 Mecanismo | arq. 3.5, 4.4, 4.7; D12; ADR-006, ADR-012; MER/DER 4.12 |
-| 5.2 As 21 rotinas | RN 14; arq. 3.5; D12 (4.8); RN-RE-14; RF-RE-10; `reserva.lembrete_antecedencia_horas` (RN 13) |
+| 5.2 As 22 rotinas | RN 14; arq. 3.5; D12 (4.8); RN-RE-14; RF-RE-10; `reserva.lembrete_antecedencia_horas` (RN 13) |
 | 5.3 e 5.4 Outros jobs e atrasos | arq. 3.5 (último parágrafo), 3.6, 3.7, 3.11; D12; RN-CH-07, RN-CH-15, RN-CH-17, RN-RC-07, RN-VO-07, RN-VO-09; RF-AD-16; ADR-014 |
 | 5.5 a) QR Code Pix | RF-FI-07, RF-PG-01, RF-FI-09, RF-FI-10, RN-FI-02, RN-FI-05, RN-FI-08, RN-RE-03, RN-FI-13, RN-FI-23; arq. 3.6; ADR-002 |
 | 5.5 b) Lembretes de reserva | RN-RE-14, RF-RE-10, RN-RE-03, RN-RE-10; MER/DER 4.12 |
@@ -668,9 +669,11 @@ Aplicar SOLID/GRASP nos casos de uso e portas; Adapter, outbox/Observer e Templa
 
 ## Atualização de autogestão e eleições — 13/11/2026
 
-Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver [`docs/01-produto/06-autogestao-e-conducao-eleitoral.md`](../01-produto/06-autogestao-e-conducao-eleitoral.md) e RN-PL-08/RN-VO-13. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
-**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+**Impacto no backend:** a autogestão não é terceiro plano nem novo perfil; a distribuição entre síndico, subsíndico e conselho fiscal é proposta a validar. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças, sem dar ao conselho edição financeira irrestrita; a leitura fiscal continua agregada e as fontes individuais permanecem restritas à finalidade autorizada.
+
+**Impacto técnico da condução eleitoral (regra de produto no registro acima):** a autorização é contextual por condomínio, mandato, ausência/vacância e concessão, e é revalidada em cada leitura e ação. O proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. A auditoria registra ações, nunca voto individual; o resultado só aparece após o encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
 
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 

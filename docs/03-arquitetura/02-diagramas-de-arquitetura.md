@@ -1,6 +1,6 @@
 # CondomiFacil: diagramas de arquitetura (C4)
 
-08/11/2026 · @Pedro Lemos
+08/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 **Resumo:** diagramas da arquitetura de referência do MVP em três níveis do modelo C4 (contexto, containers e componentes do backend), todos em Mermaid. Eles refinam os diagramas 2.1 e 2.2 de [`01-arquitetura.md`](01-arquitetura.md) e não mudam nenhuma decisão de lá. Tudo o que não foi decidido aparece como **(Proposta)**.
 
@@ -19,7 +19,7 @@
 
 **Escopo.** Só o que `01-arquitetura.md`, os ADRs, o PRD e as Regras de Negócio sustentam. O que os docs não definem aparece como "não definido nos docs". Nomes de módulos, tabelas e rotas são ilustrativos; o esquema real vem em `docs/04-banco-de-dados`.
 
-**Status do documento.** Proposta, em 08/11/2026, atualizada em 10/11/2026. O documento em si não foi aceito pelo Pedro. Dos 14 ADRs, 002 (Asaas), 004 (Supabase + Render, só para construir o MVP) e 005 (Resend) foram aceitos, com ressalvas, em 10/11/2026; os demais continuam Propostos.
+**Status do documento.** Proposta, em 08/11/2026, atualizada em 15/11/2026. O documento em si não foi aceito pelo Pedro. Dos 16 ADRs, 002 (Asaas), 004 (Supabase + Render, só para construir o MVP) e 005 (Resend) foram aceitos, com ressalvas, em 10/11/2026; os demais continuam Propostos.
 
 ### 1.1 O modelo C4 em cinco linhas
 
@@ -228,7 +228,7 @@ Fontes: arq. 2.2, 2.3, 3.1 a 3.8, 4.5 a 4.8, 5.1 a 5.3, 6.5, 6.8; PRD 10; RNF-05
 | Banco local offline | SQLite + SQLCipher com outbox (alternativa WatermelonDB) | Lista do dia da portaria e chamados do setor da limpeza. Um arquivo por usuário + condomínio, apagado ao sair, ao trocar de condomínio e ao fim do dia | "SQLite ou WatermelonDB" decidido no PRD 10; escolha Proposta (ADR-003) |
 | API HTTP | Node.js + NestJS, monólito modular | Regras de negócio, autenticação, autorização, pagamentos, auditoria; única porta de acesso aos dados | Decidido (PRD 10); monólito modular é Proposta |
 | Gateway WebSocket | Socket.IO no NestJS | Lista da portaria em até 5 s (RNF-05); edição de entrega esperada na hora (RN-EN-09) | WebSocket decidido; mesmo processo da API e Socket.IO são Proposta |
-| Worker de jobs | Mesmo código da API, outro ponto de entrada, pg-boss | 21 rotinas (RN 14), webhooks, push, e-mail, exportações | Jobs decididos; mecanismo Proposta (ADR-006) |
+| Worker de jobs | Mesmo código da API, outro ponto de entrada, pg-boss | 22 rotinas (RN 14), webhooks, push, e-mail, exportações | Jobs decididos; mecanismo Proposta (ADR-006) |
 | PostgreSQL | PostgreSQL com RLS | Fonte da verdade; fila, outbox e `LISTEN/NOTIFY` | Decidido (PRD 10, SEG-05); fila e outbox são Proposta |
 | Armazenamento de objetos | Compatível com S3; em dev e staging, Supabase Storage (produção a definir na revisão do ADR-004) | Fotos, comprovantes, atas, listas de presença. Chave `c/{condominio_id}/{modulo}/{uuid}` | Tecnologia decidida (PRD 10); provedor do ambiente de construção decidido (ADR-004), produção depende da revisão antes do piloto; prefixo é Proposta |
 
@@ -425,7 +425,7 @@ Fontes: arq. 6.1 a 6.9; RNF-09, RNF-13, RNF-17, RNF-18; SEG-01, SEG-02; ADR-004,
 
 ## 4. Nível 3: Componentes do backend
 
-**Resumo:** o backend é um monólito modular (Proposta). Dezenove módulos de domínio, entre eles `sync` (Proposta deste documento), usam uma camada interna comum (`TenantContext`, guards, outbox, portas de gateway e e-mail). `tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio. Todos os nomes são Proposta (arq. 3.3).
+**Resumo:** o backend é um monólito modular (Proposta). Vinte módulos de domínio, entre eles `sync` (Proposta deste documento), usam uma camada interna comum (`TenantContext`, guards, outbox, portas de gateway e e-mail). `tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio. Todos os nomes são Proposta (arq. 3.3).
 
 **Regras comuns a todos os módulos (Proposta):** acesso a dados só pelo `TenantContext`; validação com esquemas gerados dos contratos em `shared-types` (ADR-015); eventos de domínio no outbox `evento_saida`; auditoria na mesma transação; papéis resolvidos no servidor a cada requisição (JWT sem papéis, ADR-007).
 
@@ -465,6 +465,7 @@ flowchart TB
         M_COB["cobranca"]
         M_FIN["financas"]
         M_GOV["governanca"]
+        M_REL["relatorios"]
     end
 
     subgraph GTRANSV["Transversais"]
@@ -488,7 +489,7 @@ flowchart TB
     ENTRADAS --> GDINHEIRO
     ENTRADAS --> GTRANSV
     ROTINAS -->|"um job por condomínio"| GPORTARIA
-    ROTINAS --> GDINHEIRO
+    ROTINAS -->|"rotina 22: conciliação em pagamentos"| GDINHEIRO
     GPORTARIA -->|"reservas usa pagamentos"| GDINHEIRO
     GPORTARIA --> GACESSO
     GDINHEIRO --> GACESSO
@@ -501,6 +502,8 @@ flowchart TB
     classDef proposta stroke-dasharray: 6 4
     class SYNCM proposta
 ```
+
+`relatorios` (RF-RL) usa `cobranca`, `financas` e `condominio` (projeções), `arquivos` e `auditoria`; essas dependências já estão cobertas pelas setas entre grupos (detalhe na tabela 4.6).
 
 Leitura: setas apontam de quem usa para quem é usado. Grupos de domínio também usam a camada interna (a seta foi omitida em alguns grupos para não poluir o desenho; a regra vale para todos).
 
@@ -701,6 +704,7 @@ Todos os módulos são Proposta (arq. 3.3). "Depende de" segue as setas de D7 a 
 | `reservas` | Áreas, regras, reservas, vistoria | `pagamentos`, `configuracao`, `convivencia`, `notificacoes` | RF-RE; RN-RE; RN-RE-04 |
 | `convivencia` | Reclamações, recursos, score, pesquisa mensal de funcionários | `auditoria`, `notificacoes`, `configuracao` | RF-RC, RF-SC, RF-PE; RN-RC, RN-SC, RN-PE; SEG-07; ADR-010 |
 | `comunicados` | Gerais e individuais, sugestões | `notificacoes` | RF-CO; RN-CO |
+| `relatorios` | Projeções mínimas por domínio e exportações privadas do catálogo da administradora | `cobranca`, `financas`, `condominio` (projeções), `arquivos`, `auditoria` | RF-RL-01 a 11; RN-RL-01 a 08; arq. 3.3 |
 | `pagamentos` | Porta PaymentGateway, subconta, cobrança de reserva, reembolso, webhooks, conciliação | Porta PaymentGateway (Asaas), Porta Mailer (Resend); emite eventos para `reservas`, `cobranca`, `financas` | RF-PG; RN-PG, RN-CA; RN-PG-04; SEG-12, SEG-15, SEG-17; ADR-002 |
 | `cobranca` | Taxa condominial, inadimplência, lembretes | `pagamentos`, `financas`, `notificacoes` | RF-FI-01 a 16; RN-FI; RN-FI-01; SEG-17 |
 | `financas` | Lançamentos, categorias, fechamento de mês, estorno, exportação | `arquivos`, `auditoria`; recebe lançamentos de `cobranca` e eventos de `pagamentos` | RF-FI-17 a 24; RN-FI-21 a 32; SEG-18 |
@@ -824,12 +828,13 @@ flowchart TB
 | 19 | Fechar o mês financeiro | Diária, madrugada (00:00 a 06:00 local); fecha no dia configurado | `financas` |
 | 20 | Fim de contrato de locação | Diária, duas etapas: desativação na madrugada (00:00 a 06:00 local), aviso às 09:00 local | `condominio` |
 | 21 | Lembrete de reserva (push antecipado para as 21:00 da noite anterior quando o horário de 24h antes cai entre 00:00 e 08:59 locais) | A cada 5 min | `reservas` (envio pelo `notificacoes`) |
+| 22 | Conciliação diária com o gateway (atende SEG-17; decisão de Pedro em 15/11/2026) | Diária, madrugada (00:00 a 06:00 local) | `pagamentos` |
 
-Também são jobs: processamento de webhook e conciliação diária (`pagamentos`), exportações (`financas`), envio de push e e-mail (`notificacoes`) e os prazos com atraso programado (reabertura de chamado em 48 h, janela de avaliação de 7 dias, prazo de recurso de 7 dias, segundo turno em 7 dias).
+Também são jobs: processamento de webhook (`pagamentos`), exportações (`financas`), envio de push e e-mail (`notificacoes`) e os prazos com atraso programado (reabertura de chamado em 48 h, janela de avaliação de 7 dias, prazo de recurso de 7 dias, segundo turno em 7 dias).
 
 **Horário local das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14).** As diárias sem horário próprio rodam na faixa de madrugada (00:00 a 06:00 no fuso do condomínio), em sequência; as que enviam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais; as rotinas 10 e 20 têm duas etapas, com o efeito na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda. As rotinas 3, 9 e 13 (00:00) e a 6 (23:59 do último dia do mês) mantêm o horário; 1, 2, 5 e 21 não são diárias. A 21 roda a cada 5 min e antecipa o push para as 21:00 da noite anterior quando o horário calculado cai entre 00:00 e 08:59 locais (RN-RE-14, decisão de Pedro em 09/11/2026), sem passar pela fila das 09:00.
 
-Fontes: arq. 3.5, 3.6, 3.7, 4.4, 4.7, 6.8; RN 14 (21 rotinas); RF-FI-11; RNF-09; SEG-10; ADR-006, ADR-012.
+Fontes: arq. 3.5, 3.6, 3.7, 4.4, 4.7, 6.8; RN 14 (22 rotinas); RF-FI-11; RNF-09; SEG-10; ADR-006, ADR-012.
 
 ## 5. Decisões deste documento e pontos em aberto
 
@@ -904,8 +909,8 @@ Cada diagrama aponta para o que o originou. Ao mudar uma regra, revisar as linha
 | D9 Dinheiro e governança | RF-PG, RF-FI-01 a 24, RF-VO | RN-PG, RN-CA, RN-FI, RN-VO, RN-GE-03 | — | SEG-06, SEG-12, SEG-15, SEG-17, SEG-18 | 002, 009 | 3.3, 3.6, 3.10, 3.11 |
 | D10 Transversais e tempo real | RF-NO-01, RF-LG-01, RF-LG-02 | RN-RC-10, RN-VI-17, RN-CH-18 | RNF-05, RNF-17 | SEG-08, SEG-11, SEG-13 | 005 | 3.4, 3.7, 3.8, 3.9.1, 4.5, 4.6, 7 |
 | D11 Camadas de uma requisição | RF-AC-04 | RN-CD-05, RN-CD-12, RN-CD-28 | RNF-01, RNF-11 | SEG-05, SEG-07, SEG-08, SEG-17 | 001, 007, 008 | 3.3, 3.3.1, 3.9, 4.3, 4.4 |
-| D12 Fluxo de jobs | RF-FI-11 | RN 14 (21 rotinas) | RNF-09 | SEG-10 | 006, 012 | 3.5, 3.6, 3.7, 4.4, 4.7, 6.8 |
-| Tabela de módulos (4.6) | RF-* por épico | RN citadas por módulo | — | SEG citados por módulo | 001 a 014 conforme a linha | 3.3 a 3.11 |
+| D12 Fluxo de jobs | RF-FI-11 | RN 14 (22 rotinas) | RNF-09 | SEG-10 | 006, 012 | 3.5, 3.6, 3.7, 4.4, 4.7, 6.8 |
+| Tabela de módulos (4.6) | RF-* por épico | RN citadas por módulo | — | SEG citados por módulo | 001 a 016 conforme a linha | 3.3 a 3.11 |
 | Decisões e pontos em aberto (5) | — | — | — | SEG-16 | 002 a 006, 009, 012, 014 | 9.1 a 9.3 |
 
 Observação: listas de RF por épico estão resumidas. A cobertura completa RF para US está em `docs/01-produto/04-historias-de-usuario.md`. Outras fontes usadas: PRD 3 e 10, UF 5.1, 13.1, 15 e 17, US-NO-01, DS 15, AGENTS.md.
@@ -913,13 +918,11 @@ Observação: listas de RF por épico estão resumidas. A cobertura completa RF 
 
 ## Atualização de autogestão e eleições — 13/11/2026
 
-Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13.
 
-**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
-**Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
-
-**Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+**Impacto técnico neste documento:** a distribuição de autogestão, a concessão eleitoral temporária e a condução em qualquer plano afetam apenas as políticas de autorização por ação dos módulos `condominio` e `governanca` (arq. 4.4); não criam novo módulo nem novo ator nos diagramas, e o suporte aparece apenas no plano Gestão + Suporte. Esta atualização não aceita ADRs ou contratos inteiros.
 
 ## Relatórios gerenciais do MVP — 14/11/2026
 

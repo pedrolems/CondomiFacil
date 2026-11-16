@@ -1,6 +1,6 @@
 # Arquitetura — CondomiFacil
 
-Nov 6, 2026 · @Pedro Lemos
+06/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 **Resumo:** arquitetura de referência do MVP: um app Expo (Android, iOS e web) falando com uma API NestJS modular sobre PostgreSQL compartilhado com Row Level Security, com tempo real por WebSocket, rotinas agendadas por condomínio, pagamentos por gateway com webhooks idempotentes e um modo offline restrito à portaria e à limpeza.
 
@@ -20,7 +20,7 @@ Este documento traduz o produto (PRD, regras de negócio, histórias, design) em
 | Documento | O que fornece à arquitetura |
 | --- | --- |
 | PRD (`docs/01-produto/02-prd.md`) | Seção 10 é a **fonte da stack**; seção 3 (perfis e permissões); seção 7 (RNF); seção 8 (SEG) |
-| Regras de Negócio (`03-regras-de-negocio.md`) | Regras RN-* que viram invariantes de domínio; seção 13 (36 parâmetros configuráveis); seção 14 (21 rotinas automáticas) |
+| Regras de Negócio (`03-regras-de-negocio.md`) | Regras RN-* que viram invariantes de domínio; seção 13 (36 parâmetros configuráveis); seção 14 (22 rotinas automáticas) |
 | Histórias de Usuário (`04-historias-de-usuario.md`) | Critérios de aceite que viram testes |
 | Design System e User Flows (`docs/02-design/`) | Tokens, componentes, mensagens de erro transversais (UF 15), pendências (UF 17) |
 | Protótipo (`prototipo/`) | Referência de comportamento, não de código |
@@ -125,7 +125,7 @@ flowchart TB
 | Web (React Native Web) | Painel da administradora, do suporte, do admin da plataforma e do síndico; mesmo código do app | PRD 10; RF-AC-06; DS 11.9 |
 | API (NestJS) | Regras de negócio, autenticação, autorização, orquestração de pagamentos, auditoria; única porta de acesso aos dados | PRD 10 |
 | WebSocket | Lista da portaria em até 5 s (RNF-05) e edição de entrega esperada na hora (RN-EN-09) | PRD 10; RNF-05 |
-| Worker / jobs agendados | As 21 rotinas da RN seção 14, processamento assíncrono de webhooks, envio de push e e-mail | PRD 10; RN 14 |
+| Worker / jobs agendados | As 22 rotinas da RN seção 14, processamento assíncrono de webhooks, envio de push e e-mail | PRD 10; RN 14 |
 | PostgreSQL | Fonte da verdade; isolamento por condomínio e por unidade com RLS | PRD 10; SEG-05 |
 | Armazenamento de objetos | Fotos, comprovantes, atas, listas de presença | PRD 10 |
 | Gateway de pagamento | Subconta, boleto com QR Code Pix, Pix, cartão, reembolso, webhooks | PRD 10; RF-PG; RF-FI |
@@ -280,7 +280,7 @@ sequenceDiagram
 | `tempo-real` (mecanismo) | Gateway WebSocket | RNF-05 |
 | `rotinas` (mecanismo) | Agendador e jobs | RN 14 |
 
-`tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio: não têm regra de negócio própria. Os módulos de domínio são os outros 19 da tabela, incluindo `sync`, que vem da proposta dos diagramas (`02-diagramas-de-arquitetura.md`, 5.1) e não existia na lista anterior.
+`tempo-real` e `rotinas` são mecanismos de processo, não módulos de domínio: não têm regra de negócio própria. Os módulos de domínio são os outros 20 da tabela, incluindo `sync`, que vem da proposta dos diagramas (`02-diagramas-de-arquitetura.md`, 5.1) e não existia na lista anterior.
 
 Nomes dos módulos são proposta; a lista exata de prefixos RF por épico está em `04-historias-de-usuario.md`.
 
@@ -349,7 +349,7 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 
 ### 3.5 Rotinas agendadas (jobs)
 
-**Decidido:** jobs no backend (PRD 10); 21 rotinas (RN seção 14); cada execução registrada em log (RN 14).
+**Decidido:** jobs no backend (PRD 10); 22 rotinas (RN seção 14); cada execução registrada em log (RN 14).
 
 **Proposta de mecanismo.**
 
@@ -358,6 +358,7 @@ A ação sem permissão "nem aparece" no cliente (UF 15), mas a API valida sempr
 - **Um job por condomínio (fan-out):** um agendador leve enumera condomínios ativos e enfileira um job `rotina:condominio_id`. Assim cada execução abre o contexto de **um** condomínio (RLS vale também nos jobs), falha e repete isoladamente, e um condomínio grande não atrasa os outros.
 - **Idempotência:** cada rotina escreve só o que falta (ex.: "gerar cobrança do mês X para a unidade Y" tem chave única); rodar duas vezes não duplica.
 - **Fuso horário (lacuna, proposta):** as rotinas "à meia-noite" assumem fuso por condomínio (`America/Sao_Paulo` por padrão). Um disparo horário verifica quais condomínios entraram em "00:00 local" naquela hora. **Horário das rotinas diárias (decisão de Pedro em 09/11/2026, RN 14):** as sem horário próprio rodam na faixa de madrugada, de 00:00 a 06:00 no fuso do condomínio, em sequência; as que enviam lembrete ou aviso a pessoas (rotinas 8, 11 e 17) rodam às 09:00 locais, para não haver push de madrugada. As rotinas 10 e 20 têm duas etapas dentro da mesma rotina: o efeito de regra roda na madrugada e o aviso às 09:00. **Push gerado por rotina da madrugada** (ex.: rotinas 4, 7, 12, 15, 16 e as etapas de efeito de 10 e 20) é gerado na madrugada mas fica na fila e sai às 09:00 locais; push de evento disparado por pessoa não muda (ver 3.7). As rotinas 3, 6, 9 e 13 mantêm o horário já definido; a 1, a 2, a 5 e a 21 não são diárias e não mudam de frequência. A 21 roda a cada 5 min, mas o horário do push segue a regra de antecipação de RN-RE-14 (decisão de Pedro em 09/11/2026): horário calculado entre 00:00 e 08:59 locais sai às 21:00 da noite anterior, fora da fila das 09:00.
+- **Rotina 22, Conciliação diária com o gateway (decisão de Pedro em 15/11/2026, atende SEG-17):** diária, na faixa da madrugada (00:00 a 06:00 locais, ordem conforme ADR-012); compara cobranças e pagamentos locais com o gateway (Asaas) e registra divergências para tratamento. Pertence ao módulo `pagamentos`; não gera push.
 - **Registro:** tabela `execucao_rotina` (rotina, condomínio, início, fim, resultado, contagens). Falhas repetidas geram alerta no Sentry.
 
 | # | Rotina (RN 14) | Frequência | Fan-out | Origem |
@@ -546,7 +547,7 @@ O tenant é o **condomínio**. Isolamento obrigatório: RNF-11 ("dados de um con
 | Complexidade para equipe pequena | Alta | Média | Baixa, mas exige disciplina de testes |
 | Aderência aos docs | Contraria PRD 10 | Contraria PRD 10 | **É o que o PRD já indica** |
 
-**Recomendação (Proposta alinhada a PRD 10 e SEG-05): banco compartilhado, `condominio_id` + RLS.** Razões: (1) já é a decisão do PRD; (2) custo e operação cabem na equipe e na meta de custo por condomínio; (3) o modelo de vínculos (usuário em vários condomínios e unidades, administradora com vários condomínios) pede consultas que atravessam tenants de forma controlada; (4) migrações uma única vez. Mitigações do risco de vazamento: papel sem `BYPASSRLS`, `FORCE ROW LEVEL SECURITY`, chave estrangeira composta, testes de isolamento obrigatórios no CI (seção 4.11) e caminho de evolução para banco dedicado (seção 4.9).
+**Recomendação (Proposta alinhada a PRD 10 e SEG-05): banco compartilhado, `condominio_id` + RLS.** Razões: (1) já é a decisão do PRD; (2) custo e operação cabem na equipe e na meta de custo por condomínio; (3) o modelo de vínculos (usuário em vários condomínios e unidades, administradora com vários condomínios) pede consultas que atravessam tenants de forma controlada; (4) migrações uma única vez. Mitigações do risco de vazamento: papel sem `BYPASSRLS`, `FORCE ROW LEVEL SECURITY`, chave estrangeira composta, testes de isolamento obrigatórios no CI (seção 4.11) e caminho de evolução para banco dedicado (seção 4.10).
 
 ### 4.2 Modelo de dados para isolamento
 
@@ -836,6 +837,8 @@ Apps dependem de pacotes; pacotes nunca dependem dos apps. `shared-types` não i
 | Dados | Fictícios (semente) | Fictícios | Fictícios (gerador de carga com 5.000 unidades) | Reais |
 | Sentry | Desligado | Projeto dev | Projeto staging | Projeto produção |
 
+**Hospedagem do painel web (Proposta, 15/11/2026):** o plano Hobby da Vercel é restrito a uso pessoal não comercial; hospedagem, plano e custo do cliente web estão em [ADR-016](adr/016-hospedagem-do-painel-web.md) e não alteram o ADR-004 (aceito).
+
 ### 6.2 Dados e LGPD
 
 - **Nunca dados reais fora de produção** (regra desta arquitetura; coerente com SEG-01 e com a Lei Geral de Proteção de Dados). Não copiar dump de produção para dev nem staging, **nem mesmo "anonimizado"**: anonimização de base real é difícil de provar e arriscada (Proposta).
@@ -988,7 +991,7 @@ flowchart LR
 
 ### 9.1 Registro das decisões e propostas em ADR
 
-Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; o ADR-015 foi aceito em 14/11/2026 quanto à organização e às fontes dos contratos, com versões e gerador pendentes. Os demais ainda estão sem validação (estado Proposto).
+Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002, 004 e 005 foram aceitos, com ressalvas, pelo Pedro em 10/11/2026; o ADR-015 foi aceito em 14/11/2026 quanto à organização e às fontes dos contratos, com versões e gerador pendentes. Os demais, incluindo o ADR-016 (proposto em 15/11/2026), ainda estão sem validação (estado Proposto).
 
 | ADR sugerido | Decisão | Estado | Depende de |
 | --- | --- | --- | --- |
@@ -1000,13 +1003,14 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 | [ADR-006](adr/006-fila-agendador-eventos.md) | Fila e agendador (pg-boss x BullMQ/Redis) e distribuição de eventos | Proposta, a decidir | Carga esperada |
 | [ADR-007](adr/007-autorizacao-jwt-sem-papeis.md) | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | Proposta | Revisão de segurança |
 | [ADR-008](adr/008-orm-query-builder-migracoes.md) | ORM / query builder e migrações | Proposta (Kysely ou Drizzle) | Necessidade de controle de transação |
-| [ADR-009](adr/009-votacao-sigilo.md) | Votação: separação de registro e conteúdo, e limite de sigilo aceito | Proposta | Parecer jurídico (SEG-16) |
+| [ADR-009](adr/009-votacao-sigilo.md) | Votação: separação de registro e conteúdo, e limite de sigilo | Proposta | Parecer jurídico (SEG-16) |
 | [ADR-010](adr/010-anonimato-identidade-separada.md) | Anonimato: identidade em tabelas separadas, HMAC para unicidade, limites mínimos | Proposta | Parecer jurídico |
 | [ADR-011](adr/011-ambientes-branches-eas-ota.md) | Ambientes, branches e fluxo de promoção (`develop` → `staging` → `main`), EAS e OTA | Proposta | Equipe |
 | [ADR-012](adr/012-fuso-horario-por-condominio.md) | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
 | [ADR-014](adr/014-primeira-conclusao-sync.md) | Menor horário do celular definido em RN-CH-04; implementação, empate exato e relógio incorreto | Proposta técnica, critério de produto definido em 08/11/2026 | Engenharia e exceções de produto |
 | [ADR-015](adr/015-workspaces-e-contratos-compartilhados.md) | Workspace pnpm único, contratos OpenAPI/AsyncAPI canônicos e Turborepo futuro | Aceito nesse escopo por Pedro em 14/11/2026 | Gerador e versões pendentes de validação |
+| [ADR-016](adr/016-hospedagem-do-painel-web.md) | Hospedagem do painel web (Vercel em plano comercial como proposta; o Hobby não serve ao produto) | Proposta (15/11/2026) | Orçamento (RNF-18); condições do provedor; subprocessadores |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)
 
@@ -1055,7 +1059,7 @@ Nuvem e região do piloto (o MVP usa Supabase e Render gratuitos, ADR-004); CI/C
 | 3.3 API e módulos | RF-* por épico | RN-GE-01 a 03 | RNF-01 | SEG-02, SEG-05 | PRD 10; `04-historias-de-usuario.md` |
 | 3.3.1 Autenticação e autorização | RF-AC-01, RF-AC-02, RF-AC-03, RF-AD-01, RF-AD-13 | RN-CD-01, RN-CD-02, RN-CD-10 a 13, RN-CD-27, RN-CD-28 | — | SEG-03, SEG-04, SEG-17 | PRD 3; UF 3.1 a 3.3, 15 |
 | 3.4 Tempo real | RF-VI-01, RF-VI-03, RF-VI-04, RF-VI-10 | RN-VI-01, RN-VI-17, RN-EN-09 | RNF-05, RNF-10, RNF-17 | — | DS 14 |
-| 3.5 Rotinas | RF-RS-10, RF-VI-08, RF-EN-08, RF-AD-16, RF-AD-20, RF-FI-05, RF-FI-11, RF-FI-20, RF-FI-23 | RN seção 14 (21 rotinas) e as RN citadas na tabela | RNF-09 | SEG-10 | PRD 10 |
+| 3.5 Rotinas | RF-RS-10, RF-VI-08, RF-EN-08, RF-AD-16, RF-AD-20, RF-FI-05, RF-FI-11, RF-FI-20, RF-FI-23 | RN seção 14 (22 rotinas) e as RN citadas na tabela | RNF-09 | SEG-10 | PRD 10 |
 | 3.6 Pagamentos | RF-PG-01 a 04, RF-FI-07, RF-FI-09, RF-FI-10, RF-AD-08 | RN-PG-01 a 07, RN-CA-01 a 06, RN-RE-03, RN-RE-04, RN-FI-01, RN-FI-02, RN-FI-13, RN-FI-17, RN-FI-19, RN-FI-23 | RNF-01 | SEG-12, SEG-15, SEG-17 | UF 5.1, 5.2, 13.1, 13.2, 17 |
 | 3.7 Notificações | RF-NO-01, RF-EN-02, RF-EN-04, RF-FI-11 | RN-VI-17, RN-RC-10, RN-CH-18 | — | — | US-NO-01; DS 15 |
 | 3.8 Arquivos | RF-RE-08, RF-VO-09, RF-FI-10 | RN-CH-14, RN-FI-24, RN 8.4 | RNF-04 | SEG-01 | PRD 10; DS 16 |
@@ -1080,13 +1084,11 @@ Observação: as listas de RF por épico são resumidas aqui; a cobertura comple
 
 ## Atualização de autogestão e eleições — 13/11/2026
 
-Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13.
 
-**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
-**Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
-
-**Pendências antes do MVP:** comprovar primeiro responsável sem autoridade prévia; registrar ausência/vacância sem autodeclaração privilegiada; definir qual conselheiro atua; designar/revogar proprietário e tratar perda de vínculo ou retorno do titular durante eleição; validar mandatos e mudança de modalidade; revisar a matriz completa de cadastros, cobrança, conciliação, pagamentos e finanças da autogestão. A interface comum contrata condução eleitoral; as 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças com DTOs específicos referenciados, sem login de administradora. Caminhos, distribuição e DTOs exigem revisão antes de implementar; mandatos/substituições e concessão inicial permanecem lacunas bloqueadoras. Critérios: titular/sub fora condição e conselho sem condição devem ser recusados; proprietário temporário não alcança finanças; suporte é recusado no Essencial; não há resultado parcial. Ver [decisões e questões detalhadas](../01-produto/06-autogestao-e-conducao-eleitoral.md). Esta atualização não aceita ADRs ou contratos inteiros.
+**Impacto técnico neste documento (proposta a revisar):** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum; não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir a concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário, revalidando em cada leitura e ação; auditoria registra ações, nunca voto individual. As 82 operações propostas de `/v1/sindico/gestao/` cobrem cadastros/configurações, cobrança, conciliação e finanças, sem login de administradora. Modelo físico e campos dependem de validação; não há banco, migrações ou backend implementados. Esta atualização não aceita ADRs ou contratos inteiros.
 
 ## Relatórios gerenciais no MVP — 14/11/2026
 

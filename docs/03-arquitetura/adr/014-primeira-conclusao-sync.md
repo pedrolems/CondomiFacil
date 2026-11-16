@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026; revisão em 08/11/2026
+- **Atualizado em:** 12/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** validação técnica do desempate exato e tratamento de relógio incorreto; critério principal de produto definido
 - **Relacionado a:** [ADR-003](003-banco-local-e-sync-offline.md), [ADR-012](012-fuso-horario-por-condominio.md)

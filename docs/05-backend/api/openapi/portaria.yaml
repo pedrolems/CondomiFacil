@@ -3,7 +3,7 @@ info:
   title: CondomiFacil API - interface da portaria
   version: 0.1.0-proposta
   description: |-
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Rotas `/v1/portaria/*` do funcionário de portaria, coluna Portaria da matriz de permissões do PRD seção 3.
+    **Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Rotas `/v1/portaria/*` do funcionário de portaria, coluna Portaria da matriz de permissões do PRD seção 3.
 
     **Decidido (PRD e regras de negócio):** a portaria vê a lista do dia só dos blocos que atende (RF-VI-04); registra entrada e saída, também sem internet (RF-VI-06); registra encomendas e retiradas; vê as entregas esperadas do dia; consulta as reservas do dia, marca Em andamento e registra vistoria (Cumprida ou Não comparecimento, inclusive em reserva paga); abre chamados e responde comunicados individuais.
 
@@ -1065,7 +1065,7 @@ paths:
     get:
       operationId: portariaListarEncomendas
       summary: Lista as encomendas
-      description: Consulta de encomendas para registrar retirada. O filtro `estado=prazo_vencido` mostra as de prazo de guarda vencido, que a portaria também vê (matriz do PRD 3, RN-EN-04). Só a gestão marca a devolução; a portaria não.
+      description: Consulta de encomendas para registrar retirada. A portaria não vê a lista de encomendas com prazo de guarda vencido, só síndico e subsíndico (RF-EN-05, RN-EN-04; decisão de 15/11/2026), e por isso o filtro `estado` aqui só aceita `recebida`. Só a gestão marca a devolução; a portaria não.
       tags:
       - encomendas
       security:
@@ -1084,10 +1084,11 @@ paths:
         schema:
           type: array
           items:
-            $ref: ./componentes/enums.yaml#/components/schemas/EstadoEncomenda
+            type: string
+            enum:
+            - recebida
         example:
         - recebida
-        - prazo_vencido
       - name: unidade_id
         in: query
         required: false

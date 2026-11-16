@@ -1,8 +1,8 @@
 # Infra e DevOps — CondomiFacil
 
-**Data:** 14/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
 
-**Estado:** documentação de planejamento, antes do código. A Vercel para o web é decisão de Pedro neste pedido. Para os demais componentes, este documento escolhe manter **Render para API, WebSocket e processamento de jobs, e Supabase para PostgreSQL e arquivos**, conforme o ADR-004, aceito com ressalvas apenas para construir o MVP em dev e staging. A hospedagem do piloto com dados reais continua sujeita à revisão obrigatória desse ADR. As políticas operacionais abaixo detalham uma proposta; não declaram infraestrutura provisionada nem aceitam os ADRs ainda propostos.
+**Estado:** documentação de planejamento, antes do código. A Vercel para o web é decisão de Pedro neste pedido; a decisão formal de hospedagem do painel web está no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto, ainda não aceito). Para os demais componentes, este documento escolhe manter **Render para API, WebSocket e processamento de jobs, e Supabase para PostgreSQL e arquivos**, conforme o ADR-004, aceito com ressalvas apenas para construir o MVP em dev e staging. A hospedagem do piloto com dados reais continua sujeita à revisão obrigatória desse ADR. As políticas operacionais abaixo detalham uma proposta; não declaram infraestrutura provisionada nem aceitam os ADRs ainda propostos.
 
 ## Índice
 
@@ -42,7 +42,7 @@ O grafo de conhecimento de 12/11/2026 foi consultado para localizar relações e
 
 | Componente | Hospedagem planejada | Motivo e limites |
 | --- | --- | --- |
-| Web, incluindo painel da administradora | **Vercel** | Escolha de Pedro; entrega do frontend e separação das configurações por ambiente. Mantém React Native Web/Expo do PRD; não pressupõe Next.js |
+| Web, incluindo painel da administradora | **Vercel** | Escolha de Pedro, a formalizar no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto); entrega do frontend e separação das configurações por ambiente. Mantém React Native Web/Expo do PRD; não pressupõe Next.js |
 | API HTTP NestJS e Socket.IO da portaria | **Render, serviço web** | Mantém a decisão existente e um processo de longa duração para HTTP e WebSocket |
 | Worker e rotinas | **Render** | Reutiliza o mesmo código de domínio e integrações da API. No gratuito, executa junto ao serviço web; serviço dedicado pago é candidato na revisão do piloto |
 | Banco | **Supabase PostgreSQL, São Paulo** | PostgreSQL gerenciado com RLS e menor esforço operacional. Só o backend acessa o banco |
@@ -76,7 +76,7 @@ O Render não lista região brasileira; as [regiões publicadas](https://render.
 
 O [Supabase gratuito pode pausar projetos de baixa atividade em sete dias](https://supabase.com/docs/guides/platform/free-project-pausing). Seus limites devem ser conferidos antes de criar dois projetos independentes para dev e staging; não compartilhar o mesmo banco entre esses ambientes para contornar quota. Backup automático de plano pago não deve ser presumido no gratuito (seção 7).
 
-**Vercel não significa custo zero para este SaaS.** O Hobby é restrito a uso pessoal não comercial segundo as [diretrizes de uso](https://vercel.com/docs/limits/fair-use-guidelines). Planejar um plano compatível com uso comercial, como Pro, e validar condições/orçamento antes de provisionar, inclusive para desenvolvimento do produto. A escolha de Vercel não revoga silenciosamente a premissa de custo zero do ADR-004: esta é uma diferença a reconciliar na revisão. Não há contratação autorizada por este documento.
+**Vercel não significa custo zero para este SaaS.** O Hobby é restrito a uso pessoal não comercial segundo as [diretrizes de uso](https://vercel.com/docs/limits/fair-use-guidelines). Planejar um plano compatível com uso comercial, como Pro, e validar condições/orçamento antes de provisionar, inclusive para desenvolvimento do produto. O [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto) é o lugar da decisão e das alternativas. A escolha de Vercel não revoga silenciosamente a premissa de custo zero do ADR-004: esta é uma diferença a reconciliar na revisão. Não há contratação autorizada por este documento.
 
 Para o piloto, manter Render e Supabase em planos adequados é o primeiro candidato por continuidade operacional, mas **não é aprovação de produção**. São bloqueadores: serviço sem suspensão, processamento contínuo, recuperação demonstrada, desempenho, custo e análise de residência de dados. Se os resultados não atenderem, a revisão do ADR-004 deve comparar alternativas com região brasileira antes de receber dados reais.
 

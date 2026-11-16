@@ -4,7 +4,7 @@ info:
   version: 0.1.0-proposta
   summary: Endpoints que provedores externos chamam (pagamento e e-mail). Sem usuário, sem cabeçalhos de contexto.
   description: |
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Decisões do Pedro de 10/11/2026 que este arquivo
+    **Proposta de 10/11/2026, atualizada em 12/11/2026**, não aceita pelo Pedro. Decisões do Pedro de 10/11/2026 que este arquivo
     segue: gateway **Asaas** (ADR-002) e e-mail **Resend** (ADR-005). Tudo o mais é Proposta.
 
     Estes endpoints ficam **fora do prefixo `/v1`** e não passam pelos guards de usuário: não há

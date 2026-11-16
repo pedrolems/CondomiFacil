@@ -2,6 +2,7 @@
 
 **Autor do produto:** Pedro Lemos  
 **Data:** 14/11/2026  
+**Atualizado em:** 15/11/2026  
 **Estado:** proposta de documentação para revisão; painel ainda não implementado.
 
 ## 1. Objetivo e decisões de escopo
@@ -37,7 +38,7 @@ O painel começa pela seleção de um condomínio autorizado. O cabeçalho mant�
 
 Na faixa expandida, listas usam tabelas com busca, filtros, ordenação e paginação; formulários seguem o limite de largura do Design System. Em telas menores, a navegação lateral pode ser recolhida e as tabelas adaptadas, mantendo as mesmas permissões. O painel administrativo exige internet; não herda a fila offline da portaria ou limpeza.
 
-Componentes compartilhados incluem tabela, filtros, paginação, indicador de estado, resumo financeiro, gráfico com tabela equivalente, seletor de formato e acompanhamento da exportação. Tokens, temas, escrita e acessibilidade seguem o Design System; estado não é comunicado somente por cor.
+Componentes compartilhados incluem tabela, filtros, paginação, indicador de estado, resumo financeiro, gráfico com tabela equivalente, seletor de formato e acompanhamento da exportação. Tokens, temas, escrita e acessibilidade seguem o Design System; estado não é comunicado somente por cor. A hospedagem do painel web é objeto do [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (Proposto; Vercel como proposta), ainda não aceito.
 
 ### 2.1 Rotas e páginas propostas
 
@@ -85,7 +86,7 @@ Na tabela, `/:base` abrevia `/condominios/:condominioId`; não é um segmento li
 | Perfil | Escopo no painel | Limites |
 | --- | --- | --- |
 | Administradora | Condomínios aos quais está vinculada; cadastros, regras, cobrança, finanças, solicitações e reclamações conforme PRD | Consultar reclamação não significa poder julgar todos os casos. Não ganha acesso à rotina de visitantes/encomendas ou voto individual |
-| Suporte da plataforma | Atuação administrativa autorizada no Gestão + Suporte | Nunca consulta reclamações nem scores; relatórios não podem contornar essa vedação. Ausência de administradora no Essencial não concede acesso ao suporte |
+| Suporte da plataforma | Atua somente no plano Gestão + Suporte, inclusive na condução eleitoral | Nunca consulta reclamações nem scores; relatórios não podem contornar essa vedação. Ausência de administradora no Essencial não concede acesso ao suporte |
 | Síndico morador ou profissional | Painel web permitido por RF-AC-06, com funções próprias de gestão | Com administradora/Gestão + Suporte, finanças em leitura e comentários; sem editar, fechar ou estornar. Dados individuais de cobrança seguem SEG-17 |
 | Subsíndico | Funções próprias e ampliação durante substituição formal | Fora da substituição, não herda todo o painel do síndico. Substituição não autoriza julgar contra si nem ativar/desativar a própria substituição |
 | Conselho fiscal | Projeções já permitidas: finanças em leitura, comentários/exportação e casos atribuídos de julgamento | Não recebe edição financeira, cobrança individual ou acesso geral ao painel da administradora. Não se cria novo portal próprio por esta proposta |

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CondomiFacil API - interface do conselho fiscal
   version: 0.1.0-proposta
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do
     PRD (caminhos, campos, códigos de erro, filtros) é Proposta; o guia `../01-guia-da-api.md` é a fonte das convenções.
 
 
@@ -119,7 +119,7 @@ paths:
                     unidade_identificacao: Bloco A, 201
                   voce_e_o_julgador: true
                   semaforo:
-                    cor: amarelo
+                    situacao: prazo_se_esgotando
                     texto: Prazo se esgotando
                     vence_em: '2026-11-17'
                 paginacao:
@@ -196,7 +196,7 @@ paths:
                   unidade_identificacao: Bloco A, 201
                 voce_e_o_julgador: true
                 semaforo:
-                  cor: amarelo
+                  situacao: prazo_se_esgotando
                   texto: Prazo se esgotando
                   vence_em: '2026-11-17'
                 descricao: Música alta depois da meia-noite.
@@ -283,7 +283,7 @@ paths:
                   unidade_identificacao: Bloco A, 201
                 voce_e_o_julgador: true
                 semaforo:
-                  cor: amarelo
+                  situacao: prazo_se_esgotando
                   texto: Prazo se esgotando
                   vence_em: '2026-11-17'
                 descricao: Música alta depois da meia-noite.
@@ -351,7 +351,7 @@ paths:
             schema:
               $ref: '#/components/schemas/DecidirReclamacaoConselhoFiscal'
             example:
-              resultado: negada
+              resultado: negar
               motivo_negativa: nao_procede_boa_fe
       responses:
         '200':
@@ -1034,7 +1034,7 @@ paths:
               example:
                 id: 00000334-1111-4222-8333-000000000334
                 formato: csv
-                estado: concluida
+                estado: pronta
                 solicitada_em: '2026-11-10T11:30:00-03:00'
                 concluida_em: '2026-11-10T11:30:08-03:00'
                 nome_arquivo: financeiro-2026-10.csv
@@ -1111,15 +1111,15 @@ components:
       name: semaforo
       in: query
       required: false
-      description: Uma ou mais cores do semáforo, separadas por vírgula.
+      description: Uma ou mais situações do semáforo do prazo (`situacao`), separadas por vírgula.
       schema:
         type: array
         items:
           type: string
           enum:
-          - verde
-          - amarelo
-          - vermelho
+          - no_prazo
+          - prazo_se_esgotando
+          - prazo_esgotado
       style: form
       explode: false
     ALulgarFiltroConselhoFiscal:
@@ -1419,19 +1419,19 @@ components:
       description: Semáforo do prazo de decisão (RN-RC-17 a RN-RC-19). Só no DTO do julgador e só em Aberta e Em
         conversa com o alvo; é informação, não bloqueia a decisão.
       required:
-      - cor
+      - situacao
       - texto
       - vence_em
       properties:
-        cor:
+        situacao:
           type: string
           enum:
-          - verde
-          - amarelo
-          - vermelho
+          - no_prazo
+          - prazo_se_esgotando
+          - prazo_esgotado
         texto:
           type: string
-          description: Texto sempre junto da cor, por exemplo "No prazo", "Prazo se esgotando" ou "Prazo esgotado"
+          description: Texto sempre junto da situação, por exemplo "No prazo", "Prazo se esgotando" ou "Prazo esgotado"
             (RN-RC-17).
         vence_em:
           $ref: ./componentes/comum.yaml#/components/schemas/Data
@@ -1623,8 +1623,8 @@ components:
         resultado:
           type: string
           enum:
-          - validada
-          - negada
+          - validar
+          - negar
         gravidade_final:
           type:
           - string
@@ -1668,10 +1668,11 @@ components:
       - multas_por_infracao
       - aluguel_de_areas
       - outras_receitas
+      - fundo_reserva
       description: 'Categoria fixa de RN-FI-32 (códigos sem acento são Proposta de nomenclatura). Despesas: energia,
         agua_e_esgoto, gas, servicos_terceirizados, folha_de_funcionarios, manutencao_e_obras, seguros, administracao,
         outros. Receitas: taxa_condominial, cobrancas_extras, multas_e_juros_por_atraso, multas_por_infracao, aluguel_de_areas,
-        outras_receitas.'
+        outras_receitas, fundo_reserva (receita avulsa, só com o módulo de cobrança desligado, RN-FI-24).'
     ValorPorCategoriaFinancasConselhoFiscal:
       type: object
       required:
@@ -2008,8 +2009,8 @@ components:
       properties:
         estado:
           type: string
-          enum: [solicitada, em_processamento, concluida, falhou]
-          description: Códigos técnicos propostos de acompanhamento assíncrono; arquivo somente quando concluída.
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoExportacao
+          description: Acompanhamento assíncrono (RN-RL-06); arquivo somente quando `pronta`.
         id:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         formato:

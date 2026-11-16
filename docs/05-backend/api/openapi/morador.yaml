@@ -3,7 +3,7 @@ info:
   title: CondomiFacil API - interface do morador
   version: 0.1.0-proposta
   summary: Rotas /v1/morador/* do perfil Morador.
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do PRD é Proposta.
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do PRD é Proposta.
 
 
     Interface do perfil Morador (proprietário que mora, inquilino ou dependente). Síndico morador, subsíndico e membros do conselho fiscal usam estas mesmas rotas nas funções de morador (PRD 3). A pasta organiza, não protege: a autorização é validada nos guards e na RLS (`01-backend.md` 3.4). Perfil Manutenção não tem rotas.
@@ -215,7 +215,7 @@ paths:
                   regras:
                     antecedencia_minima_horas: 24
                     antecedencia_maxima_dias: 60
-                    limite_reservas_por_mes: 2
+                    reserva.limite_mensal_por_unidade: 2
                     prazo_reembolso_horas: 12
                     prazo_pagamento_horas: 24
                 paginacao:
@@ -4674,7 +4674,7 @@ paths:
                     $ref: ./componentes/comum.yaml#/components/schemas/DataHora
               example:
                 votacao_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
-                unidade_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                unidade_id: d3c9f2b5-6e4a-4b7c-9f8d-2a1b0c3e5d74
                 canal: online
                 qualidade_votante: proprietario
                 registrado_em: '2026-11-10T20:15:00-03:00'
@@ -4683,7 +4683,21 @@ paths:
         '401':
           $ref: ./componentes/comum.yaml#/components/responses/Erro401
         '403':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+          description: Sem vínculo, sem permissão para o papel efetivo ou sem acesso ao dado. Inquilino ou outro perfil que não vota pela unidade recebe `403` (RN-VO-01; mesmo código e mesma mensagem da nomeação de procurador).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                inquilino:
+                  summary: Quem vota pela unidade é o proprietário (RN-VO-01)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
@@ -4729,12 +4743,6 @@ paths:
                   value:
                     codigo: VOTO_INQUILINO_PAUTA_COM_DESPESA_EXTRAORDINARIA
                     mensagem: Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                outro:
-                  summary: Quem não vota pela unidade (RN-VO-01)
-                  value:
-                    codigo: VOTO_NAO_VOTA_PELA_UNIDADE
-                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 encerrada:
                   summary: Votação encerrada (RN-VO-10)
@@ -5924,7 +5932,7 @@ components:
               type: integer
             antecedencia_maxima_dias:
               type: integer
-            limite_reservas_por_mes:
+            reserva.limite_mensal_por_unidade:
               type: integer
             prazo_reembolso_horas:
               type: integer

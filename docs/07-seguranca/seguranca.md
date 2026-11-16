@@ -1,6 +1,6 @@
 # Segurança — CondomiFacil
 
-**Data:** 14/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
 
 O projeto está na fase de Design: ainda não há backend, aplicativo, banco ou controles de produção implementados. Este documento consolida os requisitos existentes e propõe sua aplicação na autenticação, autorização, isolamento entre condomínios, criptografia, gestão de segredos, limitação de requisições e resposta a incidentes. Não comprova conformidade, não aceita ADRs nem altera permissões de produto.
 
@@ -54,7 +54,7 @@ Ninguém se cadastra sozinho. RN-CD-01 prevê pré-cadastro pela administradora,
 | Falhas de senha | Pausa de login por 15 minutos após 5 senhas erradas seguidas |
 | Aceites | Termos, política e regimento com versão e data por usuário; condomínio quando aplicável |
 
-Proposta de implementação: consumir o código uma única vez, validar finalidade e expiração no servidor, não armazená-lo em texto aberto e não registrá-lo em logs. O mecanismo de proteção do código e seus parâmetros precisam de revisão própria; não reutilizar hash de identificador público como proteção. Argon2id é a direção proposta pela arquitetura/ADR-007; algoritmo final e parâmetros de custo devem ser validados, sem transformar a alternativa permitida pelo PRD em decisão já aceita.
+Proposta de implementação: consumir o código uma única vez, validar finalidade e expiração no servidor, não armazená-lo em texto aberto e não registrá-lo em logs. O mecanismo de proteção do código e seus parâmetros precisam de revisão própria; não reutilizar hash de identificador público como proteção. Argon2id é a direção proposta pela arquitetura/ADR-007 (Proposto); algoritmo final e parâmetros de custo devem ser validados, sem transformar a alternativa permitida pelo PRD em decisão já aceita.
 
 ### 3.2 Sessão proposta no ADR-007 e no contrato
 
@@ -63,7 +63,7 @@ Proposta de implementação: consumir o código uma única vez, validar finalida
 | Token de acesso | JWT assinado, com validade de 15 minutos, `sub` e `sid`; sem funções nem condomínios como fonte de permissão |
 | Validação | Verificar assinatura, validade e sessão; algoritmos admitidos, emissor e destinatário esperados precisam ser fechados na revisão técnica |
 | Renovação | Refresh token opaco, aleatório, persistido como hash e rotativo; replay indevido revoga a sessão |
-| Rede instável | A direção aprovada admite tolerância controlada ao retry legítimo; janela e mecanismo permanecem pendentes, sem reutilização irrestrita |
+| Rede instável | A direção proposta no ADR-007 (ainda Proposto) admite tolerância controlada ao retry legítimo; janela e mecanismo permanecem pendentes, sem reutilização irrestrita |
 | Revogação | Logout, troca de senha e exclusão da conta revogam sessões conforme o desenho de sessão |
 | Mobile | Tokens no armazenamento seguro previsto, `expo-secure-store`; nunca em cache de consulta, logs ou carga da fila offline |
 | Web | Refresh em cookie `httpOnly`, `Secure`, `SameSite=Lax`; token de acesso apenas em memória; proteção CSRF no fluxo que usa cookie |
@@ -89,7 +89,7 @@ A sequência proposta segue o guia da API: autenticar sessão; validar condomín
 | Admin da plataforma | Operações de plataforma documentadas; não é superusuário operacional dos condomínios. Quarentena do gateway é exceção delimitada |
 | Proprietário não residente | Projeções próprias da unidade; sem rotina nem score do inquilino |
 | Autogestão | Não atribuir perfil Administradora à gestão local; distribuição fina de cadastros, cobrança e finanças continua pendente no registro 06 |
-| Condução eleitoral | RN-VO-13: síndico; ausente/vago, sub; sem ambos, conselho; sem todos, proprietário designado, limitado àquela eleição. Administradora/suporte legitimamente autorizados também podem conduzir |
+| Condução eleitoral | RN-VO-13: síndico; ausente/vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado (temporário, restrito à eleição); administradora vinculada também pode. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano |
 
 Revalidar concessões temporárias e condições eleitorais em cada leitura/ação; nenhuma pessoa se autoconcede acesso. A condução não dá gestão geral, reclamações ou finanças. Resultados só após encerramento. Designação, representação do conselho, ausência/vacância e revogação permanecem dependências antes do código.
 
@@ -284,7 +284,7 @@ Estes cenários orientam a futura estratégia de qualidade; nenhum teste de apli
 | Cenário | Resultado esperado |
 | --- | --- |
 | Código expirado, esgotado, substituído ou já usado; e-mail inexistente | Recusa coerente com os limites e resposta sem enumeração |
-| Cinco erros de senha, renovação concorrente e replay indevido | Pausa prevista; retry legítimo tratado somente pela janela aprovada; sessão comprometida revogada |
+| Cinco erros de senha, renovação concorrente e replay indevido | Pausa prevista; retry legítimo tratado somente pela janela proposta no ADR-007 (Proposto, a validar); sessão comprometida revogada |
 | Usuário altera condomínio/unidade/ID por URL, cabeçalho ou corpo | Sem leitura, escrita ou confirmação de recurso de outro escopo |
 | Conexão de pool passa do tenant A para B; contexto ausente | Nenhum resíduo de A; ausência de contexto falha fechada |
 | Criação/atualização tenta referenciar unidade de outro tenant | Recusa por aplicação e integridade/política do banco |

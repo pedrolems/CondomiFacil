@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 10/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** custo (RNF-18) e revisão da nuvem ([ADR-004](004-nuvem-regiao-residencia-dados.md), Aceito com ressalvas em 10/11/2026 só para construir o MVP). **RPO e RTO não são atendidos no plano gratuito do Supabase (sem PITR, conforme consulta de 10/11/2026) e dependem da revisão do ADR-004 antes do piloto**
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-004](004-nuvem-regiao-residencia-dados.md)

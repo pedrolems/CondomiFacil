@@ -1,6 +1,6 @@
 # Monitoramento e runbook — CondomiFacil
 
-**Data:** 14/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
 
 **Estado:** proposta operacional para implementação e validação. O projeto está em Design, sem API, aplicativo, banco, monitores ou alertas implantados. Este documento detalha a observabilidade e a resposta a falhas com base nas fontes existentes; não aprova ADRs, contrata ferramentas, define plantão nem altera regras de negócio.
 
@@ -49,7 +49,7 @@ O grafo de conhecimento de 12/11/2026 foi consultado para localizar relações e
 | RNF-13 | Backup diário, sete dias de retenção, restauração testada mensalmente | Evidência de cópia íntegra e recuperável, retenção e último exercício aprovado |
 | RNF-18 | Alertas em 80% e 100% do orçamento nos serviços pagos | Consumo por serviço/ambiente e consolidado; orçamento aprovado antes de ativar |
 | SEG-17 | Conciliação diária entre cobranças e pagamentos | Última execução por condomínio, cobertura, pendências e divergências |
-| RN seção 14 | Registrar execução das 21 rotinas e respeitar frequência/horário | Comparar janela esperada com execução e efeito; não apenas contar processos vivos |
+| RN seção 14 | Registrar execução das 22 rotinas (inclui a rotina 22, Conciliação diária com o gateway, na madrugada, ordem do ADR-012; atende SEG-17) e respeitar frequência/horário | Comparar janela esperada com execução e efeito; não apenas contar processos vivos |
 
 As janelas de avaliação de latência, a cadência da sonda, a definição operacional de indisponibilidade e as exclusões do cálculo mensal ainda precisam ser validadas. Registrar interrupções e manutenção separadamente; não retirar períodos do denominador para declarar atendimento da meta. Ausência de tráfego não comprova sucesso.
 
@@ -57,7 +57,7 @@ As janelas de avaliação de latência, a cadência da sonda, a definição oper
 
 - **Dev e staging gratuitos:** somente dados fictícios e sandbox. O Render pode suspender o serviço; API, WebSocket e worker compartilhados param juntos. Um processo de API saudável não prova que jobs estão sendo consumidos. Monitoramento não deve ser usado como artifício para contornar a suspensão do plano.
 - **Banco e arquivos:** Supabase apenas como PostgreSQL e Storage, acessados pelo backend conforme o desenho existente. Pausa, quotas e ausência de garantias de recuperação do gratuito impedem apresentá-lo como produção validada.
-- **Web:** Vercel conforme Infra e DevOps. A web pode abrir normalmente durante queda da API; verificar ambos os caminhos. A escolha não pressupõe Next.js nem funcionalidades adicionais.
+- **Web:** Vercel conforme Infra e DevOps (hospedagem do painel web: [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), Proposto). A web pode abrir normalmente durante queda da API; verificar ambos os caminhos. A escolha não pressupõe Next.js nem funcionalidades adicionais.
 - **Notificações de teste:** dev/staging usam caixa de saída falsa para e-mail; push só em aparelhos de teste autorizados. Silêncio do Resend nesse ambiente não indica falha de envio real.
 - **Piloto:** continuidade, capacidade, monitoramento externo, responsáveis e recuperação devem ser demonstrados na revisão do ADR-004. RPO/RTO do ADR-013 seguem propostos; não apresentar 15 minutos/quatro horas como compromisso aprovado.
 
@@ -272,7 +272,7 @@ Identificar período, contextos afetados e possíveis cópias; corrigir causa e 
 | Cadência / evento | Verificação e evidência |
 | --- | --- |
 | Durante atendimento e após publicação | Disponibilidade/prontidão, versão, erros, latência, fluxo de portaria e consumo do worker; acompanhar aumento de falhas e duplicidades |
-| Revisão operacional diária proposta | Janela das 21 rotinas, conciliação diária, filas elegíveis, notificações, cópia diária e capacidade; registrar exceções e responsável |
+| Revisão operacional diária proposta | Janela das 22 rotinas, conciliação diária (rotina 22; divergências registradas para tratamento), filas elegíveis, notificações, cópia diária e capacidade; registrar exceções e responsável |
 | Mensal | Teste de restauração exigido por RNF-13; relatório de disponibilidade RNF-09; revisão de custos/orçamento e lacunas de monitoramento |
 | A cada versão | Ensaios offline RNF-16, isolamento e fluxos alterados; verificar filtros de telemetria e instrumentação por release |
 | Antes do lançamento e a cada versão principal | Carga RNF-17 com 5.000 unidades/dez portarias, mantendo RNF-01 e RNF-05, em ambiente adequado |

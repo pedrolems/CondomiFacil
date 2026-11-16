@@ -1,6 +1,6 @@
 # Regras de Negócio — CondomiFacil
 
-Nov 4, 2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -86,7 +86,7 @@ Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pelo responsável
 | RN-CD-10 | Síndico e subsíndico devem ser de unidades diferentes |
 | RN-CD-11 | O síndico morador mantém todas as funções de morador; o síndico profissional não tem nenhuma |
 | RN-CD-12 | A substituição do síndico pelo subsíndico é ativada pela administradora ou pelo síndico, e pode ser desativada por eles a qualquer momento; cada ativação e desativação é registrada |
-| RN-CD-13 | Se o mandato do síndico terminar antes do prazo (renúncia ou destituição), o subsíndico assume até a nova eleição. Sem subsíndico, a condução eleitoral segue RN-VO-13, sem exigir administradora ou suporte pago; até a posse, as funções exclusivas do síndico ficam sem titular, e reclamações seguem a tabela 5.1 como "sem subsíndico". Conduzir a eleição não concede gestão administrativa geral |
+| RN-CD-13 | Se o mandato do síndico terminar antes do prazo (renúncia ou destituição), o subsíndico assume até a nova eleição. Sem subsíndico, a condução eleitoral segue RN-VO-13, sem exigir administradora ou suporte pago; até a posse, as funções exclusivas do síndico ficam sem titular, e reclamações seguem a tabela 5.1 como "sem subsíndico". Conduzir a eleição não concede gestão administrativa geral; o suporte da plataforma só conduz no Gestão + Suporte (RN-VO-13) |
 | RN-CD-14 | A composição prevista exige conselho fiscal com um ou mais membros quando não há subsíndico (RN-VO-09). A ausência factual de ambos não bloqueia a eleição de RN-VO-13; a compatibilização dessa exigência com o cenário de órgãos opcionais pedido em 13/11/2026 está pendente de revisão, sem presumir conselho existente |
 | RN-CD-15 | A lista de pessoas com entrada bloqueada é mantida pela administradora, com nome, documento e motivo |
 | RN-CD-16 | O suporte da plataforma só acessa condomínios do plano Gestão + Suporte, e cada acesso é registrado |
@@ -374,7 +374,7 @@ A portaria registra encomendas e abre chamados, mas não os atende; chamados de 
 | RN-EN-01 | A portaria registra a encomenda com unidade, remetente e foto opcional da etiqueta; o morador recebe push na hora |
 | RN-EN-02 | Qualquer morador da unidade pode retirar; a portaria registra quem retirou |
 | RN-EN-03 | Lembretes ao morador 3 e 7 dias após o recebimento |
-| RN-EN-04 | Prazo final de guarda: 30 dias (configurável); vencido o prazo, o síndico é avisado. Síndico e subsíndico veem a lista de encomendas com prazo vencido; só o síndico (ou o subsíndico em substituição) marca a devolução |
+| RN-EN-04 | Prazo final de guarda: 30 dias (configurável); vencido o prazo, o síndico é avisado. Síndico e subsíndico veem a lista de encomendas com prazo vencido; só o síndico (ou o subsíndico em substituição) marca a devolução. A portaria não vê essa lista |
 | RN-EN-05 | Entregas de comida por aplicativo não são registradas |
 | RN-EN-06 | A portaria pode corrigir a unidade de uma encomenda ainda não retirada; a unidade registrada por engano recebe aviso da correção |
 
@@ -480,7 +480,7 @@ Só o síndico fala em nome do condomínio, e cada unidade tem um voto, dado pel
 | RN-VO-06 | Síndico profissional não passa por eleição no app nem segue regra de reeleição; a administradora registra contratação, recontratação ou desligamento. Na autogestão, o responsável pela validação desse registro aguarda AG-07 do registro 06; o próprio interessado não se autovalida |
 | RN-VO-07 | Empate na eleição gera segundo turno entre os empatados em até 7 dias; segundo turno empatado ou ausência de candidato elegível deixa resultado inconclusivo, encaminhado ao condutor autorizado de RN-VO-13, sem vencedor automático nem dependência de administradora. Empate em pauta segue RN-VO-17 |
 | RN-VO-09 | A composição prevista exige conselho fiscal quando não há subsíndico (RN-CD-14); na ausência factual, a pendência é apresentada à gestão local ou ao condutor eleitoral, sem impedir a eleição por proprietário designado. Revisar essa obrigatoriedade e o tratamento das reclamações sem julgador no registro 06 |
-| RN-VO-13 | Candidaturas são feitas no app dentro do prazo da convocação; o sistema bloqueia inelegíveis com motivo. Em qualquer plano, abre e encerra a eleição o síndico em exercício; se ausente ou cargo vago, o subsíndico; sem ambos, o conselho fiscal; sem todos, um proprietário designado pelo condomínio, com permissão temporária restrita à eleição. Administradora e suporte autorizado no Gestão + Suporte também podem conduzir quando presentes. Ações são auditadas, votos continuam secretos e resultado só aparece após encerramento. A designação, comprovação de ausência, representação do conselho e validade/revogação da permissão precisam de definição antes do código; nenhuma pessoa se autoconcede acesso |
+| RN-VO-13 | Candidaturas são feitas no app dentro do prazo da convocação; o sistema bloqueia inelegíveis com motivo. Em qualquer plano, abre e encerra a eleição o síndico em exercício; se ausente ou cargo vago, o subsíndico; sem ambos, o conselho fiscal; sem todos, um proprietário designado pelo condomínio, com permissão temporária restrita à eleição. Administradora vinculada também pode conduzir quando presente; suporte autorizado também pode, somente no Gestão + Suporte. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. Ações são auditadas, votos continuam secretos e resultado só aparece após encerramento. A designação, comprovação de ausência, representação do conselho e validade/revogação da permissão precisam de definição antes do código; nenhuma pessoa se autoconcede acesso |
 | RN-VO-14 | Se o subsíndico eleito for da mesma unidade do síndico eleito, assume o próximo mais votado para subsíndico |
 | RN-VO-15 | A administradora registra início e fim de cada mandato; no Essencial com autogestão, o registro e sua validação independente seguem procedimento ainda a definir em AG-07 do registro 06, sem autovalidação nem concessão implícita ao condutor eleitoral |
 | RN-VO-19 | O inquilino pode se candidatar a síndico ou subsíndico, salvo se a convenção proibir (Código Civil, art. 1.347) |
@@ -567,7 +567,7 @@ O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho
 | RN-FI-29 | Com administradora, ela lança, fecha e estorna; no Gestão + Suporte, atua o suporte autorizado. No Essencial com autogestão, o desenho proposto em RN-PL-08 atribui essas operações ao síndico ou subsíndico em substituição, preservando auditoria, estorno e segregação dos dados individuais. Conselho fiscal permanece em leitura, comentários e exportação, sem editar valores. Moradores, proprietários não residentes e funcionários não veem as finanças. A distribuição fina de poderes locais aguarda revisão do registro 06 |
 | RN-FI-30 | Telas e exportações mostram receitas de cobrança agregadas por categoria e quantidade de cobranças pagas, sem unidade nem responsável financeiro (SEG-17). O CSV de cobranças por unidade (RF-FI-15) continua só da administradora. A exportação em CSV e PDF respeita o filtro aplicado e não inclui dados pessoais além do nome do fornecedor. A exportação é assíncrona, tem acompanhamento e arquivo privado com autorização revalidada no acesso; retenção e validade do link continuam por definir. |
 | RN-FI-31 | Síndico, subsíndico em substituição e conselho fiscal podem comentar um lançamento ou o mês, inclusive depois do fechamento. O comentário mostra autor e data, não se edita, avisa a administradora e não altera valores nem equivale à aprovação das contas |
-| RN-FI-32 | Categorias fixas de despesa: Energia, Água e esgoto, Gás, Serviços terceirizados (com o serviço: portaria, limpeza, elevador, jardinagem ou outro), Folha de funcionários, Manutenção e obras, Seguros, Administração (honorários e tarifas) e Outros. Receitas: Taxa condominial, Cobranças extras (fundo de reserva, obras e rateios), Multas e juros por atraso, Multas por infração, Aluguel de áreas (reservas pagas) e Outras receitas |
+| RN-FI-32 | Categorias fixas de despesa: Energia, Água e esgoto, Gás, Serviços terceirizados (com o serviço: portaria, limpeza, elevador, jardinagem ou outro), Folha de funcionários, Manutenção e obras, Seguros, Administração (honorários e tarifas) e Outros. Receitas: Taxa condominial, Fundo de reserva (receita avulsa, código técnico `fundo_reserva`, só com o módulo de cobrança desligado, conforme RN-FI-24), Cobranças extras (fundo de reserva, obras e rateios, vindas das cobranças pagas), Multas e juros por atraso, Multas por infração, Aluguel de áreas (reservas pagas) e Outras receitas |
 
 ### 12.4 Estados do lançamento e origem das receitas
 
@@ -584,6 +584,7 @@ O controle é **gerencial**: mostra à administradora, ao síndico e ao conselho
 | Multas e juros por atraso | Multa e juros de cobranças pagas com atraso (RN-FI-06) | Automático |
 | Multas por infração | Cobranças de multa por infração pagas (RN-FI-14) | Automático |
 | Aluguel de áreas | Reservas pagas (RN 7.3) | Automático |
+| Fundo de reserva | Receita avulsa, só com o módulo de cobrança desligado (RN-FI-24; `fundo_reserva`) | Avulso, pela administradora |
 | Outras receitas | Antena, rendimento de aplicação, indenização de seguro etc. | Avulso, pela administradora |
 
 Decisões de Pedro em 12/11/2026 e limites: [registro das 19 escolhas](05-decisoes-de-complementacao.md). LGPD automatiza apenas procedimentos definidos e encaminha exceções a operador autorizado ainda a definir, sem criar permissão implícita. Retenção é por finalidade, sujeita à revisão; pagamentos e prazos externos exigem PoC Asaas, não realizada.
@@ -635,7 +636,7 @@ Valores fora da faixa são recusados no cadastro, com a faixa permitida na mensa
 
 ## 14. Rotinas automáticas
 
-O sistema executa 21 rotinas sem ação de ninguém; cada execução é registrada em log.
+O sistema executa 22 rotinas sem ação de ninguém; cada execução é registrada em log.
 
 **Horário das rotinas (fuso do condomínio).** Todas as rotinas usam o fuso do condomínio (padrão `America/Sao_Paulo`). Rotina diária sem horário próprio roda na **madrugada**, entre 00:00 e 06:00, uma depois da outra. Rotina diária que envia lembrete ou aviso a pessoas roda às **09:00**, para que ninguém receba notificação de madrugada. As rotinas "Prazos de reclamação e chamado" e "Fim de contrato de locação" têm duas etapas dentro da mesma rotina: o efeito de regra (liberar decisão, marcar chamados fora do prazo, desativar inquilino e dependentes, marcar a unidade como desocupada) roda na madrugada, e os avisos saem às 09:00. As rotinas com horário na tabela (00:00 e 23:59) e as que rodam a cada 5 min, a cada hora ou por evento mantêm o seu horário; a rotina de 5 min "Lembrete de reserva" também continua a cada 5 min, mas a hora do push segue a regra de antecipação de RN-RE-14 (horário calculado entre 00:00 e 08:59 sai às 21:00 da noite anterior), sem passar pela fila das 09:00. Decisão de Pedro em 09/11/2026.
 
@@ -644,7 +645,7 @@ O sistema executa 21 rotinas sem ação de ninguém; cada execução é registra
 | Faixa | Rotinas | Horário |
 | --- | --- | --- |
 | Meia-noite (já definida) | Visitantes que não vieram, entregas esperadas que não chegaram, limpeza de dados offline | 00:00 |
-| Madrugada | Recuperação de score, faltas em reservas, encerrar reclamações sem recurso, anonimização de visitantes, gerar cobranças mensais, marcar cobranças em atraso, lançamentos recorrentes, fechar o mês financeiro, etapa de efeito de prazos de reclamação e chamado, etapa de efeito de fim de contrato de locação | Entre 00:00 e 06:00, em sequência |
+| Madrugada | Recuperação de score, faltas em reservas, encerrar reclamações sem recurso, anonimização de visitantes, gerar cobranças mensais, marcar cobranças em atraso, lançamentos recorrentes, fechar o mês financeiro, conciliação diária com o gateway, etapa de efeito de prazos de reclamação e chamado, etapa de efeito de fim de contrato de locação | Entre 00:00 e 06:00, em sequência |
 | Lembrete ou aviso a pessoas | Lembretes de encomenda, lembrete de avaliação de chamado, lembretes de cobrança, etapa de aviso de prazos de reclamação e chamado, etapa de aviso de fim de contrato de locação | 09:00 |
 | Sem faixa diária | Expirar reservas não pagas e lembrete de reserva (a cada 5 min), saída não registrada (a cada hora), bloqueio de reservas gratuitas (por evento), fechamento da pesquisa (23:59 do último dia do mês) | Como já definido |
 
@@ -670,6 +671,7 @@ O sistema executa 21 rotinas sem ação de ninguém; cada execução é registra
 | Lembretes de cobrança | Diária | 09:00 | Envia lembretes 5 dias antes, no dia, 1 e 7 dias depois do vencimento | RN-FI-16 |
 | Lançamentos recorrentes | Diária | 00:00 a 06:00 | Cria os lançamentos recorrentes do mês no dia escolhido (no último dia, nos meses curtos) | RN-FI-26 |
 | Fechar o mês financeiro | Diária | 00:00 a 06:00 | No dia configurado do mês seguinte, fecha o mês financeiro anterior se a administradora ainda não o fechou | RN-FI-28 |
+| Conciliação diária com o gateway | Diária | 00:00 a 06:00 (ordem conforme ADR-012) | Compara as cobranças e os pagamentos locais com o gateway (Asaas) e registra as divergências para tratamento | SEG-17 |
 | Fim de contrato de locação | Diária, em duas etapas | Efeito: 00:00 a 06:00; aviso: 09:00 | Etapa de efeito: sem renovação, desativa o inquilino e os dependentes após a carência e marca a unidade como desocupada. Etapa de aviso: avisa 30 dias antes do fim do contrato | RN-CD-21 |
 
 ## 15. Relatórios gerenciais e exportações — 14/11/2026

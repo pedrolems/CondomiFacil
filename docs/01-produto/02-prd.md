@@ -1,6 +1,6 @@
 # PRD — CondomiFacil
 
-Nov 3, 2026 · @Pedro Lemos
+03/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 ## 1. Visão geral
 
@@ -76,14 +76,14 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 | Perfil | Quem é |
 | --- | --- |
-| Morador | Proprietário, inquilino ou dependente vinculado a uma unidade (apartamento, casa ou sala). Cada unidade ocupada tem um único morador habilitado, que responde por ela no dia a dia: o proprietário, se mora nela, ou o inquilino, se ela está alugada. Quem vota pela unidade é sempre o proprietário (RN-VO-01) |
+| Morador | Proprietário, inquilino ou dependente vinculado a uma unidade (apartamento, casa ou sala). Cada unidade ocupada tem um único morador habilitado, que responde por ela no dia a dia: o proprietário, se mora nela, ou o inquilino, se ela está alugada. Quem vota pela unidade é o proprietário (RN-VO-01); o inquilino vota pela unidade alugada só nas pautas sem despesa extraordinária, valendo se o proprietário não votar (RF-VO-11, RN-VO-18) |
 | Síndico (morador) | Morador eleito; mantém todas as funções de morador |
 | Síndico profissional | Contratado, sem unidade e sem funções de morador; contratação e desligamento registrados pela administradora |
 | Subsíndico | Morador eleito, de unidade diferente da do síndico. No dia a dia, tem uma gestão limitada: julga reclamações contra o síndico, acompanha a manutenção, sugere comunicados, registra votos presenciais e vê encomendas com prazo vencido (RN-CD-27). Assume todas as funções de síndico quando a substituição é ativada |
 | Funcionário de limpeza | Recebe e conclui chamados de limpeza, e vê as avaliações que recebe sem saber de quem |
 | Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados; consulta reservas do dia, marca uso Em andamento e registra na vistoria Cumprida ou Não comparecimento, inclusive em reservas pagas |
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
-| Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores |
+| Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. |
 | Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
 | Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; a composição obrigatória sem subsíndico está em revisão (RN-CD-14/RN-VO-09), e sua ausência factual não bloqueia a eleição. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14. Acompanham as finanças do condomínio em modo leitura e podem comentar (RF-FI-17, RF-FI-24) |
 | Proprietário não residente | Dono da unidade que não mora nela, com a unidade alugada ou desocupada. Vota nas assembleias, vê e paga as cobranças de que é responsável e acompanha a unidade: contrato de locação, multas e reclamações validadas contra ela (RN-CD-19) |
@@ -130,7 +130,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Avaliar o atendimento dos chamados que abriu | Sim | Sim | — | Sim | — | — | — |
 | Consultar avaliações de atendimento por funcionário e empresa | — | Sim | Sim | Em substituição | — | — | Só o agregado |
 | Ver as próprias avaliações de atendimento, sem identificar quem avaliou | — | — | — | — | Sim | — | — |
-| Ver encomendas com prazo de guarda vencido | — | Sim | Sim | Sim | — | Sim | — |
+| Ver encomendas com prazo de guarda vencido | — | Sim | Sim | Sim | — | — | — |
 | Registrar reclamação contra funcionário ou unidade | Sim | Sim | — | Sim | — | — | — |
 | Julgar reclamações | — | Sim, exceto contra si | Sim, exceto contra si | Contra o síndico; todas em substituição, exceto contra si | — | — | Nos casos de RN-RC-03 e RN-RC-07 |
 | Ver score do reclamante e do alvo | — | Sim | Sim | Nas reclamações que julga | — | — | Sim |
@@ -165,7 +165,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 **Perfis fora da matriz**
 
-- **Suporte da plataforma:** no plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações, ver scores e acessar os novos relatórios/exportações RF-RL-01 a 11.
+- **Suporte da plataforma:** Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. No plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações, ver scores e acessar os novos relatórios/exportações RF-RL-01 a 11.
 - **Conselho fiscal:** sem síndico e subsíndico, conduz a eleição conforme RN-VO-13; isso não concede gestão administrativa geral. Julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
 - **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
 - **Proprietário não residente:** "Votar ou indicar procurador" e "Ver e pagar cobranças da própria unidade" (as de que é responsável financeiro). Também lê comunicados gerais, acompanha o contrato de locação e as multas e reclamações validadas contra a unidade e pede o cadastro, a renovação ou o encerramento do inquilino. Não reserva, não abre chamados, não reclama, não avalia funcionários e não vê a rotina do inquilino (RN-CD-19).
@@ -325,7 +325,7 @@ São 150 requisitos em 14 módulos, cada um com ID para histórias de usuário, 
 | RF-VO-02 | Votar em cada pauta, um voto por unidade | Proprietário | O voto vale pela unidade inteira; votação aberta da convocação até o encerramento da reunião (RN-VO-01) |
 | RF-VO-03 | Indicar procurador para uma votação | Proprietário | Antes de a unidade votar; procurador é usuário do mesmo condomínio (pode ser o inquilino) e representa no máximo 1 unidade além das suas |
 | RF-VO-04 | Registrar votos presenciais por unidade | Síndico, Subsíndico | Junto com a ata; o subsíndico registra nas reuniões convocadas pelo síndico |
-| RF-VO-05 | Abrir eleição de síndico e subsíndico com candidaturas | Síndico; na ausência/vacância, subsíndico; sem ambos, conselho; sem todos, proprietário designado; administradora e suporte autorizado também | RN-VO-13, em qualquer plano; permissão temporária restrita, auditoria, voto secreto e resultado só após encerramento |
+| RF-VO-05 | Abrir eleição de síndico e subsíndico com candidaturas | Síndico; na ausência/vacância, subsíndico; sem ambos, conselho; sem todos, proprietário designado; administradora vinculada também; suporte autorizado também, somente no Gestão + Suporte | RN-VO-13, em qualquer plano; permissão temporária restrita, auditoria, voto secreto e resultado só após encerramento |
 | RF-VO-06 | Bloquear candidaturas inelegíveis | Sistema | Mesma unidade do outro cargo; reeleição conforme a configuração do condomínio |
 | RF-VO-07 | Exibir resultado só após o encerramento | Todos | Voto secreto; contagem por opção |
 | RF-VO-08 | Abrir segundo turno em caso de empate | Sistema | Entre os empatados em até 7 dias; segundo empate/sem elegível é inconclusivo, sem vencedor automático |
@@ -372,7 +372,7 @@ São 150 requisitos em 14 módulos, cada um com ID para histórias de usuário, 
 | RF-FI-16 | Classificar cada cobrança como ordinária ou extraordinária | Administradora, Suporte, Sistema | Taxa mensal é ordinária; fundo de reserva e obras vêm como extraordinárias; multa por infração vai a quem paga as ordinárias, com aviso ao proprietário (RN-FI-20) |
 | RF-FI-17 | Painel financeiro do condomínio: resumo do mês (receitas, despesas, saldo e comparação com o mês anterior), despesas por categoria e evolução de 6 ou 12 meses | Administradora, Suporte, Síndico, Conselho fiscal | Conselho fiscal sempre em leitura; síndico e sub em substituição só leem com administradora/Gestão + Suporte e executam na proposta de autogestão RN-PL-08; gráficos sempre com tabela equivalente (RN-FI-21, RN-FI-29) |
 | RF-FI-18 | Lançar como receita, sozinho, o que o condomínio recebe pelo app: cobranças pagas (taxa, fundo de reserva, extras, multas e juros) e reservas pagas | Sistema | Pela data do pagamento confirmado; nunca digitado de novo; taxas do gateway entram como despesa (RN-FI-22, RN-FI-23) |
-| RF-FI-19 | Registrar despesa ou receita avulsa com data, categoria, valor, fornecedor ou origem, descrição e comprovante opcional | Administradora, Suporte | Categorias de despesa fixas; receita avulsa só como "Outras receitas"; valor maior que zero; data até hoje e em mês aberto (RN-FI-24, RN-FI-25) |
+| RF-FI-19 | Registrar despesa ou receita avulsa com data, categoria, valor, fornecedor ou origem, descrição e comprovante opcional | Administradora, Suporte | Categorias de despesa fixas; receita avulsa só como "Outras receitas" (com o módulo de cobrança desligado, também "Taxa condominial" e "Fundo de reserva"); valor maior que zero; data até hoje e em mês aberto (RN-FI-24, RN-FI-25) |
 | RF-FI-20 | Repetir todo mês um lançamento marcado como recorrente | Sistema | Valor fixo (honorários, seguro, aluguel de antena); contas variáveis são digitadas todo mês (RN-FI-26) |
 | RF-FI-21 | Filtrar os lançamentos por período, categoria, tipo e texto | Administradora, Suporte, Síndico, Conselho fiscal | Período: um mês, 3, 6 ou 12 meses; os totais acompanham o filtro |
 | RF-FI-22 | Exportar o resumo e os lançamentos filtrados em CSV e PDF | Administradora, Suporte, Síndico, Conselho fiscal | Processamento assíncrono, acompanhamento e arquivo privado; CSV para a contabilidade; PDF com resumo, categorias e lançamentos; sem dados de unidade (RN-FI-30) |
@@ -470,7 +470,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-14 | Contrato com o condomínio | Contrato padrão definindo condomínio como controlador e plataforma como operadora |
 | SEG-15 | Termos para conta bancária de pessoa física | Termo de responsabilidade pelo valor recebido, com texto revisado por advogado, aceito pelo titular no cadastro da conta |
 | SEG-16 | Parecer jurídico antes do lançamento | Advogado avalia score, reclamações, penalidades, eleições e termos; o lançamento só acontece com o parecer aprovado |
-| SEG-17 | Dados financeiros e inadimplência | Situação financeira de uma unidade visível só ao responsável financeiro, à administradora e ao síndico; nunca exposta a outros moradores. Webhooks do gateway validados por assinatura e conciliação diária entre cobranças e pagamentos (nota de 10/11/2026: no Asaas, o gateway escolhido, a autenticação do webhook é por token no cabeçalho `asaas-access-token`, não por assinatura do corpo; ver ADR-002) |
+| SEG-17 | Dados financeiros e inadimplência | Situação financeira de uma unidade visível só ao responsável financeiro, à administradora e ao síndico; nunca exposta a outros moradores. Webhooks do gateway validados por token no cabeçalho `asaas-access-token` (Asaas, o gateway escolhido; sem assinatura do corpo; ver ADR-002) e conciliação diária entre cobranças e pagamentos (rotina 22 das Regras de Negócio) |
 | SEG-18 | Finanças do condomínio | Receitas e despesas visíveis só à administradora, ao síndico (ou subsíndico em substituição) e ao conselho fiscal; receitas de cobrança sempre agregadas, sem unidade nem responsável; folha de pagamento só pelo total; mês fechado imutável, com estornos e comentários auditados |
 
 ## 9. Design e identidade visual

@@ -4,7 +4,7 @@ info:
   version: 0.1.0-proposta
   summary: Acesso e sessão, perfil próprio, notificações, arquivos, LGPD, score e recurso de decisão.
   description: |-
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Interface `comum/` do backend (`01-backend.md` 3.3, decisão de agrupamento 5): rotas sem perfil dono, usadas por três ou mais perfis com o mesmo DTO. Convenções no `01-guia-da-api.md`.
+    **Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Interface `comum/` do backend (`01-backend.md` 3.3, decisão de agrupamento 5): rotas sem perfil dono, usadas por três ou mais perfis com o mesmo DTO. Convenções no `01-guia-da-api.md`.
 
     **Decidido (PRD e regras de negócio):** ninguém se cadastra sozinho; primeiro acesso por código de 6 dígitos no e-mail, 15 minutos, 5 tentativas, reenvio após 60 segundos, mesma resposta para e-mail cadastrado ou não, senha com no mínimo 8 caracteres e pausa de 15 minutos após 5 senhas erradas (RF-AC-01, RN-CD-02, SEG-04).
 
@@ -2372,7 +2372,7 @@ paths:
     post:
       operationId: comumAbrirEleicao
       summary: Abre a eleição de síndico e subsíndico com prazo de candidaturas
-      description: "Decisão de 13/11/2026: qualquer plano admite síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte autorizado no Gestão + Suporte também podem conduzir. Concessão inicial e prova de ausência pendentes, sem autoconcessão. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
+      description: "Decisão de 13/11/2026: qualquer plano admite síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada também pode conduzir; suporte autorizado só no Gestão + Suporte (`403` no Essencial). Concessão inicial e prova de ausência pendentes, sem autoconcessão. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
       tags:
       - governanca
       security:
@@ -2514,7 +2514,7 @@ paths:
     post:
       operationId: comumEncerrarEleicao
       summary: Encerra e apura eleição regular
-      description: 'Decisão de 13/11/2026, RN-VO-07/13. Condutor legitimado pela sequência de RN-VO-13, em qualquer plano, ou administradora vinculada/suporte autorizado. Revalidar vigência, ausência e concessão a cada ação; concessão inicial e prova de ausência pendentes, sem autoconcessão. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
+      description: 'Decisão de 13/11/2026, RN-VO-07/13. Condutor legitimado pela sequência de RN-VO-13, em qualquer plano, ou administradora vinculada ou suporte autorizado (este só no Gestão + Suporte; `403` no Essencial). Revalidar vigência, ausência e concessão a cada ação; concessão inicial e prova de ausência pendentes, sem autoconcessão. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
       tags: [governanca]
       security:
       - bearerJwt: []

@@ -1,6 +1,6 @@
 # Estratégia de migrations e seeds
 
-**Data:** 13/11/2026. **Estado:** proposta técnica para revisão de Pedro Lemos. **Escopo:** PostgreSQL do backend e dados fictícios para desenvolvimento, integração e testes de aceitação futuros.
+**Data:** 13/11/2026. **Atualizado em:** 14/11/2026. **Estado:** proposta técnica para revisão de Pedro Lemos. **Escopo:** PostgreSQL do backend e dados fictícios para desenvolvimento, integração e testes de aceitação futuros.
 
 O projeto permanece em Design: não existe banco, backend, migration, seed ou pipeline implementado. Pedro autorizou escolher a arquitetura desta estratégia; as escolhas abaixo formam a proposta concreta deste documento, sem aceitar integralmente o MER, a política de acesso ou os ADRs relacionados. Os exemplos descrevem artefatos futuros e não foram executados.
 

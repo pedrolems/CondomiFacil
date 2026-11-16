@@ -1,12 +1,12 @@
 # Guia de publicação para as lojas — CondomiFacil
 
-**Data:** 14/11/2026. **Responsável pelo produto e pelas aprovações:** Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Responsável pelo produto e pelas aprovações:** Pedro Lemos.
 
 **Estado:** guia para a implementação futura. Hoje existem documentação e protótipo HTML; não há aplicativo nativo pronto, contas verificadas, certificados gerados ou publicação realizada por este documento. Os textos abaixo são modelos para revisão antes do lançamento. Publicar exige um binário funcional, backend disponível e recursos efetivamente implementados.
 
 ## 1. Escopo, fontes e sequência
 
-Este guia cobre Google Play para Android e App Store para iOS, com interface em português do Brasil. A versão web da Vercel tem publicação própria e não substitui a distribuição nativa. A stack planejada é React Native, TypeScript e Expo, com API NestJS. EAS Build, EAS Submit e OTA continuam propostas do ADR-011; o guia não o aceita automaticamente.
+Este guia cobre Google Play para Android e App Store para iOS, com interface em português do Brasil. A versão web da Vercel (hospedagem proposta no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), Proposto) tem publicação própria e não substitui a distribuição nativa. A stack planejada é React Native, TypeScript e Expo, com API NestJS. EAS Build, EAS Submit e OTA continuam propostas do ADR-011; o guia não o aceita automaticamente.
 
 | Documento do projeto | Aplicação neste guia |
 | --- | --- |

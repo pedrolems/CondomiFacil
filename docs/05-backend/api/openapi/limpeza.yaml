@@ -3,7 +3,7 @@ info:
   title: CondomiFacil API - interface da limpeza
   version: 0.1.0-proposta
   description: |-
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Rotas `/v1/limpeza/*` do funcionário de limpeza, coluna Limpeza da matriz de permissões do PRD seção 3.
+    **Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Rotas `/v1/limpeza/*` do funcionário de limpeza, coluna Limpeza da matriz de permissões do PRD seção 3.
 
     **Decidido (PRD e regras de negócio):** a limpeza atende os chamados do setor, também sem internet (RN-CH-04), faz a vistoria de reservas (RN-RE-09) sem marcar Em andamento (RN-RE-13), vê as próprias avaliações sem saber de quem (RN-CH-20) e responde comunicados individuais.
 
@@ -320,7 +320,7 @@ paths:
                 fotos:
                   summary: Mais de 5 fotos
                   value:
-                    codigo: CHAMADO_FOTOS_ALEM_DO_LIMITE
+                    codigo: CHAMADO_FOTOS_ACIMA_DO_LIMITE
                     mensagem: Anexe no máximo 5 fotos do serviço.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':

@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CondomiFacil API - interface da administradora
   version: 0.1.0-proposta
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro nem do PRD (caminhos, nomes de campos de entrada, códigos de erro, valores de enumerações de entrada) é Proposta. Estados e regras vêm das Regras de Negócio e do MER/DER.
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro nem do PRD (caminhos, nomes de campos de entrada, códigos de erro, valores de enumerações de entrada) é Proposta. Estados e regras vêm das Regras de Negócio e do MER/DER.
 
 
     Interface do painel web da administradora, em `/v1/administradora/*` (pasta `administradora/`, `01-backend.md` 3.3). O Suporte da plataforma usa as mesmas rotas nos condomínios do plano Gestão + Suporte (PRD 3, RN-CD-16, RN-PL-02), depois de abrir o contexto em `/v1/plataforma/condominios/{condominio_id}/contexto-suporte`. As operações de reclamações recusam o suporte com `403` (PRD 3, `01-backend.md` 3.3); a pasta organiza, a recusa é de guard e de RLS.
@@ -1082,7 +1082,7 @@ paths:
               example:
                 id: 0000001f-0000-4000-8000-00000000001f
                 bloco_id: 0000000b-0000-4000-8000-00000000000b
-                identificacao: Apto 101
+                identificacao: Apto 102
                 fracao_ideal: 0.0125
                 situacao_ocupacao: desocupada
                 morador_habilitado: null
@@ -1519,11 +1519,11 @@ paths:
                 fracao_ideal: 0.0125
                 situacao_ocupacao: residida_pelo_proprietario
                 morador_habilitado:
-                  vinculo_unidade_id: 00000029-0000-4000-8000-000000000029
+                  vinculo_unidade_id: 0000002b-0000-4000-8000-00000000002b
                   vinculo_condominio_id: 0000002a-0000-4000-8000-00000000002a
-                  nome: João Alves
-                  tipo: inquilino
-                  inicio: '2026-03-01T00:00:00-03:00'
+                  nome: Paulo Ribeiro
+                  tipo: proprietario
+                  inicio: '2026-12-01T00:00:00-03:00'
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
@@ -2999,7 +2999,7 @@ paths:
                 id: 0000005b-0000-4000-8000-00000000005b
                 nome: Salão de festas
                 tipo_reserva: paga
-                capacidade: 60
+                capacidade: 80
                 foto_id: null
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
@@ -3312,11 +3312,11 @@ paths:
                 niveis_permitidos:
                 - condominio
                 padrao_plataforma: 10
-                valor_efetivo: 15
+                valor_efetivo: 12
                 origem: condominio
                 vigente_desde: '2026-06-01T00:00:00-03:00'
                 proxima_vigencia:
-                  valor: 20
+                  valor: 15
                   vigente_desde: '2027-01-01T00:00:00-03:00'
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
@@ -4477,7 +4477,7 @@ paths:
                 $ref: '#/components/schemas/ReeleicaoAdministradora'
               example:
                 reeleicao_permitida: false
-                vigente_desde: '2026-01-01T00:00:00-03:00'
+                vigente_desde: '2027-01-01T00:00:00-03:00'
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
@@ -6168,6 +6168,7 @@ paths:
             - multas_por_infracao
             - aluguel_de_areas
             - outras_receitas
+            - fundo_reserva
         style: form
         explode: false
         example:
@@ -6278,7 +6279,7 @@ paths:
     post:
       operationId: administradoraCriarLancamento
       summary: Registra despesa ou receita avulsa
-      description: 'Lançamento avulso com data, categoria, valor, fornecedor ou origem e comprovante opcional (RN-FI-24). Receitas de cobrança e de reservas entram sozinhas e agregadas; não há operação para criá-las à mão (RN-FI-22). Receita avulsa: `outras_receitas`, ou `taxa_condominial` só com o módulo de cobrança desligado; com ele ligado, a resposta é `422` (RN-FI-24). A origem da receita é obrigatória. Ação auditada (SEG-08).'
+      description: 'Lançamento avulso com data, categoria, valor, fornecedor ou origem e comprovante opcional (RN-FI-24). Receitas de cobrança e de reservas entram sozinhas e agregadas; não há operação para criá-las à mão (RN-FI-22). Receita avulsa: `outras_receitas`, ou `taxa_condominial` e `fundo_reserva` só com o módulo de cobrança desligado; com ele ligado, a resposta é `422` (RN-FI-24). A origem da receita é obrigatória. Ação auditada (SEG-08).'
       tags:
       - financas
       security:
@@ -7091,7 +7092,7 @@ paths:
     post:
       operationId: administradoraCriarRecorrencia
       summary: Cria um lançamento recorrente
-      description: 'O sistema cria o lançamento do mês no dia escolhido; cada lançamento criado é comum. Receita recorrente segue a regra da receita avulsa: `outras_receitas`, ou `taxa_condominial` só com o módulo de cobrança desligado (RN-FI-24). Contas variáveis, como energia e água, são digitadas todo mês (RN-FI-26). Ação auditada (SEG-08).'
+      description: 'O sistema cria o lançamento do mês no dia escolhido; cada lançamento criado é comum. Receita recorrente segue a regra da receita avulsa: `outras_receitas`, ou `taxa_condominial` e `fundo_reserva` só com o módulo de cobrança desligado (RN-FI-24). Contas variáveis, como energia e água, são digitadas todo mês (RN-FI-26). Ação auditada (SEG-08).'
       tags:
       - financas
       security:
@@ -7361,7 +7362,7 @@ paths:
               example:
                 id: 000000e7-0000-4000-8000-0000000000e7
                 formato: csv
-                estado: concluida
+                estado: pronta
                 solicitada_em: '2026-11-10T10:00:00-03:00'
                 concluida_em: '2026-11-10T10:00:02-03:00'
                 arquivo_id: 000000e8-0000-4000-8000-0000000000e8
@@ -7852,7 +7853,7 @@ paths:
               example:
                 reclamacao_id: 0000012d-0000-4000-8000-00000000012d
                 estado: negada
-                resultado: negar
+                resultado: negada
                 decidida_em: '2026-11-10T14:00:00-03:00'
                 pontos_aplicados: 0
                 prazo_recurso_ate: null
@@ -8112,7 +8113,7 @@ paths:
     post:
       operationId: administradoraAbrirEleicao
       summary: Abre a eleição de síndico e subsíndico com prazo de candidaturas
-      description: "Decisão de 13/11/2026: administradora vinculada ou suporte autorizado no Gestão + Suporte também podem conduzir. A eleição funciona em qualquer plano pela sequência síndico, subsíndico, conselho fiscal e proprietário designado, em comum.yaml, conforme RN-VO-13. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
+      description: "Decisão de 13/11/2026: administradora vinculada ou suporte autorizado também podem conduzir; o suporte só no Gestão + Suporte (`403` no Essencial). A eleição funciona em qualquer plano pela sequência síndico, subsíndico, conselho fiscal e proprietário designado, em comum.yaml, conforme RN-VO-13. Caminho e campos continuam proposta; RF-VO-05 e RN-VO-13."
       tags:
       - governanca
       security:
@@ -8172,7 +8173,7 @@ paths:
     get:
       operationId: administradoraListarEleicoes
       summary: Lista as eleições
-      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
+      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio; suporte no plano Essencial recebe `403`. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
       tags:
       - governanca
       security:
@@ -8306,7 +8307,7 @@ paths:
     post:
       operationId: administradoraEncerrarEleicao
       summary: Encerra e apura eleição regular
-      description: 'Decisão de 13/11/2026, RN-VO-07/13. Esta interface atende administradora vinculada ou suporte autorizado; a interface comum atende os demais condutores elegíveis. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
+      description: 'Decisão de 13/11/2026, RN-VO-07/13. Esta interface atende administradora vinculada ou suporte autorizado (este só no Gestão + Suporte; `403` no Essencial); a interface comum atende os demais condutores elegíveis. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
       tags: [governanca]
       security:
       - bearerJwt: []
@@ -8346,7 +8347,7 @@ paths:
     get:
       operationId: administradoraObterEleicao
       summary: Detalha uma eleição
-      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
+      description: "Consulta de eleição por administradora ou suporte autorizado no Gestão + Suporte, no próprio condomínio; suporte no plano Essencial recebe `403`. Resultado somente após encerramento; sem voto individual. Decisão de 12/11/2026, RN-VO-13 e RF-VO-05/07."
       tags:
       - governanca
       security:
@@ -10118,13 +10119,7 @@ components:
             - tabela
             - grafico
         estado:
-          type: string
-          enum:
-            - solicitada
-            - em_processamento
-            - pronta
-            - falhou
-            - expirada
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoExportacao
         solicitada_em:
           type: string
           format: date-time
@@ -10702,14 +10697,7 @@ components:
         id:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         tipo:
-          type: string
-          enum:
-          - cadastro
-          - alteracao
-          - remocao
-          - cadastro_inquilino
-          - renovacao_inquilino
-          - encerramento_inquilino
+          $ref: ./componentes/enums.yaml#/components/schemas/TipoSolicitacao
           description: Tipo do pedido (códigos Proposta; RF-AD-02 e RN-CD-23).
           examples:
           - cadastro
@@ -11416,7 +11404,7 @@ components:
           - true
         alerta_sem_subsindico:
           type: boolean
-          description: Sem subsíndico, a condução eleitoral segue conselho fiscal e, sem este, proprietário designado; administradora ou suporte autorizado também podem conduzir (RN-CD-13, RN-VO-13).
+          description: Sem subsíndico, a condução eleitoral segue conselho fiscal e, sem este, proprietário designado; administradora também pode conduzir, e o suporte autorizado só no Gestão + Suporte (RN-CD-13, RN-VO-13).
           examples:
           - false
     SubstituicaoAdministradora:
@@ -12242,6 +12230,7 @@ components:
           - multas_por_infracao
           - aluguel_de_areas
           - outras_receitas
+          - fundo_reserva
           examples:
           - energia
         nome:
@@ -12564,7 +12553,8 @@ components:
           enum:
           - outras_receitas
           - taxa_condominial
-          description: 'Receita avulsa: `outras_receitas` vale sempre; `taxa_condominial` só com o módulo de cobrança desligado, porque o app não vê esses pagamentos (RN-FI-24). Com o módulo ligado, as demais receitas entram sozinhas (RN-FI-22) e a resposta é `422`. "Fundo de reserva" avulsa não tem código de categoria na lista de RN-FI-32 (lacuna).'
+          - fundo_reserva
+          description: 'Receita avulsa: `outras_receitas` vale sempre; `taxa_condominial` só com o módulo de cobrança desligado, porque o app não vê esses pagamentos (RN-FI-24). Com o módulo ligado, as demais receitas entram sozinhas (RN-FI-22) e a resposta é `422`. `fundo_reserva` (Fundo de reserva avulso) também só com o módulo de cobrança desligado (RN-FI-24, RN-FI-32; decisão de 15/11/2026).'
           examples:
           - outras_receitas
         subservico:
@@ -12603,7 +12593,7 @@ components:
             - type: 'null'
           description: Foto ou PDF de até 10 MB (RN-FI-24).
     LancamentoEntradaAdministradora:
-      description: 'Lançamento avulso, discriminado por `tipo`: despesa com as 9 categorias de RN-FI-32; receita em `outras_receitas` ou, com o módulo de cobrança desligado, `taxa_condominial` (RN-FI-24).'
+      description: 'Lançamento avulso, discriminado por `tipo`: despesa com as 9 categorias de RN-FI-32; receita em `outras_receitas` ou, com o módulo de cobrança desligado, `taxa_condominial` ou `fundo_reserva` (RN-FI-24).'
       oneOf:
       - $ref: '#/components/schemas/LancamentoDespesaEntradaAdministradora'
       - $ref: '#/components/schemas/LancamentoReceitaEntradaAdministradora'
@@ -12630,7 +12620,8 @@ components:
           - outros
           - outras_receitas
           - taxa_condominial
-          description: 'Despesa: uma das 9 categorias de RN-FI-32; receita avulsa: `outras_receitas` ou, só com o módulo de cobrança desligado, `taxa_condominial` (RN-FI-24); com o módulo ligado, a resposta é `422`. "Fundo de reserva" avulsa não tem código de categoria (lacuna). A combinação com o `tipo` do lançamento é validada (RN-FI-24).'
+          - fundo_reserva
+          description: 'Despesa: uma das 9 categorias de RN-FI-32; receita avulsa: `outras_receitas` ou, só com o módulo de cobrança desligado, `taxa_condominial` ou `fundo_reserva` (RN-FI-24); com o módulo ligado, a resposta é `422`. `fundo_reserva` também só com o módulo de cobrança desligado. A combinação com o `tipo` do lançamento é validada (RN-FI-24).'
           examples:
           - energia
         subservico:
@@ -12782,7 +12773,8 @@ components:
           enum:
           - outras_receitas
           - taxa_condominial
-          description: 'Receita recorrente: `outras_receitas` vale sempre; `taxa_condominial` só com o módulo de cobrança desligado (RN-FI-24); com o módulo ligado, a resposta é `422`. "Fundo de reserva" avulsa não tem código de categoria (lacuna).'
+          - fundo_reserva
+          description: 'Receita recorrente: `outras_receitas` vale sempre; `taxa_condominial` só com o módulo de cobrança desligado (RN-FI-24); com o módulo ligado, a resposta é `422`. `fundo_reserva` também só com o módulo de cobrança desligado (decisão de 15/11/2026).'
           examples:
           - outras_receitas
         subservico:
@@ -12866,6 +12858,7 @@ components:
           - multas_por_infracao
           - aluguel_de_areas
           - outras_receitas
+          - fundo_reserva
           examples:
           - administracao
         subservico:
@@ -12945,6 +12938,7 @@ components:
                 - multas_por_infracao
                 - aluguel_de_areas
                 - outras_receitas
+                - fundo_reserva
             tipo:
               type: string
               enum:
@@ -12969,8 +12963,8 @@ components:
           - pdf
         estado:
           type: string
-          enum: [solicitada, em_processamento, concluida, falhou]
-          description: Códigos técnicos propostos de acompanhamento assíncrono; arquivo somente quando concluída.
+          $ref: ./componentes/enums.yaml#/components/schemas/EstadoExportacao
+          description: Acompanhamento assíncrono (RN-RL-06); arquivo somente quando `pronta`.
         solicitada_em:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         concluida_em:
@@ -13295,8 +13289,8 @@ components:
         resultado:
           type: string
           enum:
-          - validar
-          - negar
+          - validada
+          - negada
         decidida_em:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         pontos_aplicados:
@@ -13361,7 +13355,6 @@ x-lacunas:
 - "Estados completos de devolução e divergência de conciliação ainda não enumerados no MER. Exportação financeira ganhou códigos técnicos propostos de acompanhamento assíncrono em 12/11/2026."
 - 'Valor da cobrança extra: o MER/DER guarda `valor_centavos` no lote; se é por unidade ou total a ratear é lacuna.'
 - 'Lista completa de finalidades de cobrança extra além de rateio, fundo de reserva, obras e multa por infração: lacuna (RN-FI-20).'
-- 'Categoria avulsa de "Fundo de reserva" com cobrança desligada: a RN-FI-24 a cita e a lista de categorias da RN-FI-32 não tem essa categoria, por isso não há código para ela (pergunta ao Pedro). "Taxa condominial" avulsa usa `taxa_condominial`.'
 - 'Lista de motivos de negativa de reclamação: lacuna (RF-RS-06 cita lista, sem conteúdo nas fontes).'
 - "RN-CA-05: ator e ação resolvidos em 12/11/2026; administradora/suporte autorizado e síndico/sub em substituição têm operações próprias com motivo/auditoria, inclusive para Aguardando pagamento sem devolução se não recebeu."
 - 'Comunicados gerais e individuais: a matriz não dá envio à administradora; só a conversa com o alvo da reclamação (RN-CO-04) e a publicação do regimento.'
@@ -13371,6 +13364,6 @@ x-lacunas:
 
 x-decisoes-12-11-2026:
 - "RN-CA-05: cancelar reserva pelo condomínio exige motivo/auditoria, inclusive Aguardando pagamento; sem recebimento não há devolução."
-- "Eleição regular abre/encerra por administradora ou suporte autorizado; segundo empate/sem elegível fica inconclusivo sem vencedor automático."
+- "Eleição regular abre/encerra por administradora ou suporte autorizado (este só no Gestão + Suporte); segundo empate/sem elegível fica inconclusivo sem vencedor automático."
 - "Fontes financeiras individuais restritas e projeções por dia/categoria; exportações assíncronas."
 - "Recebimentos em reserva expirada/cancelada e cobrança cancelada abrem pendência assistida sem reativação; Paga com atraso considera instante efetivo."

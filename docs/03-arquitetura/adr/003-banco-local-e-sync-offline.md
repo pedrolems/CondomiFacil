@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 12/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** prova de conceito de criptografia e de fila de 10.000 operações
 - **Relacionado a:** [ADR-014](014-primeira-conclusao-sync.md), [ADR-011](011-ambientes-branches-eas-ota.md), [ADR-001](001-multi-tenant-rls.md)

@@ -3,7 +3,7 @@ info:
   title: CondomiFacil - tempo real da portaria (Socket.IO)
   version: 0.1.0-proposta
   description: |
-    **Proposta de 10/11/2026**, não aceita pelo Pedro. Sai do que a arquitetura 3.4 já fixa: WebSockets
+    **Proposta de 10/11/2026, atualizada em 10/11/2026**, não aceita pelo Pedro. Sai do que a arquitetura 3.4 já fixa: WebSockets
     para a lista da portaria (decidido no PRD seção 10); visitante cadastrado, editado ou cancelado
     aparece em até 5 s (RNF-05); a portaria só vê os blocos que atende (RF-VI-03, RF-VI-04); edição de
     entrega esperada aparece na hora, sem push (RN-EN-09). O resto (Socket.IO, handshake, nome das

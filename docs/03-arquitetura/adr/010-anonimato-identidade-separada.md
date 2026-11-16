@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 12/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** parecer jurídico (SEG-16)
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-009](009-votacao-sigilo.md), [ADR-007](007-autorizacao-jwt-sem-papeis.md)

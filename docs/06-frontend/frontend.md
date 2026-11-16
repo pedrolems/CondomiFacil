@@ -2,6 +2,7 @@
 
 **Autor do produto:** Pedro Lemos  
 **Data:** 14/11/2026  
+**Atualizado em:** 15/11/2026  
 **Estado:** proposta técnica para revisão do Pedro; organização do workspace e fontes dos contratos aprovadas em 14/11/2026 (ADR-015); demais escolhas não aceitas. O projeto está em Design, sem aplicativo implementado.
 
 ## 1. Objetivo, escopo e fontes
@@ -19,7 +20,7 @@ As regras de negócio e os fluxos existentes prevalecem sobre as recomendações
 | [Design System](../02-design/01-design-system.md), seções 10 a 17 | Componentes, padrões de tela, navegação, escrita, acessibilidade e privacidade |
 | [User Flows](../02-design/02-user-flows.md), seções 3 a 15 e 17 | Percursos, falhas, retomada e pendências de produto |
 | [Arquitetura](../03-arquitetura/01-arquitetura.md), seções 3.1, 3.4, 3.7, 3.8, 4.8 e 5.3 | Fronteiras do cliente, banco local, integrações e monorepo |
-| [ADRs](../03-arquitetura/adr/README.md), especialmente 003, 007, 011, 012 e 014 | Banco local, sessão, builds, fuso e conflitos de conclusão; continuam propostos |
+| [ADRs](../03-arquitetura/adr/README.md), especialmente 003, 007, 011, 012 e 014 | Banco local, sessão, builds, fuso e conflitos de conclusão; continuam Propostos. Aceitos: 002, 004, 005 (10/11/2026, com ressalvas) e 015 (14/11/2026, organização e fontes); [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md) (hospedagem do painel web) é Proposto e vale para o painel |
 | [Guia da API](../05-backend/api/01-guia-da-api.md), [eventos](../05-backend/api/02-eventos-e-webhooks.md), [integrações](../05-backend/api/03-integracoes-externas.md) e [índice do contrato](../05-backend/api/README.md) | Contratos de transporte, contexto, arquivos, push e erros; proposta, ainda sem backend |
 | [Protótipo](../../prototipo/README.md) | Referência navegável dos percursos, sem equivaler a implementação real |
 
@@ -142,12 +143,12 @@ O mapa cobre os 11 perfis do PRD. Conselho e subsíndico reutilizam telas existe
 | Conselho fiscal | Abas do morador | Cartão Para julgar e Menu > Reclamações para atribuições de RN-RC-03/RN-RC-07/RN-RC-14; Menu > Finanças do condomínio para leitura, comentário e exportação; condução eleitoral quando couber, sem edição administrativa geral |
 | Proprietário não residente | Unidade · Cobranças · Assembleias · Menu | Unidade → contrato e solicitações de cadastro/renovação/encerramento do inquilino → multas e reclamações validadas contra a unidade; cobranças de sua responsabilidade → detalhe/pagamento; assembleias → pauta/voto/procuração; Menu com Comunicados, Solicitações e conta/ajuda. Sem rotina do inquilino, reservas, chamados, reclamação nova ou pesquisa |
 | Administradora | Painel web com navegação lateral | Cadastros, unidades/locação, funcionários, mandatos, áreas/regras, cobrança, finanças, solicitações, reclamações autorizadas e configurações; sem navegação mobile própria nesta proposta |
-| Suporte da plataforma | Painel web com navegação lateral | Atuação administrativa no condomínio conforme plano e autorização; nunca vê reclamações nem scores e não julga reclamações/recursos; condução eleitoral autorizada não amplia esses acessos |
+| Suporte da plataforma | Painel web com navegação lateral | Atua somente no plano Gestão + Suporte, inclusive na condução eleitoral, conforme autorização; sem acesso ao Essencial; nunca vê reclamações nem scores e não julga reclamações/recursos; a condução eleitoral não amplia esses acessos |
 | Admin da plataforma | Painel web com navegação lateral | Condomínios, planos e acessos de suporte; sem funções residenciais ou acesso automático ao conteúdo dos condomínios |
 
 **Telas comuns, quando autorizadas:** central de notificações e preferências, comunicados e respostas, Meu score/histórico e recurso próprio para quem tem score, Transparência, Como funciona, Como usar o app, Aparência, Privacidade e dados, solicitações de exportação/exclusão e Sair. Compartilhar a tela não significa conceder a função a todos os perfis.
 
-**Eleição:** condução segue síndico → subsíndico, se o síndico estiver ausente/cargo vago → conselho, sem ambos → proprietário designado, sem os demais. Administradora/suporte autorizados também podem conduzir quando presentes. A permissão temporária do proprietário só cobre a eleição; não concede gestão nem acesso a votos individuais. Resultados somente após encerramento, com voto secreto (RN-VO-13). Esta revisão prevalece sobre restrições eleitorais antigas nas telas do subsíndico.
+**Eleição:** condução segue síndico → subsíndico, se o síndico estiver ausente/cargo vago → conselho, sem ambos → proprietário designado, sem os demais. Administradora vinculada também pode conduzir quando presente; suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral, sem acesso ao Essencial. A permissão temporária do proprietário só cobre a eleição; não concede gestão nem acesso a votos individuais. Resultados somente após encerramento, com voto secreto (RN-VO-13). Esta revisão prevalece sobre restrições eleitorais antigas nas telas do subsíndico.
 
 **Autogestão:** Gestão > Administração do condomínio contempla a modalidade Essencial sem administradora. A distribuição fina de execução local continua proposta no registro 06: síndico ou subsíndico em substituição executa; conselho fiscaliza. Não liberar esses poderes só por detectar ausência de administradora. API e permissões precisam refletir a decisão final antes da implementação.
 

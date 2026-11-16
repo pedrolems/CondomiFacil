@@ -3,7 +3,7 @@ info:
   title: CondomiFacil API - interface do proprietário não residente
   version: 0.1.0-proposta
   summary: Rotas /v1/proprietario-nao-residente/*.
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do PRD é Proposta.
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro ou do PRD é Proposta.
 
 
     Conjunto restrito do proprietário que não mora na unidade, alugada ou desocupada (PRD 3, "Perfis fora da matriz"; `01-backend.md` 3.3, decisão 1; RN-CD-19): vota e indica procurador, vê e paga as cobranças de que é responsável financeiro e vê a situação das demais da unidade, acompanha o contrato de locação, as multas e as reclamações validadas contra a unidade (RN-RC-16) e lê comunicados gerais. Não reserva, não abre chamado, não reclama, não avalia funcionários, não tem score e nunca vê visitantes, chamados, reservas, encomendas nem o score do inquilino. O proprietário que mora na unidade é morador e usa `morador.yaml`.
@@ -210,17 +210,14 @@ paths:
               - tipo
               properties:
                 tipo:
-                  type: string
-                  enum:
-                  - cadastro_inquilino
-                  - renovacao_contrato
-                  - encerramento_contrato
+                  $ref: ./componentes/enums.yaml#/components/schemas/TipoSolicitacao
+                  description: Aceita só `cadastro_inquilino`, `renovacao_inquilino` e `encerramento_inquilino`.
                 descricao:
                   type: string
                 nova_data_fim:
                   $ref: ./componentes/comum.yaml#/components/schemas/Data
             example:
-              tipo: renovacao_contrato
+              tipo: renovacao_inquilino
               descricao: Renovar por mais 12 meses.
               nova_data_fim: '2028-06-30'
       responses:
@@ -235,7 +232,7 @@ paths:
                 $ref: '#/components/schemas/SolicitacaoLocacaoProprietarioNaoResidente'
               example:
                 id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
-                tipo: renovacao_contrato
+                tipo: renovacao_inquilino
                 descricao: Renovar por mais 12 meses.
                 nova_data_fim: '2028-06-30'
                 estado: pendente
@@ -344,7 +341,7 @@ paths:
               example:
                 dados:
                 - id: 3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10
-                  tipo: renovacao_contrato
+                  tipo: renovacao_inquilino
                   descricao: Renovar por mais 12 meses.
                   nova_data_fim: '2028-06-30'
                   estado: recusada
@@ -1071,7 +1068,7 @@ paths:
                     $ref: ./componentes/comum.yaml#/components/schemas/DataHora
               example:
                 votacao_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
-                unidade_id: c2b8e1a4-5d3f-4a6b-8e7c-1f0a9b2d4c63
+                unidade_id: d3c9f2b5-6e4a-4b7c-9f8d-2a1b0c3e5d74
                 canal: online
                 qualidade_votante: proprietario
                 registrado_em: '2026-11-10T20:15:00-03:00'
@@ -1080,7 +1077,21 @@ paths:
         '401':
           $ref: ./componentes/comum.yaml#/components/responses/Erro401
         '403':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+          description: Sem vínculo, sem permissão para o papel efetivo ou sem acesso ao dado. Inquilino ou outro perfil que não vota pela unidade recebe `403` (RN-VO-01; mesmo código e mesma mensagem da nomeação de procurador).
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                inquilino:
+                  summary: Quem vota pela unidade é o proprietário (RN-VO-01)
+                  value:
+                    codigo: SEM_PERMISSAO
+                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '404':
           $ref: ./componentes/comum.yaml#/components/responses/Erro404
         '409':
@@ -1126,12 +1137,6 @@ paths:
                   value:
                     codigo: VOTO_INQUILINO_PAUTA_COM_DESPESA_EXTRAORDINARIA
                     mensagem: Só o proprietário vota nesta pauta, porque ela envolve despesa extraordinária. Ele pode indicar você como procurador.
-                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
-                outro:
-                  summary: Quem não vota pela unidade (RN-VO-01)
-                  value:
-                    codigo: VOTO_NAO_VOTA_PELA_UNIDADE
-                    mensagem: Quem vota pela unidade é o proprietário, Paulo Ribeiro.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 encerrada:
                   summary: Votação encerrada (RN-VO-10)
@@ -2009,11 +2014,7 @@ components:
         id:
           $ref: ./componentes/comum.yaml#/components/schemas/Uuid
         tipo:
-          type: string
-          enum:
-          - cadastro_inquilino
-          - renovacao_contrato
-          - encerramento_contrato
+          $ref: ./componentes/enums.yaml#/components/schemas/TipoSolicitacao
         descricao:
           oneOf:
           - type: string

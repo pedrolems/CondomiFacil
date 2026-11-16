@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 14/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** necessidade de controle da transação (contexto de tenant)
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-011](011-ambientes-branches-eas-ota.md)

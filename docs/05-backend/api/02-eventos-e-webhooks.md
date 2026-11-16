@@ -1,6 +1,6 @@
 # Eventos e webhooks — CondomiFacil
 
-**Estado:** Proposta de 10/11/2026, não aceita pelo Pedro. **Decisão do Pedro em 10/11/2026:** gateway Asaas e e-mail Resend. O que é decisão de produto vem das RN e do PRD, com o ID. O resto é Proposta. Nomes de eventos seguem `<entidade>.<fato no passado>` (`01-backend.md` 4.3); **só `visitante.cadastrado` e `pagamento.confirmado` aparecem nos docs com esse nome**. Os demais nomes abaixo são Proposta e estão marcados.
+**Estado:** Proposta de 10/11/2026, atualizada em 14/11/2026, não aceita pelo Pedro. **Decisão do Pedro em 10/11/2026:** gateway Asaas e e-mail Resend. O que é decisão de produto vem das RN e do PRD, com o ID. O resto é Proposta. Nomes de eventos seguem `<entidade>.<fato no passado>` (`01-backend.md` 4.3); **só `visitante.cadastrado` e `pagamento.confirmado` aparecem nos docs com esse nome**. Os demais nomes abaixo são Proposta e estão marcados.
 
 Contratos relacionados: `asyncapi/tempo-real.yaml` (Socket.IO), `openapi/webhooks.yaml` (webhooks recebidos) e `03-integracoes-externas.md` (chamadas aos provedores).
 

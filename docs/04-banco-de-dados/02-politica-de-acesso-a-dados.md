@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 15/11/2026.
 
 **Natureza:** política documental baseada no MER/DER lógico; não contém SQL executável, migrações nem concessões de acesso implementadas.
 
@@ -120,7 +120,7 @@ RLS controla linhas; não substitui privilégios por operação/coluna, projeç�
 | Cadastro ou configuração | A/S; G só nas exceções expressas, como empresa de manutenção | B valida campos, vínculo, vigência e referências; G solicitar cadastro não equivale a executá-lo |
 | Reserva e pagamento | M reserva/cancela; pagador inicia tentativa | B cria intenção; I autenticada confirma pagamento; R expira quando cabível. Pagador não grava recebimento ou score |
 | Julgamento e recurso | J decide; afetado que perdeu pontos recorre | B registra decisão/recurso e efeitos idempotentes; mudança de saldo não é edição humana de `perfil_score` |
-| Rotina automática | Finalidade prevista nas 21 rotinas da RN §14 | R abre um tenant, altera só o domínio necessário e registra execução; não herda todas as funções G/A |
+| Rotina automática | Finalidade prevista nas 22 rotinas da RN §14 | R abre um tenant, altera só o domínio necessário e registra execução; não herda todas as funções G/A |
 | Webhook | Provedor autenticado; sem sessão de usuário | B valida e correlaciona conta/transação; não confia no condomínio do corpo. Sem correlação, quarentena; com correlação, processamento contextual e idempotente |
 | Operação offline | Portaria ou limpeza dentro da ação admitida | Cliente guarda fila; B valida autoria, escopo e divergência ao receber. Recibo técnico não autoriza nova ação de negócio |
 | Direito do titular | Titular pede cópia/exclusão | B executa procedimento autorizado, com fontes/cópias/retenção avaliadas. Pedir exclusão não é DELETE livre de tabelas |
@@ -129,7 +129,7 @@ RLS controla linhas; não substitui privilégios por operação/coluna, projeç�
 
 ## 5. Matrizes e inventário explícito das entidades
 
-As 130 entidades do dicionário MER §4 estão nomeadas nas linhas abaixo, organizadas em seus 12 domínios. Nomes e escopos físicos continuam propostas do MER. Cada linha compartilhada aplica suas condições a todas as entidades nela listadas; diferenças constam na própria célula. A coluna Apagar distingue exclusão operacional de anonimização/expurgo da seção 7.
+As 130 entidades do dicionário MER §4, mais a solicitação de exportação gerencial do apêndice de 14/11/2026 (131 no total), estão nomeadas nas linhas abaixo, organizadas em seus 12 domínios. Nomes e escopos físicos continuam propostas do MER. Cada linha compartilhada aplica suas condições a todas as entidades nela listadas; diferenças constam na própria célula. A coluna Apagar distingue exclusão operacional de anonimização/expurgo da seção 7.
 
 ### 5.1 Identidade, acesso e aceites — 10 entidades
 
@@ -261,7 +261,7 @@ Fonte: [MER §4.9](01-mer-e-der.md#49-reuniões-eleições-e-votos); RN-VO-01 a 
 | Entidade / escopo | Ler/consultar | Criar | Atualizar | Apagar |
 | --- | --- | --- | --- | --- |
 | `reuniao`, `pauta` / condomínio | Participantes elegíveis do contexto da unidade, incluindo P; G organiza. Não concede a qualquer perfil dados financeiros de outras unidades | G convoca/define pautas por B; exceção de nova eleição sem titular segue RN-CD-13 | G registra encerramento, arquivos e dados previstos; sem reescrever voto. Alterações de pauta já votada não especificadas: NC | NC; reunião encerrada preservada |
-| `eleicao`, `turno_eleicao` / condomínio | Elegíveis e condutor autorizado, sem voto individual nem resultado antes do encerramento | Condutor por B conforme RN-VO-13 em qualquer plano: síndico, sub se ausente/vago, conselho sem ambos, proprietário designado sem todos; A/S também podem | Mesmo condutor legitimado encerra por B; revalidar condições a cada ação. R/B segundo turno; edição irrestrita NC | Preservar fatos e auditoria sem conteúdo do voto |
+| `eleicao`, `turno_eleicao` / condomínio | Elegíveis e condutor autorizado, sem voto individual nem resultado antes do encerramento | Condutor por B conforme RN-VO-13 em qualquer plano: síndico, sub se ausente/vago, conselho sem ambos, proprietário designado sem todos; A também pode e S também pode somente no Gestão + Suporte | Mesmo condutor legitimado encerra por B; revalidar condições a cada ação. R/B segundo turno; edição irrestrita NC | Preservar fatos e auditoria sem conteúdo do voto |
 | `candidatura` / condomínio | Projeção eleitoral aos elegíveis; candidato vê elegibilidade/motivo no seu fluxo | Morador elegível se candidata por B na janela; inquilino salvo proibição da convenção | B verifica elegibilidade e resultado; edição/retirada humana não especificada: NC | NC |
 | `votacao`, `opcao_votacao` / condomínio | Votante elegível consulta opções/estado; nenhum perfil consulta parcial pelo fato de gerir a votação | G define por B; mínimo duas opções na abertura | G encerra conforme regra; B controla estado/quórum. Opções imutáveis após abrir; não manipular contagem | NC |
 | `procuracao` / condomínio | Outorgante/procurador nos próprios contextos; B verifica escopo e elegibilidade; consulta geral de procurações: NC | Proprietário indica antes do voto por B; mesmo condomínio e limite de representação | B considera vigência/revogação; procedimento humano de revogação e escopo reunião/eleição ainda não detalhados: NC para ações adicionais | Preservar se usada; NC operacional |
@@ -306,6 +306,7 @@ Fonte: [MER §4.11](01-mer-e-der.md#411-finanças-gerenciais-do-condomínio); RN
 | `origem_lancamento` / condomínio restrito | B e A/S somente na finalidade autorizada de conciliação; G/conselho na projeção fiscal sem ligação individual; G executor da autogestão somente na finalidade administrativa autorizada de conciliação | B junto do fato financeiro | Efeitos idempotentes/reconstruíveis; sem edição humana livre de componentes/origem | NC |
 | `comentario_financeiro` / condomínio | Leitores autorizados das finanças, sem abrir dados protegidos de outra origem | G/conselho comenta lançamento ou mês por B, inclusive fechado; A/S recebe aviso | Imutável; não altera valores nem aprova contas | Exclusão não prevista: NC; sem apagar para simular edição |
 | `exportacao_financeira` / condomínio | Solicitante autorizado; arquivo com mesmo filtro/projeção financeira de A/S, G ou conselho | A/S, G ou conselho solicita por B | B registra geração/estado/arquivo; solicitante não troca escopo após gerar | NC operacional; prazo de arquivo/expurgo P-09 |
+| `exportacao_gerencial` / condomínio | Solicitante autorizado (administradora vinculada vigente), revalidado na listagem, no detalhe e no download; arquivo privado, sem link público; não lê outro operador da mesma empresa nem outro contexto | Administradora vinculada solicita por B (RN-RL-01 a 08); worker revalida antes de gerar | B registra estado (Solicitada, Em processamento, Pronta, Falhou, Expirada), arquivo e falha sem dados pessoais; solicitante não troca escopo após gerar; download só Pronta com arquivo válido | NC operacional; validade/expurgo do arquivo P-09 |
 
 Não há vínculo individual exposto nas receitas de cobrança/reserva. CSV/PDF gerencial não é CSV individual de cobranças. Fontes individuais restritas com projeções diárias por categoria foram aprovadas por Pedro em 12/11/2026 (MER P-08); ADR-010 ajustado nesse ponto sem aceitação integral. O armazenamento físico ainda exige validação.
 
@@ -356,7 +357,7 @@ ADR-007 propõe resposta 404 para recurso de outro condomínio em vez de erro qu
 
 - WebSocket inscreve usuário em sala autorizada pelo servidor, por condomínio/portaria/blocos; cliente não escolhe sala livremente. Troca de contexto retira salas anteriores e revalida vínculo. Evento mínimo não substitui autorização da leitura detalhada.
 - Jobs enumeram contextos autorizados e processam um condomínio por execução; job sem tenant exige finalidade global explicitamente inventariada. O papel técnico não vira G ou A/S universal.
-- As 21 rotinas da RN §14 usam chave de efeito, execução registrada e idempotência; leitor de `execucao_rotina` não recebe poder de editar saldos ou repetir cobrança.
+- As 22 rotinas da RN §14 (inclui a conciliação diária com o gateway, rotina 22) usam chave de efeito, execução registrada e idempotência; leitor de `execucao_rotina` não recebe poder de editar saldos ou repetir cobrança.
 - Webhook autentica o provedor, resolve tenant por correlação confiável e deduplica. Quarentena não concede ao Admin acesso ao evento operacional correlacionado. Confirmação, recusa, expiração e devolução são fatos distintos.
 - Consumidores de outbox/push/e-mail recebem carga mínima necessária; link ou referência de notificação não autoriza abrir um domínio proibido. Credenciais ficam no servidor, por ambiente, nunca no aplicativo.
 - Armazenamento, canal e fila não são novos perfis de produto. Privilégios exatos das credenciais e exceções revisadas ficam para o desenho físico/segurança.
@@ -371,7 +372,7 @@ Não inventar decisão para operação de vínculo já encerrado que chega atras
 
 ### Complementação de acesso de 12/11/2026
 
-Aplicar as [decisões de Pedro de 12/11/2026](../01-produto/05-decisoes-de-complementacao.md). Cancelar reserva pelo condomínio exige síndico/sub em substituição ou A/S vigente, com motivo/auditoria. Eleição regular abre/encerra somente por A/S vigente; síndico/sub não recebem essa permissão. Destinatário de denúncia revisa somente projeção protegida e decide sem ação ou ocultação com motivo/histórico, sem score automático; suporte continua excluído de reclamações e scores. Pessoa do episódio original conserva defesa/recurso próprios após mudança, sem acessar a unidade atual; mecanismo/projeção depende de revisão de privacidade. Não conceder função de operador LGPD até definição explícita. Acompanhamento e arquivo de exportação revalidam escopo atual; fila pendente não é cache apagável, e acesso após logout segue sem definição.
+Aplicar as [decisões de Pedro de 12/11/2026](../01-produto/05-decisoes-de-complementacao.md). Cancelar reserva pelo condomínio exige síndico/sub em substituição ou A/S vigente, com motivo/auditoria. Eleição regular abre/encerra somente por A/S vigente; síndico/sub não recebem essa permissão. **Substituída em 13/11/2026 por RN-VO-13/RN-CD-13** (condução em qualquer plano; ver bloco de 13/11/2026 abaixo). Destinatário de denúncia revisa somente projeção protegida e decide sem ação ou ocultação com motivo/histórico, sem score automático; suporte continua excluído de reclamações e scores. Pessoa do episódio original conserva defesa/recurso próprios após mudança, sem acessar a unidade atual; mecanismo/projeção depende de revisão de privacidade. Não conceder função de operador LGPD até definição explícita. Acompanhamento e arquivo de exportação revalidam escopo atual; fila pendente não é cache apagável, e acesso após logout segue sem definição.
 
 ## 7. Exclusão, anonimização e retenção
 
@@ -473,9 +474,9 @@ Não são testes implementados nem evidência de banco seguro. São roteiros par
 
 ## Atualização de autogestão e eleições — 13/11/2026
 
-Regra aprovada por Pedro: **Essencial admite autogestão**, sem administradora e sem contratar Gestão + Suporte (RN-PL-08); não é terceiro plano nem novo perfil. Gestão e administração ficam no condomínio, concentradas nos órgãos locais aprovados por Pedro. **Distribuição conservadora proposta, a validar:** síndico executa, subsíndico em substituição assume, conselho fiscal mantém fiscalização e as atribuições específicas das RN. A exceção financeira de RN-FI-29 permite ao executor da autogestão operar finanças; não concede ao conselho edição financeira irrestrita. Leitura fiscal continua agregada e fontes individuais permanecem restritas à finalidade autorizada. Suporte não recebe acesso ao Essencial, nem a reclamações e scores em qualquer plano.
+Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver [registro de autogestão e condução eleitoral](../01-produto/06-autogestao-e-conducao-eleitoral.md) e RN-PL-08, RN-VO-13 e RN-CD-13. Impacto neste documento: a autogestão é modalidade do Essencial, sem terceiro plano e sem novo perfil; a exceção financeira de RN-FI-29 não dá ao conselho edição financeira irrestrita; a leitura fiscal continua agregada e as fontes individuais ficam restritas à finalidade autorizada; a condução eleitoral é contextual e revalidada a cada leitura e ação, com auditoria que nunca registra voto individual. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
-**Condução eleitoral em qualquer plano:** síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição. Administradora vinculada e suporte legitimamente autorizado também podem conduzir, sem serem pré-requisito. Autorização é contextual por condomínio, mandato, ausência/vacância e concessão; revalidar em cada leitura e ação. Proprietário designado recebe somente o escopo daquela eleição, sem gestão, finanças, reclamações ou autoconcessão. Auditoria registra ações, nunca voto individual; resultado só após encerramento. A restrição eleitoral anterior de 12/11/2026 fica substituída por RN-VO-13/RN-CD-13 atualizadas.
+**Substituição:** a restrição eleitoral de 12/11/2026 (eleição regular só por administradora/suporte) foi **substituída em 13/11/2026 por RN-VO-13/RN-CD-13**, atualizadas em 15/11/2026.
 
 **Proposta técnica a revisar:** separar modalidade de gestão do plano comercial e manter histórico de vigência; políticas de autorização por ação (Strategy), reutilizando serviços de domínio (Information Expert, baixo acoplamento) nas interfaces de síndico, conselho e comum. Não atribuir o papel Administradora ao síndico para reutilizar DTOs. Persistir concessão eleitoral com condomínio, eleição, proprietário, início/fim, origem da designação e revogação, sem prazo arbitrário. Modelo físico, operação de concessão e campos ainda dependem de validação. Não há banco, migrações ou backend implementados.
 

@@ -276,7 +276,7 @@ Object.defineProperties(S, {
    Dados fictícios de um condomínio de 120 unidades, de dez/2025 a nov/2026 (hoje = 05/11/2026). Receitas de cobrança e de reservas
    são lançamentos automáticos agregados por dia e categoria (origem 'auto'); o resto é avulso (origem 'manual'). Valor negativo = estorno. */
 const FIN_CATS_D = { energia: 'Energia', agua: 'Água e esgoto', gas: 'Gás', terc: 'Serviços terceirizados', folha: 'Folha de funcionários', manut: 'Manutenção e obras', seg: 'Seguros', adm: 'Administração', outros: 'Outros' };
-const FIN_CATS_R = { taxa: 'Taxa condominial', extras: 'Cobranças extras', multas: 'Multas e juros por atraso', infr: 'Multas por infração', areas: 'Aluguel de áreas', outras: 'Outras receitas' };
+const FIN_CATS_R = { taxa: 'Taxa condominial', extras: 'Cobranças extras', multas: 'Multas e juros por atraso', infr: 'Multas por infração', areas: 'Aluguel de áreas', outras: 'Outras receitas', fundo_reserva: 'Fundo de reserva' };
 const FIN_SERVICOS = ['Portaria', 'Limpeza', 'Elevador', 'Jardinagem', 'Outro'];
 const FIN_MESES = ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
 const FIN_MES_NOME = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];

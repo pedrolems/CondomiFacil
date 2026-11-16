@@ -1,6 +1,6 @@
 # Decisões de complementação dos diagramas
 
-**Data:** 12/11/2026. **Decisor:** Pedro Lemos. **Estado:** decisões de produto aprovadas; desenhos técnicos e validações externas mantêm seus próprios estados.
+**Data:** 12/11/2026. **Atualizado em:** 15/11/2026. **Decisor:** Pedro Lemos. **Estado:** decisões de produto aprovadas; desenhos técnicos e validações externas mantêm seus próprios estados.
 
 Pedro autorizou implementar as recomendações apresentadas na revisão dos diagramas de sequência e estados. Este registro identifica as 19 escolhas e sua aplicação. Não aceita ADRs inteiros, não comprova PoC, não substitui parecer jurídico e não inicia backend ou integração financeira real.
 
@@ -17,7 +17,7 @@ Pedro autorizou implementar as recomendações apresentadas na revisão dos diag
 | 9A | Troca de habilitado preserva caso/score no episódio original e acesso próprio à defesa/recurso | RN-SC-04/RN §5.3; RF-RS-09/11; US-RS-04/05; UF 9; S06/S24/S25 | Acesso restrito ao caso, sem dados atuais da unidade; revisão de privacidade antes do código |
 | 10A | Reversão devolve somente a perda efetivamente aplicada | RN-RC-07; RF-RS-09; US-RS-05; UF 9.3; MER movimento_score; S25 | Ex.: 3 → 0 por penalidade nominal 10 devolve 3; teto 100 permanece |
 | 11A | Destinatário autorizado revisa denúncia e encerra sem ação ou oculta conteúdo com motivo/histórico | RN-RC-13; RF-RS-14; US-RS-07; UF 10.1; DS 11.5; S27 | Projeção sem desanonimizar reclamante/avaliador, sem score automático; suporte excluído dos conteúdos vedados |
-| 12A | Decisão original de 12/11/2026: administradora/suporte autorizado abriam e encerravam eleição regular. **Substituída em 13/11/2026** pela condução local escalonada de RN-VO-13, em qualquer plano | RN-VO-13; RN-CD-13; RF-VO-05; US-VO-03; UF 11.2; DS 11.7; S29; registro 06 | Histórico preservado; a restrição anterior a síndico/subsíndico não está vigente |
+| 12A | Decisão original de 12/11/2026: administradora/suporte autorizado abriam e encerravam eleição regular. **Substituída em 13/11/2026** por RN-VO-13 (condução local escalonada, em qualquer plano; suporte só no Gestão + Suporte) | RN-VO-13; RN-CD-13; RF-VO-05; US-VO-03; UF 11.2; DS 11.7; S29; registro 06 | Histórico preservado; a restrição anterior a síndico/subsíndico não está vigente |
 | 13A | Segundo turno empatado ou ausência de elegível: resultado inconclusivo; em 13/11/2026, o encaminhamento passa ao condutor autorizado de RN-VO-13, inclusive sem administradora | RN-VO-07; RF-VO-08; US-VO-03; UF 11.2; S29 | Sem vencedor automático; encaminhamento operacional não define consequência da convenção |
 | 14A | LGPD automatiza o procedimento definido; exceções são assistidas por operador autorizado | RN-CD-18; RF-LG-01/02; US-LG-01; UF 14.1; S34 | Identidade/função e concessão do operador ainda não definidas; nenhuma permissão implícita |
 | 15A | Separar fila offline pendente do cache; preservar protegida até sincronização/tratamento explícito | RN-OF-06; RF-VI-05/06/11/RF-CH-03; US-VI-04/US-CH-02; UF 6.3; S16/S21 | Retenção, acesso após logout e tratamento exigem desenho; sem retenção indefinida aprovada |
@@ -44,6 +44,6 @@ O protótipo simula fatos em memória e não comprova isolamento, pagamentos, pe
 
 ## Verificação desta alteração em 12/11/2026
 
-Contrato revisto: 338 operações OpenAPI com IDs únicos; lint Redocly local nos 11 arquivos de interface passou. A tabela de cobertura mantém 139 RF e suas referências a operações existentes. Sintaxe JavaScript e invocação das 262 telas registradas passaram; 27 verificações de callbacks em VM cobriram permissões, dinheiro tardio, atraso sem cron, triagem, moderação/ocultação, segundo empate, episódio/perda efetiva e exportação assíncrona. Diagramas e links receberam checagem estrutural local.
+Contrato revisto: 338 operações OpenAPI com IDs únicos; lint Redocly local nos 11 arquivos de interface passou. A tabela de cobertura mantém 139 RF (registro histórico; hoje 150 RF, com os 11 RF-RL de 14/11/2026) e suas referências a operações existentes. Sintaxe JavaScript e invocação das 262 telas registradas passaram; 27 verificações de callbacks em VM cobriram permissões, dinheiro tardio, atraso sem cron, triagem, moderação/ocultação, segundo empate, episódio/perda efetiva e exportação assíncrona. Diagramas e links receberam checagem estrutural local.
 
 Essas verificações usam dados fictícios/DOM simulado e não comprovam layout, segurança de execução, pagamento ou persistência. Não houve validação visual no navegador, parser/renderização Mermaid, implementação de backend, PoC Asaas ou parecer jurídico. ADRs permanecem nos estados anteriores. Nenhum commit ou push foi realizado.

@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 15/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** decisão de produto
 - **Relacionado a:** [ADR-006](006-fila-agendador-eventos.md), [ADR-001](001-multi-tenant-rls.md)
@@ -21,7 +22,7 @@ Rotinas afetadas (RN seção 14):
 
 Risco concreto: com fuso errado, efeitos saem fora de hora, por exemplo visitantes marcados "não compareceu" cedo demais (arquitetura 9.4). A rotina 13 também tem um complemento local no aparelho, que apaga o cache na primeira abertura de um novo dia ([ADR-003](003-banco-local-e-sync-offline.md)), e esse "dia" precisa usar o mesmo critério.
 
-As demais rotinas diárias (4, 7, 8, 10, 11, 12, 14 a 20) não tinham horário. Em 09/11/2026 Pedro decidiu: as diárias sem horário próprio rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as que mandam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais, para não haver push de madrugada. As rotinas 10 e 20 ficam com a numeração e têm duas etapas: o efeito de regra roda na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada é enfileirado e sai às 09:00 locais; push de evento disparado por pessoa não muda. Exceção: o lembrete de reserva (rotina 21, a cada 5 min) calcula o envio no fuso do condomínio e, se o horário de 24h antes cair entre 00:00 e 08:59 locais, antecipa o push para as 21:00 da noite anterior (RN-RE-14, decisão de Pedro em 09/11/2026), sem fila das 09:00. O horário está registrado na RN seção 14.
+As demais rotinas diárias (4, 7, 8, 10, 11, 12, 14 a 20) não tinham horário. A rotina 22 (Conciliação diária com o gateway, criada em 15/11/2026 para SEG-17) entra na faixa da madrugada, de 00:00 a 06:00 locais, em sequência, sem push. Em 09/11/2026 Pedro decidiu: as diárias sem horário próprio rodam na faixa de 00:00 a 06:00 no fuso do condomínio, em sequência; as que mandam lembrete ou aviso a pessoas (8, 11 e 17) rodam às 09:00 locais, para não haver push de madrugada. As rotinas 10 e 20 ficam com a numeração e têm duas etapas: o efeito de regra roda na madrugada e o aviso às 09:00. O push gerado por rotina da madrugada é enfileirado e sai às 09:00 locais; push de evento disparado por pessoa não muda. Exceção: o lembrete de reserva (rotina 21, a cada 5 min) calcula o envio no fuso do condomínio e, se o horário de 24h antes cair entre 00:00 e 08:59 locais, antecipa o push para as 21:00 da noite anterior (RN-RE-14, decisão de Pedro em 09/11/2026), sem fila das 09:00. O horário está registrado na RN seção 14.
 
 A regra de produto sobre o fuso não existe nas RN. A decisão é de produto.
 

@@ -1,6 +1,6 @@
 # Design System — CondomiFacil
 
-Nov 4, 2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
 
 Este documento define os padrões visuais e de interação do CondomiFacil: cores, tipografia, espaçamento, ícones, componentes, padrões de tela, escrita e acessibilidade. Ele vale para o app (Android e iOS) e para a versão web, que saem do mesmo código em React Native.
 
@@ -121,6 +121,8 @@ Cada token tem um valor no tema claro e outro no tema escuro. O contraste foi ca
 | `color.border.control` | Contorno de campos, caixas de seleção e botão secundário | #74809E (3,9:1) | #6F84BD (4,4:1; 3,8:1 na superfície) |
 | `color.border.divider` | Divisórias e contornos decorativos | #DCE2F0 | #1F3A85 |
 | `color.focus` | Anel de foco (teclado e leitor de tela) | #0E359D (10,4:1) | #8FA8F0 (7,0:1) |
+| `chart-1` | Série principal dos gráficos (4.7) | `blue.700` | `blue.300` |
+| `chart-2` | Série de comparação dos gráficos (4.7); contorno em `coral.700` no tema claro | `coral.500` | `coral.500` |
 
 **Por que o botão primário muda de cor no tema escuro.** O azul da marca sobre o fundo escuro tem só 1,6:1 de contraste, então o botão desapareceria. No tema escuro, o coral assume o papel de cor de ação, com texto azul-escuro.
 
@@ -481,6 +483,15 @@ O produto usa os ícones **Lucide** (`lucide-react-native`), de código aberto, 
 | Filtrar | `sliders-horizontal` |
 | Trocar unidade | `chevrons-up-down` |
 | Novidade ou dica | `sparkles` |
+| Lista de visitantes | `list-checks` |
+| Entrega esperada | `package-open` |
+| Urgência alta / média / leve | `chevrons-up` / `equal` / `chevron-down` |
+| Variação sobre o período anterior (alta / queda / estável) | `trending-up` / `trending-down` / `minus` |
+| Lançamento de receita / de despesa | `arrow-down-to-line` / `arrow-up-from-line` |
+| Comprovante anexado | `paperclip` |
+| Não comparecimento | `user-x` |
+| Remover linha | `trash-2` |
+| Nome repetido | `copy` |
 | Ações universais | `arrow-left` (voltar), `x` (fechar), `check` (marcado), `ellipsis` (mais ações), `clock` (aguardando), `circle-minus` (neutro), `circle-check`, `triangle-alert`, `circle-x`, `info` (tons de status) |
 
 ## 9. Movimento
@@ -717,7 +728,7 @@ Usada nos painéis da administradora, do suporte e do síndico (RF-AC-06), na fa
 - Busca, filtros em chips e ordenação por coluna no topo. Paginação de 25, 50 ou 100 linhas no rodapé.
 - Ações da linha num menu `ellipsis` de 48 dp no fim da linha; ações em massa aparecem numa barra quando há linhas marcadas.
 - Na faixa compacta, cada linha vira um cartão.
-- Linha anulada (ex.: lançamento "Estornado") mantém o valor riscado e ganha o selo de estado; a informação nunca depende só do risco. Totais ficam numa linha de rodapé em `type.label.md`.
+- Linha anulada (ex.: lançamento "Estornado") mantém o valor riscado e ganha o selo de estado; a informação nunca depende só do risco. Totais ficam numa linha de rodapé em `type.label.sm`.
 
 ### 10.23 Indicador de sincronização
 
@@ -814,7 +825,7 @@ Cartões com o score do síndico (componente 10.18 em versão compacta) e a nota
 
 ### 11.7 Votações
 
-- **Condução eleitoral (13/11/2026):** em qualquer plano, síndico; se ausente ou cargo vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado pelo condomínio, inclusive não residente, com permissão temporária restrita à eleição. Administradora presente e suporte autorizado no Gestão + Suporte também podem conduzir. Mostrar responsável e motivo de indisponibilidade; nunca resultados parciais nem relação eleitor–voto. Encerramento definitivo revoga a permissão temporária. Concessão e comprovação da designação ainda exigem revisão.
+- **Condução eleitoral (13/11/2026):** em qualquer plano, síndico; se ausente ou cargo vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado pelo condomínio, inclusive não residente, com permissão temporária restrita à eleição. Administradora presente e suporte autorizado, somente no Gestão + Suporte, também podem conduzir. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. Mostrar responsável e motivo de indisponibilidade; nunca resultados parciais nem relação eleitor–voto. Encerramento definitivo revoga a permissão temporária. Concessão e comprovação da designação ainda exigem revisão.
 - Cartão da pauta com pergunta, opções em botões de opção grandes, quórum e prazo ("Votação até o fim da reunião, 20/11 às 21h").
 - Confirmação em diálogo com a opção escolhida, porque o voto não pode ser mudado.
 - Depois de votar: selo `success` "Seu voto foi registrado". Resultado só aparece após o encerramento (RF-VO-07).
@@ -871,7 +882,7 @@ O subsíndico usa as telas do síndico. O que muda depende da substituição (RN
 - No Início, o cartão "Para julgar" diz "reclamações contra o síndico" fora da substituição; na substituição, aparece também o cartão "Substituição ativa".
 - Para o síndico, Comunicados ganha a seção "Sugestões da subsíndica" acima dos enviados, e o item Comunicados da Gestão mostra um selo `accent` com o número de sugestões pendentes. Revisar abre o formulário de novo comunicado preenchido, com a faixa "Sugestão da subsíndica [nome], de [data]. Revise antes de enviar."
 
-Eleição regular segue a precedência local de 11.7 em qualquer plano, independentemente de administradora ou suporte. A decisão de 13/11/2026 substitui a restrição de 12/11/2026 (RN-VO-13).
+Eleição regular segue a precedência local de 11.7 em qualquer plano, independentemente de administradora ou suporte presentes; o suporte da plataforma só conduz no Gestão + Suporte. A decisão de 13/11/2026 substitui a restrição de 12/11/2026 (RN-VO-13).
 
 ### 11.12 Avaliação do atendimento
 
@@ -979,7 +990,7 @@ Telas de RF-FI-17 a RF-FI-24 (fluxos 13.3 e 13.4). Só cartão (10.7), tabela (1
 - Manutenção: Reaberto traz “Aguardando triagem” e ações Orçamento/Agendado somente para síndico/sub em substituição. Registrar autoria/momento e manter texto de estado.
 - Reclamações: reatribuição retira ações do ex-julgador. Troca de habilitado não mostra caso do antigo ao novo; acesso próprio histórico fica restrito ao caso. Recurso mostra pontos efetivamente devolvidos, sem inflar penalidade truncada.
 - Denúncias: destinatário vê projeção protegida, motivo, ação Encerrar sem ação ou Ocultar conteúdo, confirmação e histórico. Oculto aparece com texto e ícone, sem apagar evidência restrita nem penalizar score automaticamente. Não revelar autoria protegida na moderação.
-- Eleições: a restrição original de 12/11 foi substituída pela precedência local de 11.7 em 13/11/2026. Inconclusiva traz motivo e encaminhamento ao condomínio, sem vencedor inventado; administradora e suporte autorizado podem participar quando presentes.
+- Eleições: a restrição original de 12/11 foi substituída pela precedência local de 11.7 em 13/11/2026. Inconclusiva traz motivo e encaminhamento ao condomínio, sem vencedor inventado; administradora e suporte autorizado podem participar quando presentes; suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral.
 - Exportações: solicitação, processamento, falha e arquivo disponível são informações de acompanhamento; ícone/texto sempre acompanham o estado. Arquivo é privado e exige autorização atual. Não anunciar “baixado” ao solicitar.
 - Portaria/limpeza: pendência de envio é separada da limpeza do cache; não mostrar “Tudo sincronizado” enquanto houver fila. Acesso após logout ainda requer desenho de segurança.
 - LGPD: exceção informa necessidade de análise autorizada sem nomear operador não definido. Sessão não promete tolerância já implementada. Assinatura da plataforma aparece como cobrança assistida/manual separada da taxa condominial.
@@ -1219,6 +1230,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 15/11/2026 | Tokens `chart-1` e `chart-2` definidos na seção 4 (referência a `blue.700`/`blue.300` e `coral.500`); totais de lançamentos em `type.label.sm` (antes `type.label.md`, inexistente); mapa 8.3 ampliado com `list-checks`, `package-open`, `chevrons-up`, `equal`, `chevron-down`, `trending-up/down`, `minus`, `arrow-down-to-line`, `arrow-up-from-line`, `paperclip`, `user-x`, `trash-2` e `copy`; condução eleitoral com a restrição do suporte ao Gestão + Suporte (11.7, 11.2, 11.17); cabeçalho em dd/mm/aaaa | Auditoria de consistência de 15/11/2026: tokens e ícones usados sem definição, e decisão do Pedro de 15/11/2026 sobre o suporte da plataforma |
 | 14/11/2026 | Relatórios gerenciais antecipados para MVP; nove tipos, PDF/CSV/XLSX e PNG/SVG agregados; central privada assíncrona (11.18) | Decisão do Pedro e autorização de alinhamento; preservar acesso da administradora e privacidade |
 | 13/11/2026 | Condução eleitoral por precedência local em qualquer plano (11.7), designação restrita à eleição e Essencial com autogestão (11.17), incluindo simulação de administração local | Decisão de Pedro: funcionamento sem administradora ou suporte pago; distribuição detalhada de funções fica como proposta para revisão, preservando sigilo e fiscalização |
 | 12/11/2026 | Exceções de reserva e pagamento, triagem de manutenção, episódio original e reversão efetiva, moderação protegida, autorização eleitoral, exportação assíncrona e fila separada do cache (11.16); assinatura assistida e LGPD com operador pendente | Decisões de Pedro, escolhas 1A–19A; alinhar RN, PRD, histórias, fluxos e protótipo sem ampliar acesso nem afirmar validações externas |

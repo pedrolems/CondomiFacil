@@ -1,6 +1,6 @@
 # Integrações externas — CondomiFacil
 
-**Estado:** Proposta de 10/11/2026, não aceita pelo Pedro. **Decisão do Pedro em 10/11/2026:** gateway Asaas (ADR-002), e-mail Resend (ADR-005), Supabase (só PostgreSQL e Storage por API compatível com S3) e Render (API, WebSocket e worker no mesmo serviço web no plano gratuito) para construir o MVP em dev e staging (ADR-004). Push (Expo Push e FCM) e erros (Sentry) já estavam no PRD seção 10. Todo o resto deste documento é Proposta.
+**Estado:** Proposta de 10/11/2026, atualizada em 14/11/2026, não aceita pelo Pedro. **Decisão do Pedro em 10/11/2026:** gateway Asaas (ADR-002), e-mail Resend (ADR-005), Supabase (só PostgreSQL e Storage por API compatível com S3) e Render (API, WebSocket e worker no mesmo serviço web no plano gratuito) para construir o MVP em dev e staging (ADR-004). Push (Expo Push e FCM) e erros (Sentry) já estavam no PRD seção 10. Todo o resto deste documento é Proposta.
 
 Os fatos sobre serviços externos vêm da documentação oficial, consultada em 10/11/2026; o endereço de cada página está na seção 8. Onde a página não confirmou, o texto diz **a confirmar** e não afirma. Nenhuma requisição externa levou nome, e-mail ou dado do projeto.
 

@@ -2,6 +2,7 @@
 
 - **Estado:** Proposto
 - **Data:** 06/11/2026
+- **Atualizado em:** 10/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** definição da equipe
 - **Relacionado a:** [ADR-004](004-nuvem-regiao-residencia-dados.md), [ADR-002](002-gateway-de-pagamento.md), [ADR-003](003-banco-local-e-sync-offline.md), [ADR-008](008-orm-query-builder-migracoes.md)

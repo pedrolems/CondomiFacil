@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CondomiFacil API - interface da plataforma
   version: 0.1.0-proposta
-  description: '**Proposta de 10/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro nem do PRD (caminhos, nomes de campos de entrada, códigos de erro, códigos de plano) é Proposta. Estados e regras vêm das Regras de Negócio e do MER/DER.
+  description: '**Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Tudo o que não vem de decisão do Pedro nem do PRD (caminhos, nomes de campos de entrada, códigos de erro, códigos de plano) é Proposta. Estados e regras vêm das Regras de Negócio e do MER/DER.
 
 
     Interface do painel da plataforma, em `/v1/plataforma/*` (pasta `plataforma/`, `01-backend.md` 3.3). O **Admin da plataforma** cadastra condomínios, planos e acessos de suporte e não acessa dados de condomínios (arquitetura 4.4). O **Suporte da plataforma** abre contexto em condomínio do plano Gestão + Suporte e passa a operar por `/v1/administradora/*` com `X-Condominio-Id`, exceto reclamações e scores (SEG-13, RN-CD-16).
@@ -147,10 +147,10 @@ paths:
                 id: 00000192-0000-4000-8000-000000000192
                 unidades_de: 1
                 unidades_ate: 30
-                valor_centavos: 9900
+                valor_centavos: 10900
                 franquia_solicitacoes: null
                 extra_centavos: 1500
-                vigente_desde: '2026-01-01T00:00:00-03:00'
+                vigente_desde: '2027-01-01T00:00:00-03:00'
                 vigente_ate: null
                 sob_consulta: false
         '400':
@@ -489,11 +489,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CondominioEntradaPlataforma'
+              $ref: '#/components/schemas/CondominioAtualizacaoPlataforma'
             example:
               nome: Condomínio Residencial Exemplo
               documento: '12345678000190'
-              plano_codigo: essencial
       responses:
         '200':
           description: Condomínio atualizado.
@@ -1745,7 +1744,7 @@ paths:
                 niveis_permitidos:
                 - condominio
                 valor_padrao: 12
-                vigente_desde: '2026-01-01T00:00:00-03:00'
+                vigente_desde: '2027-01-01T00:00:00-03:00'
                 proxima_vigencia: null
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
@@ -2086,6 +2085,29 @@ components:
           oneOf:
           - $ref: ./componentes/comum.yaml#/components/schemas/Uuid
           - type: 'null'
+    CondominioAtualizacaoPlataforma:
+      type: object
+      description: Corpo do `PUT /condominios/{condominio_id}`. Sem plano, ciclo nem valor negociado, que mudam só por `/assinatura` (15/11/2026).
+      required:
+      - nome
+      properties:
+        nome:
+          type: string
+          examples:
+          - Condomínio Residencial Exemplo
+        documento:
+          type:
+          - string
+          - 'null'
+          examples:
+          - '12345678000190'
+        fuso_horario:
+          type:
+          - string
+          - 'null'
+          description: Proposta do ADR-012.
+          examples:
+          - America/Sao_Paulo
     CondominioEntradaPlataforma:
       type: object
       required:

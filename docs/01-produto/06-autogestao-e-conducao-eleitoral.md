@@ -1,6 +1,6 @@
 # Essencial com autogestão e condução eleitoral
 
-**Data:** 13/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes aprovadas; distribuição detalhada de poderes e procedimentos abaixo são propostas para revisão. Sem backend, concessões reais, novo plano comercial, commit ou push.
+**Data:** 13/11/2026. **Atualizado em:** 15/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes aprovadas; distribuição detalhada de poderes e procedimentos abaixo são propostas para revisão. Sem backend, concessões reais, novo plano comercial, commit ou push.
 
 ## 1. O que Pedro decidiu
 
@@ -15,7 +15,7 @@ Em qualquer plano, a eleição deve funcionar sem administradora e sem suporte p
 | Sem síndico e subsíndico | Conselho fiscal |
 | Sem nenhum deles | Proprietário designado pelo condomínio, com permissão temporária restrita à eleição |
 
-Administradora e suporte autorizado também podem conduzir quando presentes; o suporte continua restrito ao Gestão + Suporte e à autorização vigente. As ações ficam auditadas, os votos permanecem secretos e o resultado só aparece após encerramento. Não se exige um responsável eleitoral separado em toda eleição. Esta decisão substitui a restrição da escolha 12A de 12/11/2026; o registro anterior conserva o histórico.
+Administradora vinculada também pode conduzir quando presente; suporte autorizado também pode, somente no Gestão + Suporte e com autorização vigente. **Atualização de 15/11/2026 (Pedro):** Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. As ações ficam auditadas, os votos permanecem secretos e o resultado só aparece após encerramento. Não se exige um responsável eleitoral separado em toda eleição. Esta decisão substitui a restrição da escolha 12A de 12/11/2026; o registro anterior conserva o histórico.
 
 ## 2. Desenho operacional proposto para revisão
 
@@ -75,7 +75,7 @@ Os RF e US existentes foram detalhados, mantendo suas contagens. Este registro n
 
 ## 6. Verificação técnica da documentação em 13/11/2026
 
-As 11 interfaces OpenAPI passaram no lint Redocly local, sem instalação de dependências. O contrato agora declara **424 operações com IDs únicos**: quatro operações comuns de condução eleitoral e 82 operações administrativas propostas para `/v1/sindico/gestao/`, com parâmetros, corpos e respostas específicos reutilizados por referências. A tabela de cobertura mantém **139 RF** e referências a IDs existentes. As novas operações não aceitam campos genéricos nem atribuem papel Administradora ao síndico; proposta exige Essencial em autogestão, executor vigente/substituição e finalidade específica, recusando conselho, proprietário eleitoral e suporte nessas ações administrativas. Mandatos, substituições, primeira habilitação e designação eleitoral continuam decisões bloqueadoras; não foram escondidas por uma permissão geral.
+As 11 interfaces OpenAPI passaram no lint Redocly local, sem instalação de dependências. O contrato agora declara **424 operações com IDs únicos**: quatro operações comuns de condução eleitoral e 82 operações administrativas propostas para `/v1/sindico/gestao/`, com parâmetros, corpos e respostas específicos reutilizados por referências. A tabela de cobertura mantém **139 RF** (registro histórico; hoje 150 RF, com os 11 RF-RL de 14/11/2026) e referências a IDs existentes. As novas operações não aceitam campos genéricos nem atribuem papel Administradora ao síndico; proposta exige Essencial em autogestão, executor vigente/substituição e finalidade específica, recusando conselho, proprietário eleitoral e suporte nessas ações administrativas. Mandatos, substituições, primeira habilitação e designação eleitoral continuam decisões bloqueadoras; não foram escondidas por uma permissão geral.
 
 Arquitetura, ADRs 007/009, MER, política de acesso, backend, convenções e diagramas S29/administrativos/financeiros receberam a atualização contextual. O lint valida a estrutura e referências do contrato, sem aprovar a proposta de distribuição de poderes ou comprovar segurança, concorrência, layout, sigilo de voto ou integração real. Não existe backend/banco implementado e nenhum ADR ou contrato inteiro foi aceito nesta alteração.
 

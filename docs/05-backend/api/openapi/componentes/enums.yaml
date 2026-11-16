@@ -4,7 +4,7 @@ info:
   version: 0.1.0-proposta
   summary: Um esquema `Estado<Entidade>` por ciclo de vida, com os estados oficiais das regras de negócio.
   description: |
-    **Proposta de 10/11/2026**, não aceita pelo Pedro.
+    **Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro.
 
     Os estados são os nomes oficiais das telas, definidos em `03-regras-de-negocio.md` (seções 5.5,
     7.4, 8.3, 9.1, 9.2, 12.2 e 12.4) e referidos pelo MER/DER (seção 2.2 e seção 7). O MER/DER diz
@@ -158,3 +158,37 @@ components:
         - fechado
       examples:
         - aberto
+    EstadoExportacao:
+      type: string
+      description: |
+        Estado de uma exportação assíncrona, de relatório ou financeira (RN-RL-06). Correspondência:
+        `solicitada` Solicitada; `em_processamento` Em processamento; `pronta` Pronta (o arquivo só é
+        entregue neste estado); `falhou` Falhou; `expirada` Expirada (prazo de retenção do arquivo
+        encerrado; nova solicitação gera outro arquivo). Enum único para todos os perfis
+        (15/11/2026; antes a exportação financeira usava `concluida`, sem `expirada`).
+      enum:
+        - solicitada
+        - em_processamento
+        - pronta
+        - falhou
+        - expirada
+      examples:
+        - pronta
+    TipoSolicitacao:
+      type: string
+      description: |
+        Tipo de solicitação da fila atendida pela administradora (RF-AD-02; RN-CD-23). Enum único
+        (15/11/2026), união dos valores antes espalhados por perfil, com sinônimos unificados.
+        O síndico envia `cadastro`, `alteracao`, `remocao` (e `cobranca_extra`, nome Proposto); o
+        proprietário não residente envia só `cadastro_inquilino`, `renovacao_inquilino` e
+        `encerramento_inquilino`; outro valor para o perfil responde `422`.
+      enum:
+        - cadastro
+        - alteracao
+        - remocao
+        - cadastro_inquilino
+        - renovacao_inquilino
+        - encerramento_inquilino
+        - cobranca_extra
+      examples:
+        - cadastro

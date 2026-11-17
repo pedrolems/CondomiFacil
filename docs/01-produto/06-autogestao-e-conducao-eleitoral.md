@@ -1,6 +1,6 @@
 # Essencial com autogestão e condução eleitoral
 
-**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes e direções AG-01 A, AG-02 A e AG-07 C aprovadas; demais decisões e detalhamento operacional pendentes. Sem backend, concessões reais, novo plano comercial, commit ou push.
+**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes e direções dos lotes 1 e 2 aprovadas; detalhamento operacional, alinhamento transversal do lote 2 e decisões dos lotes seguintes pendentes. Sem backend, concessões reais, novo plano comercial, commit ou push.
 
 ## 1. O que Pedro decidiu
 
@@ -25,6 +25,18 @@ Administradora vinculada também pode conduzir quando presente; suporte autoriza
 
 **AG-07 C:** o registro de mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Ninguém valida o próprio poder. Validadores, evidências e recuperação ainda precisam ser definidos por caso; conduzir eleição não concede gestão geral nem autorização para validar o próprio mandato. Esta opção C é a combinação apresentada no [pacote de decisões, lote 1](../decisoes-para-iniciar-o-desenvolvimento.md), não a antiga alternativa C de edição direta pelo interessado.
 
+**Decisões do lote 2 — 17/11/2026:** Pedro aprovou o conjunto recomendado apresentado na conversa, registrado abaixo e no [pacote de decisões, lote 2](../decisoes-para-iniciar-o-desenvolvimento.md). Trata-se de aceite das direções, com procedimentos e alinhamento transversal pendentes de escopo próprio autorizado; não encerra G0 nem libera implementação.
+
+| ID / direção aceita | Decisão e limite | Detalhamento pendente |
+| --- | --- | --- |
+| AG-03 C (A+B na conversa) | Procedimento regular com ausência registrada pelo titular e vacância documentada e validada; exceção colegiada para emergência ou falta de acesso. Sem autodeclaração unilateral | Evidências, validadores, contestação e caminho quando ninguém tem acesso |
+| AG-04 A | Designação documentada do proprietário e verificada por procedimento restrito de implantação/recuperação; acesso temporário somente à eleição, sem finanças, cadastros ou gestão de mandatos | Verificador, provas, eleição abrangida, início/fim, revogação e recuperação |
+| AG-05 A | Representante e substituto designados pelo próprio conselho quando ele conduz a eleição; não exige responsável separado em toda eleição | Procedimento de designação e substituição, com auditoria |
+| AG-06 A | Manter exigência de composição; registrar ausência factual como pendência sem bloquear o degrau eleitoral aprovado | Tratamento da pendência de composição, sem declarar regularidade jurídica nem tornar órgãos opcionais |
+| AG-12 B | Somente rotinas automáticas e eleição enquanto não há gestor habilitado até a posse; aceita a limitação de tarefas administrativas manuais sem executor | Tratamento dos estados e avisos correspondentes; nenhuma capacidade administrativa temporária aprovada |
+
+**Correspondência das letras:** AG-03 C, aprovada na conversa, significa combinar A+B; não é a alternativa histórica C de autodeclaração do quadro da seção 3. Nenhum prazo, quórum, prova ou validador foi fixado por esse aceite. RN, PRD, histórias, fluxos, Design System, protótipo e fontes técnicas ainda precisam de alinhamento autorizado para o lote 2.
+
 | Atividade na autogestão | Distribuição / direção aprovada | Limite |
 | --- | --- | --- |
 | Pessoas, unidades, locações, funcionários, áreas, regras, documentos, blocos e lista de bloqueio | Síndico; sub em substituição | Auditoria, isolamento e regras de vínculo preservados |
@@ -39,7 +51,7 @@ Administradora vinculada também pode conduzir quando presente; suporte autoriza
 
 ## 3. Decisões e revisões para quando Pedro voltar
 
-O quadro conserva as alternativas históricas de 13/11/2026. Em 17/11/2026, Pedro aceitou as recomendações do lote 1 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md): AG-01 A, AG-02 A e AG-07 C, no alcance da seção 2. A letra C de AG-07 no pacote significa combinar resultado eleitoral e validação independente, substituindo a antiga alternativa C de edição direta do quadro. As demais recomendações continuam propostas, sem respostas presumidas.
+O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual de aprovação. Em 17/11/2026, Pedro aceitou as recomendações dos lotes 1 e 2 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md), no alcance da seção 2. AG-07 C combina resultado eleitoral e validação independente; AG-03 C da conversa combina procedimento regular A e exceção colegiada B. Nenhuma dessas letras C aprova a alternativa histórica correspondente de edição direta ou autodeclaração do quadro. As recomendações dos lotes seguintes continuam propostas, sem respostas presumidas.
 
 | ID | Questão e por que importa | Opções e consequências | Recomendação para decidir |
 | --- | --- | --- | --- |
@@ -60,7 +72,7 @@ O quadro conserva as alternativas históricas de 13/11/2026. Em 17/11/2026, Pedr
 
 | Área | O que revisar antes da implementação real | Evidência esperada |
 | --- | --- | --- |
-| Produto e conteúdo | AG-01/02/07 têm direções aceitas; detalhar seus procedimentos e decidir as demais AG. Conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades, separando decisões aceitas e detalhes pendentes |
+| Produto e conteúdo | Lotes 1 e 2 têm direções aceitas; detalhar procedimentos, alinhar transversalmente o lote 2 sob escopo autorizado e decidir AG-08 a AG-11. Conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades, separando decisões aceitas e detalhes pendentes |
 | Fluxos e protótipo | Implantação, pedidos locais, gestão cotidiana, substituição, ausência de todos, conselho e proprietário condutores, eleição inconclusiva e migração de modalidade | Percursos com dados fictícios e validação por síndico/conselho; protótipo não é prova de segurança |
 | Dados e autorização | Separar plano comercial, modalidade de gestão, vínculo/mandato, substituição e capacidade eleitoral temporária; revogar imediatamente a capacidade perdida | MER, política de acesso e ADRs revisados; autorização no servidor sem depender de perfil escolhido na UI |
 | API e backend | Expor ações administrativas à gestão local por capacidades; impedir autoconcessão, validar escopo da eleição e proteger operações concorrentes | Contratos rastreáveis aos RF existentes; testes de autorização e concorrência da futura implementação |

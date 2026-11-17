@@ -183,7 +183,7 @@ Nesta seção, "administradora" inclui a equipe de suporte da plataforma nos con
 
 A implantação segue uma ordem fixa, porque cada etapa depende da anterior: estrutura, conta bancária, pessoas e, por fim, regras.
 
-**Variante Essencial com autogestão — direção aceita em 17/11/2026 (AG-02 A, RN-CD-01):** sem autoridade previamente habilitada, a primeira identidade e representação da gestão são verificadas pelo Admin da plataforma em capacidade restrita. Operador, provas, recusa, contestação, recuperação e concessão/revogação ainda precisam de detalhamento antes do fluxo real. A verificação não concede acesso ao conteúdo de gestão, reclamações ou scores nem usa Suporte no Essencial. O diagrama abaixo mantém a variante com administradora; não demonstra o procedimento inicial da autogestão já concluído.
+**Variante Essencial com autogestão — direção aceita em 17/11/2026 (AG-02 A, RN-CD-01):** sem autoridade previamente habilitada, a primeira identidade e representação da gestão são verificadas pelo Admin da plataforma em capacidade restrita. Aplicam-se os comprovantes por evento, validação independente, recusa motivada e revisão de RN 3.1. Operador será nomeado antes do primeiro condomínio oficial; até lá, somente dados fictícios, sem Pedro como Admin. A verificação não concede acesso ao conteúdo de gestão, reclamações ou scores nem usa Suporte no Essencial. O diagrama abaixo mantém a variante com administradora; não demonstra o procedimento inicial da autogestão já concluído.
 
 ```mermaid
 flowchart TD
@@ -262,7 +262,7 @@ flowchart TD
 
 ### 4.3 Mudança de morador e desligamento de funcionário
 
-**Variação transversal — Essencial com autogestão (13/11/2026; distribuição aprovada em 17/11/2026, AG-01 A/RN-PL-08):** os fluxos 4.1–4.5, 13.2 e 13.3 precisam funcionar sem administradora e sem Gestão + Suporte. Entrada por Gestão → Administração do condomínio; indicar "Essencial · Autogestão". Síndico executa cadastro, configuração e administração financeira; subsíndico executa durante substituição formal; conselho fiscal acompanha e fiscaliza, sem edição financeira. Não há delegação por atividade aprovada. Ação administrativa exige internet, função vigente e auditoria. Solicitação destinada à administradora passa a fila local, sem cobrar franquia de Gestão + Suporte. A designação eleitoral não autoriza cadastros, finanças ou concessão de funções. Fluxos antigos abaixo descrevem a variante com administradora; a variante local deve preservar as mesmas validações e privacidade. Procedimentos sensíveis do registro 06 continuam pendentes, sem reabrir a distribuição já aprovada.
+**Variação transversal — Essencial com autogestão (13/11/2026; distribuição aprovada em 17/11/2026, AG-01 A/RN-PL-08):** os fluxos 4.1–4.5, 13.2 e 13.3 precisam funcionar sem administradora e sem Gestão + Suporte. Entrada por Gestão → Administração do condomínio; indicar "Essencial · Autogestão". Síndico executa cadastro, configuração e administração financeira; subsíndico executa durante substituição formal; conselho fiscal acompanha e fiscaliza, sem edição financeira. Não há delegação por atividade aprovada. Ação administrativa exige internet, função vigente e auditoria. Solicitação destinada à administradora passa a fila local, sem cobrar franquia de Gestão + Suporte. A designação eleitoral não autoriza cadastros, finanças ou concessão de funções. Fluxos antigos abaixo descrevem a variante com administradora; a variante local deve preservar as mesmas validações e privacidade. Operações sensíveis seguem RN-PG-01/RN-FI-29 e RN 3.1, sem reabrir a distribuição aprovada.
 
 ```mermaid
 flowchart TD
@@ -291,7 +291,7 @@ flowchart TD
 
 ### 4.4 Mandatos e substituição do síndico
 
-**Autogestão — AG-07 C aceita em 17/11/2026 (RN-VO-15):** o registro do mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Validadores, evidências e recuperação ainda precisam ser definidos antes da execução real. O interessado não valida o próprio poder e conduzir eleição não concede gestão geral. A comprovação de ausência/vacância permanece pendente em AG-03; o diagrama da variante com administradora não resolve essas lacunas.
+**Autogestão — AG-07 C aceita em 17/11/2026 (RN-VO-15):** o registro do mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Validadores, evidências e recuperação seguem RN 3.1; sem operador nomeado, somente simulação com dados fictícios. O interessado não valida o próprio poder e conduzir eleição não concede gestão geral. A comprovação de ausência/vacância segue RN-CD-12/3.1; o diagrama abaixo descreve a variante com administradora.
 
 ```mermaid
 flowchart TD
@@ -357,6 +357,23 @@ flowchart TD
 | Ação de morador numa unidade desocupada | Reservas, visitantes e chamados não aparecem para a unidade | — | RN-CD-24 |
 | Hóspede de temporada com a temporada desligada (padrão) | A opção não aparece para o proprietário | — | RN-VI-10 |
 | Proprietário volta a morar | A administradora muda o vínculo; ele ganha as abas de morador e score 100 | — | RN-CD-25 |
+
+### 4.6 Autogestão: implantação, representação e operações sensíveis — 17/11/2026
+
+Rodada aprovada por Pedro: **1C, 8B e demais A**. Complementa fluxos 3.1, 4.1–4.5, 9, 11.2 e 13; RN 3.1, RN-CD-12, RN-VO-13/15, RN-PG-01, RN-FI-29, RN-RC-03/14 e RN 11.1; critérios nas histórias US-AD-01/05/06/07/12, US-RS-04, US-VO-03, US-PL-01 e US-FI-04; DS 11.17. Dados e atores são fictícios; nomeação do operador precede o primeiro condomínio oficial, sem Pedro como Admin.
+
+| Fluxo | Caminho aprovado e exceções |
+| --- | --- |
+| Primeira habilitação/recuperação | Solicitante apresenta identidade, condomínio e ata/termo do evento; contratação profissional inclui contrato/autorização → Admin restrito verifica → pede complemento ou recusa com motivo, sem poder provisório, ou habilita após validação. Contestação → revisão independente; mera alegação não suspende. Sem revisor, nova concessão contestada aguarda |
+| Mandato e ausência | Condutor competente não interessado registra resultado/posse; conflito/exceção → representante local independente e habilitado → sem elegível, Admin verifica documentos. Titular registra ausência com início/fim; retorno ou fim encerra substituição. Emergência/vacância → prova + dois representantes independentes do beneficiário; sem composição/acesso → Admin restrito. Nenhuma autovalidação |
+| Conselho/proprietário eleitoral | Conselho documenta representante e substituto por eleição; impedimento registrado habilita substituto. Proprietário designado recebe eleição identificada + validade até 30 dias; prorrogação exige nova validação. Conclusão, cancelamento, vencimento ou substituição validada revogam acesso; segundo turno não renova prazo automaticamente |
+| Sem gestor ou julgador | Sem gestor até posse → indicar tarefas administrativas aguardando responsável; continuam rotinas automáticas e eleição. Caso/recurso sem julgador imparcial → Aguardando atribuição + aviso; sem punição ou decisão automática pela espera e sem conteúdo protegido ao Suporte/Admin |
+| Troca de conta | Executor solicita → representante local habilitado e independente aprova → efetivar alteração. Sem segundo representante → aguardar, mantendo recebimentos na conta vigente. Sub/conselho pode somente aprovar esta operação, sem execução financeira geral |
+| Baixa/cancelamento/devolução | Executor vigente → justificativa + evidência pertinente → nova autenticação → executar e auditar. Preservar automações, deveres de devolução, mês fechado/estorno e correção na origem |
+| Transição | Verificar autoridade solicitante e representação do destino → registrar vigência e entrega de filas, arquivos e histórico → efetivar e revogar acessos antigos. Sem autoridade → recuperar antes. Admin coordena verificação restrita; gestão competente valida entrega. Vigência comercial segue RN-PL-06/07 |
+| Atendimento Essencial | E-mail técnico/comercial → responsável definido antes da operação oficial → resposta técnica/comercial ou encaminhamento à recuperação restrita; sem execução administrativa, franquia, preço avulso ou acesso de Suporte ao Essencial |
+
+Não há prazo de atendimento presumido. Ausência de verificador independente impede concessão nova dependente; as regras não criam uma equipe disponível. Perfil Manutenção foi retirado; empresas e chamados permanecem sob gestão do síndico. As simulações do protótipo não comprovam segurança, persistência ou integração.
 
 ## 5. Reservas
 
@@ -1044,7 +1061,7 @@ flowchart TD
 | Subsíndico | Síndico; se o síndico for parte da reclamação ou estiver em substituição, administradora; sem ela, conselho fiscal |
 | Administradora ou conselho fiscal | Sem recurso no app |
 
-Quem é parte da reclamação (reclamante ou alvo) nunca julga o recurso; sem nenhum julgador possível, o recurso fica pendente e a administradora recebe alerta para cadastrar o conselho fiscal (RN-RC-14).
+Quem é parte da reclamação (reclamante ou alvo) nunca julga o recurso; sem julgador elegível e imparcial, o recurso aguarda atribuição com aviso da pendência, sem julgamento ou punição automática pela espera. Avisos de composição não revelam conteúdo do caso a quem não tem acesso; Suporte e Admin não recebem acesso a reclamações ou scores (RN-RC-14).
 
 **Reversão (12/11/2026):** devolver apenas perda efetiva registrada. Exemplo: saldo 3, penalidade nominal 10, saldo 0; recurso aceito devolve 3 ao mesmo perfil, com teto 100 e movimento vinculado.
 
@@ -1163,7 +1180,7 @@ flowchart TD
     G -->|"Não"| I{"Síndico e subsíndico eleitos da mesma unidade?"}
     I -->|"Sim"| J["Assume o próximo mais votado para subsíndico"]
     I -->|"Não"| K
-    J --> K["Responsável administrativo registra mandatos; autogestão: resultado/posse e validação independente nas exceções, procedimento pendente"]
+    J --> K["Responsável administrativo registra mandatos; autogestão: resultado/posse e validação independente nas exceções conforme RN 3.1"]
     K --> Z(["Novos mandatos ativos"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
@@ -1465,7 +1482,7 @@ Decisões de 12/11/2026: [registro consolidado das 19 escolhas](../01-produto/05
 
 ## 17. Pendências
 
-**Autogestão e condução eleitoral — revisão de 13/11/2026:** definir matriz por operação (cadastros, cobrança, configuração e finanças), ativação de substituição sem gestor disponível, primeiro acesso e comprovação de representação, quem registra ausência/vacância, concessão/revogação da designação eleitoral, atuação de membros do conselho e conflitos de interesse, julgamento sem administradora e sem substitutos, transição entre modalidades e entrega de dados/acessos. Eleição não depende de resolver essas permissões administrativas. Detalhamento, opções e consequências no [registro de revisão](../01-produto/06-autogestao-e-conducao-eleitoral.md). Não presumir aprovação da distribuição fina nem de novas competências do conselho.
+**Autogestão e condução eleitoral — decisões de 17/11/2026:** direções dos lotes 1 e 2 e complementos/lote 3 aprovados, conforme fluxo 4.6 e [registro de revisão](../01-produto/06-autogestao-e-conducao-eleitoral.md). Operador e canal reais serão definidos antes do primeiro condomínio oficial; desenvolvimento usa dados fictícios. Desenho técnico, integrações e aceite do lote 4 permanecem pendentes. As demais propostas da tabela abaixo serão decididas antes do módulo dependente, sem ampliar permissões ou retirar escopo vigente (14A).
 
 Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma decisão do negócio ou de terceiros.
 

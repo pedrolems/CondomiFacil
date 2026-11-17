@@ -29,7 +29,7 @@ O grafo de conhecimento foi consultado como mapa de relações. Sua geração de
 
 ### 2.1 Escopo e prioridade
 
-O plano cobre os 11 perfis do PRD, os planos Essencial e Gestão + Suporte, condomínio com administradora e autogestão nas permissões já definidas, unidades ocupadas/alugadas/desocupadas e usuários com mais de um vínculo. O perfil Manutenção do protótipo não é perfil aceito; o acompanhamento de empresas permanece com a gestão autorizada.
+O plano cobre os 11 perfis do PRD, os planos Essencial e Gestão + Suporte, condomínio com administradora e autogestão nas permissões já definidas, unidades ocupadas/alugadas/desocupadas e usuários com mais de um vínculo. O perfil de acesso Manutenção foi retirado do protótipo em 17/11/2026; o acompanhamento de empresas permanece com a gestão autorizada.
 
 | Prioridade proposta | Risco | Exemplos |
 | --- | --- | --- |
@@ -279,10 +279,14 @@ A tabela de cobertura RF → US das histórias é o ponto de partida, não prova
 | Parecer jurídico SEG-16 e regras de locação/reclamações | Testar regras escritas como base atual, sem tratar como validação jurídica; lançamento depende do parecer aprovado |
 | PoC do Asaas/ADR-002 | Confirmar QR, Pix/boleto, KYC, chargeback e erros reais antes de fechar testes dependentes; não substituir prazo observado por suposição |
 | ADR-003/007/014 e contrato de sync | Criptografia, fila após logout, autorização offline, compensação Desfazer, cursores, relógio incorreto e empate exato precisam de decisão; preservar RN-CH-04 e RN-OF-06 |
-| Autogestão e condução eleitoral | Distribuição fina, concessão/validade/revogação de poderes temporários e validação independente seguem no registro [06](../01-produto/06-autogestao-e-conducao-eleitoral.md); não conceder acesso por analogia |
+| Autogestão e condução eleitoral | Procedimentos de produto aprovados no registro [06](../01-produto/06-autogestao-e-conducao-eleitoral.md), seção 2.1; desenho técnico e execução dos controles pendentes, sem acesso por analogia |
 | Relatórios RN-RL-08 | Definir retenção/link, período/volume/concorrência, referência temporal e pequenos grupos; casos correspondentes bloqueados até desenho validado |
 | ADR-004/infra e ADR-013 | Rever nuvem antes do piloto, formalizar medição de disponibilidade, restauração e RPO/RTO; gratuito de desenvolvimento não comprova operação com dados reais |
 | Versões do cliente e inventário físico | Definir política do cliente e escolher modelos efetivos do piloto sem alterar RNF-03 implicitamente |
 | Execução do plano | Validar proposta de critérios de saída, responsáveis, ferramentas e armazenamento de evidências com Pedro quando a implementação for preparada |
 
 Nenhuma regra de produto, documento fonte, contrato ou tela foi alterado por este plano. Mudanças futuras no comportamento esperado exigem decisão e atualização da rastreabilidade do projeto no escopo autorizado.
+
+## Casos dos complementos aprovados — 17/11/2026
+
+Casos futuros de implementação, ainda não executados: documentos insuficientes não concedem poder; interessado não valida próprio mandato; ausência termina por data/retorno; emergência exige prova/independentes ou verificação restrita; contestação isolada não suspende; revisão independente sem SLA inventado; proprietário expira em até 30 dias e só prorroga mediante validação; encerramento/cancelamento/substituição revoga; representante do conselho por eleição; conta não troca sem aprovação independente e conta vigente continua; sub/conselho aprovam somente a conta sem editar finanças; baixa/devolução/cancelamento manual exige evidência/motivo/reautenticação/auditoria; sem julgador não há punição automática; transição retira acesso antigo na vigência; Admin documental e e-mail técnico não veem reclamações/scores. Testar com fixtures, sem operador/pessoa/canal reais inventados. Perfil Manutenção não aparece nem abre por rota direta; empresas/chamados continuam.

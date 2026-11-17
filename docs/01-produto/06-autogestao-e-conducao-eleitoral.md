@@ -1,6 +1,6 @@
 # Essencial com autogestão e condução eleitoral
 
-**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes e direções dos lotes 1 e 2 aprovadas; detalhamento operacional, alinhamento transversal do lote 2 e decisões dos lotes seguintes pendentes. Sem backend, concessões reais, novo plano comercial, commit ou push.
+**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes dos lotes 1 e 2 e complementos operacionais/lote 3 aprovados; alinhamento autorizado nesta revisão. Operador antes do primeiro condomínio oficial; somente dados fictícios agora. Lote 4 e liberação técnica pendentes. Sem backend executável, concessões reais, novo plano comercial, commit ou push.
 
 ## 1. O que Pedro decidiu
 
@@ -17,25 +17,25 @@ Em qualquer plano, a eleição deve funcionar sem administradora e sem suporte p
 
 Administradora vinculada também pode conduzir quando presente; suporte autorizado também pode, somente no Gestão + Suporte e com autorização vigente. **Atualização de 15/11/2026 (Pedro):** Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. As ações ficam auditadas, os votos permanecem secretos e o resultado só aparece após encerramento. Não se exige um responsável eleitoral separado em toda eleição. Esta decisão substitui a restrição da escolha 12A de 12/11/2026; o registro anterior conserva o histórico.
 
-## 2. Distribuição aprovada e procedimentos pendentes
+## 2. Distribuição e procedimentos de produto aprovados
 
 **Decisão de Pedro em 17/11/2026 — AG-01 A:** o síndico executa a administração e o subsíndico executa durante substituição formal; o conselho mantém fiscalização, leitura, comentários e exportação, além da condução eleitoral na falta dos dois. A distribuição deixa de ser proposta. Não há delegação por atividade aprovada, nem conselho convertido em administrador ou acesso global do síndico a reclamações da administradora. Procedimentos sensíveis ainda pendentes não são liberados por essa distribuição.
 
-**AG-02 A:** na implantação do Essencial com autogestão, sem autoridade previamente habilitada, a primeira habilitação da gestão tem verificação restrita de identidade e representação pelo Admin da plataforma, separada do serviço administrativo Gestão + Suporte. O operador não foi nomeado; provas, recusa, contestação, recuperação e concessão/revogação ainda precisam ser definidos. Essa capacidade não usa o perfil Suporte no Essencial nem abre conteúdo de gestão, reclamações ou scores ao verificador.
+**AG-02 A:** na implantação do Essencial com autogestão, sem autoridade previamente habilitada, a primeira habilitação da gestão tem verificação restrita de identidade e representação pelo Admin da plataforma, separada do serviço administrativo Gestão + Suporte. Operador antes do primeiro condomínio oficial; Pedro não assume como Admin. Provas, recusa, contestação, recuperação e concessão/revogação seguem a seção 2.1. Essa capacidade não usa o perfil Suporte no Essencial nem abre conteúdo de gestão, reclamações ou scores ao verificador.
 
-**AG-07 C:** o registro de mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Ninguém valida o próprio poder. Validadores, evidências e recuperação ainda precisam ser definidos por caso; conduzir eleição não concede gestão geral nem autorização para validar o próprio mandato. Esta opção C é a combinação apresentada no [pacote de decisões, lote 1](../decisoes-para-iniciar-o-desenvolvimento.md), não a antiga alternativa C de edição direta pelo interessado.
+**AG-07 C:** o registro de mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Ninguém valida o próprio poder. Validadores, evidências e recuperação seguem a seção 2.1; conduzir eleição não concede gestão geral nem autorização para validar o próprio mandato. Esta opção C é a combinação apresentada no [pacote de decisões, lote 1](../decisoes-para-iniciar-o-desenvolvimento.md), não a antiga alternativa C de edição direta pelo interessado.
 
-**Decisões do lote 2 — 17/11/2026:** Pedro aprovou o conjunto recomendado apresentado na conversa, registrado abaixo e no [pacote de decisões, lote 2](../decisoes-para-iniciar-o-desenvolvimento.md). Trata-se de aceite das direções, com procedimentos e alinhamento transversal pendentes de escopo próprio autorizado; não encerra G0 nem libera implementação.
+**Decisões do lote 2 — 17/11/2026:** Pedro aprovou o conjunto recomendado apresentado na conversa, registrado abaixo e no [pacote de decisões, lote 2](../decisoes-para-iniciar-o-desenvolvimento.md). Trata-se de aceite das direções, com procedimentos complementados na seção 2.1 e alinhamento transversal autorizado nesta revisão; não encerra G0 nem libera implementação.
 
-| ID / direção aceita | Decisão e limite | Detalhamento pendente |
+| ID / direção aceita | Decisão e limite | Complemento e limite |
 | --- | --- | --- |
-| AG-03 C (A+B na conversa) | Procedimento regular com ausência registrada pelo titular e vacância documentada e validada; exceção colegiada para emergência ou falta de acesso. Sem autodeclaração unilateral | Evidências, validadores, contestação e caminho quando ninguém tem acesso |
-| AG-04 A | Designação documentada do proprietário e verificada por procedimento restrito de implantação/recuperação; acesso temporário somente à eleição, sem finanças, cadastros ou gestão de mandatos | Verificador, provas, eleição abrangida, início/fim, revogação e recuperação |
-| AG-05 A | Representante e substituto designados pelo próprio conselho quando ele conduz a eleição; não exige responsável separado em toda eleição | Procedimento de designação e substituição, com auditoria |
+| AG-03 C (A+B na conversa) | Procedimento regular com ausência registrada pelo titular e vacância documentada e validada; exceção colegiada para emergência ou falta de acesso. Sem autodeclaração unilateral | Complemento aprovado na seção 2.1, decisões 2 a 5 |
+| AG-04 A | Designação documentada do proprietário e verificada por procedimento restrito de implantação/recuperação; acesso temporário somente à eleição, sem finanças, cadastros ou gestão de mandatos | Complemento aprovado na seção 2.1, decisões 1 a 6 |
+| AG-05 A | Representante e substituto designados pelo próprio conselho quando ele conduz a eleição; não exige responsável separado em toda eleição | Complemento aprovado na seção 2.1, decisão 7, com auditoria |
 | AG-06 A | Manter exigência de composição; registrar ausência factual como pendência sem bloquear o degrau eleitoral aprovado | Tratamento da pendência de composição, sem declarar regularidade jurídica nem tornar órgãos opcionais |
 | AG-12 B | Somente rotinas automáticas e eleição enquanto não há gestor habilitado até a posse; aceita a limitação de tarefas administrativas manuais sem executor | Tratamento dos estados e avisos correspondentes; nenhuma capacidade administrativa temporária aprovada |
 
-**Correspondência das letras:** AG-03 C, aprovada na conversa, significa combinar A+B; não é a alternativa histórica C de autodeclaração do quadro da seção 3. Nenhum prazo, quórum, prova ou validador foi fixado por esse aceite. RN, PRD, histórias, fluxos, Design System, protótipo e fontes técnicas ainda precisam de alinhamento autorizado para o lote 2.
+**Correspondência das letras:** AG-03 C, aprovada na conversa, significa combinar A+B; não é a alternativa histórica C de autodeclaração do quadro da seção 3. O aceite original não fixava prazo, prova ou validador; a seção 2.1 registra o complemento posterior e seu alinhamento autorizado. Nenhum quórum jurídico foi definido.
 
 | Atividade na autogestão | Distribuição / direção aprovada | Limite |
 | --- | --- | --- |
@@ -44,14 +44,37 @@ Administradora vinculada também pode conduzir quando presente; suporte autoriza
 | Cobrança, baixas, cobranças extras e resolução de recebimentos tardios | Síndico; sub em substituição | Não alterar dinheiro automaticamente nem omitir pendências |
 | Receitas/despesas, fechamento, recorrências e estornos | Síndico; sub em substituição | Mês fechado só por estorno; receitas automáticas corrigidas na origem |
 | Fiscalização financeira | Conselho fiscal, se houver | Ler, comentar e exportar; sem editar valores por herança da modalidade |
-| Primeira habilitação | Admin da plataforma verifica identidade e representação (AG-02 A) | Capacidade restrita; operador e procedimento pendentes, sem acesso ao conteúdo de gestão |
-| Mandatos e desligamento do próprio síndico | Resultado/posse eleitoral com validação independente nas exceções e conflitos (AG-07 C) | Validadores e evidências pendentes; nenhuma autovalidação ou concessão implícita |
-| Troca de conta recebedora | Procedimento a definir em AG-08 | Não liberada pela execução cotidiana de AG-01 |
+| Primeira habilitação | Admin da plataforma verifica identidade e representação (AG-02 A) | Procedimento na seção 2.1; operador antes do primeiro condomínio oficial; somente dados fictícios até lá |
+| Mandatos e desligamento do próprio síndico | Resultado/posse eleitoral com validação independente nas exceções e conflitos (AG-07 C) | Provas e validadores na seção 2.1; nenhuma autovalidação ou concessão implícita |
+| Troca de conta recebedora | Executor solicita; representante local independente habilitado aprova | Sem segundo aprovador, aguarda; sub/conselho têm somente aprovação específica |
 | Reclamações, recursos e scores | Tabelas existentes de RN-RC-03/RN-RC-07 | Ninguém julga a si próprio; suporte continua excluído |
 
-## 3. Decisões e revisões para quando Pedro voltar
+### 2.1 Complementos operacionais e lote 3 — aceite de 17/11/2026
 
-O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual de aprovação. Em 17/11/2026, Pedro aceitou as recomendações dos lotes 1 e 2 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md), no alcance da seção 2. AG-07 C combina resultado eleitoral e validação independente; AG-03 C da conversa combina procedimento regular A e exceção colegiada B. Nenhuma dessas letras C aprova a alternativa histórica correspondente de edição direta ou autodeclaração do quadro. As recomendações dos lotes seguintes continuam propostas, sem respostas presumidas.
+Pedro autorizou implementar as recomendações da rodada de 14 decisões, **exceto a decisão 1, escolhida como C**: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A e 14A**. Esses números identificam a rodada, não substituem os IDs AG. O aceite autoriza o alinhamento documental e as simulações; não libera backend, app, PoC, dados reais, commit ou push.
+
+| Decisão / AG | Comportamento aprovado | Limite e critério verificável |
+| --- | --- | --- |
+| 1C / AG-02 | Somente dados fictícios no desenvolvimento; nomear operador antes do primeiro condomínio oficial | Pedro não assume como Admin; não há operador real nomeado. Sem nomeação, não habilitar condomínio com dados reais |
+| 2A / AG-02/04/07 | Identidade, identificação do condomínio e documento do evento: eleição/posse, designação, renúncia ou destituição; contratação profissional inclui contrato e comprovação de quem autorizou | Insuficiência exige complemento, sem poder provisório; exigência operacional, sem declarar validade jurídica; documentos pessoais fora do Git |
+| 3A / AG-07 | Condutor competente não interessado registra resultado/posse; exceções passam por representante local independente habilitado; sem elegível, Admin faz verificação restrita dos documentos, identidade e representação | Capacidade adicional específica, sem conteúdo geral de gestão, reclamações ou scores. Ninguém valida o próprio poder; Admin interessado exige outro verificador ou pedido aguarda |
+| 4A / AG-03 | Ausência programada pelo titular com início/fim; termina na data ou retorno registrado. Emergência/vacância exige prova e confirmação de dois representantes locais independentes do beneficiário | Dois é controle operacional, não quórum jurídico. Sem representantes/acesso suficientes, verificação restrita do Admin; sem autodeclaração privilegiada |
+| 5A / AG-02/03/07 | Recusa motivada, complementação e contestação com revisão independente da decisão e do interessado | Alegação isolada não suspende poderes; suspensão exige evidência e decisão registrada. Nova concessão contestada aguarda se não há revisor independente; sem prazo de atendimento prometido |
+| 6A / AG-04 | Proprietário recebe acesso somente a uma eleição com início/fim explícitos por até 30 dias; prorrogação não automática exige nova validação | Revogar no encerramento conclusivo, cancelamento, vencimento ou substituição validada, o que ocorrer primeiro. Eleição inconclusiva não cria vencedor nem gestão geral |
+| 7A / AG-05/06/12 | Documento do conselho identifica representante e substituto por eleição; substituto atua após impedimento registrado | Ausência de ambos exige revalidar a cadeia eleitoral. Pendência de composição não bloqueia eleição; sem gestor, somente rotinas automáticas e eleição, com tarefas manuais aguardando executor |
+| 8B / AG-08 | Executor solicita troca da conta recebedora; outro representante local independente habilitado aprova | Sub/conselho recebem aprovação específica, sem editar valores ou executar finanças. Sem segundo representante, aguarda; conta vigente continua operando. Admin e atendimento técnico não movimentam dinheiro |
+| 9A / AG-08 | Baixas manuais, cancelamentos e devoluções pelo executor vigente com motivo, evidência pertinente, reautenticação e auditoria | Preservar estorno, mês fechado, correção na origem, devoluções obrigatórias e automações vigentes; gateway depende de PoC |
+| 10A / AG-09 | Caso/recurso sem julgador imparcial aguarda elegível, com aviso da pendência | Sem julgamento, punição ou encerramento automáticos pela espera; perda da função remove acesso; sem instância externa ou acesso do suporte |
+| 11A / AG-10 | Transição assistida verifica solicitante/destino e representação, define vigência, transfere filas/arquivos/histórico e revoga acesso antigo na efetivação | Admin tem capacidade adicional de verificação restrita, sem conteúdo geral; gestão local valida a entrega. Sem autoridade habilitada, recuperar primeiro. Vigência de acesso separada da comercial; preservar RN-PL-06 |
+| 12A / AG-11 | Atendimento técnico/comercial assíncrono por e-mail, incluindo encaminhamento de recuperação restrita | Nomear responsável/endereço antes de disponibilizar; não há canal operante afirmado. Sem execução administrativa, franquia/R$ 15 de Gestão + Suporte ou acesso de Suporte ao Essencial |
+| 13A / RM-07 | Retirar perfil de acesso Manutenção do protótipo | Preservar empresas/chamados acompanhados pelo síndico e setor de manutenção quando aplicável; sem 12º perfil MVP |
+| 14A / RM-05 | Manter escopo vigente e decidir extensões antes do módulo afetado | Identidade/representação/acesso antes do acesso persistido. Propostas de notificação obrigatória, denúncia pela administradora e ampliações financeiras não aprovadas por consequência; importação fora da primeira base sem retirar escopo MVP existente |
+
+Estados visíveis usam texto e ícone: “Aguardando comprovantes”, “Aguardando aprovação independente”, “Sem julgador elegível” e “Sem gestor habilitado”. A nomeação adiada é pré-condição de operação oficial, não impedimento à preparação fictícia após liberação própria. Retenção/segurança dos comprovantes, sessões/RLS, contratos das aprovações e evidências de integração permanecem na revisão técnica dependente. Lote 4 (IN-01/IN-02), G0 e autorização da base executável continuam abertos.
+
+## 3. Alternativas históricas de autogestão
+
+O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual de aprovação. Em 17/11/2026, Pedro aceitou as recomendações dos lotes 1 e 2 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md), no alcance da seção 2. AG-07 C combina resultado eleitoral e validação independente; AG-03 C da conversa combina procedimento regular A e exceção colegiada B. Nenhuma dessas letras C aprova a alternativa histórica correspondente de edição direta ou autodeclaração do quadro. O estado vigente dos complementos e do lote 3 está na seção 2.1; este quadro conserva alternativas históricas. Lote 4 continua proposto.
 
 | ID | Questão e por que importa | Opções e consequências | Recomendação para decidir |
 | --- | --- | --- | --- |
@@ -72,7 +95,7 @@ O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual
 
 | Área | O que revisar antes da implementação real | Evidência esperada |
 | --- | --- | --- |
-| Produto e conteúdo | Lotes 1 e 2 têm direções aceitas; detalhar procedimentos, alinhar transversalmente o lote 2 sob escopo autorizado e decidir AG-08 a AG-11. Conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades, separando decisões aceitas e detalhes pendentes |
+| Produto e conteúdo | Lotes 1 e 2 e complementos/lote 3 aprovados na seção 2.1; alinhar procedimentos e revisar desenho técnico dependente. Conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades, separando decisões aceitas e detalhes pendentes |
 | Fluxos e protótipo | Implantação, pedidos locais, gestão cotidiana, substituição, ausência de todos, conselho e proprietário condutores, eleição inconclusiva e migração de modalidade | Percursos com dados fictícios e validação por síndico/conselho; protótipo não é prova de segurança |
 | Dados e autorização | Separar plano comercial, modalidade de gestão, vínculo/mandato, substituição e capacidade eleitoral temporária; revogar imediatamente a capacidade perdida | MER, política de acesso e ADRs revisados; autorização no servidor sem depender de perfil escolhido na UI |
 | API e backend | Expor ações administrativas à gestão local por capacidades; impedir autoconcessão, validar escopo da eleição e proteger operações concorrentes | Contratos rastreáveis aos RF existentes; testes de autorização e concorrência da futura implementação |

@@ -5,8 +5,8 @@
 const GES = ['sindico', 'subsindico'];
 const R = n => CUR.p + '/' + n;
 const isSub = () => CUR.p === 'subsindico';
-const plena = () => !isSub() || S.substituicao;   // tem as funções de síndico
-const julgaveis = () => S.julgar.filter(j => !j.atribuicaoEncerrada).filter(j => isSub() ? (j.contraSindico || S.substituicao) : !j.contraSindico);
+const plena = () => { atualizarSubstituicao(); return !(S.autogestao.ativa && S.autogestao.semGestor) && (!isSub() || S.substituicao); };
+const julgaveis = () => (S.governanca.julgador ? S.julgar : []).filter(j => !j.atribuicaoEncerrada).filter(j => isSub() ? (j.contraSindico || S.substituicao) : !j.contraSindico);
 const soSindico = (titulo, back) => ({ tab: 'gestao', top: { title: titulo, back: R(back || 'gestao') },
   body: empty('lock', 'Esta função é do síndico. Você passa a ter acesso quando a substituição pelo subsíndico estiver ativa.') });
 
@@ -24,6 +24,7 @@ def(GES, 'gestao', 'Gestão', 'Gestão', () => {
     ['megaphone', plena() ? 'Comunicados' : 'Comunicados e sugestões', 'comunicados', !isSub() && pend ? badge(pend + ' sugestão', 'accent') : ''],
     ['vote', 'Reuniões e eleições', 'reunioes', ''],
     ...(S.autogestao.ativa ? [['building-2', 'Administração do condomínio', 'autogestao', badge('Autogestão', 'neutral')]] : []),
+    ...(S.autogestao.ativa ? [['clipboard-check', 'Implantação e procedimentos', 'procedimentos', '']] : []),
     ['inbox', 'Solicitações de cadastro', 'solicitacoes', badge(`${S.franquia.usadas} de ${S.franquia.total}`, 'neutral')],
     ['receipt', 'Inadimplência', 'inadimplencia', badge(S.inad.length + ' unidades', 'danger')],
     ['wallet', 'Finanças', 'financas', ''],
@@ -33,11 +34,11 @@ def(GES, 'gestao', 'Gestão', 'Gestão', () => {
     ['user-round-cog', 'Substituição pelo subsíndico', 'substituicao', S.substituicao ? badge('Ativa', 'info') : isSub() ? badge('Inativa', 'neutral') : ''],
   ];
   // Dia a dia do subsíndico: julgar contra o síndico, acompanhar manutenção, sugerir comunicados, votos presenciais e encomendas vencidas
-  const DIA = ['julgar', 'manutencao', 'comunicados', 'reunioes', 'encomendas-vencidas', 'substituicao', 'denuncias'];
+  const DIA = ['julgar', 'manutencao', 'comunicados', 'reunioes', 'encomendas-vencidas', 'substituicao', 'denuncias', 'procedimentos'];
   const items = (plena() ? todos : todos.filter(i => DIA.includes(i[2]))).filter(i => !S.autogestao.ativa || i[2] !== 'solicitacoes');
   return {
     tab: 'gestao', top: { title: 'Gestão', actions: [{ icon: 'bell', label: 'Notificações', on: R('notificacoes'), dot: true }] }, flush: true,
-    body: `${isSub() ? `<div class="pad" style="padding-bottom:0">${S.substituicao ? banner('info', 'user-round-cog', 'Substituição ativa: você tem as funções de síndico até o síndico ou a administradora desativar. Tudo o que fizer fica registrado.', { inline: true })
+    body: `${isSub() ? `<div class="pad" style="padding-bottom:0">${S.substituicao ? banner('info', 'user-round-cog', 'Substituição ativa com início/fim registrados: termina automaticamente na data prevista ou no retorno registrado. Tudo o que fizer fica registrado.', { inline: true })
         : banner('info', 'info', 'Você vê as funções de gestão da subsíndica. As demais aparecem quando a substituição estiver ativa.', { inline: true })}</div>` : ''}
       <div class="pad" style="padding-bottom:0"><div class="kpis" style="grid-template-columns:1fr 1fr;gap:8px">
         <div class="kpi"><div class="t-caption muted">Seu score</div><div class="v">${isSub() ? 88 : 72}</div></div>
@@ -55,25 +56,26 @@ def(GES, 'julgar', 'Reclamações para julgar', 'Reclamações (9.2)', () => {
     tab: 'gestao', top: { title: 'Para julgar', back: R('gestao') }, flush: true,
     body: `${isSub() && !S.substituicao ? `<div class="pad" style="padding-bottom:0">${banner('info', 'scale', 'Você julga as reclamações contra o síndico e os recursos de decisões dele. Na substituição, julga todas, menos as contra você.', { inline: true })}</div>` : ''}<div class="pad stack-2"><div class="chips scroll">${['todas', 'Aberta', 'Em conversa com o alvo', 'Em recurso', 'Validada', 'Negada'].map(x => chip(x === 'todas' ? 'Todas' : x, f === x, () => { FORM.fj = x; rerender(); })).join('')}</div>
         <div class="row t-body-sm muted">${ic('sliders-horizontal')}Ordenar por ${chip('Data', ord === 'data', () => { FORM.oj = 'data'; rerender(); })}${chip('Score do alvo', ord === 'score', () => { FORM.oj = 'score'; rerender(); })}</div></div>
-      <div class="list">${list.length ? list.map(j => row({ icon: 'scale', title: j.cat + ' · ' + j.alvo.un, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, right: badgeStack(st(j.estado, ['Validada', 'Negada'].includes(j.estado) ? 'neutral' : undefined), prazoBadge(j)), on: R('julgamento/') + j.id })).join('') : empty('scale', 'Nenhuma reclamação com este filtro.')}</div>`,
+      <div class="list">${list.length ? list.map(j => row({ icon: 'scale', title: j.cat + ' · ' + j.alvo.un, sub: 'Aberta em ' + j.data + ' · gravidade ' + j.grav, right: badgeStack(st(j.estado, ['Validada', 'Negada'].includes(j.estado) ? 'neutral' : undefined), prazoBadge(j)), on: R('julgamento/') + j.id })).join('') : empty('scale', S.governanca.julgador ? 'Nenhuma reclamação com este filtro.' : 'Aguardando julgador elegível. Sem decisão ou penalidade automática pela espera.')}</div>`,
   };
 });
 def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
   const j = S.julgar.find(x => x.id === ctx.arg);
   if (!j || !julgaveis().includes(j)) return { tab: 'gestao', top: { title: 'Reclamação', back: R('julgar') }, body: empty('lock', 'Caso indisponível para sua função atual.') };
+  const podeJulgarAgora = () => S.online && julgaveis().includes(j);
   const decidida = ['Validada', 'Negada', 'Encerrada'].includes(j.estado);
   const podeDecidir = j.resposta || j.semResposta;
   const pessoa = (l, x) => `<div class="card" style="flex:1"><div class="t-caption muted">${l}</div><b>${x.nome}</b><div class="t-body-sm muted">${x.un}</div><div class="t-body-sm">Score <b class="num">${x.score}</b></div></div>`;
   const conversar = () => sheet(`<h2 class="t-title-md">Conversar com o alvo</h2><p class="t-body-sm muted">Vai como comunicado individual para ${j.alvo.nome}. Não cite quem reclamou.</p>
     ${field('Mensagem', textarea('jmsg', { value: `Olá, ${j.alvo.nome.split(' ')[0]}. Recebemos uma reclamação sobre ${j.cat.toLowerCase()}. Pode nos contar o que aconteceu?` }))}
-    ${btn('Enviar', { block: true, icon: 'send', on: () => { j.conversa = true; j.estado = 'Em conversa com o alvo'; closeLayer(); rerender(); toast('Mensagem enviada. Estado: Em conversa com o alvo.'); } })}`);
+    ${btn('Enviar', { block: true, icon: 'send', on: () => { if (!podeJulgarAgora()) return; j.conversa = true; j.estado = 'Em conversa com o alvo'; closeLayer(); rerender(); toast('Mensagem enviada. Estado: Em conversa com o alvo.'); } })}`);
   const validar = () => sheet(() => `<h2 class="t-title-md">Validar reclamação</h2><p class="t-body-sm muted">${j.alvo.nome} perde os pontos da gravidade escolhida.</p>
     ${[['Leve · −5', 'Leve'], ['Média · −10', 'Média'], ['Grave · −20', 'Grave']].map(([v, l]) => choice('jgrav', v, `${l} <b class="num">${v.split('·')[1]}</b>`, { def: j.grav, sub: v === j.grav ? 'Padrão da categoria' : '' })).join('')}
     ${(FORM.jgrav && FORM.jgrav !== j.grav) ? field('Por que a gravidade mudou?', textarea('jjust'), { error: A.jErr }) : ''}
-    ${btn('Validar e aplicar pontos', { v: 'danger', block: true, on: () => {
+    ${btn('Validar e aplicar pontos', { v: 'danger', block: true, on: () => { if (!podeJulgarAgora()) return;
       if (FORM.jgrav && FORM.jgrav !== j.grav && !(FORM.jjust || '').trim()) { A.jErr = 'Explique por que a gravidade mudou.'; validar(); return; }
       A.jErr = ''; closeLayer();
-      dialog({ tone: 'danger', icon: 'scale', title: 'Validar a reclamação?', text: `${j.alvo.nome} perde ${(FORM.jgrav || j.grav).split('·')[1].trim()} pontos e pode recorrer em até 7 dias.`, actions: [{ label: 'Validar', v: 'danger', on: () => { j.estado = 'Validada'; rerender(); toast('Reclamação validada. As partes foram avisadas.'); } }, { label: 'Voltar', v: 'secondary' }] });
+      dialog({ tone: 'danger', icon: 'scale', title: 'Validar a reclamação?', text: `${j.alvo.nome} perde ${(FORM.jgrav || j.grav).split('·')[1].trim()} pontos e pode recorrer em até 7 dias.`, actions: [{ label: 'Validar', v: 'danger', on: () => { if (!podeJulgarAgora()) return; j.estado = 'Validada'; rerender(); toast('Reclamação validada. As partes foram avisadas.'); } }, { label: 'Voltar', v: 'secondary' }] });
     } })}`);
   const negar = () => sheet(() => {
     const mot = FORM.jmot;
@@ -84,7 +86,7 @@ def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
       ${choice('jmot', 'desp', 'Desproporcional', { sub: '−5 pontos para quem reclamou' })}
       ${choice('jmot', 'falsa', 'Falsa ou de má-fé', { sub: '−15 pontos para quem reclamou' })}
       ${pen ? field(`Explique por que esta reclamação foi considerada ${mot === 'desp' ? 'desproporcional' : 'falsa'}.`, textarea('jneg'), { error: A.nErr }) : ''}
-      ${btn('Negar reclamação', { v: pen ? 'danger' : 'primary', block: true, disabled: !mot, on: () => {
+      ${btn('Negar reclamação', { v: pen ? 'danger' : 'primary', block: true, disabled: !mot, on: () => { if (!podeJulgarAgora()) return;
         if (pen && !(FORM.jneg || '').trim()) { A.nErr = 'A justificativa é obrigatória.'; negar(); return; }
         A.nErr = ''; closeLayer(); j.estado = pen ? 'Negada' : 'Encerrada'; rerender(); toast(pen ? 'Reclamação negada. Quem reclamou perdeu pontos.' : 'Reclamação encerrada sem penalidade.');
       } })}`;
@@ -97,12 +99,12 @@ def(GES, 'julgamento', 'Julgar reclamação', 'Reclamações (9.2)', ctx => {
       <h3 class="t-title-sm">Conversa com o alvo</h3>
       ${j.conversa ? `<div class="stack-2"><div class="msg me">Olá, ${j.alvo.nome.split(' ')[0]}. Recebemos uma reclamação sobre ${j.cat.toLowerCase()}. Pode nos contar o que aconteceu?</div>${j.resposta ? `<div class="msg">${esc(j.resposta)}</div>` : j.semResposta ? `<div class="t-body-sm muted row">${ic('clock')}Registro: alvo não respondeu em 5 dias.</div>` : `<div class="t-body-sm muted row">${ic('clock')}Aguardando resposta até ${j.liberaEm}.</div>`}</div>`
         : `<p class="t-body-sm muted" style="margin:0">Nenhuma conversa ainda.</p>${btn('Conversar com o alvo', { v: 'secondary', icon: 'message-circle', on: conversar })}`}
-      ${j.conversa && !j.resposta && !j.semResposta ? `<div class="row wrap">${btn('Simular resposta do alvo', { v: 'text', size: 'sm', on: () => { j.resposta = 'Foi uma festa de aniversário, não vai se repetir.'; rerender(); } })}${btn('Simular 5 dias sem resposta', { v: 'text', size: 'sm', on: () => { j.semResposta = true; rerender(); } })}</div>` : ''}
+      ${j.conversa && !j.resposta && !j.semResposta ? `<div class="row wrap">${btn('Simular resposta do alvo', { v: 'text', size: 'sm', on: () => { if (!podeJulgarAgora()) return; j.resposta = 'Foi uma festa de aniversário, não vai se repetir.'; rerender(); } })}${btn('Simular 5 dias sem resposta', { v: 'text', size: 'sm', on: () => { if (!podeJulgarAgora()) return; j.semResposta = true; rerender(); } })}</div>` : ''}
       ${j.estado === 'Em recurso' && !isSub() ? banner('info', 'undo-2', 'O alvo recorreu. Como a decisão foi da subsíndica, o recurso é seu.', { inline: true }) : ''}
     </div>`,
     footer: decidida ? `<p class="t-body-sm muted center" style="margin:0">Decisão registrada. Prazo de recurso: 7 dias.</p>`
-      : j.estado === 'Em recurso' ? `${btn('Aceitar recurso', { block: true, on: () => { j.estado = 'Recurso aceito'; rerender(); toast('Recurso aceito. Os pontos foram devolvidos.'); } })}${btn('Manter decisão', { v: 'secondary', block: true, on: () => { j.estado = 'Encerrada'; rerender(); toast('Decisão mantida. Reclamação encerrada.'); } })}`
-      : `<div class="row">${btn('Negar', { v: 'secondary', block: true, disabled: !podeDecidir, on: () => { FORM.jmot = null; negar(); } })}${btn('Validar', { v: 'danger', block: true, disabled: !podeDecidir, on: () => { FORM.jgrav = j.grav; validar(); } })}</div>
+      : j.estado === 'Em recurso' ? `${btn('Aceitar recurso', { block: true, on: () => { if (!podeJulgarAgora()) return; j.estado = 'Recurso aceito'; rerender(); toast('Recurso aceito. Os pontos foram devolvidos.'); } })}${btn('Manter decisão', { v: 'secondary', block: true, on: () => { if (!podeJulgarAgora()) return; j.estado = 'Encerrada'; rerender(); toast('Decisão mantida. Reclamação encerrada.'); } })}`
+      : `<div class="row">${btn('Negar', { v: 'secondary', block: true, disabled: !podeDecidir, on: () => { if (!podeJulgarAgora()) return; FORM.jmot = null; negar(); } })}${btn('Validar', { v: 'danger', block: true, disabled: !podeDecidir, on: () => { if (!podeJulgarAgora()) return; FORM.jgrav = j.grav; validar(); } })}</div>
          ${podeDecidir ? '' : `<p class="disabled-reason">${ic('lock')}Converse com o alvo antes de decidir. Liberado em ${j.liberaEm} se não houver resposta.</p>`}`,
   };
 });
@@ -304,20 +306,29 @@ def(GES, 'encomendas-vencidas', 'Encomendas com prazo vencido', 'Gestão', () =>
   body: `<div class="list">${S.encomendas.filter(e => e.estado === 'Prazo vencido' || e.estado === 'Devolvida').map(e => row({ icon: 'package', title: e.rem + ' · ' + e.un, sub: 'Chegou em ' + e.data + ' · mais de 30 dias', right: st(e.estado) })).join('')}</div>
     <div class="pad">${!plena() ? `<p class="help" style="margin:0">Avise o morador ou a portaria. Quem marca a devolução é o síndico.</p>` : S.encomendas.some(e => e.estado === 'Prazo vencido') ? btn('Marcar como devolvida', { v: 'secondary', block: true, on: () => { S.encomendas.forEach(e => { if (e.estado === 'Prazo vencido') e.estado = 'Devolvida'; }); rerender(); toast('Encomenda marcada como devolvida ao remetente.'); } }) : ''}</div>`,
 }));
-def(GES, 'substituicao', 'Substituição pelo subsíndico', 'Gestão', () => isSub() ? ({
-  tab: 'gestao', top: { title: 'Substituição', back: R('gestao') },
-  body: `<div class="stack">${card({ icon: 'user-round-cog', title: S.substituicao ? 'Você está substituindo o síndico' : 'Substituição inativa', badge: S.substituicao ? badge('Ativa', 'info') : badge('Inativa', 'neutral'),
-      body: S.substituicao ? 'Você tem todas as funções de síndico: comunicados, reuniões, manutenção, julgamentos, solicitações e inadimplência. Só não ativa nem desativa a substituição.' : 'Quando o síndico se ausentar, ele ou a administradora ativa a substituição, e você passa a ter as funções de síndico.' })}
-    ${row({ icon: 'history', title: 'Última ativação', sub: '12/08 a 26/08 · férias do síndico · ativada por Pedro Alves', noChev: true })}
-    <p class="help" style="margin:0">Quem ativa e desativa: o síndico ou a administradora. Cada mudança fica no histórico.</p></div>`,
-}) : ({
-  tab: 'gestao', top: { title: 'Substituição', back: R('gestao') },
-  body: `<div class="stack"><p class="t-body" style="margin:0">Em ausência temporária, a subsíndica Carla Mendes assume as funções de síndico até você desativar.</p>
-    ${sw('Ativar substituição pela subsíndica', S.substituicao, () => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa. Carla Mendes tem as funções de síndico.' : 'Substituição desativada. As funções voltaram para você.'); })}
-    ${S.substituicao ? banner('info', 'info', 'Tudo o que a subsíndica fizer fica registrado.', { inline: true }) : ''}</div>`,
-}));
+def(GES, 'substituicao', 'Substituição pelo subsíndico', 'Gestão', () => {
+  atualizarSubstituicao();
+  const periodo = S.periodoSubstituicao;
+  const registrar = () => {
+    if (CUR.p !== 'sindico' || !S.online || !plena()) return;
+    S.periodoSubstituicao = { inicio: S.governanca.dia, fim: S.governanca.dia + 7 };
+    S.substituicao = true; registrarDecisao('Ausência programada fictícia', 'Início e fim registrados pelo titular; 7 dias no exemplo.'); rerender();
+  };
+  const encerrar = motivo => {
+    if (!S.online || !S.substituicao) return;
+    if (motivo === 'Retorno registrado' && CUR.p !== 'sindico') return;
+    if (motivo === 'Término previsto') S.governanca.dia = S.periodoSubstituicao.fim;
+    S.substituicao = false; registrarDecisao('Encerrar substituição fictícia', motivo); rerender();
+  };
+  return { tab: 'gestao', top: { title: 'Substituição', back: R('gestao') }, body: `<div class="stack">${card({ icon: 'user-round-cog', title: S.substituicao ? 'Substituição vigente' : 'Substituição inativa', body: 'Ausência programada registrada pelo titular com início e fim. O acesso de substituição termina na data prevista ou no retorno registrado. Emergência e vacância exigem comprovação e validação independente.', badge: badge(S.substituicao ? 'Ativa' : 'Inativa', 'neutral', 'calendar-clock') })}
+    ${periodo ? row({ icon: 'calendar-range', title: dataGestao(periodo.inicio) + ' a ' + dataGestao(periodo.fim), sub: 'Período fictício · início inclusivo; fim encerra o acesso · relógio: ' + dataGestao(S.governanca.dia), noChev: true }) : ''}
+    <p class="help">Simulação com dados fictícios: o exemplo registra ausência de 7 dias. Não é um prazo obrigatório para ausências reais.</p>
+    ${!isSub() && !S.substituicao ? btn('Registrar ausência fictícia de 7 dias', { disabled: !S.online || !plena(), on: registrar }) : ''}
+    ${S.substituicao ? `<div class="stack-2">${!isSub() ? btn('Registrar retorno do titular', { v: 'secondary', on: () => encerrar('Retorno registrado') }) : ''}${btn('Simular chegada do término previsto', { v: 'secondary', on: cenario(() => encerrar('Término previsto')) })}</div>` : ''}
+    <p class="help">O subsíndico consulta a vigência e não concede a própria substituição.</p></div>` };
+});
 
 function triarManutencao(c, destino) {
-  if (c?.tipo !== 'manutencao' || !['sindico', 'subsindico'].includes(CUR.p) || (CUR.p === 'subsindico' && !S.substituicao) || c.estado !== 'Reaberto' || !['Orçamento', 'Agendado'].includes(destino)) return false;
+  if (!plena() || c?.tipo !== 'manutencao' || !['sindico', 'subsindico'].includes(CUR.p) || (CUR.p === 'subsindico' && !S.substituicao) || c.estado !== 'Reaberto' || !['Orçamento', 'Agendado'].includes(destino)) return false;
   c.estado = destino; c.triagem = { destino, autor: PROFILES[CUR.p].name, em: '12/11/2026' }; registrarDecisao('Triagem de manutenção ' + c.id, destino); rerender(); toast('Triagem registrada: ' + destino + '.'); return true;
 }

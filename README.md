@@ -59,7 +59,7 @@ Selecione **Síndico** no painel lateral. A aba **Gestão** concentra as tarefas
 | Tratar encomendas vencidas | Consulte encomendas cujo prazo de guarda terminou e registre a devolução. |
 | Organizar a substituição | Ative a substituição quando necessário. O subsíndico assume as funções previstas durante esse período. |
 
-No **Essencial com autogestão**, a administração fica com a gestão local. A distribuição detalhada de tarefas entre síndico, subsíndico e conselho ainda está em revisão; o protótipo apresenta uma proposta de execução pelo síndico ou pelo subsíndico em substituição, com fiscalização pelo conselho. Os novos relatórios gerenciais da administradora não são liberados ao síndico por essa modalidade.
+No **Essencial com autogestão**, a administração fica com a gestão local. A distribuição aprovada põe síndico ou subsíndico em substituição na execução e conselho na fiscalização, com aprovação específica independente para troca da conta recebedora. Os procedimentos de implantação e lote 3 estão no [registro de autogestão](docs/01-produto/06-autogestao-e-conducao-eleitoral.md), seção 2.1. Desenvolvimento somente com dados fictícios; operador nomeado antes do primeiro condomínio oficial, sem atribuir essa função a Pedro. Os novos relatórios gerenciais da administradora não são liberados ao síndico por essa modalidade.
 
 ### Guia rápido do porteiro
 

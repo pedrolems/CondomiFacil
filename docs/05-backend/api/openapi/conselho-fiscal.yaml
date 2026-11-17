@@ -2048,3 +2048,12 @@ x-lacunas:
 - Decisão de recurso e criação de recurso são de `comum.yaml` (`/v1/recursos`).
 - 'Reclamação contra o subsíndico com síndico ausente e sem administradora fica pendente até o fim da substituição
   (tabela 5.1): o conselho não a julga.'
+
+x-decisoes-autogestao-17-11-2026:
+- "Produto aprovado no registro 06, seção 2.1: dados fictícios; operador apenas antes do primeiro condomínio oficial, Pedro não assume Admin. Nenhum canal ou pessoa real nomeados."
+- "Provas por evento, validação independente, ausência programada com início/fim e emergência/vacância com dois representantes independentes ou verificação documental restrita do Admin. Recusa motivada e revisão independente; contestação isolada não suspende. Contratos estruturais de pedidos/revisões ainda pendentes."
+- "Proprietário temporário por eleição com início/fim e até 30 dias, prorrogação somente validada; revogação no conclusivo, cancelamento, expiração ou substituição validada. Conselho tem representante/substituto documentados por eleição. Desenho temporal/revogação ainda requer revisão."
+- "Na autogestão, troca da conta recebedora exige executor solicitante e segundo representante local independente habilitado; sub/conselho têm aprovação específica sem execução geral. Sem segundo, aguarda e conta vigente continua. DTOs/operações de aprovação ainda pendentes; não executar troca unilateral com esquema legado."
+- "Baixas/cancelamentos/devoluções manuais pelo executor vigente exigem motivo, prova pertinente, reautenticação e auditoria; preservar estornos e devoluções devidas. Admin documental e atendimento técnico não movimentam dinheiro."
+- "Sem julgador, aguardar elegível sem punição ou encerramento automático. Transição assistida verifica destino/representação e pendências, preserva arquivos/histórico e revoga acesso antigo na efetivação; vigência comercial preservada. Sem acesso de suporte ao Essencial ou reclamações/scores."
+- "Descrições de produto alinhadas; nenhum contrato estrutural/ADR aceito por consequência, nenhuma operação adicionada ou base executável liberada."

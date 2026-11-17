@@ -954,3 +954,17 @@ erDiagram
 RLS restringe a solicitante/tenant e função vigente da administradora; API e worker repetem autorização. O arquivo também revalida a permissão na leitura, sem herdar a regra de upload comum nem divulgar link público. Não dar acesso a outro operador só porque pertence à mesma empresa. Índices de tenant/solicitante/data e fila/estado devem ser definidos no modelo físico. Pedidos e downloads são auditados.
 
 Financeiro permanece sem unidade/responsável; cobranças por unidade são conjunto separado. Reclamações/reservas são agregadas; atendimento segue RN-CH-19. Nenhuma nova entidade de voto individual ou score público é criada. Retenção/eliminação e grupos pequenos aguardam revisão. Exportação financeira legada e sua entidade não são ampliadas silenciosamente; coordenador pode compartilhar infraestrutura por porta.
+
+## Alinhamento de autogestão e implantação — 17/11/2026
+
+Decisões de produto aprovadas e alinhadas: [registro de autogestão, seção 2.1](../01-produto/06-autogestao-e-conducao-eleitoral.md). O desenho técnico deste documento conserva seu estado de proposta; aceite de produto não comprova controles implementados nem aceita ADRs inteiros. Desenvolvimento somente com dados fictícios; nomear operador antes do primeiro condomínio oficial, sem nomear Pedro.
+
+| Recorte | Restrição a transportar para o desenho e verificar antes do uso dependente |
+| --- | --- |
+| Identidade/representação | Prova por evento e complemento sem concessão provisória; condutor não interessado no fluxo normal, representante independente em exceções e verificação documental restrita do Admin quando necessário; ninguém valida próprio poder |
+| Ausência/recuperação | Início/fim ou retorno registrado; emergência/vacância com prova e dois representantes independentes, sem acesso/composição suficiente usa verificação restrita. Recusa motivada/revisão independente; alegação isolada não suspende; sem SLA inventado |
+| Eleição/conselho | Designação documentada por eleição, representante/substituto; proprietário temporário com início/fim e até 30 dias, prorrogação somente validada; revogar em conclusivo/cancelamento/expiração/substituição validada; sem acesso a gestão geral |
+| Dinheiro | Executor solicita troca de conta; segundo representante local habilitado e independente aprova, inclusive capacidade específica sub/conselho sem execução geral. Sem segundo, aguarda e conta vigente permanece. Baixa/cancelamento/devolução manual exige executor, motivo, prova, reautenticação e auditoria; preservar devoluções devidas e estornos. Sem Admin financeiro |
+| Julgamento/transição/atendimento | Sem julgador aguarda elegível, sem punição automática. Transição assistida verifica destino, transfere pendências/arquivos/histórico e revoga acessos na efetivação, sem alterar vigência comercial. Admin só verifica documentação restrita. E-mail técnico/comercial tem pessoa/endereço antes de disponibilizar; sem acesso de suporte ao Essencial ou reclamações/scores |
+
+Persistência, sessões/RLS, proteção/retenção dos comprovantes, representação dos pedidos/aprovações/revisões, concorrência e revogação precisam da revisão técnica do recorte antes de implementar; contratos não podem executar troca de conta unilateral. Lote 4 e liberação da base executável ainda pendentes. Perfil Manutenção retirado; empresas e chamados pelo síndico preservados.

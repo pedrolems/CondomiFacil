@@ -588,7 +588,7 @@ def(RES, 'menu', 'Menu', 'Menu', ctx => {
 });
 
 /* ---------------- Score e transparência (9.4) ---------------- */
-def([...RES, 'portaria', 'limpeza', 'manutencao'], 'score', 'Meu score', 'Score e reclamações (9)', ctx => ({
+def([...RES, 'portaria', 'limpeza'], 'score', 'Meu score', 'Score e reclamações (9)', ctx => ({
   tab: 'menu', top: { title: 'Meu score', back: ctx.p + '/menu' },
   body: `<div class="stack"><p class="t-body-sm muted">${S.scoresFuncionais[ctx.p] ? 'Seu score neste condomínio · ' + esc(S.units[S.unit].cond) : 'Seu score nesta unidade · ' + esc(S.units[S.unit].name)}</p>${scoreBlock(S.score)}
     <p class="t-body-sm" style="margin:0">Próxima recuperação: <b>+5 em ${scoreContexto().recuperaEm}</b></p>
@@ -597,7 +597,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao'], 'score', 'Meu score', 'Score 
     <div class="list list-full">${S.scoreHist.map(h => row({ icon: h.p > 0 ? 'trending-up' : h.p < 0 ? 'trending-down' : 'circle-dot', title: h.t, sub: h.d, right: `<b class="num${h.p > 0 ? ' c-success' : h.p < 0 ? ' c-danger' : ''}">${h.p > 0 ? '+' : h.p < 0 ? '−' : ''}${Math.abs(h.p)}</b>`, on: h.p < 0 && h.t.startsWith('Reclamação') ? ctx.p + '/reclamacao/m2' : null, noChev: false })).join('')}</div>
   </div>`,
 }));
-def([...RES, 'portaria', 'limpeza', 'manutencao'], 'transparencia', 'Transparência', 'Score e reclamações (9)', ctx => ({
+def([...RES, 'portaria', 'limpeza'], 'transparencia', 'Transparência', 'Score e reclamações (9)', ctx => ({
   tab: 'menu', top: { title: 'Transparência', back: ctx.p + '/menu' },
   body: `<div class="stack">
     <div class="card"><h2 class="t-title-sm">Score do síndico</h2><div class="t-body-sm muted">Pedro Alves · Unidade do mandato: Bloco B · Apto 101</div>${scoreBlock(S.transp.sindico, { compact: true })}</div>
@@ -876,7 +876,7 @@ def(RES, 'pesquisa', 'Pesquisa do mês', 'Pesquisa mensal (12.1)', ctx => {
 });
 
 /* ---------------- Comunicados (10.1) ---------------- */
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicados', 'Comunicados', 'Comunicados (10.1)', ctx => ({
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'comunicados', 'Comunicados', 'Comunicados (10.1)', ctx => ({
   tab: GES.includes(ctx.p) ? 'gestao' : 'menu', top: { title: 'Comunicados', back: ctx.p + (GES.includes(ctx.p) ? '/gestao' : '/menu') }, flush: true,
   body: `${sugestoes(ctx.p)}<div class="list">${S.comunicados.filter(c => ctx.p !== 'proprietario' || (!c.individual && c.publico !== 'Funcionários')).map(c => row({ icon: c.individual ? 'message-circle' : 'megaphone', title: c.titulo + (c.novo ? ' ' + badge('Novo', 'accent') : ''), sub: (c.individual ? 'Para você · ' : '') + c.data, on: ctx.p + '/comunicado/' + c.id })).join('')}</div>`,
   fab: GES.includes(ctx.p) ? { icon: plena() ? 'plus' : 'pencil-line', label: plena() ? 'Novo' : 'Sugerir', aria: plena() ? 'Novo comunicado' : 'Sugerir comunicado', on: () => { resetForm({ ktipo: 'geral', kpub: 'Moradores' }); go(ctx.p + '/comunicado-novo'); } } : null,
@@ -893,7 +893,7 @@ function sugestoes(p) {
     ${btn('Descartar', { v: 'secondary', block: true, on: () => { r.estado = 'Descartada'; closeLayer(); rerender(); toast('Sugestão descartada. A subsíndica foi avisada.'); } })}`);
   return `<h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">${p === 'sindico' ? 'Sugestões da subsíndica' : 'Suas sugestões pendentes'}</h2><div class="list">${pend.map(r => row({ icon: 'pencil-line', title: r.titulo, sub: r.publico + ' · ' + r.data, right: st2(r.estado), on: () => revisar(r) })).join('')}</div><h2 class="t-title-sm pad" style="padding-bottom:0;margin:0">Enviados</h2>`;
 }
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicado', 'Ler comunicado', 'Comunicados (10.1)', ctx => {
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'comunicado', 'Ler comunicado', 'Comunicados (10.1)', ctx => {
   const c = S.comunicados.find(x => x.id === ctx.arg) || S.comunicados[0]; c.novo = false;
   return {
     tab: 'menu', top: { title: 'Comunicado', back: ctx.p + '/comunicados', actions: [{ icon: 'ellipsis', label: 'Mais ações', on: () => sheet(`${row({ icon: 'flag', title: 'Denunciar conteúdo', sub: 'Vai para quem julgaria uma reclamação contra o autor', on: () => { S.complementacao.denuncias.push({ id: 'dn' + uid(), destinatario: 'subsindico', comunicadoId: c.id, conteudo: 'Mensagem de comunicado encaminhada em projeção protegida para revisão, sem identidades protegidas.', motivo: 'Conteúdo ofensivo', resultado: null }); closeLayer(); toast('Denúncia enviada ao destinatário autorizado.'); } })}`) }] },
@@ -905,11 +905,11 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'comunicado',
 });
 
 /* ---------------- Configurações (12, 14.1) ---------------- */
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'aparencia', 'Aparência', 'Configurações (14.1)', ctx => ({
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'aparencia', 'Aparência', 'Configurações (14.1)', ctx => ({
   tab: 'menu', top: { title: 'Aparência', back: ctx.p + '/menu' },
   body: `<div class="stack-2">${[['system', 'Igual ao aparelho', 'Padrão'], ['light', 'Claro'], ['dark', 'Escuro']].map(([k, l, s]) => `<label class="choice ${S.theme === k ? 'is-selected' : ''}"><input type="radio" name="tema" ${S.theme === k ? 'checked' : ''} ${cb(() => { S.theme = k; applyTheme(); rerender(); })}><span class="grow">${l}${s ? `<span class="help" style="display:block">${s}</span>` : ''}</span></label>`).join('')}</div>`,
 }));
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'notif-config', 'Notificações', 'Configurações (14.1)', ctx => {
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'notif-config', 'Notificações', 'Configurações (14.1)', ctx => {
   const N = S.notif, lab = { reservas: 'Reservas', visitantes: 'Entrada de visitantes', encomendas: 'Encomendas', chamados: 'Andamento de chamados', comunicados: 'Comunicados', votacoes: 'Reuniões e votações', cobrancas: 'Lembretes de cobrança', pesquisa: 'Pesquisa do mês' };
   return {
     tab: 'menu', top: { title: 'Notificações', back: ctx.p + '/menu' },
@@ -918,14 +918,14 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'notif-config
       ${Object.keys(lab).map(k => sw(lab[k], N[k], () => { N[k] = !N[k]; toast('Preferência salva.'); }) + (k === 'reservas' && RES.includes(ctx.p) ? sw('Lembrete de reserva', N.lembreteReserva, () => { N.lembreteReserva = !N.lembreteReserva; toast('Preferência salva.'); }, { sub: 'Opcional: um aviso 24h antes do início da reserva confirmada, com atalho para ver ou cancelar.' }) : '')).join('')}</div>`,
   };
 });
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'privacidade', 'Privacidade e dados', 'Configurações (14.1)', ctx => ({
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'privacidade', 'Privacidade e dados', 'Configurações (14.1)', ctx => ({
   tab: 'menu', top: { title: 'Privacidade e dados', back: ctx.p + '/menu' }, flush: true,
   body: `<div class="list">${row({ icon: 'file-text', title: 'Política de privacidade', on: () => sheet('<h2 class="t-title-md">Política de privacidade</h2><p class="t-body">Texto de exemplo da política de privacidade do condomínio.</p>') })}
     ${row({ icon: 'download', title: 'Pedir cópia dos meus dados', sub: 'Arquivo por e-mail em até 15 dias; exceções exigem análise autorizada', on: () => dialog({ title: 'Pedir cópia dos seus dados?', text: 'Vamos enviar um arquivo para ana.lima@email.com em até 15 dias.', actions: [{ label: 'Pedir cópia', on: () => { S.pedidoLgpd = 'Em processamento'; toast('Pedido registrado. Etapas definidas serão processadas; exceções exigem análise autorizada.'); } }, { label: 'Agora não', v: 'secondary' }] }) })}
     ${row({ icon: 'trash-2', title: 'Excluir minha conta', on: () => dialog({ tone: 'danger', icon: 'triangle-alert', title: 'Excluir sua conta?', text: 'Seu histórico fica anônimo. Votos e reclamações continuam, sem identificação. ' + (ctx.p === 'proprietario' ? 'Você é a proprietária: a administradora será avisada para definir o substituto, e até lá a unidade não vota.' : 'Você é o morador habilitado: a administradora será avisada para definir o substituto, e até lá ninguém reserva nem cadastra visitantes pela unidade.'),
       body: field('Confirme com sua senha', `<input class="input" type="password" autocomplete="current-password">`), actions: [{ label: 'Excluir conta', v: 'danger', on: () => go('acesso/boas-vindas') }, { label: 'Manter conta', v: 'secondary' }] }) })}</div>`,
 }));
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-funciona', 'Como funciona', 'Configurações (14.1)', ctx => ({
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'como-funciona', 'Como funciona', 'Configurações (14.1)', ctx => ({
   tab: 'menu', top: { title: 'Como funciona', back: ctx.p + '/menu' },
   body: `<div class="stack" style="max-width:640px">${[
     ['gauge', 'Score', 'Cada pessoa começa com 100 em cada novo vínculo de moradia. Saldo, histórico e recuperação são separados por unidade; ninguém herda o score de quem saiu. Reclamações e faltas afetam só esse vínculo. A regularidade recupera 5 pontos a cada 2 meses. Com 60 ou menos, as reservas gratuitas ficam pausadas só para você nesta unidade. Funcionários e síndico profissional sem unidade têm score individual por condomínio; a pesquisa mensal só altera o score funcional dos funcionários.'],
@@ -935,7 +935,7 @@ def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-funcion
     ['key-round', 'Unidade alugada', 'O inquilino é o morador habilitado e usa todas as funções de morador. Quem vota é o proprietário; o inquilino vota como procurador dele ou nas pautas sem despesa extraordinária. O inquilino paga as despesas ordinárias e o proprietário, as extraordinárias.'],
   ].map(([i, t, d]) => card({ icon: i, title: t, body: d })).join('')}</div>`,
 }));
-def([...RES, 'portaria', 'limpeza', 'manutencao', 'proprietario'], 'como-usar', 'Como usar o app', 'Configurações (14.1)', ctx => { A.onbRole = ONB[ctx.p] ? ctx.p : 'morador'; setTimeout(() => go('acesso/onboarding/1'), 0); return { body: '' }; });
+def([...RES, 'portaria', 'limpeza', 'proprietario'], 'como-usar', 'Como usar o app', 'Configurações (14.1)', ctx => { A.onbRole = ONB[ctx.p] ? ctx.p : 'morador'; setTimeout(() => go('acesso/onboarding/1'), 0); return { body: '' }; });
 
 /* ---------------- Proprietário não residente (RN-CD-19) ---------------- */
 def('proprietario', 'menu', 'Menu', 'Menu', () => ({

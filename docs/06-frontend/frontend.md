@@ -390,7 +390,7 @@ A estratégia geral de qualidade será detalhada em `docs/08-qualidade/` em trab
 | Domínio, scheme, identificadores e configuração dos links | Vinculados à publicação e ambientes; separar desenvolvimento/staging/produção e validar associações de domínio |
 | Renovação de sessão com resposta perdida | ADR-007; mecanismo/janela de tolerância e proteção contra replay antes de implementar |
 | Permissões finas da autogestão e concessão eleitoral temporária | Registro 06 e RN-VO-13; não converter precedência eleitoral em poder administrativo geral |
-| Pendências de produto que afetam telas | UF 17: parecer jurídico, gateway/sandbox, finanças e perfil Manutenção; este documento não resolve essas escolhas |
+| Pendências de produto que afetam telas | UF 17: gateway/sandbox e ampliações financeiras por módulo; perfil Manutenção retirado em 17/11/2026. Parecer/testes com usuários pulados por inacessibilidade conforme roadmap vigente |
 
 Não iniciar piloto com dados reais baseado apenas nesta proposta. Continuam os marcos de validação de protótipo, parecer jurídico e revisão da infraestrutura definidos pelo produto e ADR-004.
 
@@ -423,3 +423,17 @@ Consultadas em 14/11/2026. Confirmar compatibilidade das bibliotecas com o SDK e
 ## Relatórios no painel web — decisão de 14/11/2026
 
 Relatórios antecipados para MVP e alinhamento autorizado pelo Pedro: [painel-web.md](painel-web.md), RN-RL-01 a 08, RF-RL-01 a 11, US-RL-01 a 03. O novo catálogo é da administradora no cliente web; não cria aba mobile nem amplia exportações de outros perfis. Preservar as exportações financeiras anteriores e o limite de operação offline. Dados, cache e links privados continuam sujeitos ao contexto autorizado.
+
+## Alinhamento de autogestão e implantação — 17/11/2026
+
+Decisões de produto aprovadas e alinhadas: [registro de autogestão, seção 2.1](../01-produto/06-autogestao-e-conducao-eleitoral.md). O desenho técnico deste documento conserva seu estado de proposta; aceite de produto não comprova controles implementados nem aceita ADRs inteiros. Desenvolvimento somente com dados fictícios; nomear operador antes do primeiro condomínio oficial, sem nomear Pedro.
+
+| Recorte | Restrição a transportar para o desenho e verificar antes do uso dependente |
+| --- | --- |
+| Identidade/representação | Prova por evento e complemento sem concessão provisória; condutor não interessado no fluxo normal, representante independente em exceções e verificação documental restrita do Admin quando necessário; ninguém valida próprio poder |
+| Ausência/recuperação | Início/fim ou retorno registrado; emergência/vacância com prova e dois representantes independentes, sem acesso/composição suficiente usa verificação restrita. Recusa motivada/revisão independente; alegação isolada não suspende; sem SLA inventado |
+| Eleição/conselho | Designação documentada por eleição, representante/substituto; proprietário temporário com início/fim e até 30 dias, prorrogação somente validada; revogar em conclusivo/cancelamento/expiração/substituição validada; sem acesso a gestão geral |
+| Dinheiro | Executor solicita troca de conta; segundo representante local habilitado e independente aprova, inclusive capacidade específica sub/conselho sem execução geral. Sem segundo, aguarda e conta vigente permanece. Baixa/cancelamento/devolução manual exige executor, motivo, prova, reautenticação e auditoria; preservar devoluções devidas e estornos. Sem Admin financeiro |
+| Julgamento/transição/atendimento | Sem julgador aguarda elegível, sem punição automática. Transição assistida verifica destino, transfere pendências/arquivos/histórico e revoga acessos na efetivação, sem alterar vigência comercial. Admin só verifica documentação restrita. E-mail técnico/comercial tem pessoa/endereço antes de disponibilizar; sem acesso de suporte ao Essencial ou reclamações/scores |
+
+Persistência, sessões/RLS, proteção/retenção dos comprovantes, representação dos pedidos/aprovações/revisões, concorrência e revogação precisam da revisão técnica do recorte antes de implementar; contratos não podem executar troca de conta unilateral. Lote 4 e liberação da base executável ainda pendentes. Perfil Manutenção retirado; empresas e chamados pelo síndico preservados.

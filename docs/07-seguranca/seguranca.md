@@ -86,9 +86,9 @@ A sequência proposta segue o guia da API: autenticar sessão; validar condomín
 | Subsíndico | Poderes próprios fora da substituição; função ampliada somente durante substituição formal, sem poder ativar/desativar a própria substituição |
 | Administradora | Usuário da organização e vínculo contratual vigentes por condomínio; sem acesso geral por pertencer à carteira |
 | Suporte | Só Gestão + Suporte, com acesso registrado; sem reclamações/scores; troca para Essencial retira o acesso |
-| Admin da plataforma | Operações de plataforma documentadas; não é superusuário operacional dos condomínios. Quarentena do gateway é exceção delimitada |
+| Admin da plataforma | Operações de plataforma e verificação documental restrita de implantação/recuperação/exceções/transição conforme registro 06, seção 2.1; sem superusuário operacional ou Admin financeiro. Quarentena do gateway é exceção delimitada |
 | Proprietário não residente | Projeções próprias da unidade; sem rotina nem score do inquilino |
-| Autogestão | Não atribuir perfil Administradora à gestão local; distribuição fina de cadastros, cobrança e finanças continua pendente no registro 06 |
+| Autogestão | Não atribuir perfil Administradora à gestão local; distribuição e procedimentos de produto aprovados no registro 06, seção 2.1; desenho técnico e evidências pendentes |
 | Condução eleitoral | RN-VO-13: síndico; ausente/vago, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado (temporário, restrito à eleição); administradora vinculada também pode. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano |
 
 Revalidar concessões temporárias e condições eleitorais em cada leitura/ação; nenhuma pessoa se autoconcede acesso. A condução não dá gestão geral, reclamações ou finanças. Resultados só após encerramento. Designação, representação do conselho, ausência/vacância e revogação permanecem dependências antes do código.
@@ -302,7 +302,7 @@ Estes cenários orientam a futura estratégia de qualidade; nenhum teste de apli
 | Pendência | Decisão/evidência necessária e responsável a envolver |
 | --- | --- |
 | Parecer jurídico SEG-16 | Pendente - Inacessível (16/11/2026): Pedro sem acesso a advogado, com acesso futuro incerto. [Pacote preparado](pacote-para-validacao-juridica.md); parecer e condições continuam pendentes e bloqueiam o início do MVP conforme o roadmap |
-| Autorização e primeira gestão | Pedro/produto: distribuição fina da autogestão, validação de mandato, implantação inicial, designação/revogação eleitoral e exceções LGPD; sem concessão implícita |
+| Autorização e primeira gestão | Produto aprovado no registro 06, seção 2.1; revisar contratos/RLS/comprovantes/revogação e provar controles antes do uso. Operador oficial adiado; exceções LGPD conservam pendências próprias |
 | Sessões e acesso privilegiado | Engenharia/segurança e Pedro: ADR-007, duração total de refresh, tolerância a retry, parâmetros criptográficos, invalidação e avaliação de MFA/reautenticação |
 | Criptografia de servidor | Engenharia/segurança: inventário de campos, algoritmo/biblioteca, custódia, recuperação e rotação; verificar proteção de banco/Storage/backups na infraestrutura escolhida |
 | Fila e dispositivo offline | Engenharia/segurança/Pedro: P-07/ADR-003, acesso após logout, retenção, recuperação/custódia de chave e anexos; PoC sem perda de operações |
@@ -346,3 +346,17 @@ Pendências bloqueiam a parte correspondente do desenho/implementação; não si
 Para pagamentos, aplica-se SEG-12 integralmente: gateway certificado e nenhuma guarda de dados de cartão pelo app, API, banco ou logs. Para conta recebedora de pessoa física, SEG-15 exige termo jurídico de responsabilidade aceito pelo titular com versão/data; a arquitetura propõe bloquear ativação sem esse aceite. Isso não resolve a pendência de KYC nem autoriza ativar conta sem validação.
 
 **Registro desta proposta:** criada em 14/11/2026 para consolidar segurança a partir da documentação existente. Sem alteração de regras de negócio, sem controles implementados e sem aceite automático de decisões técnicas.
+
+## Alinhamento de autogestão e implantação — 17/11/2026
+
+Decisões de produto aprovadas e alinhadas: [registro de autogestão, seção 2.1](../01-produto/06-autogestao-e-conducao-eleitoral.md). O desenho técnico deste documento conserva seu estado de proposta; aceite de produto não comprova controles implementados nem aceita ADRs inteiros. Desenvolvimento somente com dados fictícios; nomear operador antes do primeiro condomínio oficial, sem nomear Pedro.
+
+| Recorte | Restrição a transportar para o desenho e verificar antes do uso dependente |
+| --- | --- |
+| Identidade/representação | Prova por evento e complemento sem concessão provisória; condutor não interessado no fluxo normal, representante independente em exceções e verificação documental restrita do Admin quando necessário; ninguém valida próprio poder |
+| Ausência/recuperação | Início/fim ou retorno registrado; emergência/vacância com prova e dois representantes independentes, sem acesso/composição suficiente usa verificação restrita. Recusa motivada/revisão independente; alegação isolada não suspende; sem SLA inventado |
+| Eleição/conselho | Designação documentada por eleição, representante/substituto; proprietário temporário com início/fim e até 30 dias, prorrogação somente validada; revogar em conclusivo/cancelamento/expiração/substituição validada; sem acesso a gestão geral |
+| Dinheiro | Executor solicita troca de conta; segundo representante local habilitado e independente aprova, inclusive capacidade específica sub/conselho sem execução geral. Sem segundo, aguarda e conta vigente permanece. Baixa/cancelamento/devolução manual exige executor, motivo, prova, reautenticação e auditoria; preservar devoluções devidas e estornos. Sem Admin financeiro |
+| Julgamento/transição/atendimento | Sem julgador aguarda elegível, sem punição automática. Transição assistida verifica destino, transfere pendências/arquivos/histórico e revoga acessos na efetivação, sem alterar vigência comercial. Admin só verifica documentação restrita. E-mail técnico/comercial tem pessoa/endereço antes de disponibilizar; sem acesso de suporte ao Essencial ou reclamações/scores |
+
+Persistência, sessões/RLS, proteção/retenção dos comprovantes, representação dos pedidos/aprovações/revisões, concorrência e revogação precisam da revisão técnica do recorte antes de implementar; contratos não podem executar troca de conta unilateral. Lote 4 e liberação da base executável ainda pendentes. Perfil Manutenção retirado; empresas e chamados pelo síndico preservados.

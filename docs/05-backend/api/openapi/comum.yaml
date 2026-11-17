@@ -2514,7 +2514,7 @@ paths:
     post:
       operationId: comumEncerrarEleicao
       summary: Encerra e apura eleição regular
-      description: 'Decisão de 13/11/2026, RN-VO-07/13. Condutor legitimado pela sequência de RN-VO-13, em qualquer plano, ou administradora vinculada ou suporte autorizado (este só no Gestão + Suporte; `403` no Essencial). Revalidar vigência, ausência e concessão a cada ação; concessão inicial e prova de ausência pendentes, sem autoconcessão. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição continuam bloqueados para implementação até proposta de segurança e jurídica.'
+      description: 'Decisão de 13/11/2026, RN-VO-07/13. Condutor legitimado pela sequência de RN-VO-13, em qualquer plano, ou administradora vinculada ou suporte autorizado (este só no Gestão + Suporte; `403` no Essencial). Revalidar vigência, ausência e concessão a cada ação; produto de concessão inicial/prova de ausência aprovado no registro 06, seção 2.1; desenho estrutural pendente, sem autoconcessão. Encerramento serializa com votos; resultado só publicado após fechar. Primeiro empate gera segundo turno em até sete dias; segundo empate ou ausência de elegível é inconclusivo, sem vencedor automático, encaminhado ao condutor autorizado vigente, sem exigir administradora ou suporte pago. Sigilo e substituição de voto continuam bloqueados até desenho de segurança validado; parecer jurídico pulado por inacessibilidade conforme roadmap de 17/11/2026.'
       tags: [governanca]
       security:
       - bearerJwt: []
@@ -3587,3 +3587,12 @@ x-decisoes-12-11-2026:
 - "RN-RC-13: ações de denúncia definidas em 12/11/2026; lista/decisão constam neste contrato. Proteção de identidades na projeção e conflito sobre administradora denunciar ainda exigem revisão."
 - "Refresh: tolerância controlada a retry legítimo aprovada como direção; duração e mecanismo continuam pendentes, sem autorizar replay."
 - "LGPD: automatizar procedimento definido, exceção assistida; operador ainda não definido, sem permissão implícita."
+
+x-decisoes-autogestao-17-11-2026:
+- "Produto aprovado no registro 06, seção 2.1: dados fictícios; operador apenas antes do primeiro condomínio oficial, Pedro não assume Admin. Nenhum canal ou pessoa real nomeados."
+- "Provas por evento, validação independente, ausência programada com início/fim e emergência/vacância com dois representantes independentes ou verificação documental restrita do Admin. Recusa motivada e revisão independente; contestação isolada não suspende. Contratos estruturais de pedidos/revisões ainda pendentes."
+- "Proprietário temporário por eleição com início/fim e até 30 dias, prorrogação somente validada; revogação no conclusivo, cancelamento, expiração ou substituição validada. Conselho tem representante/substituto documentados por eleição. Desenho temporal/revogação ainda requer revisão."
+- "Na autogestão, troca da conta recebedora exige executor solicitante e segundo representante local independente habilitado; sub/conselho têm aprovação específica sem execução geral. Sem segundo, aguarda e conta vigente continua. DTOs/operações de aprovação ainda pendentes; não executar troca unilateral com esquema legado."
+- "Baixas/cancelamentos/devoluções manuais pelo executor vigente exigem motivo, prova pertinente, reautenticação e auditoria; preservar estornos e devoluções devidas. Admin documental e atendimento técnico não movimentam dinheiro."
+- "Sem julgador, aguardar elegível sem punição ou encerramento automático. Transição assistida verifica destino/representação e pendências, preserva arquivos/histórico e revoga acesso antigo na efetivação; vigência comercial preservada. Sem acesso de suporte ao Essencial ou reclamações/scores."
+- "Descrições de produto alinhadas; nenhum contrato estrutural/ADR aceito por consequência, nenhuma operação adicionada ou base executável liberada."

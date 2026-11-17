@@ -266,7 +266,7 @@ def(['sindico', 'subsindico', 'morador'], 'financas', 'Finanças do condomínio'
   const per = fPer(), D = fDados(per), lista = fFiltrados(D), t = FORM.ftipo || 'todos';
   const max = D.cats.length ? D.cats[0].v : 1;
   return { tab, after: fAfter, top: { title: p === 'morador' ? 'Finanças do condomínio' : 'Finanças', back }, flush: true, body: `<div class="pad stack">
-    ${banner('info', 'eye', autogestaoExecuta() ? 'Autogestão: execução financeira local proposta para revisão. Conselho fiscal continua somente leitura e comentários.' : 'Só leitura. Você vê totais do condomínio, sem dados de unidades.', { inline: true })}
+    ${banner('info', 'eye', autogestaoExecuta() ? 'Autogestão: execução financeira local aprovada. Conselho fiscal mantém leitura, comentários e validação específica da troca de conta.' : 'Só leitura. Você vê totais do condomínio, sem dados de unidades.', { inline: true })}
     ${autogestaoExecuta() ? btn('Novo lançamento (simulação)', { icon: 'plus', on: () => fNovo() }) : ''}
     ${fPeriodoChips()}<div class="row wrap" style="gap:8px">${fMesBadge(per)}</div>${fFaixaMes(per, false)}
     ${fResumo(D, per)}

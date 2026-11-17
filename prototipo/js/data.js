@@ -4,8 +4,9 @@ let savedTheme = 'system';
 try { savedTheme = localStorage.getItem('cf-theme') || 'system'; } catch (e) {}
 
 const S = {
-  autogestao: { ativa: false, registros: [] },
-  eleitoral: { sindico: true, sub: true, conselho: true, designado: false },
+  autogestao: { ativa: false, semGestor: false, registros: [] },
+  eleitoral: { sindico: true, sub: true, conselho: true, designado: false, validade: 30 },
+  governanca: { dia: 0, documentos: false, verificacao: 'Aguardando documentos', contestada: false, ausencia: false, conta: 'Sem solicitação', segundo: true, operacoes: [], julgador: true, transicao: 'Não solicitada' },
   complementacao: {
     auditoria: [], denuncias: [{ id: 'dn1', destinatario: 'sindico', conteudo: 'Texto ofensivo em mensagem de área comum (projeção sem identidades protegidas).', motivo: 'Linguagem ofensiva', resultado: null }, { id: 'dn2', destinatario: 'subsindico', conteudo: 'Conteúdo atribuído à gestão, encaminhado ao julgador alternativo (projeção protegida).', motivo: 'Ofensa pessoal', resultado: null }],
     recebimentos: [], exportacoes: [], eleicao: { estado: 'Não aberta', turno: 1, motivo: '', contagens: null },
@@ -27,7 +28,6 @@ const S = {
   scoresFuncionais: {
     portaria: { valor: 81, base: 81, recuperaEm: '01/01/2027', historico: [{ d: '01/11', t: 'Recuperação funcional neste condomínio', p: +5 }] },
     limpeza: { valor: 74, base: 74, recuperaEm: '01/01/2027', historico: [{ d: '31/10', t: 'Pesquisa mensal neste condomínio', p: -5 }] },
-    manutencao: { valor: 79, base: 79, recuperaEm: '01/01/2027', historico: [] },
   },
   // Locação (RN-CD-20 a RN-CD-26): o morador pode ser simulado como inquilino; a proprietária Helena acompanha o Bloco B · Apto 302
   inquilino: false, contratoFim: '05/12/2026', contratoDias: 30,
@@ -202,6 +202,7 @@ const S = {
     { un: 'Bloco A · Apto 303', resp: 'Luiza Prado', valor: 627.0, dias: 9, cobr: 1 },
   ],
   substituicao: false,
+  periodoSubstituicao: null,
   rascunhos: [   // sugestões de comunicado da subsíndica (RN-CO-05)
     { id: 'r1', titulo: 'Limpeza da caixa d’água', txt: 'No sábado, 14/11, das 8h às 12h, a água do Bloco B fica desligada para a limpeza semestral da caixa d’água. Deixe água separada.', publico: 'Moradores', estado: 'Aguardando o síndico', data: '04/11' },
     { id: 'r2', titulo: 'Horário da academia', txt: 'A academia passa a abrir às 6h a partir de dezembro.', publico: 'Moradores', estado: 'Enviado pelo síndico', data: '22/10' },
@@ -364,7 +365,6 @@ const HUB = [
   { p: 'admin', t: 'Administradora', s: 'Painel web · navegação lateral', f: ['Implantação: estrutura, conta bancária e planilha', 'Unidades, moradores, mudanças e funcionários', 'Áreas, regras e parâmetros com faixa permitida', 'Média das avaliações de atendimento por funcionário e empresa', 'Cobrança, cobranças extras e inadimplência', 'Reclamações, mandatos, solicitações e bloqueio'] },
   { p: 'portaria', t: 'Funcionário · Portaria', s: 'App · Visitantes, Encomendas, Áreas, Menu', f: ['Entrada em 1 toque com Desfazer, também para quem vem em lista', 'Lista de bloqueio e fora do horário', 'Sem internet, fila e divergência ao sincronizar', 'Encomendas, vistorias e modo treinamento'] },
   { p: 'limpeza', t: 'Funcionário · Limpeza', s: 'App · Chamados, Áreas, Menu', f: ['Fila do setor por prazo, com Concluir no cartão', 'Iniciar atendimento no detalhe', 'Concluir com fotos opcionais, inclusive sem internet', 'Minhas avaliações, sem saber de quem', 'Vistoria e não comparecimento'] },
-  { p: 'manutencao', t: 'Funcionário · Manutenção', s: 'Proposta · não previsto no PRD', f: ['Fila de chamados de manutenção atribuídos', 'Agenda de visitas', 'Atualizar andamento e concluir com foto', 'Hoje o PRD prevê só empresas cadastradas pelo síndico'] },
   { p: 'proprietario', t: 'Proprietário não residente', s: 'App · Unidade, Cobranças, Assembleias, Menu', f: ['Unidade alugada: contrato, inquilino e pedidos à administradora', 'Paga as extraordinárias; vê as ordinárias do inquilino', 'Vota nas assembleias e indica procurador', 'Ocorrências validadas contra a unidade, sem ver a rotina do inquilino', 'Unidade desocupada e hóspede de temporada'] },
 ];
 

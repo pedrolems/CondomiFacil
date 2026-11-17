@@ -3647,9 +3647,7 @@ paths:
     post:
       operationId: sindicoAtivarSubstituicao
       summary: Ativa a substituição do síndico pelo subsíndico
-      description: 'O síndico (morador ou profissional) ativa; o subsíndico ganha as funções de síndico e as sugestões
-        pendentes voltam para ele; fica registrado no histórico (RN-CD-12, RN-CD-28, RN-CO-05). **Subsíndico: nunca**,
-        nem em substituição; a resposta é `403` (RN-CD-12, RN-CD-28). A administradora ativa pela interface dela.'
+      description: 'RN-CD-12/27, produto atualizado em 17/11/2026: titular registra ausência programada com início/fim; emergência/vacância tem prova e dois independentes ou verificação restrita. Não há autoconcessão. Substituição termina na data prevista ou retorno registrado. Mantêm-se os operadores competentes de cada modalidade; administradora atua por sua interface, e o beneficiário não ativa o próprio poder. Schema legado não contém o procedimento completo e exige revisão antes de implementar.'
       tags:
       - condominio
       security:
@@ -4065,7 +4063,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarBlocos
       summary: Lista os blocos do condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarBlocos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarBlocos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4096,7 +4094,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarBloco
       summary: Cadastra um bloco
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarBloco; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarBloco; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4130,7 +4128,7 @@ paths:
     put:
       operationId: sindicoAutogestaoAtualizarBloco
       summary: Atualiza um bloco
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarBloco; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarBloco; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4166,7 +4164,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarPortarias
       summary: Lista as portarias
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarPortarias; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarPortarias; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4197,7 +4195,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarPortaria
       summary: Cadastra uma portaria
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarPortaria; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarPortaria; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4233,7 +4231,7 @@ paths:
     put:
       operationId: sindicoAutogestaoAtualizarPortaria
       summary: Atualiza uma portaria
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarPortaria; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarPortaria; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4271,7 +4269,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarUnidades
       summary: Lista as unidades
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarUnidades; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarUnidades; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4309,7 +4307,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarUnidade
       summary: Cadastra uma unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4344,7 +4342,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterUnidade
       summary: Detalha uma unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4375,7 +4373,7 @@ paths:
     put:
       operationId: sindicoAutogestaoAtualizarUnidade
       summary: Atualiza uma unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4411,7 +4409,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirMoradorHabilitado
       summary: Define o morador habilitado da unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirMoradorHabilitado; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirMoradorHabilitado; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4451,7 +4449,7 @@ paths:
     post:
       operationId: sindicoAutogestaoRegistrarMudancaDeMorador
       summary: Registra a mudança de um morador
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarMudancaDeMorador; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarMudancaDeMorador; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4490,7 +4488,7 @@ paths:
     post:
       operationId: sindicoAutogestaoMarcarUnidadeDesocupada
       summary: Marca a unidade como desocupada
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraMarcarUnidadeDesocupada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraMarcarUnidadeDesocupada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4529,7 +4527,7 @@ paths:
     post:
       operationId: sindicoAutogestaoRegistrarRetornoDoProprietario
       summary: Registra o retorno do proprietário à unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarRetornoDoProprietario; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarRetornoDoProprietario; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4567,7 +4565,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarVinculos
       summary: Lista as pessoas com vínculo no condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarVinculos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarVinculos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4604,7 +4602,7 @@ paths:
     post:
       operationId: sindicoAutogestaoPreCadastrarPessoa
       summary: Pré-cadastra uma pessoa
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPreCadastrarPessoa; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPreCadastrarPessoa; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4642,7 +4640,7 @@ paths:
     post:
       operationId: sindicoAutogestaoPreCadastrarEmLote
       summary: Pré-cadastra pessoas em lote (planilha)
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPreCadastrarEmLote; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPreCadastrarEmLote; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4677,7 +4675,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarFuncionarios
       summary: Lista os funcionários
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarFuncionarios; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarFuncionarios; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4714,7 +4712,7 @@ paths:
     post:
       operationId: sindicoAutogestaoDesligarFuncionario
       summary: Desliga um funcionário
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDesligarFuncionario; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDesligarFuncionario; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4753,7 +4751,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarEmpresasDeManutencao
       summary: Lista as empresas de manutenção
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarEmpresasDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarEmpresasDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4787,7 +4785,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCadastrarEmpresaDeManutencao
       summary: Cadastra uma empresa de manutenção
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCadastrarEmpresaDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCadastrarEmpresaDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4820,7 +4818,7 @@ paths:
     put:
       operationId: sindicoAutogestaoAtualizarEmpresaDeManutencao
       summary: Atualiza uma empresa de manutenção
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarEmpresaDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarEmpresaDeManutencao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4856,7 +4854,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarContratosDeLocacao
       summary: Lista os contratos de locação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarContratosDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarContratosDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4894,7 +4892,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCadastrarContratoDeLocacao
       summary: Cadastra o inquilino com o contrato de locação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCadastrarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCadastrarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4935,7 +4933,7 @@ paths:
     post:
       operationId: sindicoAutogestaoRenovarContratoDeLocacao
       summary: Renova o contrato de locação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRenovarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRenovarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -4975,7 +4973,7 @@ paths:
     post:
       operationId: sindicoAutogestaoEncerrarContratoDeLocacao
       summary: Encerra o contrato de locação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarContratoDeLocacao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5014,7 +5012,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarAreas
       summary: Lista as áreas comuns
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAreas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAreas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5048,7 +5046,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarArea
       summary: Cadastra uma área comum
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5086,7 +5084,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterArea
       summary: Detalha uma área comum
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5117,7 +5115,7 @@ paths:
     put:
       operationId: sindicoAutogestaoAtualizarArea
       summary: Atualiza uma área comum
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5157,7 +5155,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarParametros
       summary: Lista os parâmetros do condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarParametros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarParametros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5194,7 +5192,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarHistoricoDoParametro
       summary: Histórico do parâmetro
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarHistoricoDoParametro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarHistoricoDoParametro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5231,7 +5229,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirParametro
       summary: Define o valor de um parâmetro no condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirParametro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirParametro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5272,7 +5270,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarParametrosDaArea
       summary: Lista os parâmetros efetivos da área
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarParametrosDaArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarParametrosDaArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5309,7 +5307,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirParametroDaArea
       summary: Define o valor de um parâmetro na área
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirParametroDaArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirParametroDaArea; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5352,7 +5350,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterContaRecebedora
       summary: Consulta a conta recebedora vigente
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterContaRecebedora; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterContaRecebedora; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5384,7 +5382,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCadastrarContaRecebedora
       summary: Cadastra a conta recebedora
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCadastrarContaRecebedora; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta estrutural: executor vigente solicita configuração da conta no Essencial em autogestão. Produto de 17/11/2026 exige dupla aprovação local independente para troca de conta; sub/conselho só aprovam por capacidade específica, sem executar esta operação. Sem segundo, aguarda e conta vigente continua. Não executar troca unilateral com este DTO legado: desenho de solicitação/aprovação pendente. Sem Admin financeiro ou concessão de autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5426,7 +5424,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterTermoDoTitularPF
       summary: Consulta o termo do titular pessoa física
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterTermoDoTitularPF; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterTermoDoTitularPF; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5457,7 +5455,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarBloqueiosDeEntrada
       summary: Lista as pessoas com entrada bloqueada
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarBloqueiosDeEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarBloqueiosDeEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5492,7 +5490,7 @@ paths:
     post:
       operationId: sindicoAutogestaoBloquearEntrada
       summary: Bloqueia a entrada de uma pessoa
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraBloquearEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraBloquearEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5526,7 +5524,7 @@ paths:
     post:
       operationId: sindicoAutogestaoEncerrarBloqueioDeEntrada
       summary: Encerra um bloqueio de entrada
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarBloqueioDeEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarBloqueioDeEntrada; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5565,7 +5563,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterRegraDeReeleicao
       summary: Consulta a regra de reeleição
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterRegraDeReeleicao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterRegraDeReeleicao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5595,7 +5593,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirRegraDeReeleicao
       summary: Define a regra de reeleição
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirRegraDeReeleicao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirRegraDeReeleicao; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5632,7 +5630,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarDocumentosDoCondominio
       summary: Lista o regimento e os termos do condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDocumentosDoCondominio; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDocumentosDoCondominio; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5664,7 +5662,7 @@ paths:
     post:
       operationId: sindicoAutogestaoPublicarVersaoDeDocumento
       summary: Publica uma nova versão do regimento ou dos termos
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPublicarVersaoDeDocumento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraPublicarVersaoDeDocumento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5704,7 +5702,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterConfiguracaoDeCobranca
       summary: Consulta a configuração da cobrança
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterConfiguracaoDeCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterConfiguracaoDeCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5736,7 +5734,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirConfiguracaoDeCobranca
       summary: Ativa e configura a cobrança
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirConfiguracaoDeCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirConfiguracaoDeCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5776,7 +5774,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirValorDaTaxaDaUnidade
       summary: Define o valor da taxa de uma unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirValorDaTaxaDaUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirValorDaTaxaDaUnidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5813,7 +5811,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterResponsaveisFinanceiros
       summary: Consulta os responsáveis financeiros da unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterResponsaveisFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterResponsaveisFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5846,7 +5844,7 @@ paths:
     put:
       operationId: sindicoAutogestaoDefinirResponsaveisFinanceiros
       summary: Define os responsáveis financeiros da unidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirResponsaveisFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraDefinirResponsaveisFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5886,7 +5884,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarCobrancas
       summary: Lista as cobranças do condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarCobrancas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarCobrancas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5931,7 +5929,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterCobranca
       summary: Detalha uma cobrança
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -5965,7 +5963,7 @@ paths:
     post:
       operationId: sindicoAutogestaoLancarCobrancaExtra
       summary: Lança cobrança extra
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraLancarCobrancaExtra; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraLancarCobrancaExtra; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6005,7 +6003,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCancelarCobranca
       summary: Cancela uma cobrança
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCancelarCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCancelarCobranca; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6045,7 +6043,7 @@ paths:
     post:
       operationId: sindicoAutogestaoRegistrarBaixaManual
       summary: Registra pagamento feito fora do app
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarBaixaManual; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraRegistrarBaixaManual; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6088,7 +6086,7 @@ paths:
     get:
       operationId: sindicoAutogestaoExportarCobrancas
       summary: Exporta cobranças e pagamentos em CSV
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraExportarCobrancas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraExportarCobrancas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6123,7 +6121,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarInadimplencia
       summary: Painel de inadimplência
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarInadimplencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarInadimplencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6161,7 +6159,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarPagamentosEmDuplicidade
       summary: Lista os pagamentos em duplicidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarPagamentosEmDuplicidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarPagamentosEmDuplicidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6196,7 +6194,7 @@ paths:
     post:
       operationId: sindicoAutogestaoTratarPagamentoEmDuplicidade
       summary: Trata um pagamento em duplicidade
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraTratarPagamentoEmDuplicidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraTratarPagamentoEmDuplicidade; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6237,7 +6235,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarDevolucoes
       summary: Lista os reembolsos e devoluções
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDevolucoes; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDevolucoes; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6277,7 +6275,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarDivergenciasDePagamento
       summary: Lista os alertas de conciliação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDivergenciasDePagamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarDivergenciasDePagamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6313,7 +6311,7 @@ paths:
     post:
       operationId: sindicoAutogestaoResolverDivergenciaDePagamento
       summary: Resolve um alerta de conciliação
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraResolverDivergenciaDePagamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraResolverDivergenciaDePagamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6353,7 +6351,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterPainelFinanceiro
       summary: Painel financeiro do condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterPainelFinanceiro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterPainelFinanceiro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6390,7 +6388,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarLancamentos
       summary: Lista os lançamentos financeiros
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarLancamentos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarLancamentos; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6432,7 +6430,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarLancamento
       summary: Registra despesa ou receita avulsa
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6471,7 +6469,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterLancamento
       summary: Detalha um lançamento
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6503,7 +6501,7 @@ paths:
     patch:
       operationId: sindicoAutogestaoAtualizarLancamento
       summary: Edita um lançamento avulso
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraAtualizarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6544,7 +6542,7 @@ paths:
     delete:
       operationId: sindicoAutogestaoExcluirLancamento
       summary: Exclui um lançamento avulso
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraExcluirLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraExcluirLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6582,7 +6580,7 @@ paths:
     post:
       operationId: sindicoAutogestaoEstornarLancamento
       summary: Estorna um lançamento de mês fechado
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEstornarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEstornarLancamento; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6625,7 +6623,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarMesesFinanceiros
       summary: Lista os meses financeiros
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarMesesFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarMesesFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6660,7 +6658,7 @@ paths:
     post:
       operationId: sindicoAutogestaoFecharMesFinanceiro
       summary: Fecha o mês
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraFecharMesFinanceiro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraFecharMesFinanceiro; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6698,7 +6696,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarCategoriasFinanceiras
       summary: Lista as categorias fixas
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarCategoriasFinanceiras; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarCategoriasFinanceiras; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6733,7 +6731,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarRecorrencias
       summary: Lista os lançamentos recorrentes
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarRecorrencias; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarRecorrencias; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6764,7 +6762,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCriarRecorrencia
       summary: Cria um lançamento recorrente
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarRecorrencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCriarRecorrencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6801,7 +6799,7 @@ paths:
     post:
       operationId: sindicoAutogestaoEncerrarRecorrencia
       summary: Encerra um lançamento recorrente
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarRecorrencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraEncerrarRecorrencia; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6841,7 +6839,7 @@ paths:
     post:
       operationId: sindicoAutogestaoSolicitarExportacaoFinanceira
       summary: Exporta o resumo e os lançamentos em CSV ou PDF
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraSolicitarExportacaoFinanceira; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraSolicitarExportacaoFinanceira; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6875,7 +6873,7 @@ paths:
     get:
       operationId: sindicoAutogestaoObterExportacaoFinanceira
       summary: Consulta uma exportação financeira
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterExportacaoFinanceira; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraObterExportacaoFinanceira; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6908,7 +6906,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarComentariosFinanceiros
       summary: Lista os comentários das finanças
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarComentariosFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarComentariosFinanceiros; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6944,7 +6942,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarAvaliacoesFuncionarios
       summary: Lista as avaliações do atendimento agregadas por funcionário de limpeza
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAvaliacoesFuncionarios; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAvaliacoesFuncionarios; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -6981,7 +6979,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarAvaliacoesEmpresas
       summary: Lista as avaliações do atendimento agregadas por empresa de manutenção
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAvaliacoesEmpresas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarAvaliacoesEmpresas; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -7018,7 +7016,7 @@ paths:
     post:
       operationId: sindicoAutogestaoCancelarReservaPeloCondominio
       summary: Cancela reserva pelo condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCancelarReservaPeloCondominio; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraCancelarReservaPeloCondominio; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -7055,7 +7053,7 @@ paths:
     get:
       operationId: sindicoAutogestaoListarReservasCancelaveis
       summary: Lista reservas elegíveis ao cancelamento pelo condomínio
-      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarReservasCancelaveis; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição detalhada e DTOs sujeitos à revisão de Pedro. Sem concessão inicial ou alteração da própria autoridade.'
+      description: 'Proposta de interface de 13/11/2026 para RN-PL-08 e RN-FI-29. Exige Essencial em autogestão, síndico vigente ou subsíndico em substituição válida, tenant e finalidade da ação. Recusar conselho, proprietário eleitoral e suporte; não atribuir papel Administradora ao executor. Mantém validações, campos e projeções da operação administradoraListarReservasCancelaveis; nenhuma fonte financeira individual fora de finalidade autorizada. Distribuição de produto aprovada em 17/11/2026; DTOs e controles sujeitos à revisão técnica do recorte. Sem concessão inicial ou alteração da própria autoridade.'
       tags: [autogestao]
       security:
       - bearerJwt: []
@@ -9795,7 +9793,7 @@ x-lacunas:
   para votação): `estado` é texto livre nesses DTOs e os exemplos usam códigos ilustrativos.'
 - 'Formato de `quorum_regra`: "definido conforme a convenção" (RN-VO-02), sem estrutura nos docs; texto livre.'
 - 'RN-VO-16 (unidade em atraso não vota) em voto presencial: os docs não dizem se vale; não modelado.'
-- "Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13. Impacto aqui: abertura e encerramento na interface comum seguem a sequência de RN-VO-13; a concessão inicial e a prova de ausência seguem pendentes. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano."
+- "Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/06-autogestao-e-conducao-eleitoral.md` e RN-PL-08/RN-VO-13. Impacto aqui: abertura e encerramento na interface comum seguem a sequência de RN-VO-13; concessão inicial e prova de ausência têm produto aprovado no registro 06, seção 2.1; contratos estruturais/controles ainda pendentes. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano."
 - "Apuração do turno é computada pelo sistema após encerramento autorizado pelo condutor legitimado de RN-VO-13 em qualquer plano. Segundo empate ou ausência de elegível resulta inconclusivo, sem vencedor automático (RN-VO-07). Sigilo e substituição ainda exigem proposta."
 - "Exportação financeira assíncrona com consulta e arquivo privado aprovada em 12/11/2026, para todo pedido. Códigos técnicos de acompanhamento são proposta; TTL, retenção e limites operacionais continuam pendentes."
 - Códigos sem acento das categorias financeiras, de `autor_papel` e de `origem` são Proposta de nomenclatura; os
@@ -9815,3 +9813,12 @@ x-decisoes-12-11-2026:
 - "Eleição regular: abertura removida desta interface; usar administradoraAbrirEleicao e administradoraEncerrarEleicao. Consulta do síndico preservada conforme permissões."
 - "RN-CH-07: Reaberto passa por triagem explícita para Orçamento ou Agendado; não concluir diretamente."
 - "RN-CA-05: cancelamento condominial com motivo implementado no contrato; subsíndico somente em substituição."
+
+x-decisoes-autogestao-17-11-2026:
+- "Produto aprovado no registro 06, seção 2.1: dados fictícios; operador apenas antes do primeiro condomínio oficial, Pedro não assume Admin. Nenhum canal ou pessoa real nomeados."
+- "Provas por evento, validação independente, ausência programada com início/fim e emergência/vacância com dois representantes independentes ou verificação documental restrita do Admin. Recusa motivada e revisão independente; contestação isolada não suspende. Contratos estruturais de pedidos/revisões ainda pendentes."
+- "Proprietário temporário por eleição com início/fim e até 30 dias, prorrogação somente validada; revogação no conclusivo, cancelamento, expiração ou substituição validada. Conselho tem representante/substituto documentados por eleição. Desenho temporal/revogação ainda requer revisão."
+- "Na autogestão, troca da conta recebedora exige executor solicitante e segundo representante local independente habilitado; sub/conselho têm aprovação específica sem execução geral. Sem segundo, aguarda e conta vigente continua. DTOs/operações de aprovação ainda pendentes; não executar troca unilateral com esquema legado."
+- "Baixas/cancelamentos/devoluções manuais pelo executor vigente exigem motivo, prova pertinente, reautenticação e auditoria; preservar estornos e devoluções devidas. Admin documental e atendimento técnico não movimentam dinheiro."
+- "Sem julgador, aguardar elegível sem punição ou encerramento automático. Transição assistida verifica destino/representação e pendências, preserva arquivos/histórico e revoga acesso antigo na efetivação; vigência comercial preservada. Sem acesso de suporte ao Essencial ou reclamações/scores."
+- "Descrições de produto alinhadas; nenhum contrato estrutural/ADR aceito por consequência, nenhuma operação adicionada ou base executável liberada."

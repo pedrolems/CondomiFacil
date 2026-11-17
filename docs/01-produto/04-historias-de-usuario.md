@@ -11,7 +11,7 @@ São 74 histórias em 14 épicos; cada uma é entregue quando todos os seus crit
 - **Critérios de aceite:** no formato Dado / Quando / Então, como lista de verificação para o QA marcar.
 - **Valores padrão:** os critérios usam os padrões das regras (ex.: 12h para cancelar com reembolso); em condomínios com outra configuração, vale o valor configurado.
 
-**Aplicação à autogestão (13/11/2026; atualizada em 17/11/2026):** nas histórias administrativas e financeiras, "administradora" inclui o responsável local do Essencial com autogestão para as tarefas operacionais de RN-PL-08. AG-01 A aprova síndico executor/subsíndico em substituição/conselho fiscalizador, sem edição financeira do conselho, delegação por atividade ou acesso global a reclamações. AG-02 A aprova a direção de primeira habilitação na autogestão sem autoridade previamente habilitada por verificação restrita de identidade e representação pelo Admin da plataforma, sem Suporte no Essencial nem acesso ao conteúdo de gestão, reclamações ou scores. AG-07 C aprova registro por resultado/posse eleitoral com validação independente nas exceções e conflitos, sem autovalidação. Operador, evidências, validadores e procedimentos ainda precisam ser definidos no [registro 06](06-autogestao-e-conducao-eleitoral.md); essas direções não equivalem a fluxos implementados.
+**Aplicação à autogestão (13/11/2026; atualizada em 17/11/2026):** nas histórias administrativas e financeiras, "administradora" inclui o responsável local do Essencial com autogestão para as tarefas operacionais de RN-PL-08. AG-01 A aprova síndico executor/subsíndico em substituição/conselho fiscalizador, sem edição financeira do conselho, delegação por atividade ou acesso global a reclamações. AG-02 A aprova a direção de primeira habilitação na autogestão sem autoridade previamente habilitada por verificação restrita de identidade e representação pelo Admin da plataforma, sem Suporte no Essencial nem acesso ao conteúdo de gestão, reclamações ou scores. AG-07 C aprova registro por resultado/posse eleitoral com validação independente nas exceções e conflitos, sem autovalidação. Os procedimentos aprovados e a nomeação do operador adiada para antes do primeiro condomínio oficial estão no [registro 06](06-autogestao-e-conducao-eleitoral.md); essas direções não equivalem a fluxos implementados.
 
 ## Épico 1 — Acesso e conta
 
@@ -97,6 +97,9 @@ Requisitos: RF-AD-01, RF-AD-04 · RN-CD-01, RN-CD-04, RN-PL-08
 - [ ] Dado uma unidade que já tem morador habilitado, quando escolho outro, então o anterior deixa de ser habilitado e a troca fica registrada com data.
 - [ ] Dado o cadastro concluído, quando salvo, então cada pessoa recebe o convite de primeiro acesso por e-mail.
 
+- [ ] Dada a primeira habilitação da autogestão, quando se solicita representação, então exige identidade, condomínio e ata/termo do evento; contratação profissional inclui contrato e autorização. Insuficiência pede complemento sem conceder poder provisório (RN 3.1).
+- [ ] Dada recusa ou contestação de representação, quando revisada, então há motivo, complementação e revisão independente; alegação isolada não suspende poderes. Sem revisor, nova concessão contestada aguarda. Até nomear operador antes do primeiro condomínio oficial, só dados fictícios, sem Pedro como Admin.
+
 ### US-AD-02 — Solicitar cadastro como síndico
 
 Como síndico, quero pedir à administradora que cadastre, altere ou remova alguém, para manter os dados certos sem fazer o cadastro eu mesmo.
@@ -139,13 +142,17 @@ Requisitos: RF-AD-08 · RN-PG-01 a RN-PG-04, RN-FI-01
 - [ ] Dado uma conta de pessoa física, quando salvo, então o titular precisa aceitar o termo de responsabilidade pelo valor recebido.
 - [ ] Dado um condomínio sem conta cadastrada, quando tento criar uma área paga ou ativar o módulo de cobrança, então o sistema bloqueia e explica o motivo.
 
+- [ ] Dada troca de conta recebedora na autogestão, quando o executor solicita, então outro representante local habilitado e independente aprova; sub/conselho só recebe essa capacidade específica, sem execução geral. Sem segundo representante, aguarda e a conta vigente continua recebendo (RN-PG-01).
+
 ### US-AD-06 — Registrar mandatos
 
 Como administradora, quero registrar síndico e subsíndico com início e fim de mandato, para que as permissões e as regras de elegibilidade funcionem.
 
 Requisitos: RF-AD-09 a RF-AD-12 · RN-VO-04 a RN-VO-06, RN-VO-15, RN-CD-13
 
-**Direção aceita para autogestão (AG-07 C, 17/11/2026):** registro vinculado ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Validadores, provas e recuperação ainda dependem de detalhamento; os critérios abaixo não definem esse procedimento nem permitem ao interessado validar o próprio poder.
+**Direção aceita para autogestão (AG-07 C, 17/11/2026):** registro vinculado ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Aplicam-se os comprovantes, validação local independente ou verificação restrita do Admin, recusa motivada e revisão independente de RN 3.1; os critérios não permitem ao interessado validar o próprio poder.
+
+- [ ] Dado registro de mandato na autogestão, quando houver conflito ou exceção, então representante local independente e habilitado valida; sem elegível, Admin verifica documentos em capacidade restrita. Se o verificador estiver envolvido, outro assume ou o pedido aguarda, sem autovalidação (RN 3.1/RN-VO-15).
 
 - [ ] Dado síndico e subsíndico da mesma unidade, quando tento salvar, então o sistema bloqueia.
 - [ ] Dado o padrão do condomínio, quando registro um mandato, então a reeleição é permitida, a menos que a regra tenha sido desligada.
@@ -158,12 +165,14 @@ Como síndico ou administradora, quero ativar a substituição pelo subsíndico 
 
 Requisitos: RF-AD-13 · RN-CD-12
 
-**Limite na autogestão:** AG-01 A libera execução administrativa ao sub somente em substituição formal. Comprovação de ausência/vacância e suas exceções continuam pendentes em AG-03; AG-07 C não concede autovalidação de mandato ou gestão geral por conduzir eleição.
+**Limite na autogestão:** AG-01 A libera execução administrativa ao sub somente em substituição formal. Comprovação de ausência/vacância e suas exceções seguem RN-CD-12 e RN 3.1, aprovadas no complemento de AG-03; AG-07 C não concede autovalidação de mandato ou gestão geral por conduzir eleição.
 
-- [ ] Dado que ativo a substituição, quando o subsíndico abre o app, então ele tem as funções de síndico.
+- [ ] Dada ausência programada com início e fim registrados, quando o subsíndico abre o app dentro da vigência validada, então recebe as funções de síndico; antes do início não recebe essas funções.
 - [ ] Dado a substituição ativa, quando eu (síndico ou administradora) a desativo, então as funções voltam ao síndico na hora.
+- [ ] Dada substituição por ausência programada, quando chega o fim previsto ou o retorno do titular é registrado antes, então encerra automaticamente a execução substituta e devolve as funções ao titular, com autoria/evento e momento no histórico.
 - [ ] Dado cada ativação ou desativação, quando ocorre, então fica registrada com autor e data.
 - [ ] Dado a substituição ativa, quando o subsíndico abre a substituição, então vê que está ativa, mas não tem a opção de desativar.
+- [ ] Dada ausência programada, quando registrada pelo titular, então tem início/fim e encerra na data ou retorno registrado. Emergência/vacância exige prova e dois representantes independentes do beneficiário; sem composição ou acesso, segue verificação restrita do Admin, sem autovalidação (RN-CD-12/3.1).
 
 ### US-AD-12 — Apoiar a gestão como subsíndico
 
@@ -589,6 +598,8 @@ Requisitos: RF-RS-04 · RN-RC-03, RN-RC-11
 - [ ] Perda da função do julgador retira acesso e reatribui pela tabela vigente, preservando histórico; sem elegível aguarda atribuição.
 - [ ] Troca de habilitado mantém caso e pontos no episódio original, sem acesso do novo ocupante. Pessoa originalmente envolvida conserva acesso próprio restrito à defesa/recurso, com projeção sujeita à revisão de privacidade.
 
+- [ ] Dado caso ou recurso sem julgador elegível e imparcial, quando encaminhado, então aguarda atribuição com aviso, sem acesso de ex-julgador, julgamento, encerramento ou punição automática pela espera; Admin e Suporte não recebem conteúdo protegido (RN-RC-03/14).
+
 ### US-RS-05 — Recorrer de uma decisão
 
 Como quem perdeu pontos, quero recorrer uma vez, para ter a decisão revista por outra pessoa.
@@ -748,6 +759,9 @@ Requisitos: RF-VO-05, RF-VO-06, RF-VO-08 · RN-VO-04, RN-VO-05, RN-VO-07, RN-VO-
 - [ ] Dado proprietário sem concessão válida ou condutor fora da condição autorizada, quando tenta abrir/encerrar, então o acesso é negado, sem autoconcessão.
 - [ ] Segundo turno empatado ou ausência de elegível publica inconclusivo e encaminha ao condutor de RN-VO-13, sem vencedor automático nem dependência de administradora.
 
+- [ ] Dado proprietário designado, quando concedido acesso, então vale somente para uma eleição por até 30 dias, prorrogável por nova validação; encerra em conclusão, cancelamento, vencimento ou substituição validada. Segundo turno não renova automaticamente a validade (RN-VO-13).
+- [ ] Dado conselho conduzindo, quando habilitado, então ata/termo identifica representante e substituto por eleição; substituto assume após registro de impedimento. Sem gestor até a posse, só rotinas automáticas e eleição continuam, com tarefas administrativas aguardando responsável (RN-VO-13/15).
+
 ## Épico 11 — Planos e suporte
 
 ### US-PL-01 — Cobrar pela faixa de unidades
@@ -764,7 +778,10 @@ Requisitos: RF-AD-16 · RN-PL-01, RN-PL-06, RN-PL-07
 - [ ] Assinatura da plataforma no MVP usa cobrança assistida/manual com ciclo/valores registrados, separada do dinheiro e da conta condominial.
 
 - [ ] Dado condomínio sem administradora que opta somente pelo Essencial, quando sua modalidade é autogestão, então mantém a faixa e preço do Essencial, sem obrigar Gestão + Suporte nem conceder acesso administrativo ao suporte.
-- [ ] Dada autogestão, quando há pedido administrativo, então ele é atendido pela gestão local de RN-PL-08; conselho não ganha edição financeira por consequência da modalidade e poderes sensíveis aguardam revisão.
+- [ ] Dada autogestão, quando há pedido administrativo, então ele é atendido pela gestão local de RN-PL-08; conselho não ganha edição financeira por consequência da modalidade e operações sensíveis exigem as salvaguardas de RN-PG-01/RN-FI-29.
+
+- [ ] Dada mudança de modalidade, quando efetivada, então autoridade/destino são verificados, vigência e transferência de filas, arquivos e histórico são registradas e acessos antigos revogados. Sem autoridade, ocorre recuperação antes; verificação restrita do Admin não abre conteúdo geral nem altera vigência comercial (RN 11.1).
+- [ ] Dado Essencial, quando precisar de atendimento técnico/comercial, então há encaminhamento por e-mail sem serviço administrativo ou franquia paga; responsável/endereço reais são definidos antes da operação oficial, sem canal ou prazo fictício (RN 11.1).
 
 ### US-PL-02 — Controlar a franquia de solicitações
 
@@ -851,6 +868,8 @@ Requisitos: RF-FI-06, RF-FI-10, RF-FI-16 · RN-FI-14, RN-FI-15, RN-FI-20
 - [ ] Dado um pagamento feito fora do app, quando o registro, então anexo o comprovante e o motivo, e a cobrança fica paga.
 - [ ] Dado uma cobrança emitida por engano, quando a cancelo, então informo o motivo e o cancelamento fica na auditoria.
 - [ ] Dado que sou síndico, quando abro a cobrança, então só consigo solicitar cobranças extras, não lançá-las.
+
+- [ ] Dada baixa manual, cancelamento ou devolução na autogestão, quando executada, então exige executor vigente, justificativa, evidência pertinente, nova autenticação e auditoria; preserva devoluções obrigatórias, automações, estorno e correção na origem, sem Admin financeiro (RN-FI-29).
 
 ### US-FI-05 — Acompanhar a inadimplência
 
@@ -972,6 +991,8 @@ Requisitos: RF-RL-11 · RN-RL-06/07/08.
 - A API revalida acesso na consulta e download; outra pessoa, outro condomínio ou vínculo revogado não recebe arquivo nem link.
 - Link temporário expirado pode ser renovado só enquanto arquivo e autorização forem válidos; arquivo expirado exige gerar novamente.
 - São auditados pedido e acesso sem copiar relatório para logs; prazo de retenção e validade continuam pendentes de dimensionamento.
+
+**Destino das extensões — decisão 14A, 17/11/2026:** propostas adicionais de produto serão decididas antes de implementar cada módulo afetado, sem aprovação implícita nem retirada de funcionalidades do MVP. Identidade/representação/acesso antecedem acesso persistido. Manutenção segue US-CH-03/RN-CH-05 por empresas acompanhadas pelo síndico, sem perfil de acesso próprio.
 
 ## Cobertura
 

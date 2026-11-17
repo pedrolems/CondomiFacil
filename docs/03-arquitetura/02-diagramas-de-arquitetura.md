@@ -114,7 +114,7 @@ flowchart LR
 
 **Nota de agrupamento.** O PRD (seção 3) define 11 perfis. O diagrama os agrupa em 5 caixas para ficar legível: Moradia (morador, síndico morador, subsíndico, proprietário não residente), Gestão (síndico profissional, conselho fiscal), Campo (portaria, limpeza), Administração (administradora) e Plataforma (suporte, admin da plataforma). O subsíndico fica em Moradia porque é morador eleito. O diagrama 2.1 de `01-arquitetura.md` agrupa de outro jeito (7 nós); a informação é a mesma.
 
-**Sem login.** Visitantes, hóspedes de temporada e empresas de manutenção são cadastros, não atores (RF-AD-14; RN 3). O perfil "Manutenção" existe só no protótipo e não aparece aqui. O condomínio é o controlador dos dados e a plataforma é a operadora (SEG-14).
+**Sem login.** Visitantes, hóspedes de temporada e empresas de manutenção são cadastros, não atores (RF-AD-14; RN 3). O perfil de acesso "Manutenção" foi retirado do protótipo em 17/11/2026; empresas/chamados pelo síndico permanecem. O condomínio é o controlador dos dados e a plataforma é a operadora (SEG-14).
 
 **CDN e cofre de segredos** (ambos Proposta) são infraestrutura do provedor e aparecem no nível 2.
 

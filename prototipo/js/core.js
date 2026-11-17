@@ -15,8 +15,6 @@ const PROFILES = {
                  tabs: [['visitantes','Visitantes','users'],['encomendas','Encomendas','package'],['areas','Áreas','clipboard-check'],['menu','Menu','menu']] },
   limpeza:     { name: 'Limpeza', icon: 'spray-can', layout: 'phone', home: 'chamados', staff: true,
                  tabs: [['chamados','Chamados','spray-can'],['areas','Áreas','clipboard-check'],['menu','Menu','menu']] },
-  manutencao:  { name: 'Manutenção', icon: 'wrench', layout: 'phone', home: 'chamados', staff: true, proposta: true,
-                 tabs: [['chamados','Chamados','wrench'],['agenda','Agenda','calendar-days'],['menu','Menu','menu']] },
   proprietario:{ name: 'Proprietário não residente', icon: 'key-round', layout: 'phone', home: 'unidade',
                  tabs: [['unidade','Unidade','house'],['cobrancas','Cobranças','receipt'],['assembleias','Assembleias','vote'],['menu','Menu','menu']] },
 };
@@ -40,7 +38,24 @@ const $ = sel => document.querySelector(sel);
 
 /* Callbacks: cada render registra funções e o HTML aponta para elas com data-cb */
 let CB = {}, cbn = 0;
-const cb = fn => { const k = 'c' + (++cbn); CB[k] = fn; return `data-cb="${k}"`; };
+const cenario = fn => Object.assign(fn, { cenario: true });
+function atualizarSubstituicao() {
+  const periodo = S.periodoSubstituicao;
+  if (S.substituicao && periodo && (S.governanca.dia < periodo.inicio || S.governanca.dia >= periodo.fim)) S.substituicao = false;
+}
+function dataGestao(dia) { return new Date(Date.UTC(2026, 10, 17 + dia)).toLocaleDateString('pt-BR', { timeZone: 'UTC' }); }
+const GESTAO_MANUAL = new Set(['manutencao-detalhe', 'limpeza-painel', 'limpeza-detalhe', 'comunicados', 'comunicado-novo', 'comunicado', 'reuniao-gestao', 'convocar', 'encomendas-vencidas', 'substituicao', 'julgamento', 'denuncias', 'cancelamentos', 'inadimplencia', 'solicitacao-nova', 'autogestao', 'financas']);
+const cb = fn => {
+  const k = 'c' + (++cbn), origem = { ...CUR }, substituindo = CUR.p === 'subsindico' && S.substituicao;
+  CB[k] = (...args) => {
+    atualizarSubstituicao();
+    if (!fn.cenario && ['sindico', 'subsindico'].includes(origem.p) && GESTAO_MANUAL.has(origem.name) && (CUR.p !== origem.p || (substituindo && !S.substituicao) || (S.autogestao.ativa && S.autogestao.semGestor))) {
+      toast('Ação indisponível para a função ou vigência atual. Sem gestor habilitado, tarefas administrativas aguardam responsável; consultas, rotinas automáticas e eleição permanecem disponíveis.'); return;
+    }
+    return fn(...args);
+  };
+  return `data-cb="${k}"`;
+};
 const goAttr = r => `data-go="${r}"`;
 function on(o) { if (!o) return ''; if (typeof o === 'function') return cb(o); if (typeof o === 'string') return goAttr(o); return ''; }
 
@@ -262,6 +277,7 @@ function applyTheme() {
 function icons(root) { if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 2 }, nameAttr: 'data-lucide', root }); }
 
 function render(keepScroll) {
+  atualizarSubstituicao();
   const r = parse();
   const prevScroll = keepScroll && $('#content') ? $('#content').scrollTop : 0;
   const routeChanged = r.p !== CUR.p || r.name !== CUR.name || r.arg !== CUR.arg;
@@ -357,14 +373,15 @@ function renderSide(ctx) {
   const sim = [];
   if (['sindico', 'subsindico', 'morador', 'proprietario', 'admin'].includes(ctx.p)) {
     sim.push(btn('Essencial · Autogestão: ' + (S.autogestao.ativa ? 'ativa' : 'inativa'), { on: () => { S.autogestao.ativa = !S.autogestao.ativa; rerender(); } }));
-    [['sindico', 'Síndico disponível'], ['sub', 'Subsíndico disponível'], ['conselho', 'Conselho disponível'], ['designado', 'Usuário atual designado para esta eleição']].forEach(([k,l]) => sim.push(btn(l + ': ' + (S.eleitoral[k] ? 'sim' : 'não'), { on: () => { S.eleitoral[k] = !S.eleitoral[k]; if (k === 'designado') S.eleitoral.designadoPerfil = S.eleitoral[k] ? ctx.p : null; rerender(); } })));
+    sim.push(btn('Sem gestor habilitado: ' + (S.autogestao.semGestor ? 'sim' : 'não'), { on: cenario(() => { S.autogestao.semGestor = !S.autogestao.semGestor; rerender(); }) }));
+    [['sindico', 'Síndico disponível'], ['sub', 'Subsíndico disponível'], ['conselho', 'Conselho disponível'], ['designado', 'Usuário atual designado para esta eleição']].forEach(([k,l]) => sim.push(btn(l + ': ' + (S.eleitoral[k] ? 'sim' : 'não'), { on: () => { S.eleitoral[k] = !S.eleitoral[k]; if (k === 'designado') { S.eleitoral.designadoPerfil = S.eleitoral[k] ? ctx.p : null; S.eleitoral.validade = S.governanca.dia + 30; } rerender(); } })));
   }
   if (ctx.P.staff) sim.push(`<button class="${S.online ? '' : 'on'}" ${cb(() => setOnline(!S.online))}>${S.online ? 'Simular sem internet' : 'Voltar internet'}</button>`);
   if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) {
     sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? scoreContexto().base : 58; rerender(); })}>Score baixo nesta unidade (58)</button>`);
     sim.push(`<button class="${S.atraso ? 'on' : ''}" ${cb(() => { S.atraso = !S.atraso; rerender(); })}>Unidade em atraso</button>`);
     sim.push(`<button class="${S.termsPending ? 'on' : ''}" ${cb(() => { S.termsPending = !S.termsPending; rerender(); })}>Termos novos</button>`);
-    if (ctx.p !== 'morador') sim.push(`<button class="${S.substituicao ? 'on' : ''}" ${cb(() => { S.substituicao = !S.substituicao; rerender(); toast(S.substituicao ? 'Substituição ativa: Carla Mendes tem as funções de síndico.' : 'Substituição desativada.'); })}>Substituição ativa</button>`);
+    if (ctx.p !== 'morador') sim.push(`<button class="${S.substituicao ? 'on' : ''}" ${cb(cenario(() => { S.substituicao = !S.substituicao; S.periodoSubstituicao = { inicio: S.governanca.dia, fim: S.governanca.dia + 7 }; rerender(); toast(S.substituicao ? 'Substituição fictícia ativa por 7 dias, com término automático ou retorno registrado.' : 'Retorno fictício registrado.'); }))}>Substituição ativa · cenário</button>`);
     if (ctx.p === 'morador') sim.push(`<button class="${S.conselho ? 'on' : ''}" ${cb(() => { S.conselho = !S.conselho; rerender(); toast(S.conselho ? 'Ana agora é do conselho fiscal: Menu > Finanças do condomínio.' : 'Ana voltou a ser só moradora.'); })}>Sou do conselho fiscal</button>`);
     if (ctx.p === 'morador') sim.push(`<button class="${S.inquilino ? 'on' : ''}" ${cb(() => { S.inquilino = !S.inquilino; rerender(); toast(S.inquilino ? 'Ana agora é inquilina: a unidade é alugada.' : 'Ana voltou a ser proprietária moradora.'); })}>Morador é inquilino</button>`);
   }

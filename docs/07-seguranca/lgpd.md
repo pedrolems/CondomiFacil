@@ -232,6 +232,7 @@ O arquivo de acesso deve ser privado, vinculado ao titular, com autorização re
 
 | Pendência | Evidência necessária / envolvidos |
 | --- | --- |
+| Parecer jurídico SEG-16 | Pendente - Inacessível (16/11/2026): Pedro sem acesso a advogado, com acesso futuro incerto. [Pacote preparado](pacote-para-validacao-juridica.md); análise profissional e condições impeditivas permanecem pendentes antes do MVP, conforme o [roadmap](../roadmap.md) |
 | Identidade dos agentes e canais | Pedro/jurídico/controladores: partes, representantes, encarregado/canal e função operacional LGPD; processo para titulares sem conta |
 | Bases legais | Jurídico/controlador: hipótese por finalidade, obrigação concreta, teste B9 e análise de sensíveis/menores; não aprovar tabela em bloco |
 | Retenções | Jurídico/engenharia/controlador: resolver P-09, modelos/bloqueios, anexos, provas financeiras e pesquisa; preservar regra de visitantes e registro específico de incidentes |

@@ -269,7 +269,7 @@ Evidências ficam em área restrita, com acesso registrado, origem, responsável
 
 Preparar comunicação com descrição factual, dados/categorias e titulares potencialmente afetados, período conhecido, medidas tomadas, riscos ainda em avaliação, orientações úteis e canal de acompanhamento. Não divulgar detalhes de exploração ou identidades protegidas a quem não precisa conhecê-los. Atualizar o comunicado quando o escopo mudar.
 
-Os critérios, destinatários, conteúdo obrigatório, marco inicial e prazos de eventual comunicação à ANPD, titulares e controladores **não estão definidos pelas fontes internas** e exigem validação jurídica da regulamentação vigente antes do piloto. Este documento não fixa prazo legal nem dispensa comunicação. SEG-16 permanece portão de lançamento; o parecer de score/reclamações/eleições não substitui a preparação jurídica da resposta a incidentes.
+Os critérios, destinatários, conteúdo obrigatório, marco inicial e prazos de eventual comunicação à ANPD, titulares e controladores **não estão definidos pelas fontes internas** e exigem validação jurídica da regulamentação vigente antes do piloto. Este documento não fixa prazo legal nem dispensa comunicação. O parecer SEG-16 é exigido antes da implementação do MVP, conforme o [roadmap](../roadmap.md); o parecer de score/reclamações/eleições não substitui a preparação jurídica da resposta a incidentes.
 
 ### 9.5 Backup e retorno seguro
 
@@ -301,6 +301,7 @@ Estes cenários orientam a futura estratégia de qualidade; nenhum teste de apli
 
 | Pendência | Decisão/evidência necessária e responsável a envolver |
 | --- | --- |
+| Parecer jurídico SEG-16 | Pendente - Inacessível (16/11/2026): Pedro sem acesso a advogado, com acesso futuro incerto. [Pacote preparado](pacote-para-validacao-juridica.md); parecer e condições continuam pendentes e bloqueiam o início do MVP conforme o roadmap |
 | Autorização e primeira gestão | Pedro/produto: distribuição fina da autogestão, validação de mandato, implantação inicial, designação/revogação eleitoral e exceções LGPD; sem concessão implícita |
 | Sessões e acesso privilegiado | Engenharia/segurança e Pedro: ADR-007, duração total de refresh, tolerância a retry, parâmetros criptográficos, invalidação e avaliação de MFA/reautenticação |
 | Criptografia de servidor | Engenharia/segurança: inventário de campos, algoritmo/biblioteca, custódia, recuperação e rotação; verificar proteção de banco/Storage/backups na infraestrutura escolhida |
@@ -333,7 +334,7 @@ Pendências bloqueiam a parte correspondente do desenho/implementação; não si
 | SEG-13 | Seções 4.1 e 8: plano, escopo e registro do suporte | RN-PL-06/08; política de acesso; sem reclamações/scores |
 | SEG-14 | Seções 9.1/9.4 e 11: controlador, operadora e coordenação | Contrato e validação jurídica pendentes |
 | SEG-15 | Seções 6 e 11: conta recebedora e termos | PRD 8; termo versionado de responsabilidade de pessoa física e KYC dependem de revisão jurídica e gateway |
-| SEG-16 | Seções 5.2, 9.4 e 11: parecer e limites do documento | Portão de lançamento do PRD; não substituído por esta proposta |
+| SEG-16 | Seções 5.2, 9.4 e 11: parecer e limites do documento | Marco pré-MVP conforme roadmap; Pendente - Inacessível, com pacote preparado |
 | SEG-17 | Seções 2, 4.2/4.3 e 9.3: unidade, webhook e conciliação | PRD 8; Asaas por token conforme ADR-002, não assinatura de corpo |
 | SEG-18 | Seções 2, 4 e 8: agregação, finalidade e auditoria | RN financeiras; mês fechado imutável, correções por estorno; autogestão com pendências |
 | RNF-06/07/08/16 | Seções 5.3, 7 e 10: offline, sincronização e critérios | RN-OF-*; frontend 5; ADR-003/014 propostos |

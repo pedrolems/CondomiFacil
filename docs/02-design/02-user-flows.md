@@ -183,6 +183,8 @@ Nesta seção, "administradora" inclui a equipe de suporte da plataforma nos con
 
 A implantação segue uma ordem fixa, porque cada etapa depende da anterior: estrutura, conta bancária, pessoas e, por fim, regras.
 
+**Variante Essencial com autogestão — direção aceita em 17/11/2026 (AG-02 A, RN-CD-01):** sem autoridade previamente habilitada, a primeira identidade e representação da gestão são verificadas pelo Admin da plataforma em capacidade restrita. Operador, provas, recusa, contestação, recuperação e concessão/revogação ainda precisam de detalhamento antes do fluxo real. A verificação não concede acesso ao conteúdo de gestão, reclamações ou scores nem usa Suporte no Essencial. O diagrama abaixo mantém a variante com administradora; não demonstra o procedimento inicial da autogestão já concluído.
+
 ```mermaid
 flowchart TD
     A(["Admin da plataforma cadastra o condomínio e o plano"]) --> B["Administradora cadastra blocos, portarias e unidades"]
@@ -229,7 +231,7 @@ flowchart TD
 
 ### 4.2 Solicitação do síndico
 
-O síndico nunca cadastra diretamente; ele envia uma solicitação, que a administradora atende ou recusa com motivo (RN-CD-06).
+Com administradora ou Gestão + Suporte, o síndico não cadastra diretamente; ele envia uma solicitação, que a administradora ou o suporte autorizado atende ou recusa com motivo (RN-CD-06). No Essencial com autogestão, o síndico executa e o sub executa em substituição formal (AG-01 A, RN-PL-08), sem fila de suporte pago.
 
 ```mermaid
 flowchart TD
@@ -260,7 +262,7 @@ flowchart TD
 
 ### 4.3 Mudança de morador e desligamento de funcionário
 
-**Variação transversal — Essencial com autogestão (13/11/2026, RN-PL-08):** os fluxos 4.1–4.5, 13.2 e 13.3 precisam funcionar sem administradora e sem Gestão + Suporte. Entrada por Gestão → Administração do condomínio; indicar "Essencial · Autogestão". Distribuição proposta para revisão: síndico executa cadastro, configuração e administração financeira; subsíndico executa durante substituição; conselho fiscal acompanha e fiscaliza, sem editor financeiro automático. Ação administrativa exige internet, função vigente e auditoria. Solicitação destinada à administradora passa a fila local, sem cobrar franquia de Gestão + Suporte. A designação eleitoral não autoriza cadastros, finanças ou concessão de funções. Fluxos antigos abaixo descrevem a variante com administradora; a variante local deve preservar as mesmas validações e privacidade, sujeita à revisão das permissões finas.
+**Variação transversal — Essencial com autogestão (13/11/2026; distribuição aprovada em 17/11/2026, AG-01 A/RN-PL-08):** os fluxos 4.1–4.5, 13.2 e 13.3 precisam funcionar sem administradora e sem Gestão + Suporte. Entrada por Gestão → Administração do condomínio; indicar "Essencial · Autogestão". Síndico executa cadastro, configuração e administração financeira; subsíndico executa durante substituição formal; conselho fiscal acompanha e fiscaliza, sem edição financeira. Não há delegação por atividade aprovada. Ação administrativa exige internet, função vigente e auditoria. Solicitação destinada à administradora passa a fila local, sem cobrar franquia de Gestão + Suporte. A designação eleitoral não autoriza cadastros, finanças ou concessão de funções. Fluxos antigos abaixo descrevem a variante com administradora; a variante local deve preservar as mesmas validações e privacidade. Procedimentos sensíveis do registro 06 continuam pendentes, sem reabrir a distribuição já aprovada.
 
 ```mermaid
 flowchart TD
@@ -288,6 +290,8 @@ flowchart TD
 | Morador era síndico ou subsíndico | "Esta pessoa tem mandato ativo. Encerre o mandato antes." | Fluxo 4.4 | RN-CD-13 |
 
 ### 4.4 Mandatos e substituição do síndico
+
+**Autogestão — AG-07 C aceita em 17/11/2026 (RN-VO-15):** o registro do mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Validadores, evidências e recuperação ainda precisam ser definidos antes da execução real. O interessado não valida o próprio poder e conduzir eleição não concede gestão geral. A comprovação de ausência/vacância permanece pendente em AG-03; o diagrama da variante com administradora não resolve essas lacunas.
 
 ```mermaid
 flowchart TD
@@ -1159,7 +1163,7 @@ flowchart TD
     G -->|"Não"| I{"Síndico e subsíndico eleitos da mesma unidade?"}
     I -->|"Sim"| J["Assume o próximo mais votado para subsíndico"]
     I -->|"Não"| K
-    J --> K["Responsável administrativo registra mandatos; na autogestão, distribuição a revisar"]
+    J --> K["Responsável administrativo registra mandatos; autogestão: resultado/posse e validação independente nas exceções, procedimento pendente"]
     K --> Z(["Novos mandatos ativos"])
     classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44

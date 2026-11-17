@@ -1,6 +1,6 @@
 # Roadmap de desenvolvimento do CondomiFacil
 
-**Data de elaboração:** 15/11/2026. **Atualizado em:** 16/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026, com atualizações registradas de 16/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
+**Data de elaboração:** 15/11/2026. **Atualizado em:** 17/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026, com atualizações registradas de 16/11/2026 e 17/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
 
 **Estado:** plano detalhado para revisão e acompanhamento. O projeto está em Design, com documentação, protótipo HTML navegável e estruturas preparatórias de backend/frontend. Não há aplicativo, API, banco, integrações ou infraestrutura operacional implementados. Criar este roadmap não autoriza iniciar o MVP, contratar serviços, executar PoCs, publicar, commitar ou enviar alterações.
 
@@ -37,6 +37,7 @@ Este documento organiza o caminho até a entrega do MVP, o piloto, o lançamento
 | Preparado | Existe estrutura, roteiro ou arquivo de apoio sem execução funcional comprovada |
 | Pendente | Falta decisão, ação, evidência ou entrega |
 | Bloqueado | Há dependência identificada que impede iniciar ou concluir aquele item |
+| Pulado — Inacessível | Pedro decidiu pular a etapa enquanto não há acesso aos participantes ou ao profissional necessário; não foi realizada nem aprovada e não bloqueia o avanço por essa ausência |
 | Em execução | Trabalho autorizado em andamento, com responsável e escopo definidos |
 | Em revisão | Entrega produzida aguardando verificação ou aceite |
 | Concluído | Critérios de saída satisfeitos, evidência registrada e aceite aplicável obtido |
@@ -53,22 +54,25 @@ Os identificadores `RM-*` deste documento servem somente ao planejamento. Não s
 
 ## 2. Situação atual e decisões confirmadas
 
-### 2.1 Confirmações de Pedro nesta conversa — 14/11/2026
+### 2.1 Confirmações de Pedro nesta conversa — histórico e decisão vigente
 
 | Tema | Informação confirmada | Consequência para o andamento |
 | --- | --- | --- |
-| Retorno dos moradores | O protótipo foi testado somente com moradores; eles gostaram e aprovaram a ideia. Não foram informados data das sessões, quantidade de participantes, tarefas, dificuldades ou resultados por fluxo | Registrar como aceitação inicial positiva da ideia. A validação completa de usabilidade e operação permanece pendente; não declarar aprovação por síndicos ou porteiros |
-| Parecer jurídico | Pedro determinou manter a regra atual: parecer jurídico obrigatório **antes de iniciar a implementação do MVP** | O marco jurídico permanece bloqueador do início do desenvolvimento funcional |
+| Retorno dos moradores — 14/11/2026 | O protótipo foi testado somente com moradores; eles gostaram e aprovaram a ideia. Não foram informados data das sessões, quantidade de participantes, tarefas, dificuldades ou resultados por fluxo | Preservar como aceitação inicial positiva da ideia, sem comprovação de validação completa de usabilidade e operação |
+| Parecer jurídico — 14/11/2026 | Pedro determinou naquela data exigir parecer jurídico antes de iniciar o MVP | Exigência de passagem substituída pela decisão de 17/11/2026 abaixo |
+| Etapas inacessíveis — 17/11/2026 | Pedro informou não ter acesso a moradores, funcionários ou advogados e mandou pular os testes com usuários e o parecer jurídico por estarem inacessíveis no momento | RM-02 e RM-03 ficam **Pulado — Inacessível**, abrangendo também os testes com síndicos já indisponíveis. Não bloqueiam G0 nem a passagem às próximas fases por essa ausência enquanto estiverem assim adiados; não foram realizados nem aprovados. Não há data de retomada. Demais condições e autorizações permanecem |
+| Organização e prioridade — 17/11/2026 | Pedro confirmou: ele decide produto e valida entregas; subagentes preparam análises e executam alterações autorizadas; orquestrador coordena e revisa. Começar por autogestão e implantação, depois revisão técnica | Etapa 1 da seção 16 confirmada. [Pacote de decisões](decisoes-para-iniciar-o-desenvolvimento.md) preparado em lotes; demais respostas, detalhamento e liberação de implementação ainda pendentes; direções do lote 1 alinhadas nas fontes autorizadas de produto/design e descrição do protótipo |
+| Lote 1 de decisões — 17/11/2026 | Pedro autorizou seguir as recomendações apresentadas: AG-01 A (síndico executa, sub substitui, conselho fiscaliza), AG-02 A (Admin da plataforma verifica primeira identidade/representação com capacidade restrita) e AG-07 C (resultado/posse eleitoral com validação independente em exceções/conflitos) | Direções aceitas e alinhadas, com autorização de Pedro, no registro 06, RN, PRD, histórias, User Flows, Design System e descrição do protótipo. Operador de implantação não nomeado e provas/validadores/exceções pendentes; dados/API/arquitetura/ADRs e código do protótipo preservados. Próxima rodada: lote 2. Não encerra G0 nem libera implementação |
 | Roadmap | Pedro solicitou este planejamento detalhado dentro de `docs` | Autoriza documentar o plano; não constitui aceite de todas as propostas nem autorização para começar o MVP |
 
-**Divergência conhecida:** a [Visão de Produto, roadmap](01-produto/01-visao-de-produto.md) posiciona o parecer ao final do MVP, enquanto [AGENTS.md](../AGENTS.md) e [Arquitetura, seção 1](03-arquitetura/01-arquitetura.md) o exigem antes do início. Para executar este plano, vale a confirmação mais recente de Pedro acima. Os documentos originais não foram alterados nesta entrega.
+**Alinhamento documental pendente:** [AGENTS.md](../AGENTS.md), [Visão de Produto, roadmap](01-produto/01-visao-de-produto.md), [Arquitetura, seção 1](03-arquitetura/01-arquitetura.md) e o [pacote jurídico](07-seguranca/pacote-para-validacao-juridica.md) mantêm referências anteriores aos marcos de validação e jurídico. Para a sequência deste roadmap, vale a decisão mais recente de Pedro, de 17/11/2026. Esta atualização se limita ao planejamento: não atesta conformidade jurídica, não altera SEG-16 nem as regras do produto e não modifica as demais fontes.
 
 ### 2.2 O que já existe
 
 | Frente | Entrega existente | Situação real / o que falta |
 | --- | --- | --- |
 | Produto | [Visão](01-produto/01-visao-de-produto.md), [PRD](01-produto/02-prd.md), [RN](01-produto/03-regras-de-negocio.md), [histórias](01-produto/04-historias-de-usuario.md) e registros de decisões | Documentados, com pendências e revisões. As contagens antigas não substituem o inventário atual após relatórios e autogestão |
-| Design | [Design System](02-design/01-design-system.md) e [User Flows](02-design/02-user-flows.md) | Referências completas para desenho; concluir validação com usuários e tratar seção 17 dos fluxos |
+| Design | [Design System](02-design/01-design-system.md) e [User Flows](02-design/02-user-flows.md) | Referências completas para desenho; validação com usuários pulada por inacessibilidade atual; tratar as demais pendências da seção 17 dos fluxos |
 | Protótipo | [HTML navegável e simulações](../prototipo/README.md), incluindo finanças, portaria, autogestão, eleições e relatórios | Funciona como simulação em memória. Pagamentos, persistência, offline, autorização, exportações e segurança reais não estão demonstrados |
 | Arquitetura | [Arquitetura](03-arquitetura/01-arquitetura.md), [C4](03-arquitetura/02-diagramas-de-arquitetura.md) e ADRs | Base técnica documentada. Separar decisões já aceitas das propostas e dos critérios ainda não demonstrados |
 | Dados | [MER/DER](04-banco-de-dados/01-mer-e-der.md), [política de acesso](04-banco-de-dados/02-politica-de-acesso-a-dados.md) e [migrations/seeds](04-banco-de-dados/03-estrategia-de-migrations-e-seeds.md) | Propostas documentais, sem banco ou migração aplicada; validar modelo físico, acesso e executor |
@@ -103,7 +107,7 @@ Os demais ADRs do índice continuam propostos. A stack-base do PRD orienta o pla
 
 ```mermaid
 flowchart TD
-    A["Fase 0: Design, validação e decisões"] --> G0{"G0: validações atendidas ou adiadas por decisão, jurídico e demais bloqueios resolvidos?"}
+    A["Fase 0: Design e decisões; testes e parecer pulados por inacessibilidade"] --> G0{"G0: adiamentos registrados e demais bloqueios resolvidos?"}
     G0 -->|Não| A
     G0 -->|Sim e escopo autorizado| B["Fase 1: base executável e provas técnicas"]
     B --> C["Fase 2: acesso, condomínio e autorização"]
@@ -125,10 +129,10 @@ O desenho mostra dependências principais, não obriga esperar todo um módulo p
 
 ### 3.2 Quadro das fases
 
-| Fase | Estado em 14/11/2026 | Entrada | Saída verificável |
+| Fase | Estado atualizado em 17/11/2026 | Entrada | Saída verificável |
 | --- | --- | --- | --- |
 | Descoberta e documentação inicial | Artefatos disponíveis; não declarar pesquisa de mercado concluída sem evidência | Necessidade do produto | Visão, escopo e decisões registrados; revisar hipóteses com validação |
-| 0 — fechamento do Design | Em andamento documental; validação completa e jurídico pendentes | Fontes e protótipo existentes | G0 satisfeito e liberação explícita de Pedro para o pacote de implementação |
+| 0 — fechamento do Design | Em andamento documental; testes com usuários e parecer jurídico pulados por inacessibilidade | Fontes e protótipo existentes | G0 satisfeito e liberação explícita de Pedro para o pacote de implementação |
 | 1 — base executável | Bloqueada por G0 | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
 | 2 — fundação funcional | Não iniciada | Base e decisões de acesso/dados validadas | Fluxo completo de acesso/contexto com isolamento e revogação demonstrados |
 | 3 — riscos centrais | Não iniciada | Fundação, decisões e PoCs específicas | Portaria/offline e cobrança funcionam com falhas e recuperação verificadas |
@@ -142,11 +146,11 @@ O desenho mostra dependências principais, não obriga esperar todo um módulo p
 
 | Classe | Exemplos | Regra de encaminhamento |
 | --- | --- | --- |
-| Geral de início | Validações não adiadas por decisão de Pedro, parecer jurídico prévio, questões de governança necessárias à implantação inicial | Testes com funcionários e síndicos deixam de bloquear o início por decisão de 16/11/2026; demais condições de G0 continuam exigidas. Não iniciar MVP funcional enquanto houver bloqueio geral vigente |
+| Geral de início | Questões de governança necessárias à implantação inicial e demais decisões impeditivas não adiadas | Testes com usuários e parecer jurídico estão Pulado — Inacessível por decisão de 17/11/2026 e não bloqueiam o avanço por essa ausência; demais condições de G0 continuam exigidas. Não iniciar MVP funcional enquanto houver bloqueio geral vigente |
 | Da parte dependente | Sigilo/substituição de voto, retenção de fila, fuso, política de expurgo, gerador dos contratos, estados do gateway | Marcar o pacote correspondente como bloqueado e resolver antes de implementar o comportamento afetado. Não transformar uma proposta em resultado padrão |
 | Pré-piloto / pré-publicação | Nuvem com dados reais, backup/restauração, canais e responsáveis, contratos finais, credenciais e revisão das lojas | Construção em dev/staging não libera piloto/produção. Exigir passagem específica antes de usar dados reais ou publicar |
 
-PoCs executáveis são trabalho futuro condicionado aos marcos e à autorização do respectivo escopo. Este plano não cria exceção para programar uma PoC antes do parecer jurídico. Enquanto G0 estiver aberto, preparar perguntas, cenários, critérios e pacotes de revisão documentais.
+PoCs executáveis são trabalho futuro condicionado aos demais marcos e à autorização do respectivo escopo. O parecer jurídico pulado por inacessibilidade não é condição prévia para essas PoCs enquanto vigorar a decisão de 17/11/2026. Enquanto os demais itens de G0 estiverem abertos, preparar perguntas, cenários, critérios e pacotes de revisão documentais.
 
 ## 4. Fase 0 — concluir Design e remover bloqueios de início
 
@@ -155,19 +159,19 @@ PoCs executáveis são trabalho futuro condicionado aos marcos e à autorizaçã
 | ID | Ação | Estado atual | Responsável proposto | Entrega / evidência de saída |
 | --- | --- | --- | --- | --- |
 | RM-01 | Consolidar o retorno já recebido de moradores | Parcial: relato positivo confirmado | Pedro / pesquisa | Registro com informações conhecidas e lacunas explícitas, sem inventar métricas |
-| RM-02 | Validar tarefas no protótipo com moradores, síndicos e porteiros; ampliar para outros perfis conforme fluxo | Funcionários e síndicos: Pendente - Inacessível; validação pré-MVP adiada por Pedro em 16/11/2026. Moradores: retorno inicial registrado, validação por tarefas ainda não comprovada | Pedro / design / representantes convidados | Registrar limites da validação; retomar testes com funcionários e síndicos quando houver acesso, sem bloquear o início do MVP por essa ausência; manual 5.1 |
-| RM-03 | Obter parecer jurídico sobre reclamações/score, locação e demais pontos do pacote | Pendente - Inacessível; bloqueador geral | Pedro / jurídico | Pacote preparado em 16/11/2026; parecer identificado, condições resolvidas e aceite de Pedro ainda pendentes; manual 5.2 |
-| RM-04 | Decidir AG-01 a AG-12 e a implantação inicial | Pendente | Pedro / produto, com segurança e jurídico | Matriz por operação, provas, validadores, revogação e transições; manual 5.3 |
+| RM-02 | Validar tarefas no protótipo com moradores, síndicos e porteiros; ampliar para outros perfis conforme fluxo | Pulado — Inacessível por decisão de Pedro em 17/11/2026; sem acesso atual aos participantes | Pedro / design / representantes convidados | Adiamento e limites registrados; não realizado nem aprovado. Retomar quando houver acesso e escopo autorizado, sem bloquear o avanço por essa ausência; manual 5.1 |
+| RM-03 | Obter parecer jurídico sobre reclamações/score, locação e demais pontos do pacote | Pulado — Inacessível por decisão de Pedro em 17/11/2026; sem acesso atual a advogado | Pedro / jurídico | Pacote preparado em 16/11/2026; parecer não emitido nem aprovado. Não bloqueia o avanço por essa ausência; retomar quando houver acesso e encaminhamento autorizado; manual 5.2 |
+| RM-04 | Decidir AG-01 a AG-12 e a implantação inicial | Parcial: direções AG-01 A, AG-02 A e AG-07 C aceitas em 17/11/2026; detalhamento e demais decisões pendentes | Pedro / produto, com segurança e jurídico | Matriz por operação, provas, validadores, revogação e transições; manual 5.3. Nomeação do operador de implantação pendente; não presumir Pedro |
 | RM-05 | Revisar pendências de produto/API/MER e decidir o destino de cada uma | Pendente | Pedro / produto | Decisão, parte bloqueada ou adiamento explícito sem excluir escopo silenciosamente |
 | RM-06 | Revisar os desenhos e ADRs necessários à primeira entrega | Propostas disponíveis | Pedro / engenharia / segurança | Aceites com limites e critérios de PoC pendentes identificados; manual 5.4 |
 | RM-07 | Definir se Manutenção será incluído ou removido do protótipo | Pendente | Pedro | Decisão de produto e impacto aprovado; não implementar como 12º perfil |
 | RM-08 | Reconciliar divergências de estado e preparar baseline de escopo | Pendente | Pedro / documentação | Lista de fontes/revisões, marcos, RF/US MVP e divergências; alterações fora deste arquivo só com autorização |
-| RM-09 | Revisar G0 e autorizar o primeiro pacote de implementação | Bloqueado por RM-02 a RM-08 aplicáveis | Pedro | Aceite explícito dos marcos e escopo concreto da fase 1 |
+| RM-09 | Revisar G0 e autorizar o primeiro pacote de implementação | Bloqueado pelos demais itens aplicáveis de RM-04 a RM-08; RM-02 e RM-03 pulados por inacessibilidade | Pedro | Registro dos adiamentos, aceite dos demais marcos e escopo concreto da fase 1 |
 
 ### 4.2 Checklist G0 — pronto para iniciar o MVP
 
-- [ ] Evidências disponíveis de validação com moradores e limitações registradas; pontos impeditivos conhecidos tratados. Testes com funcionários e síndicos: Pendente - Inacessível, dispensados como condição prévia de início do MVP por Pedro em 16/11/2026; não contar como testes executados ou aprovados.
-- [ ] Parecer jurídico emitido antes da implementação; condições que afetem regras, mensagens, permissões e dados tratadas.
+- **Pulado — Inacessível:** testes com moradores, funcionários e síndicos, por decisão de Pedro em 17/11/2026. Preservar o retorno inicial conhecido e suas limitações; não contar a etapa como executada ou aprovada. A ausência de novas sessões não bloqueia G0.
+- **Pulado — Inacessível:** parecer jurídico, por decisão de Pedro em 17/11/2026. Não emitido nem aprovado; sua ausência não bloqueia G0. O roteiro de retomada permanece na seção 5.2.
 - [ ] Implantação, primeira autoridade, mandatos, substituições e autogestão têm decisões suficientes para os fluxos previstos, sem autoconcessão implícita.
 - [ ] Cada pendência relevante tem dono por papel, evidência esperada, próxima ação e classificação de bloqueio. Item de piloto ou módulo não é declarado resolvido para liberar outro.
 - [ ] Recorte da primeira entrega, contratos, dados e decisões técnicas revisados; o que depende de PoC está delimitado e impede a implementação dependente até validação.
@@ -179,7 +183,9 @@ PoCs executáveis são trabalho futuro condicionado aos marcos e à autorizaçã
 
 **Objetivo:** verificar se os perfis conseguem concluir tarefas e compreender estados, limites e responsabilidades. O retorno positivo dos moradores é ponto de partida; não equivale a comprovação de operação da portaria ou gestão.
 
-**Decisão de Pedro em 16/11/2026:** os testes com funcionários e síndicos estão indisponíveis e ficam **Pendente - Inacessível**. Pedro decidiu iniciar o MVP sem essa validação prévia. A ausência desses testes deixa de ser bloqueio de início; a validação permanece pendente, sem data de retomada, para quando houver acesso aos participantes. Não presumir aprovação desses perfis ou evidência de usabilidade/rotina real. O risco de retrabalho em gestão, portaria e limpeza permanece registrado. Esta decisão não dispensa o parecer jurídico nem encerra os demais itens de G0; o pedido atual altera o planejamento, sem executar a implementação.
+**Decisão vigente de Pedro em 17/11/2026:** os testes com moradores, funcionários e síndicos ficam **Pulado — Inacessível**, pois não há acesso atual aos participantes. Esta decisão amplia o adiamento dos testes com funcionários e síndicos registrado em 16/11/2026. Não há data de retomada; a ausência desses testes não bloqueia o avanço enquanto estiverem assim adiados. O retorno positivo já conhecido dos moradores continua como histórico, sem novas sessões ou comprovação de usabilidade. O risco de retrabalho permanece registrado. Os demais itens de G0 e a autorização de implementação continuam exigidos.
+
+O roteiro abaixo fica reservado à retomada quando houver participantes acessíveis e escopo autorizado. RM-01 pode consolidar somente as informações já disponíveis, registrando lacunas sem exigir novo contato com moradores.
 
 1. Pedro reúne o que já sabe da rodada com moradores: perfis, tarefas apresentadas, comentários e problemas. Se não houver dados sobre um campo, registrar “não informado”. Não fabricar retrospectivamente uma sessão formal.
 2. Definir a rodada: participantes por perfil, cenários, dispositivo, acessibilidade relevante e o que precisa ser observado. Quantidade e recrutamento ficam a combinar; não existe amostra mínima nova aprovada neste roadmap.
@@ -206,13 +212,13 @@ PoCs executáveis são trabalho futuro condicionado aos marcos e à autorizaçã
 
 **Modelo de registro:** identificador da rodada; data; perfil anonimizado; cenário/RN/RF/US; dispositivo; tarefa; resultado esperado/observado; conclusão com/sem ajuda ou bloqueada; dificuldade; evidência autorizada em local restrito; severidade; decisão de Pedro; ajuste; reteste; resultado final. Evitar dados pessoais nas evidências versionadas.
 
-**Saída:** Pedro recebe os percursos testados, problemas resolvidos e limitações restantes e decide o aceite do marco. Os testes indisponíveis com funcionários e síndicos permanecem pendentes, com adiamento pré-MVP autorizado acima. Se uma tarefa essencial testada permanecer impossível ou uma regra indefinida determinar seu resultado, registrar o impedimento correspondente; o adiamento não resolve defeitos conhecidos ou decisões de negócio.
+**Saída quando a etapa for retomada:** Pedro recebe os percursos testados, problemas resolvidos e limitações restantes e decide o aceite do marco. Até lá, a etapa permanece Pulado — Inacessível, sem exigir testes como condição de passagem. Se uma tarefa essencial já testada permanecer impossível ou uma regra indefinida determinar seu resultado, registrar o impedimento correspondente; o adiamento não resolve defeitos conhecidos ou decisões de negócio.
 
 ### 5.2 Parecer jurídico e privacidade — RM-03
 
 Este é um roteiro para solicitar e aplicar análise profissional, sem antecipar conclusão jurídica.
 
-**Atualização de 16/11/2026:** o [pacote para validação jurídica](07-seguranca/pacote-para-validacao-juridica.md) está preparado. O parecer fica **Pendente - Inacessível**, conforme solicitado por Pedro: ele não tem acesso a advogado agora e considera incerto o acesso futuro. Não há prazo de retomada ou profissional designado. A preparação documental não encerra RM-03; a exigência pré-MVP e o bloqueio de G0 permanecem. Quando houver acesso, revisar as versões do pacote e definir encaminhamento autorizado.
+**Decisão vigente de Pedro em 17/11/2026:** o parecer fica **Pulado — Inacessível**, pois não há acesso atual a advogado. O [pacote para validação jurídica](07-seguranca/pacote-para-validacao-juridica.md) foi preparado em 16/11/2026, mas nenhum parecer foi emitido ou aprovado. A etapa deixa de bloquear G0 e o avanço por essa ausência enquanto estiver assim adiada, substituindo no planejamento a exigência pré-MVP anterior. Não há prazo de retomada nem profissional designado. Quando houver acesso, revisar as versões do pacote e definir encaminhamento autorizado. O roteiro abaixo fica reservado à retomada; não é uma tarefa executável agora.
 
 | Passo | Execução documental | Resultado esperado |
 | --- | --- | --- |
@@ -222,9 +228,9 @@ Este é um roteiro para solicitar e aplicar análise profissional, sem antecipar
 | 4 — revisar governança/LGPD | Identificar agentes, bases por finalidade, menores/sensíveis, transferências, retenções, contratos, termos e operador de exceções | Orientação para as pendências do inventário/RIPD, sem fixar prazo arbitrário |
 | 5 — receber parecer | Registrar responsável profissional, data, escopo, versões, conclusões, condições e limitações em acesso adequado | Parecer disponível e identificado; este roadmap não atesta sua emissão |
 | 6 — aplicar condições | Pedro decide mudanças de produto; solicitar autorização para os arquivos afetados e atualizar a cadeia de rastreabilidade | Pendências impeditivas resolvidas; regras/textos/contratos coerentes |
-| 7 — fechar o marco | Conferir o parecer e suas condições, registrar decisão de Pedro | Liberação jurídica prévia ao MVP; não libera automaticamente uso real de dados ou lojas |
+| 7 — fechar a análise retomada | Conferir o parecer e suas condições, registrar decisão de Pedro | Análise profissional identificada e condições encaminhadas; não libera automaticamente uso real de dados ou lojas |
 
-Se o parecer exigir redesenhar um fluxo, esse fluxo retorna ao Design e à validação. Retenções, contratos e transferências com fornecedores precisam refletir o serviço efetivo, inclusive antes do piloto. A etapa posterior de revisão operacional não adia o marco jurídico prévio confirmado por Pedro.
+Se o parecer futuro exigir redesenhar um fluxo, apresentar o impacto a Pedro e atualizar os artefatos sob escopo autorizado. Retenções, contratos e transferências com fornecedores precisam refletir o serviço efetivo, inclusive antes do piloto. Pular o parecer por inacessibilidade não comprova conformidade jurídica nem dispensa os demais critérios de uso real de dados e publicação.
 
 ### 5.3 Autogestão e continuidade administrativa — RM-04
 
@@ -614,8 +620,8 @@ Uma pendência só sai de “Pendente/Bloqueado” quando houver resposta de que
 
 | Risco atual | Sinal / consequência | Resposta planejada |
 | --- | --- | --- |
-| Aprovação da ideia confundida com usabilidade; testes com funcionários e síndicos indisponíveis | Rotinas reais podem exigir ajustes e retrabalho apesar de feedback positivo dos moradores | Registrar evidências e limitações de RM-02; iniciar sem esses testes prévios conforme decisão de 16/11/2026 e retomá-los quando houver acesso, sem declarar usabilidade validada |
-| Parecer exigir redesenho | Reclamações/score/locação/voto mudam | Manter jurídico prévio ao MVP; aplicar condições e validar os fluxos afetados |
+| Aprovação da ideia confundida com usabilidade; testes com usuários inacessíveis | Rotinas reais podem exigir ajustes e retrabalho apesar do retorno inicial positivo dos moradores | RM-02 pulado por decisão de 17/11/2026; registrar limitações e retomar quando houver acesso, sem declarar usabilidade validada |
+| Parecer inacessível e análise futura exigir redesenho | Reclamações/score/locação/voto podem exigir mudanças após trabalho já realizado | RM-03 pulado por decisão de 17/11/2026; preservar questões e limites conhecidos, sem presumir conformidade, e tratar condições quando a análise puder ser retomada |
 | Poderes da autogestão indefinidos | Autoconcessão, ausência de executor ou conflito de fiscalização | Resolver AG-01 a AG-12 e comprovar primeira implantação |
 | Aceitação de fornecedor confundida com PoC | Contrato financeiro promete estados/prazos não comprovados | Planejar e executar RM-16/36 conforme autorização; registrar limites do sandbox |
 | Perda/duplicidade offline | Fila apagada, relógio incorreto, reenvio repetido | Provar armazenamento e sincronização em aparelho; decisões ADR-003/014 antes do fluxo real |
@@ -626,7 +632,7 @@ Uma pendência só sai de “Pendente/Bloqueado” quando houver resposta de que
 | Cronograma sem capacidade comprovada | Datas viram promessa antes das decisões | Estimativas condicionadas a marcos e revisão após entregas demonstradas |
 | Publicação/credenciais sem titularidade | Retrabalho e dependência de conta pessoal | Definir titular e custódia antes de criar identificadores/submeter |
 
-**Caminho crítico atual:** evidências disponíveis do protótipo e limitações registradas + parecer jurídico + decisões de implantação/autogestão → G0 → base e PoCs de fundação → acesso/isolamento → offline e pagamentos → restante MVP/relatórios → homologação → prontidão de dados reais → piloto → lançamento. Os testes com funcionários e síndicos estão Pendente - Inacessível e foram retirados da condição prévia de início por Pedro em 16/11/2026. A V2 tem refinamento e aceites próprios depois.
+**Caminho crítico atual:** decisões de implantação/autogestão + revisão do recorte de dados/contratos/ADRs e demais bloqueios vigentes → G0 e autorização de escopo → base e PoCs de fundação → acesso/isolamento → offline e pagamentos → restante MVP/relatórios → homologação → prontidão de dados reais → piloto → lançamento. Testes com moradores, funcionários e síndicos e parecer jurídico estão **Pulado — Inacessível** por decisão de Pedro em 17/11/2026 e não integram o caminho crítico por essa ausência enquanto assim adiados. A V2 tem refinamento e aceites próprios depois.
 
 Replanejar quando: parecer altera regra; PoC falha; fornecedor não oferece capacidade necessária; novos RF entram; equipe/capacidade muda; evidência de piloto invalida hipótese; incidente revela falha de controle. Apresentar efeito sobre escopo, sequência, custo e prazo a Pedro antes de assumir a mudança.
 
@@ -634,13 +640,13 @@ Replanejar quando: parecer altera regra; PoC falha; fornecedor não oferece capa
 
 | Ordem | Ação que pode ser preparada agora | Quando passa para execução posterior |
 | --- | --- | --- |
-| 1 | Revisar este roadmap com Pedro e confirmar responsáveis por papel e prioridades | Aceite do planejamento não libera código nem terceiros automaticamente |
-| 2 | Consolidar relato dos moradores e registrar limitações; testes com funcionários e síndicos: Pendente - Inacessível | Início do MVP sem esses testes prévios autorizado por Pedro em 16/11/2026, sujeito às demais condições de G0; retomar sessões quando houver acesso aos participantes |
-| 3 | Pacote e perguntas para jurídico preparados; parecer Pendente - Inacessível (16/11/2026) | Quando houver acesso a advogado, atualizar o [pacote](07-seguranca/pacote-para-validacao-juridica.md), autorizar encaminhamento e obter parecer; tratar condições antes do MVP |
-| 4 | Organizar decisões AG-01 a AG-12 e demais bloqueios de produto em lotes compreensíveis | Pedro responde; mudanças rastreáveis são autorizadas antes de alterar fontes |
-| 5 | Preparar revisão de dados/contratos/ADRs e roteiros de PoC, preservando escolhas já aceitas | PoCs executáveis somente após marcos e autorização específica |
-| 6 | Fechar evidências de validação e jurídico, decisões impeditivas e baseline | Revisar G0 com Pedro |
-| 7 | Apresentar pacote concreto da base executável, arquivos e verificações | Iniciar fase 1 apenas depois da liberação aplicável |
+| 1 | Confirmado por Pedro em 17/11/2026: organização por decisor/subagentes/orquestrador e prioridade autogestão/implantação → revisão técnica | Etapa de responsáveis e prioridades confirmada; não libera código nem terceiros automaticamente |
+| 2 | [Pacote de decisões em lotes](decisoes-para-iniciar-o-desenvolvimento.md): direções do lote 1 aceitas (AG-01 A, AG-02 A e AG-07 C); próxima rodada de decisões: lote 2 | Alinhamento autorizado das direções do lote 1 em produto/design e descrição do protótipo concluído; detalhar operador/provas/validadores/exceções; demais escolhas não são presumidas. G0 e implementação permanecem sem liberação |
+| 3 | Preparar revisão de dados/contratos/ADRs e roteiros de PoC, preservando escolhas já aceitas | PoCs executáveis somente após demais marcos e autorização específica |
+| 4 | Consolidar somente o relato de moradores já disponível, registrar lacunas, decisões impeditivas e baseline | Revisar os demais itens de G0 com Pedro, sem exigir novos participantes ou parecer inacessíveis |
+| 5 | Apresentar pacote concreto da base executável, arquivos e verificações | Iniciar fase 1 apenas depois da liberação aplicável |
+
+**Etapas puladas, fora da sequência atual:** testes com moradores, funcionários e síndicos (RM-02) e parecer jurídico (RM-03), por inacessibilidade informada por Pedro em 17/11/2026. Retomar somente quando houver acesso aos participantes/profissional e escopo autorizado, sem prazo presumido. O pacote jurídico já preparado permanece disponível para essa retomada.
 
 **Não há tarefa de implementação liberada por este arquivo.** A primeira meta operacional é concluir os marcos pendentes do Design e tornar as decisões revisáveis, com evidência suficiente para Pedro autorizar a próxima fase.
 
@@ -666,4 +672,4 @@ Replanejar quando: parecer altera regra; PoC falha; fornecedor não oferece capa
 
 O grafo foi consultado para localizar relações; seu relatório é de 12/11/2026 e não substitui as fontes atuais. Os documentos e as estruturas foram consultados por seção, inclusive o ADR-015 e as alterações preparatórias já presentes no workspace. Este arquivo não altera nem aceita esses outros artefatos.
 
-O estado dos moradores e a manutenção do marco jurídico vêm das respostas explícitas de Pedro nesta conversa. Nenhuma nova sessão de usuário, parecer, PoC, teste do aplicativo, provisionamento ou publicação foi executado para elaborar este plano. Os roteiros e checklists descrevem trabalho futuro; suas caixas permanecem abertas até evidência e aceite aplicáveis.
+O retorno inicial dos moradores e a exigência jurídica histórica vieram das respostas de Pedro de 14/11/2026. Em 17/11/2026, Pedro determinou pular os testes com usuários e o parecer jurídico por inacessibilidade atual; esta atualização registra essa decisão e retira essas etapas das condições de passagem enquanto assim adiadas. Nenhuma nova sessão de usuário, parecer, PoC, teste do aplicativo, provisionamento ou publicação foi executado para elaborar ou atualizar este plano. Os demais roteiros e checklists descrevem trabalho futuro; suas caixas permanecem abertas até evidência e aceite aplicáveis. A atualização das etapas puladas limitou-se a `docs/roadmap.md`; o [pacote de decisões](decisoes-para-iniciar-o-desenvolvimento.md) registra a organização confirmada e as direções do lote 1 aceitas em 17/11/2026, preservando os detalhes e demais escolhas pendentes.

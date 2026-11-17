@@ -1,6 +1,6 @@
 # Essencial com autogestão e condução eleitoral
 
-**Data:** 13/11/2026. **Atualizado em:** 15/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes aprovadas; distribuição detalhada de poderes e procedimentos abaixo são propostas para revisão. Sem backend, concessões reais, novo plano comercial, commit ou push.
+**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes e direções AG-01 A, AG-02 A e AG-07 C aprovadas; demais decisões e detalhamento operacional pendentes. Sem backend, concessões reais, novo plano comercial, commit ou push.
 
 ## 1. O que Pedro decidiu
 
@@ -17,23 +17,29 @@ Em qualquer plano, a eleição deve funcionar sem administradora e sem suporte p
 
 Administradora vinculada também pode conduzir quando presente; suporte autorizado também pode, somente no Gestão + Suporte e com autorização vigente. **Atualização de 15/11/2026 (Pedro):** Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. As ações ficam auditadas, os votos permanecem secretos e o resultado só aparece após encerramento. Não se exige um responsável eleitoral separado em toda eleição. Esta decisão substitui a restrição da escolha 12A de 12/11/2026; o registro anterior conserva o histórico.
 
-## 2. Desenho operacional proposto para revisão
+## 2. Distribuição aprovada e procedimentos pendentes
 
-Para tornar o cenário concreto e revisável, a documentação e a simulação distribuem a execução administrativa ao síndico e ao subsíndico durante substituição formal. O conselho mantém fiscalização, leitura, comentários e exportação, além da condução eleitoral na falta dos dois. Essa distribuição é uma **proposta conservadora**, não uma aprovação presumida de cada permissão pelo Pedro. Não se transforma todo membro do conselho em administrador nem se transfere ao síndico o acesso global a reclamações da administradora.
+**Decisão de Pedro em 17/11/2026 — AG-01 A:** o síndico executa a administração e o subsíndico executa durante substituição formal; o conselho mantém fiscalização, leitura, comentários e exportação, além da condução eleitoral na falta dos dois. A distribuição deixa de ser proposta. Não há delegação por atividade aprovada, nem conselho convertido em administrador ou acesso global do síndico a reclamações da administradora. Procedimentos sensíveis ainda pendentes não são liberados por essa distribuição.
 
-| Atividade na autogestão | Distribuição proposta | Limite |
+**AG-02 A:** na implantação do Essencial com autogestão, sem autoridade previamente habilitada, a primeira habilitação da gestão tem verificação restrita de identidade e representação pelo Admin da plataforma, separada do serviço administrativo Gestão + Suporte. O operador não foi nomeado; provas, recusa, contestação, recuperação e concessão/revogação ainda precisam ser definidos. Essa capacidade não usa o perfil Suporte no Essencial nem abre conteúdo de gestão, reclamações ou scores ao verificador.
+
+**AG-07 C:** o registro de mandato se vincula ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Ninguém valida o próprio poder. Validadores, evidências e recuperação ainda precisam ser definidos por caso; conduzir eleição não concede gestão geral nem autorização para validar o próprio mandato. Esta opção C é a combinação apresentada no [pacote de decisões, lote 1](../decisoes-para-iniciar-o-desenvolvimento.md), não a antiga alternativa C de edição direta pelo interessado.
+
+| Atividade na autogestão | Distribuição / direção aprovada | Limite |
 | --- | --- | --- |
 | Pessoas, unidades, locações, funcionários, áreas, regras, documentos, blocos e lista de bloqueio | Síndico; sub em substituição | Auditoria, isolamento e regras de vínculo preservados |
 | Atender pedido de proprietário e demais solicitações locais | Gestão local | Sem franquia ou cobrança de solicitação de Gestão + Suporte |
 | Cobrança, baixas, cobranças extras e resolução de recebimentos tardios | Síndico; sub em substituição | Não alterar dinheiro automaticamente nem omitir pendências |
 | Receitas/despesas, fechamento, recorrências e estornos | Síndico; sub em substituição | Mês fechado só por estorno; receitas automáticas corrigidas na origem |
 | Fiscalização financeira | Conselho fiscal, se houver | Ler, comentar e exportar; sem editar valores por herança da modalidade |
-| Mandatos, desligamento do próprio síndico, troca de conta recebedora e primeira habilitação | Procedimento a definir | Nenhuma autovalidação ou concessão implícita |
+| Primeira habilitação | Admin da plataforma verifica identidade e representação (AG-02 A) | Capacidade restrita; operador e procedimento pendentes, sem acesso ao conteúdo de gestão |
+| Mandatos e desligamento do próprio síndico | Resultado/posse eleitoral com validação independente nas exceções e conflitos (AG-07 C) | Validadores e evidências pendentes; nenhuma autovalidação ou concessão implícita |
+| Troca de conta recebedora | Procedimento a definir em AG-08 | Não liberada pela execução cotidiana de AG-01 |
 | Reclamações, recursos e scores | Tabelas existentes de RN-RC-03/RN-RC-07 | Ninguém julga a si próprio; suporte continua excluído |
 
 ## 3. Decisões e revisões para quando Pedro voltar
 
-Os itens abaixo são questões registradas para revisão posterior, conforme o pedido; não são perguntas enviadas durante a execução nem autorizações presumidas. Recomendações não alteram as decisões aprovadas.
+O quadro conserva as alternativas históricas de 13/11/2026. Em 17/11/2026, Pedro aceitou as recomendações do lote 1 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md): AG-01 A, AG-02 A e AG-07 C, no alcance da seção 2. A letra C de AG-07 no pacote significa combinar resultado eleitoral e validação independente, substituindo a antiga alternativa C de edição direta do quadro. As demais recomendações continuam propostas, sem respostas presumidas.
 
 | ID | Questão e por que importa | Opções e consequências | Recomendação para decidir |
 | --- | --- | --- | --- |
@@ -54,7 +60,7 @@ Os itens abaixo são questões registradas para revisão posterior, conforme o p
 
 | Área | O que revisar antes da implementação real | Evidência esperada |
 | --- | --- | --- |
-| Produto e conteúdo | Aprovar AG-01 a AG-12; conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades validada pelo Pedro |
+| Produto e conteúdo | AG-01/02/07 têm direções aceitas; detalhar seus procedimentos e decidir as demais AG. Conferir instruções que ainda mandavam sempre procurar administradora; explicar Essencial com/sem administradora sem parecer três planos | Matriz por modalidade e responsabilidades, separando decisões aceitas e detalhes pendentes |
 | Fluxos e protótipo | Implantação, pedidos locais, gestão cotidiana, substituição, ausência de todos, conselho e proprietário condutores, eleição inconclusiva e migração de modalidade | Percursos com dados fictícios e validação por síndico/conselho; protótipo não é prova de segurança |
 | Dados e autorização | Separar plano comercial, modalidade de gestão, vínculo/mandato, substituição e capacidade eleitoral temporária; revogar imediatamente a capacidade perdida | MER, política de acesso e ADRs revisados; autorização no servidor sem depender de perfil escolhido na UI |
 | API e backend | Expor ações administrativas à gestão local por capacidades; impedir autoconcessão, validar escopo da eleição e proteger operações concorrentes | Contratos rastreáveis aos RF existentes; testes de autorização e concorrência da futura implementação |
@@ -74,6 +80,8 @@ Os RF e US existentes foram detalhados, mantendo suas contagens. Este registro n
 
 
 ## 6. Verificação técnica da documentação em 13/11/2026
+
+Registro histórico das verificações daquela revisão. A aceitação das direções AG-01/02/07 em 17/11/2026 não aceita contratos ou ADRs nem comprova os procedimentos e controles ainda pendentes.
 
 As 11 interfaces OpenAPI passaram no lint Redocly local, sem instalação de dependências. O contrato agora declara **424 operações com IDs únicos**: quatro operações comuns de condução eleitoral e 82 operações administrativas propostas para `/v1/sindico/gestao/`, com parâmetros, corpos e respostas específicos reutilizados por referências. A tabela de cobertura mantém **139 RF** (registro histórico; hoje 150 RF, com os 11 RF-RL de 14/11/2026) e referências a IDs existentes. As novas operações não aceitam campos genéricos nem atribuem papel Administradora ao síndico; proposta exige Essencial em autogestão, executor vigente/substituição e finalidade específica, recusando conselho, proprietário eleitoral e suporte nessas ações administrativas. Mandatos, substituições, primeira habilitação e designação eleitoral continuam decisões bloqueadoras; não foram escondidas por uma permissão geral.
 

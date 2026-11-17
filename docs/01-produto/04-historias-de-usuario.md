@@ -11,7 +11,7 @@ São 74 histórias em 14 épicos; cada uma é entregue quando todos os seus crit
 - **Critérios de aceite:** no formato Dado / Quando / Então, como lista de verificação para o QA marcar.
 - **Valores padrão:** os critérios usam os padrões das regras (ex.: 12h para cancelar com reembolso); em condomínios com outra configuração, vale o valor configurado.
 
-**Aplicação à autogestão (13/11/2026):** nas histórias administrativas e financeiras, "administradora" inclui o responsável local do Essencial com autogestão para as tarefas operacionais de RN-PL-08. A distribuição síndico executor/subsíndico em substituição/conselho fiscalizador é desenho para revisão, sem herdar acesso global a reclamações ou autovalidação de mandato. A implantação inicial e as atribuições sensíveis permanecem pendentes no [registro 06](06-autogestao-e-conducao-eleitoral.md).
+**Aplicação à autogestão (13/11/2026; atualizada em 17/11/2026):** nas histórias administrativas e financeiras, "administradora" inclui o responsável local do Essencial com autogestão para as tarefas operacionais de RN-PL-08. AG-01 A aprova síndico executor/subsíndico em substituição/conselho fiscalizador, sem edição financeira do conselho, delegação por atividade ou acesso global a reclamações. AG-02 A aprova a direção de primeira habilitação na autogestão sem autoridade previamente habilitada por verificação restrita de identidade e representação pelo Admin da plataforma, sem Suporte no Essencial nem acesso ao conteúdo de gestão, reclamações ou scores. AG-07 C aprova registro por resultado/posse eleitoral com validação independente nas exceções e conflitos, sem autovalidação. Operador, evidências, validadores e procedimentos ainda precisam ser definidos no [registro 06](06-autogestao-e-conducao-eleitoral.md); essas direções não equivalem a fluxos implementados.
 
 ## Épico 1 — Acesso e conta
 
@@ -103,7 +103,7 @@ Como síndico, quero pedir à administradora que cadastre, altere ou remova algu
 
 Requisitos: RF-AD-02, RF-AD-03 · RN-CD-06, RN-PL-03 a RN-PL-05
 
-- [ ] Dado que sou síndico, quando abro a área de cadastros, então só vejo a opção de enviar solicitação, nunca de cadastrar.
+- [ ] Dado que sou síndico em condomínio com administradora ou Gestão + Suporte, quando abro a área de cadastros, então só vejo a opção de enviar solicitação, nunca de cadastrar; no Essencial com autogestão, o síndico ou sub em substituição executa conforme RN-PL-08/AG-01 A.
 - [ ] Dado uma solicitação enviada, quando a administradora a atende ou recusa, então sou notificado com o resultado e, se recusada, o motivo.
 - [ ] Dado o plano Gestão + Suporte, quando vou enviar uma solicitação, então vejo quantas restam na franquia do mês e o custo de R$ 15 se ela for excedente.
 
@@ -145,6 +145,8 @@ Como administradora, quero registrar síndico e subsíndico com início e fim de
 
 Requisitos: RF-AD-09 a RF-AD-12 · RN-VO-04 a RN-VO-06, RN-VO-15, RN-CD-13
 
+**Direção aceita para autogestão (AG-07 C, 17/11/2026):** registro vinculado ao resultado/posse eleitoral, com validação independente nas exceções e conflitos, inclusive contratação profissional, renúncia e destituição. Validadores, provas e recuperação ainda dependem de detalhamento; os critérios abaixo não definem esse procedimento nem permitem ao interessado validar o próprio poder.
+
 - [ ] Dado síndico e subsíndico da mesma unidade, quando tento salvar, então o sistema bloqueia.
 - [ ] Dado o padrão do condomínio, quando registro um mandato, então a reeleição é permitida, a menos que a regra tenha sido desligada.
 - [ ] Dado um síndico profissional, quando o registro, então ele não tem funções de morador e eu posso registrar recontratação ou desligamento sem regra de reeleição.
@@ -155,6 +157,8 @@ Requisitos: RF-AD-09 a RF-AD-12 · RN-VO-04 a RN-VO-06, RN-VO-15, RN-CD-13
 Como síndico ou administradora, quero ativar a substituição pelo subsíndico durante uma ausência, para que o condomínio não fique sem gestão.
 
 Requisitos: RF-AD-13 · RN-CD-12
+
+**Limite na autogestão:** AG-01 A libera execução administrativa ao sub somente em substituição formal. Comprovação de ausência/vacância e suas exceções continuam pendentes em AG-03; AG-07 C não concede autovalidação de mandato ou gestão geral por conduzir eleição.
 
 - [ ] Dado que ativo a substituição, quando o subsíndico abre o app, então ele tem as funções de síndico.
 - [ ] Dado a substituição ativa, quando eu (síndico ou administradora) a desativo, então as funções voltam ao síndico na hora.
@@ -884,7 +888,7 @@ Requisitos: RF-FI-17, RF-FI-18, RF-FI-21, RF-FI-22 · RN-FI-21 a RN-FI-23, RN-FI
 - [ ] Dado a taxa do gateway de um pagamento, quando ele é confirmado, então a taxa entra sozinha como despesa de Administração.
 - [ ] Dado os filtros de período, categoria, tipo e texto, quando os aplico, então a lista e os totais mostram só o filtrado.
 - [ ] Dado que exporto, quando escolho CSV ou PDF, então o arquivo respeita o filtro, traz o resumo, as categorias e os lançamentos, e não contém unidade nem responsável financeiro.
-- [ ] Dado que sou conselho fiscal, ou síndico/subsíndico de condomínio com administradora ou Gestão + Suporte, quando abro as finanças, então só leio, comento e exporto; no Essencial com autogestão, o desenho proposto permite execução ao síndico/sub em substituição (RN-PL-08/RN-FI-29), sem dar edição ao conselho.
+- [ ] Dado que sou conselho fiscal, ou síndico/subsíndico de condomínio com administradora ou Gestão + Suporte, quando abro as finanças, então só leio, comento e exporto; no Essencial com autogestão, a distribuição aprovada em AG-01 A permite execução ao síndico/sub em substituição (RN-PL-08/RN-FI-29), sem dar edição ao conselho.
 - [ ] Dado que sou morador, proprietário não residente ou funcionário, quando uso o app, então não encontro as finanças do condomínio em lugar nenhum.
 
 - [ ] Receitas automáticas aparecem agregadas por dia/categoria sem unidade/responsável; fontes individuais permanecem restritas.
@@ -911,7 +915,7 @@ Como administradora, quero fechar o mês e corrigir lançamentos de meses fechad
 
 Requisitos: RF-FI-23 · RN-FI-27, RN-FI-28, RN-FI-29, RN-PL-08
 
-- [ ] Dado Essencial com autogestão, quando o síndico ou subsíndico em substituição executa a proposta local de fechamento/estorno, então mantém motivo, auditoria e mês fechado imutável; conselho fiscal sem outra capacidade autorizada não edita, fecha nem estorna.
+- [ ] Dado Essencial com autogestão, quando o síndico ou subsíndico em substituição executa fechamento/estorno conforme AG-01 A, então mantém motivo, auditoria e mês fechado imutável; conselho fiscal não edita, fecha nem estorna.
 
 - [ ] Dado um mês aberto, quando edito ou excluo um lançamento avulso, então a alteração fica na auditoria com autor, data, valor antigo e valor novo.
 - [ ] Dado um mês que acabou, quando o fecho, então o app avisa quantas despesas estão sem comprovante e pede confirmação de que depois só haverá estorno.

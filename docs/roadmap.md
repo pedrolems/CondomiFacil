@@ -136,7 +136,7 @@ O desenho mostra dependências principais, não obriga esperar todo um módulo p
 | --- | --- | --- | --- |
 | Descoberta e documentação inicial | Artefatos disponíveis; não declarar pesquisa de mercado concluída sem evidência | Necessidade do produto | Visão, escopo e decisões registrados; revisar hipóteses com validação |
 | 0 — fechamento do Design | G0 satisfeito em 18/11/2026 (liberação de Pedro para a fase 1); testes com usuários e parecer jurídico pulados por inacessibilidade | Fontes e protótipo existentes | G0 satisfeito e liberação explícita de Pedro para o pacote de implementação |
-| 1 — base executável | Em andamento desde 18/11/2026 (RM-10 a RM-12 concluídos) | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
+| 1 — base executável | Em andamento desde 18/11/2026 (RM-10 a RM-13 concluídos; provas em aparelho Android e iPhone pendentes) | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
 | 2 — fundação funcional | Não iniciada | Base e decisões de acesso/dados validadas | Fluxo completo de acesso/contexto com isolamento e revogação demonstrados |
 | 3 — riscos centrais | Não iniciada | Fundação, decisões e PoCs específicas | Portaria/offline e cobrança funcionam com falhas e recuperação verificadas |
 | 4 — restante do MVP | Não iniciada | Dependências de cada módulo satisfeitas | Critérios de aceite do escopo MVP implementados, testados e rastreados |
@@ -362,7 +362,7 @@ Fontes operacionais: [Segurança](07-seguranca/seguranca.md), [LGPD](07-seguranc
 
 ## 6. Fase 1 — preparar a base executável
 
-**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026 (RM-10 a RM-12 concluídos); as pastas já preparadas não atendem o critério de saída.
+**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026 (RM-10 a RM-13 concluídos; provas em aparelho Android e iPhone pendentes); as pastas já preparadas não atendem o critério de saída.
 
 | ID | Pacote | Dependência | Entrega verificável |
 | --- | --- | --- | --- |

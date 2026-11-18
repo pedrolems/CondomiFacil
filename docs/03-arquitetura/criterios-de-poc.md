@@ -56,7 +56,7 @@ Pedro aceitou a escolha em 18/11/2026, com ressalva. **Escolha:** openapi-typesc
 | Determinismo | Passa: 2 gerações idênticas; em clone, `git diff --exit-code` = 0 |
 | Artefato desatualizado | Passa: em clone temporário, campo novo em `SaudeComum` fez `verificar-contratos` sair com código 1 |
 | Resposta fora do esquema | Passa: 7/7 testes `node:test` (`SaudeComum` e `GET /v1/saude`; `oneOf` de `GET /v1/score`; nulos; eventos do AsyncAPI) |
-| Importação Node ESM pelo `exports` | Passa. Expo/Metro: pendente para o RM-13 |
+| Importação Node ESM pelo `exports` | Passa. Expo/Metro: passa no RM-13 (18/11/2026): o Metro resolve `@condomifacil/shared-types` pelo `exports`, sem configuração extra |
 | Recurso não suportado | Passa: o gerador tem lista de palavras-chave permitidas e falha com mensagem (ex.: "Palavra-chave de esquema não suportada: \"if\""); Ajv estrito também falha |
 | `shared-types` sem NestJS/React Native | Passa (lint de fronteiras) |
 
@@ -68,7 +68,7 @@ Pedro aceitou a escolha em 18/11/2026, com ressalva. **Escolha:** openapi-typesc
 | --- | --- |
 | P1-01 | Adotar openapi-typescript 7.13.0 + Ajv 8.20.0 + @asyncapi/parser 3.6.6, com a ressalva do peer de TypeScript e revalidação a cada atualização |
 | P1-02 | Manter bloqueado o script de instalação do @scarf/scarf (telemetria trazida pelo @asyncapi/parser) via `allowBuilds: '@scarf/scarf': false` no `pnpm-workspace.yaml` |
-| P1-03 | Testar no RM-13 o Ajv no Hermes (Expo); se falhar, o gerador passa a emitir validadores pré-compilados (modo standalone do Ajv), sem mudar contrato nem escolha |
+| P1-03 | Testar no RM-13 o Ajv no Hermes (Expo); se falhar, o gerador passa a emitir validadores pré-compilados (modo standalone do Ajv), sem mudar contrato nem escolha. **Resolvida em 18/11/2026 (R13-02) pelo plano B:** o gerador emite validadores Ajv standalone em `packages/shared-types/src/gerado/*.validadores.ts`, sem `new Function`, `eval` ou compilação em execução (teste e grep no `dist`); `criarAjv` removido; API pública (`validarComum`, `validarEventoTempoReal`) inalterada; o bundle Android Hermes compila com eles |
 
 **Pontos de atenção**
 
@@ -80,7 +80,7 @@ Pedro aceitou a escolha em 18/11/2026, com ressalva. **Escolha:** openapi-typesc
 
 **Pendências**
 
-- RM-13: Expo/Metro importar o pacote e Ajv no Hermes (P1-03).
+- Execução dos validadores no Hermes (provas de execução em Android e em iPhone via Expo Go, a cargo de Pedro; o app ainda não foi executado em emulador nem em aparelho Android, só o bundle Hermes compilou): o risco que motivou o P1-03 (`new Function`) foi eliminado, mas a execução real depende dessa prova. A importação pelo Expo/Metro está fechada.
 - RM-15: CI com gerar-contratos + `git diff --exit-code` sobre artefatos commitados.
 - Decidir a cobertura dos demais arquivos OpenAPI pelo gerador.
 

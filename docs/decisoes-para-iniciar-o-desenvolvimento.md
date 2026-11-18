@@ -201,6 +201,16 @@ Fica para as fases 2 e 3 o restante dos ADRs (001, 007 e 008 antes da fase 2; 00
 | P1-02 | Manter bloqueado o script de instalação do @scarf/scarf (telemetria trazida pelo @asyncapi/parser) via `allowBuilds: '@scarf/scarf': false` | **Resposta de Pedro em 18/11/2026: aceita** |
 | P1-03 | Testar no RM-13 o Ajv no Hermes (Expo); se falhar, o gerador emite validadores pré-compilados (modo standalone do Ajv), sem mudar contrato nem escolha | **Resposta de Pedro em 18/11/2026: aceita** |
 
+**Decisões do RM-13 (18/11/2026):**
+
+| ID | Decisão | Resposta |
+| --- | --- | --- |
+| R13-01 | Testes: Vitest na API e Jest no app (fecha o R6-06). Limite do Vitest: não emite `emitDecoratorMetadata`; com injeção por construtor, usar `@Inject(token)` explícito ou `unplugin-swc`. O `shared-types` segue com `node:test` | **Resposta de Pedro em 18/11/2026: aceita** |
+| R13-02 | P1-03 resolvida por validadores Ajv pré-compilados (standalone), emitidos pelo gerador, em vez de compilar em execução no Hermes | **Resposta de Pedro em 18/11/2026: aceita** |
+| R13-03 | `APP_ENV` aceita `dev`, `staging` e `production` | **Resposta de Pedro em 18/11/2026: aceita** |
+| R13-04 | Remover o cabeçalho `X-Powered-By` da API | **Resposta de Pedro em 18/11/2026: aceita** |
+| R13-05 | Fechar o RM-13 com as provas de execução em aparelho Android e em iPhone (Expo Go, D8), incluindo os validadores no Hermes, pendentes, a cargo de Pedro | **Resposta de Pedro em 18/11/2026: aceita** |
+
 ## 7. Lote 5 — fila restante por dependência
 
 Esta fila evita que uma questão de módulo impeça trabalho independente, sem liberá-la implicitamente. Para cada linha, o subagente prepara a pergunta concreta com 2–3 opções e evidência técnica quando chegar a vez; não há respostas presumidas aqui.

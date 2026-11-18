@@ -1,6 +1,6 @@
 # Roadmap de desenvolvimento do CondomiFacil
 
-**Data de elaboração:** 15/11/2026. **Atualizado em:** 17/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026, com atualizações registradas de 16/11/2026 e 17/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
+**Data de elaboração:** 15/11/2026. **Atualizado em:** 18/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026, com atualizações registradas de 16/11/2026 e 17/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
 
 **Estado:** plano detalhado para revisão e acompanhamento. O projeto está em Design, com documentação, protótipo HTML navegável e estruturas preparatórias de backend/frontend. Não há aplicativo, API, banco, integrações ou infraestrutura operacional implementados. Criar este roadmap não autoriza iniciar o MVP, contratar serviços, executar PoCs, publicar, commitar ou enviar alterações.
 
@@ -168,7 +168,7 @@ PoCs executáveis são trabalho futuro condicionado aos demais marcos e à autor
 | RM-05 | Classificar pendências de produto/API/MER | Decisão 14A aceita: extensões antes do módulo afetado, mantendo escopo atual | Pedro / produto | Identidade/representação antes do acesso persistido; recorte técnico definido no lote 4 (IN-01 A, IN-02 A, 17/11/2026), com pacote concreto ainda a apresentar; nenhuma extensão implicitamente aceita |
 | RM-06 | Revisar os desenhos e ADRs necessários à primeira entrega | Propostas disponíveis | Pedro / engenharia / segurança | Aceites com limites e critérios de PoC pendentes identificados; manual 5.4 |
 | RM-07 | Retirar perfil de acesso Manutenção do protótipo | Decisão 13A aprovada e alinhada nesta revisão | Pedro | Preservar empresas e chamados acompanhados pelo síndico; sem 12º perfil |
-| RM-08 | Reconciliar divergências de estado e preparar baseline de escopo | Baseline preparada em 17/11/2026 em [baseline-de-escopo-mvp.md](baseline-de-escopo-mvp.md), aguardando revisão de Pedro; correções fora dela pendentes de autorização | Pedro / documentação | Lista de fontes/revisões, marcos, RF/US MVP e divergências; alterações fora deste arquivo só com autorização |
+| RM-08 | Reconciliar divergências de estado e preparar baseline de escopo | Concluído: baseline preparada em 17/11/2026 em [baseline-de-escopo-mvp.md](baseline-de-escopo-mvp.md) e aceita por Pedro em 18/11/2026, com o recorte da primeira entrega; demais correções fora dela seguem a Q-15 e dependem de autorização | Pedro / documentação | Lista de fontes/revisões, marcos, RF/US MVP e divergências; alterações fora deste arquivo só com autorização |
 | RM-09 | Revisar G0 e autorizar o primeiro pacote de implementação | Bloqueado pelos demais itens aplicáveis de RM-04 a RM-08; RM-02 e RM-03 pulados por inacessibilidade | Pedro | Registro dos adiamentos, aceite dos demais marcos e escopo concreto da fase 1 |
 
 ### 4.2 Checklist G0 — pronto para iniciar o MVP

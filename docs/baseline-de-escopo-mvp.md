@@ -1,6 +1,6 @@
 # Baseline de escopo do MVP — RM-08
 
-**Preparado em:** 17/11/2026. **Decisor:** Pedro Lemos. **Estado:** proposta para revisão de Pedro; não encerra G0.
+**Preparado em:** 17/11/2026. **Decisor:** Pedro Lemos. **Estado:** aceita por Pedro em 18/11/2026, incluindo o recorte da primeira entrega (seção 7); não encerra G0 e não aceita ADR, contrato ou MER.
 
 Este documento entrega o RM-08 do [roadmap](roadmap.md) ("Reconciliar divergências de estado e preparar baseline de escopo"). Consolida quatro análises somente leitura (produto, documentação, arquitetura/API/banco e design/protótipo), revisadas pelo orquestrador com conferência por amostragem das evidências arquivo:linha.
 
@@ -111,8 +111,8 @@ Contagens conferidas por script antes dos acréscimos da seção 2.1: 150 RF, 18
 | RM-05 | 14A aceita; lote 4 respondido; pacote concreto a apresentar | roadmap.md:168 |
 | RM-06 | Propostas disponíveis, não revisadas | roadmap.md:169 |
 | RM-07 | Concluído (13A) | roadmap.md:170 |
-| RM-08 | Baseline preparada (este documento), aguardando revisão | — |
-| RM-09 | Bloqueado por RM-05, RM-06 e revisão desta baseline | roadmap.md:172 |
+| RM-08 | Concluído: baseline aceita por Pedro em 18/11/2026 | Este documento |
+| RM-09 | Bloqueado por RM-05 e RM-06 | roadmap.md:172 |
 
 ## 5. Estado das decisões
 
@@ -270,7 +270,7 @@ Atende ao item 2 do checklist G0. Classificação de bloqueio conforme roadmap �
 | Tema | Fonte | Dono | Evidência esperada | Próxima ação | Bloqueio |
 | --- | --- | --- | --- | --- | --- |
 | Divergências BL-DV-01 a 03 | Seção 8.1 | Documentação / engenharia | Textos alinhados; saúde no contrato | Pedro autorizar pacote (Q-15) | Geral de início |
-| Revisão desta baseline e recorte da primeira entrega | Este documento; RM-05, RM-06 | Pedro | Aceite registrado | Revisar seções 6, 7 e 10 | Geral de início |
+| Revisão desta baseline e recorte da primeira entrega | Este documento; RM-05, RM-06 | Pedro | Aceite registrado em 18/11/2026 | Concluído | Resolvido (era geral de início) |
 | RF/US da plataforma e verificação restrita | Seção 2.1; BL-DV-05 | Produto | RF/US com cobertura; depois fluxos, DS, API | Produto concluído em 17/11/2026; alinhar demais artefatos (BL-DV-05) | Módulo acesso |
 | ADRs propostos (001, 003, 006 a 014) | adr/README.md; roadmap §5.4 | Engenharia | Aceite com limites e critérios de PoC | Revisar antes de cada módulo | Módulo (conforme ADR) |
 | Gerador, Node/pnpm, lockfile | roadmap.md:369-371; ADR-015 | Engenharia | Workspace reproduzível | Fase 1 após G0 | Módulo base |
@@ -328,7 +328,7 @@ Respondidas por Pedro em 17/11/2026 (coluna "Resposta"). Cada uma traz a recomen
 
 **Próximos passos até o RM-09:**
 
-1. Pedro revisa esta baseline e responde Q-01 a Q-17.
+1. Pedro revisa esta baseline e responde Q-01 a Q-17. Concluído: respostas em 17/11/2026 e aceite da baseline em 18/11/2026.
 2. Alinhar os RF/US da plataforma nos demais artefatos (BL-DV-05).
 3. Aplicar o pacote de correções autorizado (Q-15), começando por BL-DV-01 a 04.
 4. RM-05/RM-06: revisar o recorte técnico e os ADRs da primeira entrega (seção 7).

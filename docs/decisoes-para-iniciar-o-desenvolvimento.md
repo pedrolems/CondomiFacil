@@ -1,6 +1,6 @@
 # Decisões para iniciar o desenvolvimento
 
-**Preparado em:** 17/11/2026. **Decisor:** Pedro Lemos. **Estado:** lotes 1 e 2 e rodada complementar de 14 decisões/lote 3 aprovados, com alinhamento documental e simulações autorizados. Respostas: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**. Operador antes do primeiro condomínio oficial; Pedro não assume como Admin; dados fictícios até lá. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); G0 e liberação técnica pendentes.
+**Preparado em:** 17/11/2026. **Atualizado em:** 18/11/2026. **Decisor:** Pedro Lemos. **Estado:** lotes 1 e 2 e rodada complementar de 14 decisões/lote 3 aprovados, com alinhamento documental e simulações autorizados. Respostas: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**. Operador antes do primeiro condomínio oficial; Pedro não assume como Admin; dados fictícios até lá. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A). Pacote técnico da fase 1: D1 a D8 aceitas em 18/11/2026 (seção 6.1); versões do D1 confirmadas e aprovadas (Node 26.13.1, pnpm 12.21.0); G0 não liberado, pendente da revisão de Pedro.
 
 Este é o roteiro de conversa para encerrar o Design com o menor conjunto de decisões necessário à primeira entrega. O [roadmap](roadmap.md) continua sendo o plano de fases. As fontes de produto, dados, contratos e ADRs conservam seus estados até respostas e atualização autorizada.
 
@@ -142,6 +142,21 @@ Não é necessário aceitar todo o MER, contrato ou conjunto de ADRs para prepar
 
 **Antes de acesso persistido:** revisar ADR-001/007/008, política de acesso e MER/contrato apenas das entidades necessárias; fechar identidade, contexto, concessão/revogação, recuperação e prova de tenant/RLS sem credencial dona na API. A escolha do executor de migrations (proposta Flyway SQL-first) é separada da escolha de acesso a dados (Kysely/Drizzle ainda em avaliação). Não gerar migrações de todos os domínios para iniciar a base.
 
+### 6.1 Lote 5 — pacote técnico da fase 1 (18/11/2026)
+
+Apresentado o [pacote técnico da fase 1](09-infra/pacote-tecnico-fase-1.md) (arquivos, comandos, provas por RM-10 a RM-15). Pedro aceitou as recomendações **D1 a D8** em 18/11/2026. **Isso não libera o G0:** ele será revisado depois deste registro e segue pendente da revisão de Pedro. As versões do D1 foram confirmadas e aprovadas por Pedro em 18/11/2026: Node 26.13.1 e pnpm 12.21.0. (Esta seção não substitui a fila por dependência da seção 7.)
+
+| ID / pergunta | Opções e consequências | Recomendação e motivo | Fonte / resposta |
+| --- | --- | --- | --- |
+| D1 — Quais versões de Node e pnpm fixar? | A: Node 26 LTS se Expo, NestJS e Render confirmarem, senão Node 24 LTS; pnpm na versão fixada, com `packageManager`. B: fixar versão antes de confirmar; risco de retrabalho (recomendação A; versões abaixo) | A: evita número arbitrário e depende de confirmação nas fontes oficiais | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A.** Versões confirmadas e aprovadas por Pedro em 18/11/2026: **Node 26.13.1** e **pnpm 12.21.0** (fontes e riscos no pacote, seções 4 e 6) |
+| D2 — Provar o gerador de contratos agora? | A: autorizar só a prova do gerador no RM-12. B: adiar para RM-16 com as demais PoCs | A: sem gerador provado não há contrato gerado; escopo mínimo | Pacote, seções 3 e 4. **Resposta de Pedro em 18/11/2026: A** (execução só após liberação do G0) |
+| D3 — Qual recorte de contrato gerar? | A: `comum.yaml` e AsyncAPI só para gerar, sem aceitar o conteúdo. B: aceitar o contrato | A: gerar não aceita contrato | Baseline, linha 41. **Resposta de Pedro em 18/11/2026: A** |
+| D4 — Quais componentes no RM-14? | A: só os da tela de saúde. B: incluir os do acesso | A: acesso é fase 2 | Pacote, seção 3. **Resposta de Pedro em 18/11/2026: A** |
+| D5 — A saúde consulta banco? | A: informa só o processo, sem PostgreSQL local. B: incluir banco | A: banco e migrations ficam fora da fase 1 | Pacote, seção 3. **Resposta de Pedro em 18/11/2026: A** |
+| D6 — Escopo do CI | A: só verificação em PR, sem deploy ou promoção. B: incluir deploy | A: não contrata nem publica; conflito com o ADR-011 proposto registrado, ADR-011 não aceito | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A** |
+| D7 — Branch do código | A: branch de tarefa a partir de `develop`; nome e destino indicados por Pedro antes de commitar. B: direto em `develop` | A: mantém a regra de aprovação de Git | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A** |
+| D8 — Prova no iOS | A: Expo Go no aparelho, mais web e emulador Android. B: build de loja | A: sem conta de loja nem custo | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A** |
+
 ## 7. Lote 5 — fila restante por dependência
 
 Esta fila evita que uma questão de módulo impeça trabalho independente, sem liberá-la implicitamente. Para cada linha, o subagente prepara a pergunta concreta com 2–3 opções e evidência técnica quando chegar a vez; não há respostas presumidas aqui.
@@ -171,4 +186,4 @@ O alinhamento rastreável por lote e a autorização prévia do escopo afetado s
 | Evidência | Diff revisado e verificações realmente executadas. ADR só muda para aceito no alcance decidido por Pedro; PoC sem execução continua pendente |
 | Liberação | Depois de G0, apresentar primeiro pacote concreto para Pedro autorizar. Respostas deste roteiro não autorizam commit, push, merge, dados reais ou publicação |
 
-**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Lote 4 (IN-01/IN-02), antes próxima rodada, respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico pendente. Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.
+**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Lote 4 (IN-01/IN-02), antes próxima rodada, respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico apresentado e D1 a D8 aceitas em 18/11/2026 (seção 6.1), sem liberar o G0. Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.

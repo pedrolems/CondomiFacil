@@ -38,7 +38,7 @@ Este documento entrega o RM-08 do [roadmap](roadmap.md) ("Reconciliar divergênc
 | Contagem do MVP | Contar só o MVP, sem a V2: a regra decidida resultou em **149 RF e 73 US** antes dos acréscimos da seção 2.1. Com eles, a contagem vigente é **153 RF e 76 US no MVP**, mais 1 RF e 1 US da V2 (RF-FI-14 e US-FI-06, acordos de parcelamento); total 154 RF e 77 US | Seção 6; G1 não cobra o parcelamento |
 | RF/US da plataforma | Criar nesta rodada em PRD, RN e US; fluxos, Design System, protótipo e API ficam como pendência rastreável | Seção 2.1; BL-DV-05 tratado no produto |
 | RF-AC-07 ("Como funciona") | Mantido. Desenvolvimento usa texto provisório com dados fictícios; texto revisado pelo parecer é obrigatório antes do primeiro uso real | BL-DV-07 resolvido quanto à regra |
-| Saúde da API | `GET` de saúde em `comum.yaml`; recorte de geração da base = saúde + `comum.yaml` inteiro (só gerado, sem implementar) | BL-DV-03; **registrado, não aplicado ao contrato** (430 → 431 operações quando autorizado) |
+| Saúde da API | `GET` de saúde em `comum.yaml`; recorte de geração da base = saúde + `comum.yaml` inteiro (só gerado, sem implementar) | BL-DV-03; **aplicado ao contrato em 18/11/2026** (`GET /v1/saude`, `comumConsultarSaude`; 430 → 431 operações, conforme o `api/README.md`) |
 
 ### 2.1 RF/US da plataforma criados nesta rodada
 
@@ -173,7 +173,7 @@ Ordem do IN-01 A: base local reproduzível → acesso → portaria/offline e cob
 
 | Módulo | O que existe | Lacunas | Depende de | PoC |
 | --- | --- | --- | --- | --- |
-| Base local (RM-10 a RM-16) | ADR-015 (fontes canônicas), ADR-016; `redocly.yaml`; esqueleto `backend/apps/api` sem código; `pnpm-workspace.yaml` sem `packageManager` | Operação de saúde e recorte de geração (decididos nesta rodada, não aplicados); gerador, Node/pnpm, lockfile | BL-DV-03 | Gerador OpenAPI/AsyncAPI |
+| Base local (RM-10 a RM-16) | ADR-015 (fontes canônicas), ADR-016; `redocly.yaml`; esqueleto `backend/apps/api` sem código; `pnpm-workspace.yaml` sem `packageManager` | Operação de saúde aplicada ao contrato em 18/11/2026; recorte de geração decidido, geração não executada; gerador, Node/pnpm, lockfile | BL-DV-03 | Gerador OpenAPI/AsyncAPI |
 | Acesso, conta, condomínio, permissões (RM-20 a RM-25) | `comum.yaml`, `administradora.yaml`, `plataforma.yaml`; MER 4.1–4.3; política de acesso; Flyway proposto; ADR-001/007/008 | RF/US da plataforma tratados no produto, pendentes em fluxos, DS, protótipo, API e MER; verificação restrita do Admin no sistema; habilitação, comprovantes e mandatos na autogestão; reautenticação; capacidades simultâneas no RLS; executor de migrations; ator técnico da primeira carga | BL-DV-05, 06, 09, 10, 11, 13, 14 | RLS, sessões, query builder, migrations |
 | Portaria e offline (RM-30 a RM-34) | `portaria.yaml` (24), `sync.yaml` (2), AsyncAPI (4 mensagens); MER 4.4 e 4.12; ADR-003/006/014 | Revalidação do WebSocket; caminho do sync nos docs; modo treinamento sem operação; reentrada (MER P-10); compensação do Desfazer (API 16–18) | BL-DV-12, 24 | ADR-003, ADR-014 |
 | Cobrança e reservas (RM-35 a RM-39) | Cobrança e conta em `administradora.yaml` e gestão do síndico; `webhooks.yaml`; MER 4.10; ADR-002 aceito | Troca de conta com aprovação (8B); reautenticação (9A); pendências Asaas (MER P-06/P-16; API 7, 9, 11–13, 26); fuso (P-05) | BL-DV-08, 09 | PoC Asaas (roadmap §5.7), ADR-006/012 |

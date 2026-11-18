@@ -96,7 +96,7 @@ Escolhas: 1C, 8B e demais A da rodada de 14 decisões. Nenhum operador oficial n
 - Simule ausência de julgador: estado Aguardando julgador elegível, sem decisão/punição automática. Transição mostra preparação assistida e transferência de pendências, arquivos/histórico/vigência/revogação; não efetiva mudança comercial ou acessos reais. Atendimento técnico/comercial por e-mail aguarda responsável/endereço antes da operação oficial.
 - Para a designação eleitoral, deixe síndico/sub/conselho indisponíveis, selecione Proprietário e ative a designação. Na eleição, simule prorrogação validada, vencimento, cancelamento ou substituição; callbacks reavaliam autorização. Ative **Sem gestor habilitado** para bloquear a execução administrativa/financeira local; esse controle é separado da disponibilidade eleitoral.
 
-Todo estado desaparece ao recarregar. As simulações não comprovam segurança, armazenamento de documentos, integração Asaas, RLS, revogação de sessões ou implantação oficial. Lote 4 e liberação da base executável permanecem pendentes.
+Todo estado desaparece ao recarregar. As simulações não comprovam segurança, armazenamento de documentos, integração Asaas, RLS, revogação de sessões ou implantação oficial. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico, G0 e liberação da base executável permanecem pendentes.
 
 ### Complemento da simulação de substituição
 

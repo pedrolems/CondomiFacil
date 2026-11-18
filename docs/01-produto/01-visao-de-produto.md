@@ -1,6 +1,6 @@
 # Visão de Produto — CondomiFacil
 
-04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 17/11/2026 · @Pedro Lemos
 
 **Visão:** ser o jeito mais simples e transparente de qualquer condomínio funcionar, do pequeno prédio ao grande complexo — da portaria à assembleia, na palma da mão de moradores, funcionários, síndico e administradora.
 
@@ -164,16 +164,16 @@ IDs RF, RNF e SEG estão no PRD — CondomiFacil; IDs RN estão nas Regras de Ne
 flowchart LR
     D["Descoberta<br/>M1<br/><small>entrevistas e concorrentes</small>"]
     DS["Design<br/>M2<br/><small>fluxos e protótipo navegável em HTML (prototipo/)</small>"]
-    G1{{"Marco 1<br/>protótipo validado"}}
+    G1{{"Marco 1<br/>protótipo validado<br/><small>Pulado — Inacessível (17/11/2026): não bloqueia G0</small>"}}
     MVP["MVP<br/>M3 a M6<br/><small>app, web, API e cobrança</small>"]
-    G2{{"Marco 2<br/>parecer jurídico"}}
+    G2{{"Marco 2<br/>parecer jurídico<br/><small>Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto)</small>"}}
     P["Piloto<br/>M7<br/><small>1 a 3 condomínios</small>"]
     G3{{"Marco 3<br/>piloto aprovado"}}
     L["Lançamento<br/>M8<br/><small>lojas e primeiros clientes</small>"]
     V2["Versão 2<br/>M9 a M11<br/><small>acordos de débito</small>"]
     F["Futuro<br/>M12<br/><small>catracas e interfones</small>"]
 
-    D --> DS --> G1 --> G2 --> MVP --> P --> G3 --> L --> V2 -.-> F
+    D --> DS --> G1 --> MVP --> G2 --> P --> G3 --> L --> V2 -.-> F
 
     classDef mvp fill:#E7ECFA,stroke:#0E359D,stroke-width:2px,color:#0B1A44
     classDef gate fill:#FFE9EB,stroke:#C8323F,color:#0B1A44
@@ -186,8 +186,8 @@ flowchart LR
 | Fase | Meses | Entrega | Marco ao final |
 | --- | --- | --- | --- |
 | Descoberta | M1 | Entrevistas e análise de concorrentes | — |
-| Design | M2 | Fluxos e protótipo navegável em HTML (`prototipo/`) | Marco 1: protótipo validado; Marco 2: parecer jurídico aprovado (SEG-16), exigido antes de iniciar o MVP (decisão de 14/11/2026, ver [roadmap](../roadmap.md)) |
-| MVP | M3 a M6 | App, versão web, API e cobrança condominial | — |
+| Design | M2 | Fluxos e protótipo navegável em HTML (`prototipo/`) | Marco 1: protótipo validado. Pulado — Inacessível (17/11/2026): não bloqueia G0; não realizado nem aprovado (ver [roadmap](../roadmap.md)) |
+| MVP | M3 a M6 | App, versão web, API e cobrança condominial | Marco 2: parecer jurídico aprovado (SEG-16). Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto). Substitui a exigência antes de iniciar o MVP (decisão de 14/11/2026, ver [roadmap](../roadmap.md)) |
 | Piloto | M7 | Uso real em 1 a 3 condomínios | Marco 3: piloto aprovado |
 | Lançamento | M8 | Publicação nas lojas e primeiros clientes | — |
 | Versão 2 | M9 a M11 | Acordos de parcelamento de débitos | — |

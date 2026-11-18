@@ -1,6 +1,6 @@
 # Arquitetura — CondomiFacil
 
-06/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+06/11/2026 · Atualizado em 17/11/2026 · @Pedro Lemos
 
 **Resumo:** arquitetura de referência do MVP: um app Expo (Android, iOS e web) falando com uma API NestJS modular sobre PostgreSQL compartilhado com Row Level Security, com tempo real por WebSocket, rotinas agendadas por condomínio, pagamentos por gateway com webhooks idempotentes e um modo offline restrito à portaria e à limpeza.
 
@@ -27,7 +27,7 @@ Este documento traduz o produto (PRD, regras de negócio, histórias, design) em
 
 **Fora do escopo deste documento:** modelo de dados detalhado (`docs/04-banco-de-dados`), contrato da API (`05-backend`), estrutura do app (`06-frontend`), detalhamento de segurança (`07-seguranca`), estratégia de testes (`08-qualidade`) e infraestrutura como código (`09-infra`). Aqui ficam as decisões estruturais que esses documentos vão detalhar.
 
-**Estado do projeto:** fase de Design, sem código. Marco 1 (protótipo validado) e marco 2 (parecer jurídico, SEG-16) ainda precisam acontecer antes do MVP (Visão de Produto, roadmap).
+**Estado do projeto:** fase de Design, sem código. Marco 1 (protótipo validado) e marco 2 (parecer jurídico, SEG-16) estão Pulado — Inacessível (17/11/2026): não bloqueiam G0 e não foram realizados nem aprovados; o parecer é obrigatório antes do primeiro dado real (piloto) (Visão de Produto, roadmap).
 
 ## 2. Visão geral
 
@@ -948,7 +948,7 @@ flowchart LR
 | SEG-13 | Acesso do suporte | Verificação do plano ao abrir contexto; registro de cada acesso; sem acesso a reclamações e scores | 4.4 |
 | SEG-14 | Contrato padrão | Documento jurídico; arquitetura reflete: dados sempre sob o condomínio (tenant), exportação e exclusão por condomínio | 4 |
 | SEG-15 | Termo para conta de pessoa física | Aceite registrado (versão, data) no cadastro da conta; bloqueio de ativação do gateway sem o aceite | 3.6 |
-| SEG-16 | Parecer jurídico antes do lançamento | Não é mecanismo técnico: é portão de lançamento (marco 2) e **pode mudar** reclamações, score e eleições; manter regras em parâmetros e dados (seção 4.9) para ajustar sem reescrever | 9 |
+| SEG-16 | Parecer jurídico antes do lançamento | Não é mecanismo técnico: é portão (marco 2) Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto) e, portanto, antes do lançamento. **Pode mudar** reclamações, score e eleições; manter regras em parâmetros e dados (seção 4.9) para ajustar sem reescrever | 9 |
 | SEG-17 | Dados financeiros e webhooks | Visibilidade por unidade e papel via RLS e API; webhook com assinatura validada (texto do PRD; no Asaas a autenticação é por token no cabeçalho `asaas-access-token`, ver 3.6 e ADR-002), evento idempotente, conciliação diária | 3.6, 4.3 |
 | SEG-18 | Finanças do condomínio | RLS por papel; receitas de cobrança agregadas; folha só total; mês fechado imutável por gatilho; estornos e comentários auditados | 3.11 |
 
@@ -1016,7 +1016,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 
 | Pendência | Efeito na arquitetura |
 | --- | --- |
-| **Parecer jurídico (SEG-16, marco 2)** sobre score, reclamações, penalidades, eleições e termos | Pode alterar fluxos e prazos de reclamação (UF 9.1 a 9.4); por isso regras e prazos ficam em parâmetros e dados. Pode exigir mais rigor de sigilo do voto (ADR-009) |
+| **Parecer jurídico (SEG-16, marco 2)**, Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto). Trata score, reclamações, penalidades, eleições e termos | Pode alterar fluxos e prazos de reclamação (UF 9.1 a 9.4); por isso regras e prazos ficam em parâmetros e dados. Pode exigir mais rigor de sigilo do voto (ADR-009) |
 | **Gateway: escolhido (Asaas, 10/11/2026); pendem KYC da subconta, chargeback e prazos reais** | Prazos reais de confirmação e erros dos fluxos 5.1 e 13.1 só ficam conhecidos após a prova de conceito e o piloto; webhooks, subconta e conciliação ficam atrás da porta |
 | Revisão jurídica das regras de locação (Lei 8.245/1991) | Regras de voto do inquilino e divisão de despesas |
 | Reserva paga não usada — resolvida por Pedro em 08/11/2026 | Vistoria registra Não comparecimento em paga ou gratuita. Portaria consulta reservas do dia e marca Em andamento/Cumprida/Não comparecimento; registro de autor e momento, sem ampliar offline (RN-RE-09, RN-RE-10, RN-RE-13) |

@@ -1,6 +1,6 @@
 # User Flows — CondomiFacil
 
-04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 17/11/2026 · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -1482,7 +1482,7 @@ Decisões de 12/11/2026: [registro consolidado das 19 escolhas](../01-produto/05
 
 ## 17. Pendências
 
-**Autogestão e condução eleitoral — decisões de 17/11/2026:** direções dos lotes 1 e 2 e complementos/lote 3 aprovados, conforme fluxo 4.6 e [registro de revisão](../01-produto/06-autogestao-e-conducao-eleitoral.md). Operador e canal reais serão definidos antes do primeiro condomínio oficial; desenvolvimento usa dados fictícios. Desenho técnico, integrações e aceite do lote 4 permanecem pendentes. As demais propostas da tabela abaixo serão decididas antes do módulo dependente, sem ampliar permissões ou retirar escopo vigente (14A).
+**Autogestão e condução eleitoral — decisões de 17/11/2026:** direções dos lotes 1 e 2 e complementos/lote 3 aprovados, conforme fluxo 4.6 e [registro de revisão](../01-produto/06-autogestao-e-conducao-eleitoral.md). Operador e canal reais serão definidos antes do primeiro condomínio oficial; desenvolvimento usa dados fictícios. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); desenho técnico, integrações, pacote técnico e G0 permanecem pendentes. As demais propostas da tabela abaixo serão decididas antes do módulo dependente, sem ampliar permissões ou retirar escopo vigente (14A).
 
 Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma decisão do negócio ou de terceiros.
 
@@ -1492,10 +1492,10 @@ Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma
 
 | Pendência | Por que importa | Quem decide |
 | --- | --- | --- |
-| Parecer jurídico (SEG-16) | Pode mudar os fluxos 9.1 a 9.4, os prazos e os textos das mensagens de reclamação | Advogado |
+| Parecer jurídico (SEG-16). Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto) | Pode mudar os fluxos 9.1 a 9.4, os prazos e os textos das mensagens de reclamação | Advogado |
 | Prazos reais de confirmação de boleto e Pix, KYC da subconta e chargeback no Asaas (gateway escolhido por Pedro em 10/11/2026, ADR-002) | Definem os prazos e os erros possíveis nos fluxos 5.1 e 13.1; a prova de conceito no sandbox e o piloto os medem | Produto e engenharia (verificação do ADR-002) |
 | Prazo de 5 dias para resposta do alvo | Valor novo, sem dado de uso; validar no piloto | Produto, após o piloto |
-| Revisão jurídica das regras de locação | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
+| Revisão jurídica das regras de locação. Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto) | O voto do inquilino e a divisão de despesas seguem a Lei 8.245/1991, mas a convenção ou o contrato podem prever outra divisão | Advogado |
 | Orçamento anual previsto | O PRD não tem orçamento; sem ele, o painel só compara com o mês anterior, e não com o previsto | Produto |
 | Finanças para moradores (transparência financeira) | O PRD só prevê transparência de score e notas; um resumo público de receitas e despesas pode vir com a prestação de contas | Produto, com parecer jurídico |
 | Saldo separado do fundo de reserva e da conta de obras | Hoje as cobranças extraordinárias aparecem discriminadas na receita, mas não há saldo próprio do fundo | Produto e contabilidade |

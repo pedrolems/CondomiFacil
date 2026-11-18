@@ -513,7 +513,7 @@ Falhas voltam ao pacote responsável, com reteste e regressão proporcional. Nã
 | RM-74 | Preparar treinamento e distribuição | Materiais por perfil, contingência de portaria, builds internos/TestFlight/Play conforme guia e disponibilidade web controlada |
 | RM-75 | Aprovar roteiro/saída do piloto | Pedro define período de observação, cenários essenciais, indicadores e critérios de interrupção/sucesso antes de começar |
 
-**Checklist pré-piloto:** G1 aprovado; revisão de nuvem concluída; backup restaurável e ensaio comprovado; credenciais/contas por ambiente; dados reais sem seeds de teste; autorização e contratos; suporte/contingência prontos; responsáveis e decisão de início registrados. Sem essas condições, manter testes fictícios em dev/staging.
+**Checklist pré-piloto:** G1 aprovado; revisão de nuvem concluída; backup restaurável e ensaio comprovado; credenciais/contas por ambiente; dados reais sem seeds de teste; autorização e contratos; suporte/contingência prontos; responsáveis e decisão de início registrados; parecer jurídico SEG-16 emitido (hoje Pulado — Inacessível desde 17/11/2026; obrigatório antes do primeiro dado real); texto revisado do RF-AC-07 aprovado pelo parecer antes do primeiro uso real. Sem essas condições, manter testes fictícios em dev/staging.
 
 Complementar RM-72 com o [runbook, seção 8](09-infra/monitoramento-e-runbook.md):
 
@@ -541,6 +541,7 @@ Complementar RM-72 com o [runbook, seção 8](09-infra/monitoramento-e-runbook.m
 - [ ] Problemas impeditivos corrigidos e retestados; integridade e privacidade preservadas.
 - [ ] Portaria/limpeza conseguem lidar com rede instável e contingência; pagamentos e filas não têm pendência sem responsável.
 - [ ] Operação, suporte, recuperação e custo comportam o lançamento previsto; capacidade reavaliada com dados observados.
+- [ ] Parecer jurídico SEG-16 emitido antes do primeiro dado real (hoje Pulado — Inacessível desde 17/11/2026) e texto revisado do RF-AC-07 aprovado pelo parecer antes do primeiro uso real.
 - [ ] Feedback dos perfis foi consolidado, com mudanças decididas e rastreadas.
 - [ ] Pedro aprovou o piloto e o escopo de lançamento. O simples fim do período de observação não equivale a aprovação.
 

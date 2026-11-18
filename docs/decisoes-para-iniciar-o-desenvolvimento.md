@@ -22,7 +22,7 @@ Fontes: [roadmap, seções 2 e 4](roadmap.md), [ADRs e seus estados](03-arquitet
 
 ## 2. Como responder sem decidir tudo de uma vez
 
-Os **lotes 1 e 2 e complementos operacionais/lote 3 estão aprovados**. A próxima rodada é o **lote 4: IN-01/IN-02**, com recorte técnico e pacote concreto de implementação. A seção 5.1 registra as escolhas atuais; perguntas e alternativas anteriores preservam o histórico. Pessoas/canal e provas operacionais antes do primeiro condomínio oficial; somente dados fictícios até lá.
+Os **lotes 1 e 2 e complementos operacionais/lote 3 estão aprovados**. O **lote 4 (IN-01/IN-02)**, antes previsto como próxima rodada, foi respondido em 17/11/2026 (IN-01 A, IN-02 A; seção 6); o pacote técnico concreto de implementação e o G0 continuam pendentes. A seção 5.1 registra as escolhas atuais; perguntas e alternativas anteriores preservam o histórico. Pessoas/canal e provas operacionais antes do primeiro condomínio oficial; somente dados fictícios até lá.
 
 | Ordem | Lote / resultado | Quando precisa estar resolvido |
 | --- | --- | --- |
@@ -171,4 +171,4 @@ O alinhamento rastreável por lote e a autorização prévia do escopo afetado s
 | Evidência | Diff revisado e verificações realmente executadas. ADR só muda para aceito no alcance decidido por Pedro; PoC sem execução continua pendente |
 | Liberação | Depois de G0, apresentar primeiro pacote concreto para Pedro autorizar. Respostas deste roteiro não autorizam commit, push, merge, dados reais ou publicação |
 
-**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Próxima rodada: lote 4 (IN-01/IN-02). Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.
+**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Lote 4 (IN-01/IN-02), antes próxima rodada, respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico pendente. Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.

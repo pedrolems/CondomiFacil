@@ -1,6 +1,6 @@
 # Essencial com autogestão e condução eleitoral
 
-**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes dos lotes 1 e 2 e complementos operacionais/lote 3 aprovados; alinhamento autorizado nesta revisão. Operador antes do primeiro condomínio oficial; somente dados fictícios agora. Lote 4 e liberação técnica pendentes. Sem backend executável, concessões reais, novo plano comercial, commit ou push.
+**Data:** 13/11/2026. **Atualizado em:** 17/11/2026. **Decisor das diretrizes:** Pedro Lemos. **Estado:** diretrizes dos lotes 1 e 2 e complementos operacionais/lote 3 aprovados; alinhamento autorizado nesta revisão. Operador antes do primeiro condomínio oficial; somente dados fictícios agora. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico, G0 e liberação técnica pendentes. Sem backend executável, concessões reais, novo plano comercial, commit ou push.
 
 ## 1. O que Pedro decidiu
 
@@ -70,11 +70,11 @@ Pedro autorizou implementar as recomendações da rodada de 14 decisões, **exce
 | 13A / RM-07 | Retirar perfil de acesso Manutenção do protótipo | Preservar empresas/chamados acompanhados pelo síndico e setor de manutenção quando aplicável; sem 12º perfil MVP |
 | 14A / RM-05 | Manter escopo vigente e decidir extensões antes do módulo afetado | Identidade/representação/acesso antes do acesso persistido. Propostas de notificação obrigatória, denúncia pela administradora e ampliações financeiras não aprovadas por consequência; importação fora da primeira base sem retirar escopo MVP existente |
 
-Estados visíveis usam texto e ícone: “Aguardando comprovantes”, “Aguardando aprovação independente”, “Sem julgador elegível” e “Sem gestor habilitado”. A nomeação adiada é pré-condição de operação oficial, não impedimento à preparação fictícia após liberação própria. Retenção/segurança dos comprovantes, sessões/RLS, contratos das aprovações e evidências de integração permanecem na revisão técnica dependente. Lote 4 (IN-01/IN-02), G0 e autorização da base executável continuam abertos.
+Estados visíveis usam texto e ícone: “Aguardando comprovantes”, “Aguardando aprovação independente”, “Sem julgador elegível” e “Sem gestor habilitado”. A nomeação adiada é pré-condição de operação oficial, não impedimento à preparação fictícia após liberação própria. Retenção/segurança dos comprovantes, sessões/RLS, contratos das aprovações e evidências de integração permanecem na revisão técnica dependente. Lote 4 (IN-01/IN-02) respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico, G0 e autorização da base executável continuam abertos.
 
 ## 3. Alternativas históricas de autogestão
 
-O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual de aprovação. Em 17/11/2026, Pedro aceitou as recomendações dos lotes 1 e 2 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md), no alcance da seção 2. AG-07 C combina resultado eleitoral e validação independente; AG-03 C da conversa combina procedimento regular A e exceção colegiada B. Nenhuma dessas letras C aprova a alternativa histórica correspondente de edição direta ou autodeclaração do quadro. O estado vigente dos complementos e do lote 3 está na seção 2.1; este quadro conserva alternativas históricas. Lote 4 continua proposto.
+O quadro conserva as alternativas históricas de 13/11/2026, não o estado atual de aprovação. Em 17/11/2026, Pedro aceitou as recomendações dos lotes 1 e 2 do [pacote de decisões](../decisoes-para-iniciar-o-desenvolvimento.md), no alcance da seção 2. AG-07 C combina resultado eleitoral e validação independente; AG-03 C da conversa combina procedimento regular A e exceção colegiada B. Nenhuma dessas letras C aprova a alternativa histórica correspondente de edição direta ou autodeclaração do quadro. O estado vigente dos complementos e do lote 3 está na seção 2.1; este quadro conserva alternativas históricas. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico e G0 seguem pendentes.
 
 | ID | Questão e por que importa | Opções e consequências | Recomendação para decidir |
 | --- | --- | --- | --- |

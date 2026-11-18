@@ -1,6 +1,6 @@
 # Segurança — CondomiFacil
 
-**Data:** 14/11/2026. **Atualizado em:** 15/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 17/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
 
 O projeto está na fase de Design: ainda não há backend, aplicativo, banco ou controles de produção implementados. Este documento consolida os requisitos existentes e propõe sua aplicação na autenticação, autorização, isolamento entre condomínios, criptografia, gestão de segredos, limitação de requisições e resposta a incidentes. Não comprova conformidade, não aceita ADRs nem altera permissões de produto.
 
@@ -301,7 +301,7 @@ Estes cenários orientam a futura estratégia de qualidade; nenhum teste de apli
 
 | Pendência | Decisão/evidência necessária e responsável a envolver |
 | --- | --- |
-| Parecer jurídico SEG-16 | Pendente - Inacessível (16/11/2026): Pedro sem acesso a advogado, com acesso futuro incerto. [Pacote preparado](pacote-para-validacao-juridica.md); parecer e condições continuam pendentes e bloqueiam o início do MVP conforme o roadmap |
+| Parecer jurídico SEG-16 | Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto), conforme o roadmap. Histórico: registrado como Pendente - Inacessível em 16/11/2026, com Pedro sem acesso a advogado e acesso futuro incerto; [pacote preparado em 16/11/2026](pacote-para-validacao-juridica.md). Parecer não emitido nem aprovado; condições continuam pendentes |
 | Autorização e primeira gestão | Produto aprovado no registro 06, seção 2.1; revisar contratos/RLS/comprovantes/revogação e provar controles antes do uso. Operador oficial adiado; exceções LGPD conservam pendências próprias |
 | Sessões e acesso privilegiado | Engenharia/segurança e Pedro: ADR-007, duração total de refresh, tolerância a retry, parâmetros criptográficos, invalidação e avaliação de MFA/reautenticação |
 | Criptografia de servidor | Engenharia/segurança: inventário de campos, algoritmo/biblioteca, custódia, recuperação e rotação; verificar proteção de banco/Storage/backups na infraestrutura escolhida |
@@ -334,7 +334,7 @@ Pendências bloqueiam a parte correspondente do desenho/implementação; não si
 | SEG-13 | Seções 4.1 e 8: plano, escopo e registro do suporte | RN-PL-06/08; política de acesso; sem reclamações/scores |
 | SEG-14 | Seções 9.1/9.4 e 11: controlador, operadora e coordenação | Contrato e validação jurídica pendentes |
 | SEG-15 | Seções 6 e 11: conta recebedora e termos | PRD 8; termo versionado de responsabilidade de pessoa física e KYC dependem de revisão jurídica e gateway |
-| SEG-16 | Seções 5.2, 9.4 e 11: parecer e limites do documento | Marco pré-MVP conforme roadmap; Pendente - Inacessível, com pacote preparado |
+| SEG-16 | Seções 5.2, 9.4 e 11: parecer e limites do documento | Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto), conforme roadmap. Pacote preparado em 16/11/2026 |
 | SEG-17 | Seções 2, 4.2/4.3 e 9.3: unidade, webhook e conciliação | PRD 8; Asaas por token conforme ADR-002, não assinatura de corpo |
 | SEG-18 | Seções 2, 4 e 8: agregação, finalidade e auditoria | RN financeiras; mês fechado imutável, correções por estorno; autogestão com pendências |
 | RNF-06/07/08/16 | Seções 5.3, 7 e 10: offline, sincronização e critérios | RN-OF-*; frontend 5; ADR-003/014 propostos |

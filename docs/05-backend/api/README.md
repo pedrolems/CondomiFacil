@@ -1,6 +1,6 @@
 # API do CondomiFacil: contrato
 
-**Estado:** Proposta de 10/11/2026, atualizada em 15/11/2026, não aceita pelo Pedro. É o contrato escrito antes do código (design-first); não existe backend. Tudo o que não vem de decisão do Pedro nem do PRD está marcado **Proposta**.
+**Estado:** Proposta de 10/11/2026, atualizada em 17/11/2026, não aceita pelo Pedro. É o contrato escrito antes do código (design-first); não existe backend. Tudo o que não vem de decisão do Pedro nem do PRD está marcado **Proposta**.
 
 **Organização e fonte dos contratos — decisão de Pedro em 14/11/2026:** [ADR-015](../../03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md). OpenAPI 3.1 é a fonte dos contratos HTTP e AsyncAPI 3.0 a fonte das mensagens de tempo real. Tipos e esquemas estruturais serão gerados em `packages/shared-types` na raiz, compartilhados pelo backend/frontend no workspace pnpm único. Não manter esquemas Zod/DTOs manuais equivalentes como segunda fonte. Ferramenta e versão dependem de PoC antes da implementação, cobrindo referências, recursos JSON Schema usados, entradas, respostas por perfil, eventos e consumo Node/Expo. O CI futuro validará as fontes, regenerará os artefatos de forma determinística e detectará diferenças; testes de conformidade complementarão a geração. Nenhum gerador, esquema ou CI está implementado. Essa decisão não aceita o conteúdo ainda proposto dos contratos.
 
@@ -14,7 +14,7 @@
 | [`redocly.yaml`](redocly.yaml) | Regras de validação | Proposta de 10/11/2026 |
 | [`openapi/componentes/comum.yaml`](openapi/componentes/comum.yaml) | Esquemas, parâmetros, cabeçalhos, respostas de erro e segurança comuns | Proposta de 10/11/2026 |
 | [`openapi/componentes/enums.yaml`](openapi/componentes/enums.yaml) | Estados dos ciclos de vida | Proposta de 10/11/2026 |
-| [`openapi/comum.yaml`](openapi/comum.yaml) | Acesso, sessão, perfil próprio, notificações, dispositivos, arquivos, LGPD, score, recurso, denúncia, notas dos setores | Proposta de 10/11/2026 |
+| [`openapi/comum.yaml`](openapi/comum.yaml) | Acesso, sessão, perfil próprio, notificações, dispositivos, arquivos, LGPD, score, recurso, denúncia, notas dos setores, saúde da API | Proposta de 10/11/2026 |
 | [`openapi/morador.yaml`](openapi/morador.yaml), [`proprietario-nao-residente.yaml`](openapi/proprietario-nao-residente.yaml) | Interfaces do morador e do proprietário não residente | Proposta de 10/11/2026 |
 | [`openapi/sindico.yaml`](openapi/sindico.yaml), [`conselho-fiscal.yaml`](openapi/conselho-fiscal.yaml) | Interfaces do síndico (e subsíndico) e do conselho fiscal | Proposta de 10/11/2026 |
 | [`openapi/portaria.yaml`](openapi/portaria.yaml), [`limpeza.yaml`](openapi/limpeza.yaml), [`sync.yaml`](openapi/sync.yaml) | Interfaces da portaria, da limpeza e da sincronização offline | Proposta de 10/11/2026 |
@@ -205,7 +205,7 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | Arquivo | Operações (`operationId`) |
 | --- | --- |
 | `administradora.yaml` | 105 |
-| `comum.yaml` | 36 |
+| `comum.yaml` | 37 |
 | `conselho-fiscal.yaml` | 13 |
 | `limpeza.yaml` | 10 |
 | `morador.yaml` | 61 |
@@ -215,9 +215,9 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | `sindico.yaml` | 136 |
 | `sync.yaml` | 2 |
 | `webhooks.yaml` | 2 |
-| **Total** | **430** |
+| **Total** | **431** |
 
-Os 430 já incluem as 82 operações de `/v1/sindico/gestao/` (contadas em `sindico.yaml`) e as 6 operações de relatórios (contadas em `administradora.yaml`); não há soma adicional. Conferido em 15/11/2026 contra os YAML.
+Os 431 já incluem as 82 operações de `/v1/sindico/gestao/` (contadas em `sindico.yaml`), as 6 operações de relatórios (contadas em `administradora.yaml`) e a operação técnica de saúde `comumConsultarSaude` (contada em `comum.yaml`, sem RF, BL-DV-03); não há soma adicional. Conferido em 17/11/2026 contra os YAML.
 
 As rotas de tempo real não são operações OpenAPI: estão em `asyncapi/tempo-real.yaml`. `webhooks.yaml` tem 2 operações (Asaas e Resend).
 
@@ -322,3 +322,13 @@ Decisões de Pedro de 16/11/2026, registradas em [decisões de complementação]
 ## Complementos de autogestão — 17/11/2026
 
 Escolhas **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**, no [registro 06, seção 2.1](../../01-produto/06-autogestao-e-conducao-eleitoral.md). YAML recebe limites descritivos nesta revisão, sem criar operações/DTOs novos. O contrato estrutural continua proposta e não está pronto para implementar os novos controles: faltam representação de comprovantes, aprovação/revisão independente, início/fim programados e prazo/prorrogação eleitoral, transição/revogação e políticas de arquivos/sessões. As operações antigas de conta não autorizam troca unilateral na autogestão; nova aprovação específica de sub/conselho exige contrato próprio a revisar. Baixas/cancelamentos/devoluções manuais exigem motivo, prova, reautenticação e auditoria; preservar devoluções devidas. Sem julgador, aguardar elegível sem punição automática. Somente dados fictícios; nomear operador e responsável/endereço de e-mail técnico antes do primeiro condomínio oficial/disponibilização. Próxima rodada lote 4; nenhum ADR aceito ou MVP liberado. Extensões de produto aguardam o módulo afetado, mantendo escopo vigente.
+
+## Operação de saúde e recorte da primeira entrega — 17/11/2026
+
+Divergência BL-DV-03 da [baseline de escopo do MVP](../../baseline-de-escopo-mvp.md) (seções 7 e 8.1), aplicada por autorização de Pedro em 17/11/2026. A primeira entrega exige que o app alcance a saúde da API (IN-01 A, RM-13), e o contrato não tinha essa operação.
+
+- **Operação nova:** `GET /v1/saude` (`comumConsultarSaude`, tag `saude`, `comum.yaml`), sem autenticação nem cabeçalhos de contexto. `200` devolve só `estado` e `versao`; `503` usa o `Erro503` comum. Nenhum dado de condomínio, usuário, dependência ou configuração. Responder `200` não significa acesso, tenant ou segurança implementados.
+- **Operação técnica sem RF:** fica fora da tabela de cobertura RF -> operação; a rastreabilidade é `BL-DV-03`, `IN-01` e `RM-13` no `x-rastreabilidade`.
+- **Recorte de geração da primeira entrega:** a saúde mais `comum.yaml` inteiro, só gerado (ADR-015), sem implementar as demais operações de `comum.yaml`. Gerador e versão continuam dependentes de PoC.
+- **Contagem:** `comum.yaml` 36 -> 37; total 430 -> 431.
+- **Pendência:** o guia (`01-guia-da-api.md`, seção 4) diz que todo caminho de `comum/` fora de `/v1/acesso/*` e `/v1/eu/*` leva `X-Condominio-Id`; `/v1/saude` é exceção ainda não registrada no guia. Resolvida em 18/11/2026: exceção registrada no guia (seção 1 e tabela de cabeçalhos de contexto da seção 3).

@@ -2,7 +2,7 @@
 
 **Autor do produto:** Pedro Lemos  
 **Data:** 14/11/2026  
-**Atualizado em:** 15/11/2026  
+**Atualizado em:** 17/11/2026  
 **Estado:** proposta técnica para revisão do Pedro; organização do workspace e fontes dos contratos aprovadas em 14/11/2026 (ADR-015); demais escolhas não aceitas. O projeto está em Design, sem aplicativo implementado.
 
 ## 1. Objetivo, escopo e fontes
@@ -392,7 +392,7 @@ A estratégia geral de qualidade será detalhada em `docs/08-qualidade/` em trab
 | Permissões finas da autogestão e concessão eleitoral temporária | Registro 06 e RN-VO-13; não converter precedência eleitoral em poder administrativo geral |
 | Pendências de produto que afetam telas | UF 17: gateway/sandbox e ampliações financeiras por módulo; perfil Manutenção retirado em 17/11/2026. Parecer/testes com usuários pulados por inacessibilidade conforme roadmap vigente |
 
-Não iniciar piloto com dados reais baseado apenas nesta proposta. Continuam os marcos de validação de protótipo, parecer jurídico e revisão da infraestrutura definidos pelo produto e ADR-004.
+Não iniciar piloto com dados reais baseado apenas nesta proposta. A validação do protótipo com usuários e o parecer jurídico (SEG-16) estão Pulado — Inacessível (17/11/2026): não bloqueiam G0; o parecer é obrigatório antes do primeiro dado real (piloto). Continua a revisão da infraestrutura antes do piloto definida pelo ADR-004.
 
 ### 9.2 Matriz de rastreabilidade
 
@@ -436,4 +436,4 @@ Decisões de produto aprovadas e alinhadas: [registro de autogestão, seção 2.
 | Dinheiro | Executor solicita troca de conta; segundo representante local habilitado e independente aprova, inclusive capacidade específica sub/conselho sem execução geral. Sem segundo, aguarda e conta vigente permanece. Baixa/cancelamento/devolução manual exige executor, motivo, prova, reautenticação e auditoria; preservar devoluções devidas e estornos. Sem Admin financeiro |
 | Julgamento/transição/atendimento | Sem julgador aguarda elegível, sem punição automática. Transição assistida verifica destino, transfere pendências/arquivos/histórico e revoga acessos na efetivação, sem alterar vigência comercial. Admin só verifica documentação restrita. E-mail técnico/comercial tem pessoa/endereço antes de disponibilizar; sem acesso de suporte ao Essencial ou reclamações/scores |
 
-Persistência, sessões/RLS, proteção/retenção dos comprovantes, representação dos pedidos/aprovações/revisões, concorrência e revogação precisam da revisão técnica do recorte antes de implementar; contratos não podem executar troca de conta unilateral. Lote 4 e liberação da base executável ainda pendentes. Perfil Manutenção retirado; empresas e chamados pelo síndico preservados.
+Persistência, sessões/RLS, proteção/retenção dos comprovantes, representação dos pedidos/aprovações/revisões, concorrência e revogação precisam da revisão técnica do recorte antes de implementar; contratos não podem executar troca de conta unilateral. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico, G0 e liberação da base executável ainda pendentes. Perfil Manutenção retirado; empresas e chamados pelo síndico preservados.

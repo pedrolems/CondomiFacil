@@ -4,7 +4,7 @@ info:
   version: 0.1.0-proposta
   summary: Acesso e sessão, perfil próprio, notificações, arquivos, LGPD, score e recurso de decisão.
   description: |-
-    **Proposta de 10/11/2026, atualizada em 15/11/2026**, não aceita pelo Pedro. Interface `comum/` do backend (`01-backend.md` 3.3, decisão de agrupamento 5): rotas sem perfil dono, usadas por três ou mais perfis com o mesmo DTO. Convenções no `01-guia-da-api.md`.
+    **Proposta de 10/11/2026, atualizada em 17/11/2026**, não aceita pelo Pedro. Interface `comum/` do backend (`01-backend.md` 3.3, decisão de agrupamento 5): rotas sem perfil dono, usadas por três ou mais perfis com o mesmo DTO. Convenções no `01-guia-da-api.md`.
 
     **Decidido (PRD e regras de negócio):** ninguém se cadastra sozinho; primeiro acesso por código de 6 dígitos no e-mail, 15 minutos, 5 tentativas, reenvio após 60 segundos, mesma resposta para e-mail cadastrado ou não, senha com no mínimo 8 caracteres e pausa de 15 minutos após 5 senhas erradas (RF-AC-01, RN-CD-02, SEG-04).
 
@@ -13,7 +13,7 @@ info:
     - Caminhos `/v1/eu/*`, `/v1/arquivos/*`, `/v1/score` e `/v1/recursos`. `/v1/score` e `/v1/recursos` exigem `X-Condominio-Id`, por isso ficam fora de `/v1/eu`, que não leva cabeçalhos de contexto (guia, seção 3).    - Tokens, rotação do refresh e cookie na web seguem o ADR-007 (Proposta).
     - Nomes de papéis, de tipos de notificação, de módulos de arquivo e de códigos de erro de regra de negócio.
 
-    **Autenticação por grupo de rota** (guia, seção 3): `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha` e `/renovar` não levam `Authorization` nem cabeçalhos de contexto. `/v1/acesso/sair`, `/v1/acesso/aceites` e todo `/v1/eu/*` levam `Authorization` sem cabeçalhos de contexto. `/v1/arquivos/*`, `/v1/score` e `/v1/recursos` levam `Authorization` e `X-Condominio-Id`.
+    **Autenticação por grupo de rota** (guia, seção 3): `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha` e `/renovar` não levam `Authorization` nem cabeçalhos de contexto; `/v1/saude` (operação técnica, BL-DV-03) também não. `/v1/acesso/sair`, `/v1/acesso/aceites` e todo `/v1/eu/*` levam `Authorization` sem cabeçalhos de contexto. `/v1/arquivos/*`, `/v1/score` e `/v1/recursos` levam `Authorization` e `X-Condominio-Id`.
 
     **Privacidade:** nenhum exemplo expõe quem reclamou, quem avaliou, voto ou score de terceiros fora de RN-SC-02. O score é só número e texto, nunca verde ou vermelho. Dados de cartão nunca passam pela API (SEG-12). Limites de taxa: lacuna (guia, seção 10).
 servers:
@@ -32,6 +32,8 @@ tags:
   description: 'Módulo `lgpd`: cópia dos dados e exclusão da conta.'
 - name: convivencia
   description: 'Módulo `convivencia`: endpoint único de score e recurso de decisão de reclamação.'
+- name: saude
+  description: 'Operação técnica de saúde da API, sem RF (BL-DV-03, Proposta).'
 paths:
   /v1/acesso/codigo:
     post:
@@ -2607,11 +2609,59 @@ paths:
       - RN-CD-27
       - RN-CD-28
       - US-VO-03
+  /v1/saude:
+    get:
+      operationId: comumConsultarSaude
+      summary: Consulta a saúde da API
+      description: '**Proposta (BL-DV-03, 17/11/2026):** operação técnica, sem RF, para o app e o ambiente local confirmarem que a API responde (primeira entrega, IN-01 A, RM-13). Devolve só o estado e a versão da API; nunca dados de condomínio, de usuário, de dependências internas ou de configuração. Responder `200` não significa acesso, tenant ou segurança implementados. Sem `Authorization` nem cabeçalhos de contexto.'
+      tags:
+      - saude
+      security: []
+      responses:
+        '200':
+          description: API disponível.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaudeComum'
+              example:
+                estado: disponivel
+                versao: 0.1.0
+        '429':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - BL-DV-03
+      - IN-01
+      - RM-13
 components:
   securitySchemes:
     bearerJwt:
       $ref: ./componentes/comum.yaml#/components/securitySchemes/bearerJwt
   schemas:
+    SaudeComum:
+      type: object
+      description: Estado mínimo da API (Proposta, BL-DV-03). Sem dados de tenant nem detalhes internos.
+      required:
+      - estado
+      - versao
+      properties:
+        estado:
+          type: string
+          enum:
+          - disponivel
+          description: Sempre `disponivel` no `200`; indisponibilidade responde `503`.
+        versao:
+          type: string
+          description: Versão da API em execução (Proposta). Não inclui versão de dependências.
+          examples:
+          - 0.1.0
     DispositivoInfoComum:
       type: object
       description: Aparelho que abre a sessão; a sessão fica ligada a ele (ADR-007).

@@ -74,7 +74,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 - **Finanças do condomínio:** com administradora, ela edita e síndico/conselho só leem e comentam; no Essencial com autogestão, a distribuição local aprovada (RN-PL-08/RN-FI-29) põe síndico ou sub em substituição na execução e conselho na fiscalização; mês fechado só se altera por estorno. Receitas de cobrança e reservas entram automaticamente e agregadas, sem unidade. Não é contabilidade formal.
 - **Fora de escopo:** contabilidade oficial (balancete, parecer, ata), catracas e interfones, entrega de comida por app. **MVP (14/11/2026):** nove relatórios gerenciais para administradora, PDF/CSV/XLSX e PNG/SVG só de gráficos agregados, com jobs privados e acesso revalidado (RN-RL-01 a 08). Novos relatórios não ampliam acessos de outros perfis. **Versão 2:** acordos de parcelamento.
 - **Stack planejada (PRD seção 10 e ADRs 002, 004, 005 e 016):** React Native + TypeScript com Expo (Android, iOS e web via React Native Web), Node.js + NestJS, PostgreSQL com Row Level Security, WebSockets para a lista da portaria, SQLite ou WatermelonDB offline, Asaas como gateway de pagamento (ADR-002), Supabase (só PostgreSQL e Storage compatível com S3, região São Paulo) e Render (API, WebSocket e worker) para construir o MVP em dev e staging, sem custo (ADR-004; a nuvem do piloto com dados reais é revisão obrigatória antes do piloto), painel web como site estático do Render, plano gratuito (ADR-016, 16/11/2026), Resend para e-mail (ADR-005), Expo Push/FCM, Sentry. Decisões de Pedro de 10/11/2026, aceitas com ressalvas. No plano gratuito do Render o worker roda no mesmo serviço web da API e as rotinas param quando o serviço dorme.
-- **Roadmap (estimativa):** Descoberta M1, Design M2 (marco: protótipo validado), MVP M3 a M6 (parecer jurídico SEG-16 exigido antes de iniciar o MVP, decisão de 14/11/2026), Piloto M7 em 1 a 3 condomínios, Lançamento M8, V2 M9 a M11.
+- **Roadmap (estimativa):** Descoberta M1, Design M2 (marco: protótipo validado; testes com usuários Pulado — Inacessível (17/11/2026): não bloqueia G0), MVP M3 a M6 (parecer jurídico SEG-16 Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto); substitui a exigência antes de iniciar o MVP, decisão de 14/11/2026), Piloto M7 em 1 a 3 condomínios, Lançamento M8, V2 M9 a M11.
 
 ## Protótipo (`prototipo/`)
 
@@ -181,15 +181,15 @@ Definir a branch de destino conforme a indicação do Pedro; não presumir `main
 ## Próximos passos
 
 1. **Resolver as pendências do negócio** (User Flows seção 17), que bloqueiam partes do desenho:
-   - Parecer jurídico sobre reclamações (SEG-16) e sobre as regras de locação; é o marco 2 do roadmap.
+   - Parecer jurídico sobre reclamações (SEG-16) e sobre as regras de locação; é o marco 2 do roadmap. Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto). Pacote preparado em 16/11/2026; parecer não emitido nem aprovado.
    - Gateway de pagamento: o Asaas está escolhido (ADR-002). Seguem pendentes os prazos reais de confirmação de boleto e Pix, o KYC da subconta, o chargeback e a conta principal em CNPJ (definem prazos e erros dos fluxos 5.1 e 13.1); a prova de conceito no sandbox os verifica.
    - Prazo de 5 dias de resposta do alvo da reclamação: validar no piloto.
    - Finanças: orçamento anual previsto, transparência financeira para moradores, saldo do fundo de reserva e da conta de obras, plano de contas por administradora.
    - Cobrança em atraso como notificação obrigatória (proposta, ainda fora das RN e do US-NO-01).
-2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso.
+2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso. Pulado — Inacessível (17/11/2026): não bloqueia G0; não realizado nem aprovado. Retomar quando houver acesso aos participantes.
 3. **Perfil Manutenção resolvido (17/11/2026):** retirado do protótipo; preservar empresas e chamados pelo síndico.
 4. **Validar os ADRs de `docs/03-arquitetura/adr/`**: os ADRs 002, 004 e 005 (10/11/2026) e 015 (14/11/2026, organização e fontes) já estão aceitos com ressalvas (a nuvem do piloto tem revisão obrigatória do ADR-004 antes do piloto com dados reais); aceitar, rejeitar ou ajustar os demais (dependem de PoC, custo ou parecer). Validar também o contrato da API de `docs/05-backend/api/` e decidir as pendências consolidadas em `api/README.md` e **preencher as pastas ainda vazias de `docs/`** na ordem natural: 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
-5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
+5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2, exceto o parecer jurídico (SEG-16) e a validação do protótipo, que estão Pulado — Inacessível (17/11/2026) e não bloqueiam G0: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 
 ## Ferramentas e memória

@@ -59,7 +59,7 @@ Quem escreve `openapi/<perfil>.yaml` segue as regras abaixo.
    | `securitySchemes` | `bearerJwt` |
    | `enums.yaml` | `EstadoReserva`, `EstadoVisita`, `EstadoEncomenda`, `EstadoEntregaEsperada`, `EstadoChamado`, `EstadoReclamacao`, `EstadoCobranca`, `EstadoLancamento`, `EstadoMesFinanceiro` |
 
-   **Rotas de `comum/`.** Os prefixos sem perfil são `/v1/acesso/*`, `/v1/eu/*`, `/v1/arquivos/*`, `/v1/score`, `/v1/recursos`, `/v1/denuncias` e `/v1/notas-dos-setores` (seção 4). Todos, exceto `/v1/acesso/*` e `/v1/eu/*`, levam `X-Condominio-Id`. `/v1/sync` não é rota de `comum/`: fica em `openapi/sync.yaml`, interface própria (`01-backend.md` 3.3, decisão 6).
+   **Rotas de `comum/`.** Os prefixos sem perfil são `/v1/acesso/*`, `/v1/eu/*`, `/v1/arquivos/*`, `/v1/score`, `/v1/recursos`, `/v1/denuncias` e `/v1/notas-dos-setores` (seção 4). Todos, exceto `/v1/acesso/*` e `/v1/eu/*`, levam `X-Condominio-Id`. Exceção: `GET /v1/saude` (18/11/2026) não exige `Authorization` nem `X-Condominio-Id`. `/v1/sync` não é rota de `comum/`: fica em `openapi/sync.yaml`, interface própria (`01-backend.md` 3.3, decisão 6).
 
    **Qual cabeçalho de unidade usar.** `UnidadeIdObrigatorio` (`required: true`) nas operações de perfis com unidade (`morador`, `proprietario-nao-residente`) que dependem da unidade. `UnidadeId` (`required: false`) onde a unidade é opcional. Os dois são o mesmo cabeçalho `X-Unidade-Id`; não escreva "exige X-Unidade-Id" só na `description`, porque isso contradiz o `required: false` para geradores de cliente.
 
@@ -353,6 +353,7 @@ Cadeia de guards do fluxo oficial de `01-backend.md` 4.1 (Proposta). A pasta org
 | --- | --- | --- | --- |
 | `/v1/acesso/*` | Não, porque é antes do login (código, ativação, login, recuperação, renovação). Exceções conforme o caso: sair e aceites exigem sessão | Não | Não |
 | `/v1/eu/*` (perfil próprio) | Sim | Não | Não |
+| `GET /v1/saude` (estado da API, 18/11/2026) | Não (`security: []`), não recebe dados de condomínio | Não | Não |
 | `/v1/arquivos/*`, `/v1/score`, `/v1/recursos`, `/v1/denuncias`, `/v1/notas-dos-setores`, `/v1/sync` | Sim | Sim | Conforme a operação |
 | Perfis com unidade: `morador`, `proprietario-nao-residente`, e síndico, subsíndico e conselho fiscal quando agem como morador | Sim | Sim | Sim (`UnidadeIdObrigatorio`), nas operações de dono do dado por unidade |
 | Demais perfis em funções de gestão (`sindico`, `conselho-fiscal`, `portaria`, `limpeza`, `administradora`, `plataforma`) | Sim | Sim (a `plataforma` e a administradora abrem contexto por condomínio, arquitetura 4.4) | Não |

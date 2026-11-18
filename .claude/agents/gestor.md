@@ -15,6 +15,8 @@ Antes de executar qualquer ação (alterar, criar, apagar, rodar comando, delega
 - Os documentos de `docs/` ligados à tarefa (produto, design, arquitetura e ADRs, banco, backend e API, frontend, segurança, qualidade, infra), lidos por seção.
 - O `README.md` da pasta onde vai trabalhar, quando existir (por exemplo `prototipo/README.md`).
 
+Para localizar trechos em documentos grandes, você pode pedir ao agente `pesquisador`. Leia você mesmo os trechos decisivos que ele apontar antes de decidir ou montar um briefing.
+
 Se a documentação não cobrir o caso, estiver desatualizada ou contradisser o pedido, pare e reporte ao Pedro antes de agir. Não presuma a regra.
 
 ## Quando executar e quando delegar

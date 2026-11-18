@@ -1,6 +1,6 @@
 # Regras de Negócio — CondomiFacil
 
-04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 17/11/2026 (RM-08: RN-PL-09 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -522,6 +522,7 @@ O preço depende do número de unidades e do plano escolhido. O Essencial atende
 | RN-PL-07 | Os preços são revistos uma vez por ano; o novo valor é comunicado com 30 dias de antecedência e vale a partir do ciclo seguinte. No MVP, a cobrança da assinatura da plataforma é assistida/manual, com registro de ciclo e valores; é separada da cobrança e do dinheiro do condomínio, sem reutilizar automaticamente a conta recebedora condominial |
 
 | RN-PL-08 | O Essencial admite autogestão: condomínio sem administradora que não contrata Gestão + Suporte, mantendo as faixas e os preços do Essencial. Por decisão de 17/11/2026 (AG-01 A), o síndico executa cadastros, configurações, cobrança e finanças; o subsíndico executa durante substituição formal; o conselho fiscaliza, lê, comenta e exporta, sem edição financeira. Não há delegação por atividade aprovada. Habilitação inicial e mandatos seguem RN-CD-01/3.1 e RN-VO-15. Conta recebedora segue RN-PG-01; baixa, cancelamento e devolução manuais seguem RN-FI-29. Não há acesso administrativo do suporte, franquia de solicitações pagas ou herança das permissões globais de reclamações da administradora. Eleições seguem RN-VO-13 independentemente da modalidade |
+| RN-PL-09 | O Admin da plataforma cadastra condomínios e administradoras e define o plano e a modalidade de gestão de cada condomínio: com administradora, autogestão no Essencial (RN-PL-08) ou Gestão + Suporte (RN-PL-02); uma administradora pode atender vários condomínios. Concede e revoga acessos de suporte conforme RN-CD-16 e RN-PL-06 e conduz a transição de RN 11.1. Atua só no painel da plataforma, sem acesso ao conteúdo de gestão, reclamações ou scores; a verificação restrita de RN-CD-01/3.1 e RN 11.1 é capacidade adicional específica, que também não abre esse conteúdo, não valida o próprio poder e não movimenta dinheiro (decisões de 17/11/2026, registro 06) |
 
 ### 11.1 Transição e atendimento do Essencial — 17/11/2026
 

@@ -1,10 +1,10 @@
 # Histórias de Usuário e Critérios de Aceite — CondomiFacil
 
-04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 17/11/2026 (RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## Como ler
 
-São 74 histórias em 14 épicos; cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
+São 77 histórias em 14 épicos (76 do MVP e 1 da versão 2, US-FI-06); cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
 
 - **Formato:** "Como \[perfil\], quero \[ação\], para \[objetivo\]".
 - **IDs:** `US-<módulo>-<número>`. Cada história cita os requisitos (RF, RNF, SEG) do PRD — CondomiFacil e as regras (RN) das Regras de Negócio — CondomiFacil que ela implementa.
@@ -768,7 +768,7 @@ Requisitos: RF-VO-05, RF-VO-06, RF-VO-08 · RN-VO-04, RN-VO-05, RN-VO-07, RN-VO-
 
 Como admin da plataforma, quero que cada condomínio pague conforme a faixa de unidades e o plano, para que o preço acompanhe o porte.
 
-Requisitos: RF-AD-16 · RN-PL-01, RN-PL-06, RN-PL-07
+Requisitos: RF-AD-16, RF-AD-23 · RN-PL-01, RN-PL-06, RN-PL-07, RN 11.1
 
 - [ ] Dado o número de unidades cadastradas, quando a fatura é gerada, então o valor segue a faixa e o plano (ex.: 120 unidades no Essencial = R$ 299).
 - [ ] Dado que o condomínio muda de faixa, quando isso ocorre, então o novo valor vale a partir do ciclo seguinte.
@@ -794,6 +794,42 @@ Requisitos: RF-AD-16 · RN-PL-02 a RN-PL-05, RN-CD-16
 - [ ] Dado uma solicitação além da franquia, quando é atendida, então R$ 15 entram na fatura seguinte.
 - [ ] Dado a importação inicial na implantação, quando é feita, então não conta na franquia.
 - [ ] Dado um acesso do suporte, quando ocorre, então só é possível em condomínio do Gestão + Suporte e fica registrado.
+
+### US-PL-03 — Cadastrar condomínio e administradora
+
+Como admin da plataforma, quero cadastrar condomínios e administradoras com plano e modalidade de gestão, para que cada cliente comece com as regras e o preço certos.
+
+Requisitos: RF-AD-22 · RN-PL-01, RN-PL-02, RN-PL-08, RN-PL-09
+
+- [ ] Dado um novo condomínio, quando cadastrado, então tem plano e modalidade de gestão: com administradora, autogestão no Essencial ou Gestão + Suporte.
+- [ ] Dado um condomínio com administradora, quando cadastrado, então fica vinculado à administradora, que pode atender vários condomínios.
+- [ ] Dado o número de unidades cadastradas, quando a faixa é calculada, então segue RN-PL-01; a franquia do Gestão + Suporte segue RF-AD-16.
+- [ ] Dado o admin da plataforma, quando acessa um condomínio cadastrado, então não vê conteúdo de gestão, reclamações nem scores.
+
+### US-PL-04 — Conceder acesso de suporte
+
+Como admin da plataforma, quero conceder e revogar o acesso da equipe de suporte a um condomínio, para que ela atue só onde o plano Gestão + Suporte foi contratado.
+
+Requisitos: RF-AD-24 · RN-CD-16, RN-PL-02, RN-PL-06, RN-PL-09
+
+- [ ] Dado um condomínio do Gestão + Suporte, quando o acesso de suporte é concedido, então fica registrado.
+- [ ] Dado um condomínio do Essencial, inclusive em autogestão, quando se tenta conceder acesso de suporte, então a concessão é recusada.
+- [ ] Dado que o condomínio passa ao Essencial, quando a mudança vale, então o suporte perde o acesso.
+- [ ] Dado o acesso de suporte concedido, quando usado, então não inclui reclamações, scores, julgamentos nem os relatórios RF-RL-01 a 11.
+
+### US-PL-05 — Verificar habilitação em capacidade restrita
+
+Como admin da plataforma, quero verificar identidade, representação e documentos do evento quando não há autoridade local habilitada ou independente, para habilitar a gestão sem que ninguém valide o próprio poder.
+
+Requisitos: RF-AD-25 · RN-CD-01, RN-CD-12, RN-VO-15, RN 3.1, RN 11.1, RN-PL-09
+
+- [ ] Dado a implantação do Essencial com autogestão sem autoridade habilitada, quando a gestão pede a primeira habilitação, então o admin verifica identidade do solicitante, identificação do condomínio e ata ou termo do evento; contratação profissional exige também contrato e comprovação de quem autorizou.
+- [ ] Dado documento insuficiente, quando analisado, então o pedido fica "Aguardando comprovantes" e não há poder provisório.
+- [ ] Dado pedido recusado, quando o interessado contesta, então o motivo fica registrado, a complementação é permitida e a revisão é feita por verificador independente da decisão e do interessado; sem revisor independente, a nova concessão contestada aguarda.
+- [ ] Dado verificador envolvido no pedido, quando tenta verificar, então outro verificador assume ou o pedido aguarda.
+- [ ] Dado emergência ou vacância sem dois representantes locais independentes, ou exceção de mandato sem representante elegível, quando há pedido, então a verificação restrita do admin é usada (RN-CD-12, RN-VO-15).
+- [ ] Dado a verificação restrita, quando realizada, então não abre conteúdo de gestão, reclamações nem scores, não usa o perfil Suporte no Essencial e não movimenta dinheiro.
+- [ ] Dado que o operador oficial ainda não foi nomeado, quando a verificação é exercitada, então usa somente dados e atores fictícios; documentos pessoais reais ficam fora do Git (decisão 1C).
 
 ## Épico 12 — Notificações e LGPD
 
@@ -996,7 +1032,7 @@ Requisitos: RF-RL-11 · RN-RL-06/07/08.
 
 ## Cobertura
 
-As 74 histórias cobrem os 150 requisitos funcionais do PRD; requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 77 histórias cobrem os 154 requisitos funcionais do PRD (76 histórias e 153 requisitos do MVP, mais US-FI-06 e RF-FI-14 da versão 2); requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
@@ -1010,7 +1046,7 @@ As 74 histórias cobrem os 150 requisitos funcionais do PRD; requisitos não fun
 | 8. Pesquisa mensal | US-PE-01, US-PE-02 | RF-PE-01 a RF-PE-04 |
 | 9. Comunicação | US-CO-01 a US-CO-03 | RF-CO-01 a RF-CO-04 |
 | 10. Reuniões, votações e eleições | US-VO-01 a US-VO-03 | RF-VO-01 a RF-VO-11 |
-| 11. Planos e suporte | US-PL-01, US-PL-02 | RF-AD-16 |
+| 11. Planos e suporte | US-PL-01 a US-PL-05 | RF-AD-16, RF-AD-22 a RF-AD-25 |
 | 12. Notificações e LGPD | US-NO-01, US-LG-01 | RF-NO-01, RF-LG-01, RF-LG-02 (US-NO-01 também verifica o interruptor de RF-RE-10) |
 | 13. Cobrança e finanças do condomínio | US-FI-01 a US-FI-10 | RF-FI-01 a RF-FI-24 |
 | 14. Relatórios gerenciais | US-RL-01 a US-RL-03 | RF-RL-01 a RF-RL-11 |

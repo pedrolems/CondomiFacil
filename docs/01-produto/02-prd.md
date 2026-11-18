@@ -1,6 +1,6 @@
 # PRD — CondomiFacil
 
-03/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+03/11/2026 · Atualizado em 17/11/2026 (RM-08: requisitos do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Visão geral
 
@@ -88,7 +88,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 | Funcionário de portaria | Controla entradas e saídas, registra encomendas e abre chamados; consulta reservas do dia, marca uso Em andamento e registra na vistoria Cumprida ou Não comparecimento, inclusive em reservas pagas |
 | Administradora | Empresa que administra o condomínio; pode atender vários condomínios |
 | Suporte da plataforma | Equipe da plataforma; no plano Gestão + Suporte, tem as permissões da administradora naquele condomínio em cadastros, configurações e cobrança. Não julga reclamações nem recursos e não vê reclamações nem scores. Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. |
-| Admin da plataforma | Cadastra condomínios, planos e acessos de suporte |
+| Admin da plataforma | Cadastra condomínios e administradoras, define plano e modalidade, concede acessos de suporte e conduz transições assistidas (RF-AD-22 a RF-AD-24). Tem capacidade restrita de verificação de identidade, representação e documentos na habilitação, recuperação e transição (RF-AD-25, RN 3.1), sem acesso ao conteúdo de gestão, reclamações ou scores e sem usar o perfil Suporte no Essencial |
 | Conselho fiscal | Um ou mais membros, cadastrados pela administradora ou pelo suporte; a composição é exigida sem subsíndico (RN-CD-14/RN-VO-09), e sua ausência factual não bloqueia a eleição. Julgam reclamações e recursos contra o síndico quando o condomínio não tem subsíndico nem administradora, e recursos nos casos de RN-RC-14. Acompanham as finanças do condomínio em modo leitura e podem comentar (RF-FI-17, RF-FI-24) |
 | Proprietário não residente | Dono da unidade que não mora nela, com a unidade alugada ou desocupada. Vota nas assembleias, vê e paga as cobranças de que é responsável e acompanha a unidade: contrato de locação, multas e reclamações validadas contra ela (RN-CD-19) |
 
@@ -171,13 +171,13 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 - **Suporte da plataforma:** Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano. No plano Gestão + Suporte, as mesmas permissões da coluna Administradora, exceto julgar reclamações, consultar reclamações, ver scores e acessar os novos relatórios/exportações RF-RL-01 a 11.
 - **Conselho fiscal:** sem síndico e subsíndico, conduz a eleição conforme RN-VO-13; isso não concede gestão administrativa geral. Julga reclamações e recursos nos casos das tabelas 5.1 e 5.3 das Regras de Negócio e de RN-RC-14; nessas reclamações, vê identidade e score do reclamante e do alvo e conversa com o alvo. Os membros também são moradores e mantêm as permissões de morador. Em Menu > Finanças do condomínio, veem as finanças em modo leitura (sem valor de cada unidade), comentam e exportam, como o síndico (RF-FI-17, RF-FI-22, RF-FI-24).
-- **Admin da plataforma:** atua só no painel da plataforma (condomínios, planos e acessos de suporte).
+- **Admin da plataforma:** atua no painel da plataforma (condomínios, administradoras, planos, acessos de suporte e transições, RF-AD-22 a RF-AD-24) e, como capacidade restrita adicional, verifica identidade, representação e documentos nos casos de RN 3.1 e RN 11.1 (RF-AD-25). Essa capacidade não dá acesso ao conteúdo de gestão, reclamações ou scores, não permite validar o próprio poder e não movimenta dinheiro.
 - **Proprietário não residente:** "Votar ou indicar procurador" e "Ver e pagar cobranças da própria unidade" (as de que é responsável financeiro). Também lê comunicados gerais, acompanha o contrato de locação e as multas e reclamações validadas contra a unidade e pede o cadastro, a renovação ou o encerramento do inquilino. Não reserva, não abre chamados, não reclama, não avalia funcionários e não vê a rotina do inquilino (RN-CD-19).
 - **Julgador de reclamação:** quem julga, seja quem for, pode iniciar a conversa com o alvo (RN-CO-04), mesmo sem permissão para enviar comunicados.
 
 ## 4. Requisitos funcionais
 
-São 150 requisitos em 14 módulos, cada um com ID para histórias de usuário, tarefas e testes.
+São 154 requisitos em 14 módulos (153 do MVP e 1 da versão 2, RF-FI-14), cada um com ID para histórias de usuário, tarefas e testes. RF-AD-22 a RF-AD-25 foram acrescentados em 17/11/2026 (RM-08) para dar ID testável ao painel da plataforma.
 
 ### 4.1 Acesso e conta
 
@@ -217,6 +217,10 @@ São 150 requisitos em 14 módulos, cada um com ID para histórias de usuário, 
 | RF-AD-19 | Pedir o cadastro, a renovação ou o encerramento do inquilino | Proprietário não residente | Mesma fila de RF-AD-02; conta como solicitação no Gestão + Suporte (RN-CD-23) |
 | RF-AD-20 | Avisar o fim do contrato e desativar o inquilino sem renovação | Sistema | Aviso 30 dias antes; desativação 7 dias após o fim; a unidade fica desocupada (RN-CD-21) |
 | RF-AD-21 | Marcar a unidade como desocupada | Administradora, Suporte | Sem morador habilitado; o proprietário vota e paga tudo; sem reservas, visitantes nem chamados (RN-CD-24) |
+| RF-AD-22 | Cadastrar condomínios e administradoras, com plano e modalidade de gestão | Admin da plataforma | Modalidade: com administradora, autogestão no Essencial ou Gestão + Suporte; uma administradora pode atender vários condomínios; faixa pela quantidade de unidades (RN-PL-01); franquia segue RF-AD-16; sem acesso ao conteúdo de gestão do condomínio (RN-PL-09) |
+| RF-AD-23 | Registrar a mudança de plano ou de modalidade com transição assistida | Admin da plataforma | Verifica a autoridade solicitante e a representação de quem assume; registra vigência e transferência de filas, arquivos e histórico; revoga acessos antigos na efetivação; a gestão competente valida a entrega das pendências; vigência de acesso separada da comercial; sem autoridade habilitada, recuperar antes por RF-AD-25 (RN-PL-06, RN 11.1) |
+| RF-AD-24 | Conceder e revogar acesso de suporte a um condomínio | Admin da plataforma | Só no Gestão + Suporte; cada acesso registrado; o suporte perde o acesso quando o condomínio passa ao Essencial (RN-CD-16, RN-PL-02, RN-PL-06) |
+| RF-AD-25 | Verificar identidade, representação e documentos em capacidade restrita | Admin da plataforma | Primeira habilitação na autogestão sem autoridade habilitada, exceções de mandato sem representante elegível, emergência ou vacância sem representantes suficientes, recuperação e transição; documentos por evento; insuficiência pede complementação, sem poder provisório; recusa motivada e contestação com revisão independente; verificador envolvido passa a outro ou o pedido aguarda; sem acesso a gestão, reclamações ou scores nem Suporte no Essencial; dados fictícios até nomear o operador (RN-CD-01, RN-CD-12, RN-VO-15, RN 3.1) |
 
 ### 4.3 Reservas
 

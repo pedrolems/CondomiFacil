@@ -1,0 +1,8 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "//#lint": {
+      "inputs": ["**/*.{ts,tsx,js,mjs,cjs}", "eslint.config.mjs", "package.json"]
+    }
+  }
+}

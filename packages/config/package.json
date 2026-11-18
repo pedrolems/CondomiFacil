@@ -1,5 +1,25 @@
 {
   "name": "@condomifacil/config",
   "private": true,
-  "description": "Presets compartilhados de ferramentas, ainda sem implementação."
+  "description": "Presets compartilhados de ESLint, Prettier e TypeScript.",
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.mjs",
+    "./prettier": "./prettier.mjs",
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/node.json": "./tsconfig/node.json"
+  },
+  "dependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.4.4",
+    "globals": "17.14.0",
+    "typescript-eslint": "8.73.0"
+  },
+  "devDependencies": {
+    "eslint": "10.15.0",
+    "prettier": "3.10.1",
+    "typescript": "6.0.3"
+  }
 }

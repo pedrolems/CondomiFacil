@@ -6,5 +6,17 @@
   "engines": {
     "node": ">=26.13.1 <27",
     "pnpm": ">=12.21.0 <13"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check": "TURBO_TELEMETRY_DISABLED=1 turbo run lint",
+    "format:check": "prettier --check package.json turbo.json eslint.config.mjs prettier.config.mjs packages/config"
+  },
+  "devDependencies": {
+    "@condomifacil/config": "workspace:*",
+    "eslint": "10.15.0",
+    "prettier": "3.10.1",
+    "turbo": "2.11.11",
+    "typescript": "6.0.3"
   }
 }

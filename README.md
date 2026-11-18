@@ -30,6 +30,7 @@ Observações:
 - O npm do Node 26 avisa que o `postinstall` do pnpm não foi executado (`allowScripts`); o `pnpm -v` retorna `12.21.0` mesmo assim.
 - O Corepack não existe no Node 26; o pnpm é instalado pelo npm.
 - Conferir: `fnm exec --using 26.13.1 -- node -v` (v26.13.1) e `fnm exec --using 26.13.1 -- cmd /c "pnpm -v"` (12.21.0).
+- Verificação do projeto: `fnm exec --using 26.13.1 -- cmd /c "pnpm check"` (lint pelo Turborepo). A telemetria do Turborepo está desligada no projeto: o script `check` define `TURBO_TELEMETRY_DISABLED=1` e o `shellEmulator` do pnpm (`pnpm-workspace.yaml`) faz isso funcionar no Windows e no Linux.
 
 Passo opcional, por conta do usuário, para usar `node` e `pnpm` direto no terminal: adicionar ao perfil do PowerShell (`notepad $PROFILE`) a linha abaixo. O fnm passa a ler o `.node-version` ao entrar na pasta do projeto.
 

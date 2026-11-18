@@ -3,6 +3,29 @@
   "tasks": {
     "//#lint": {
       "inputs": ["**/*.{ts,tsx,js,mjs,cjs}", "eslint.config.mjs", "package.json"]
+    },
+    "gerar-contratos": {
+      "inputs": ["scripts/**", "package.json", "$TURBO_ROOT$/docs/05-backend/api/**"],
+      "outputs": ["src/gerado/**"],
+      "cache": false
+    },
+    "verificar-contratos": {
+      "dependsOn": ["gerar-contratos"],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["gerar-contratos"],
+      "inputs": ["src/**", "tsconfig.json", "package.json"]
+    },
+    "build": {
+      "dependsOn": ["gerar-contratos", "^build"],
+      "inputs": ["src/**", "tsconfig.json", "package.json"],
+      "outputs": ["dist/**"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "scripts/**", "test/**", "package.json"],
+      "outputs": []
     }
   }
 }

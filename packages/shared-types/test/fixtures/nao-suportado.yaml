@@ -1,0 +1,12 @@
+openapi: 3.1.0
+info: { title: fixture, version: 0.0.1 }
+paths: {}
+components:
+  schemas:
+    Condicional:
+      type: object
+      properties:
+        a: { type: integer }
+        b: { type: string }
+      if: { properties: { a: { const: 1 } } }
+      then: { required: [b] }

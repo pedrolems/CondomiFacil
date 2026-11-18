@@ -9,8 +9,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "check": "TURBO_TELEMETRY_DISABLED=1 turbo run lint",
-    "format:check": "prettier --check package.json turbo.json eslint.config.mjs prettier.config.mjs packages/config"
+    "check": "TURBO_TELEMETRY_DISABLED=1 turbo run lint gerar-contratos typecheck build test verificar-contratos",
+    "format:check": "prettier --check package.json turbo.json eslint.config.mjs prettier.config.mjs packages/config packages/shared-types/package.json packages/shared-types/tsconfig.json packages/shared-types/scripts packages/shared-types/src/index.ts packages/shared-types/test/contratos.test.mjs"
   },
   "devDependencies": {
     "@condomifacil/config": "workspace:*",

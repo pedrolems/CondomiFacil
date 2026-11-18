@@ -4,3 +4,5 @@ packages:
   - 'frontend/packages/*'
   - 'packages/*'
 shellEmulator: true
+allowBuilds:
+  '@scarf/scarf': false

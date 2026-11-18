@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info: { title: fx, version: 0.0.1 }
+paths:
+  /v1/animais:
+    get:
+      operationId: listarAnimais
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Animal'
+components:
+  schemas:
+    Base:
+      type: object
+      required: [id, tipo]
+      properties:
+        id: { $ref: './base.yaml#/components/schemas/Uuid' }
+        tipo: { type: string }
+        apelido: { type: [string, 'null'] }
+    Gato:
+      allOf:
+        - $ref: '#/components/schemas/Base'
+        - type: object
+          required: [vidas]
+          properties:
+            tipo: { const: gato }
+            vidas: { type: integer }
+    Cao:
+      allOf:
+        - $ref: '#/components/schemas/Base'
+        - type: object
+          required: [late]
+          properties:
+            tipo: { const: cao }
+            late: { type: boolean }
+    Animal:
+      oneOf:
+        - $ref: '#/components/schemas/Gato'
+        - $ref: '#/components/schemas/Cao'
+      discriminator:
+        propertyName: tipo
+        mapping:
+          gato: '#/components/schemas/Gato'
+          cao: '#/components/schemas/Cao'
+    ObrigatorioNulo:
+      type: object
+      required: [x]
+      properties:
+        x: { type: [string, 'null'] }

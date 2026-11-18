@@ -97,7 +97,6 @@ Registradas aqui, **não corrigidas** (fora do pedido). Não duplicar em outros 
 - `backend/apps/api/.env.example` lista variáveis fora da fase 1.
 - Esqueletos Dialog e DataTable fora do D4.
 - `02-diagramas-de-arquitetura.md` linha 22 lista só 002, 004 e 005 como aceitos.
-- `adr/README.md` linha 32 e `01-arquitetura.md` linha 1012 ainda dizem "versões pendentes" para o ADR-015 (só a linha da tabela, ~63, do README foi atualizada).
 
 ## Rastreabilidade
 

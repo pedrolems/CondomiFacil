@@ -29,7 +29,7 @@ A fonte das decisões é [`../01-arquitetura.md`](../01-arquitetura.md) (seção
 | **Substituído** | Trocado por outro ADR, que é citado no cabeçalho |
 | **Obsoleto** | Deixou de se aplicar (ex.: o componente saiu do projeto), sem substituto |
 
-Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com gerador e versões pendentes. Em 16/11/2026 aceitou, com ressalvas, o ADR-016 (painel web como site estático do Render em dev e staging, com revisão obrigatória antes do piloto). Os demais continuam sem validação.
+Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um Aceito pode virar Substituído ou Obsoleto. **Só o Pedro move um ADR para Aceito.** Em 10/11/2026 o Pedro aceitou, com ressalvas, os ADRs 002, 004 e 005; em 14/11/2026 aceitou o ADR-015 quanto à organização e às fontes dos contratos, com versões Node 26.13.1 e pnpm 12.21.0 aprovadas em 18/11/2026 (D1), mas gerador pendente, condicionado à PoC P1. Em 16/11/2026 aceitou, com ressalvas, o ADR-016 (painel web como site estático do Render em dev e staging, com revisão obrigatória antes do piloto). Os demais continuam sem validação.
 
 ## Como criar um novo ADR
 

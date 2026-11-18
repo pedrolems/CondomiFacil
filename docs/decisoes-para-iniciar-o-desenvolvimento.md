@@ -142,9 +142,9 @@ Não é necessário aceitar todo o MER, contrato ou conjunto de ADRs para prepar
 
 **Antes de acesso persistido:** revisar ADR-001/007/008, política de acesso e MER/contrato apenas das entidades necessárias; fechar identidade, contexto, concessão/revogação, recuperação e prova de tenant/RLS sem credencial dona na API. A escolha do executor de migrations (proposta Flyway SQL-first) é separada da escolha de acesso a dados (Kysely/Drizzle ainda em avaliação). Não gerar migrações de todos os domínios para iniciar a base.
 
-### 6.1 Lote 5 — pacote técnico da fase 1 (18/11/2026)
+### 6.1 Pacote técnico da fase 1 — D1 a D8 (18/11/2026)
 
-Apresentado o [pacote técnico da fase 1](09-infra/pacote-tecnico-fase-1.md) (arquivos, comandos, provas por RM-10 a RM-15). Pedro aceitou as recomendações **D1 a D8** em 18/11/2026. **Isso não libera o G0:** ele será revisado depois deste registro e segue pendente da revisão de Pedro. As versões do D1 foram confirmadas e aprovadas por Pedro em 18/11/2026: Node 26.13.1 e pnpm 12.21.0. (Esta seção não substitui a fila por dependência da seção 7.)
+Apresentado o [pacote técnico da fase 1](09-infra/pacote-tecnico-fase-1.md) (arquivos, comandos, provas por RM-10 a RM-15). Pedro aceitou as recomendações **D1 a D8** em 18/11/2026. **Isso não libera o G0:** ele será revisado depois deste registro e segue pendente da revisão de Pedro. As versões do D1 foram confirmadas e aprovadas por Pedro em 18/11/2026: Node 26.13.1 e pnpm 12.21.0.
 
 | ID / pergunta | Opções e consequências | Recomendação e motivo | Fonte / resposta |
 | --- | --- | --- | --- |

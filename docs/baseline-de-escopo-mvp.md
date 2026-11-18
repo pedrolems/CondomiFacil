@@ -77,7 +77,7 @@ Datas "declaradas" vêm do cabeçalho de cada arquivo; "git" é o último commit
 | Arquitetura | 01-arquitetura.md, 02-diagramas-de-arquitetura.md | 15/11 | proposta, não aceita |
 | Arquitetura | adr/README.md e ADR-001 a 016 | ver seção 5 | 6 aceitos (com ressalvas/escopo), 10 propostos |
 | Banco | 01-mer-e-der.md, 02-politica-de-acesso-a-dados.md, 03-estrategia-de-migrations-e-seeds.md | 15/11, 15/11, 14/11 | propostas |
-| Backend | 01-backend.md, 02-diagramas-de-sequencia-e-estados.md, api/README.md + OpenAPI/AsyncAPI | 15/11 (README com notas de 16 e 17/11) | proposta, não aceita; 430 operações; 30 pendências |
+| Backend | 01-backend.md, 02-diagramas-de-sequencia-e-estados.md, api/README.md + OpenAPI/AsyncAPI | 15/11 (README com notas de 16 e 17/11) | proposta, não aceita; 431 operações; 30 pendências |
 | Frontend | 06-frontend/frontend.md, painel-web.md, biblioteca-de-componentes.md | 15/11, 15/11, 14/11 | propostas / planejamento |
 | Segurança | 07-seguranca/seguranca.md, lgpd.md, pacote-para-validacao-juridica.md | 15/11, 14/11, git 16/11 | propostas; SEG-16 "Pendente - Inacessível (16/11/2026)" |
 | Qualidade | 08-qualidade/01-plano-de-testes.md | 15/11 | proposta |
@@ -132,7 +132,7 @@ Contagens conferidas por script antes dos acréscimos da seção 2.1: 150 RF, 18
 | Lote 2 (AG-03 C, AG-04 A, AG-05 A, AG-06 A, AG-12 B) | Aprovado em 17/11 | decisoes:13 |
 | Lote 3 / rodada complementar (1C, 2A–7A, 8B, 9A–14A) | Aprovado em 17/11 | registro 06 §2.1 |
 | Lote 4 (IN-01 A, IN-02 A) | Respondido em 17/11; pacote técnico a apresentar | decisoes:3, :138-139 |
-| Lote 5 | Fila sem respostas | decisoes:145-159 |
+| Lote 5 | Fila sem respostas | decisoes:187-201 |
 | Decisões desta rodada | Seção 2 | — |
 
 ## 6. Escopo funcional do MVP

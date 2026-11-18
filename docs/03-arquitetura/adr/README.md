@@ -60,5 +60,5 @@ Transições usuais: Em aberto, depois Proposto, depois Aceito ou Rejeitado; um 
 | 012 | [Fuso horário e faixas de horário das rotinas por condomínio](012-fuso-horario-por-condominio.md) | Proposto | 06/11/2026 | 15/11/2026 | Produto |
 | 013 | [RPO, RTO e política de backup e PITR](013-rpo-rto-backup-pitr.md) | Proposto | 06/11/2026 | 10/11/2026 | Custo (RNF-18) |
 | 014 | ["Primeira conclusão" na sincronização](014-primeira-conclusao-sync.md) | Proposto | 08/11/2026 | 12/11/2026 | Critério de produto definido; desempate exato e relógio incorreto pendentes |
-| 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | 14/11/2026 | Gerador depende de PoC; versões pendentes |
+| 015 | [Workspaces e contratos compartilhados](015-workspaces-e-contratos-compartilhados.md) | Aceito quanto à organização e às fontes | 14/11/2026 | 14/11/2026 | Gerador depende de PoC (P1); Node 26.13.1 e pnpm 12.21.0 aprovados em 18/11/2026 (D1) |
 | 016 | [Hospedagem do painel web](016-hospedagem-do-painel-web.md) | Aceito, com ressalvas (Render, site estático, só MVP) | 15/11/2026 | 16/11/2026 | Revisão obrigatória antes do piloto com dados reais, junto com o ADR-004; limites do plano gratuito a confirmar |

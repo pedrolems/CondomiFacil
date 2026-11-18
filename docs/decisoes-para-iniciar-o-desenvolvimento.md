@@ -1,6 +1,6 @@
 # Decisões para iniciar o desenvolvimento
 
-**Preparado em:** 17/11/2026. **Atualizado em:** 18/11/2026. **Decisor:** Pedro Lemos. **Estado:** lotes 1 e 2 e rodada complementar de 14 decisões/lote 3 aprovados, com alinhamento documental e simulações autorizados. Respostas: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**. Operador antes do primeiro condomínio oficial; Pedro não assume como Admin; dados fictícios até lá. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A). Pacote técnico da fase 1: D1 a D8 aceitas em 18/11/2026 (seção 6.1); versões do D1 confirmadas e aprovadas (Node 26.13.1, pnpm 12.21.0); G0 não liberado, pendente da revisão de Pedro.
+**Preparado em:** 17/11/2026. **Atualizado em:** 18/11/2026. **Decisor:** Pedro Lemos. **Estado:** lotes 1 e 2 e rodada complementar de 14 decisões/lote 3 aprovados, com alinhamento documental e simulações autorizados. Respostas: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**. Operador antes do primeiro condomínio oficial; Pedro não assume como Admin; dados fictícios até lá. Lote 4 respondido em 17/11/2026 (IN-01 A, IN-02 A). Pacote técnico da fase 1: D1 a D8 aceitas em 18/11/2026 (seção 6.1); versões do D1 confirmadas e aprovadas (Node 26.13.1, pnpm 12.21.0). IN-02 A (critérios de PoC, PC-01 a PC-09) e RM-06 restrito à fase 1 (R6-01 a R6-06) aceitos em 18/11/2026 (seção 6.2), sem executar nem liberar PoC; G0 não liberado, pendente só da revisão de Pedro.
 
 Este é o roteiro de conversa para encerrar o Design com o menor conjunto de decisões necessário à primeira entrega. O [roadmap](roadmap.md) continua sendo o plano de fases. As fontes de produto, dados, contratos e ADRs conservam seus estados até respostas e atualização autorizada.
 
@@ -157,6 +157,33 @@ Apresentado o [pacote técnico da fase 1](09-infra/pacote-tecnico-fase-1.md) (ar
 | D7 — Branch do código | A: branch de tarefa a partir de `develop`; nome e destino indicados por Pedro antes de commitar. B: direto em `develop` | A: mantém a regra de aprovação de Git | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A** |
 | D8 — Prova no iOS | A: Expo Go no aparelho, mais web e emulador Android. B: build de loja | A: sem conta de loja nem custo | Pacote, seção 5. **Resposta de Pedro em 18/11/2026: A** |
 
+### 6.2 IN-02 A e RM-06 — critérios de PoC e recorte da fase 1 (18/11/2026)
+
+Pedro aceitou em 18/11/2026 todas as recomendações do IN-02 A (critérios das PoCs, PC-01 a PC-09, detalhados em [critérios das PoCs](03-arquitetura/criterios-de-poc.md)) e do RM-06 restrito à fase 1 (R6-01 a R6-06, aplicados no [pacote técnico da fase 1](09-infra/pacote-tecnico-fase-1.md)). **Isso não libera o G0 nem a execução de PoC.** Regra comum: dados fictícios, sem serviço pago, sem publicar, sem credencial no Git ou em log.
+
+| ID | Pergunta e recomendação | Resposta |
+| --- | --- | --- |
+| PC-01 | Gerador de contratos: deve suportar `oneOf`, `discriminator` e nulo 3.1 por completo e falhar de forma explícita no que não suportar | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-02 | Validação em execução: provar no RM-12 Zod gerado e Ajv sobre JSON Schema; escolher pelos critérios | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-03 | AsyncAPI: parser + JSON Schema como principal; Modelina como alternativa | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-04 | Sessões: implementação própria com jose como principal; Better Auth só se aderir ao ADR-007 | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-05 | Migrations: provar só o Flyway; alternativa só se ele falhar | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-06 | P3 e P5 em PostgreSQL local descartável, sem provisionar Supabase | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-07 | Limites de tempo: P1 2 dias, P2 3, P3 3, P4 4, P5 2 | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-08 | Dev build local autorizado só para a P4, sem conta de loja (exceção ao D8) | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-09 | TypeScript 5.x mais recente compatível com Expo SDK 58 e NestJS 12, fixado no RM-10 após confirmação em fonte oficial | **Resposta de Pedro em 18/11/2026: aceita** |
+
+| ID | Recorte da fase 1 (RM-06) | Resposta |
+| --- | --- | --- |
+| R6-01 | ADR-011 continua Proposto e não é usado na fase 1; o RM-15 se apoia no D6 e na linha de PR da infra 5.2. Conflitos registrados: deploy automático e promoção (ADR-011, linhas 39 e 45) x D6; PostgreSQL local (ADR-011, linha 40) x D5 | **Resposta de Pedro em 18/11/2026: aceita** |
+| R6-02 | ADR-015 mantém o aceite atual (organização e fontes); ferramenta de geração condicionada à P1; cabeçalho do ADR e README dos ADRs registram Node 26.13.1 e pnpm 12.21.0 (D1) | **Resposta de Pedro em 18/11/2026: aceita** |
+| R6-03 | Árvores do backend 3.1 e do frontend 2.1 aceitas só nos caminhos usados na fase 1 (`main.api.ts`, `interfaces/http/comum/`, compartilhado/config com Zod, Expo Router e `src/app/(web)/`); o restante segue Proposta | **Resposta de Pedro em 18/11/2026: aceita** |
+| R6-04 | Biblioteca de componentes mantém a orientação de 14/11/2026; versões decididas no RM-14; se o Storybook nativo falhar com RN 0.88, fica só o web, registrado como limitação | **Resposta de Pedro em 18/11/2026: aceita** |
+| R6-05 | Aceitos para a fase 1: infra-e-devops 5.1 (só GitHub Actions), 5.2 (só a linha PR), 6.1 (política de `.env`) e segurança, seção 6, itens 2 e 4; publicação e cofre do Render seguem Propostos; corrigir `.gitignore` da raiz e de `frontend/` no RM-15 | **Resposta de Pedro em 18/11/2026: aceita** |
+| R6-06 | Ferramenta de testes decidida na prova do RM-11/RM-13, com hipótese inicial Vitest na API (NestJS 12 só ESM) e Jest no app | **Resposta de Pedro em 18/11/2026: aceita** |
+
+Fica para as fases 2 e 3 o restante dos ADRs (001, 007 e 008 antes da fase 2; 003 e 014 antes da fase 3; 006, 012, 009, 010 e 013 antes dos módulos dependentes), MER, política de acesso e demais contratos. Divergências conhecidas, sem correção: [critérios das PoCs](03-arquitetura/criterios-de-poc.md#divergências-conhecidas).
+
 ## 7. Lote 5 — fila restante por dependência
 
 Esta fila evita que uma questão de módulo impeça trabalho independente, sem liberá-la implicitamente. Para cada linha, o subagente prepara a pergunta concreta com 2–3 opções e evidência técnica quando chegar a vez; não há respostas presumidas aqui.
@@ -186,4 +213,4 @@ O alinhamento rastreável por lote e a autorização prévia do escopo afetado s
 | Evidência | Diff revisado e verificações realmente executadas. ADR só muda para aceito no alcance decidido por Pedro; PoC sem execução continua pendente |
 | Liberação | Depois de G0, apresentar primeiro pacote concreto para Pedro autorizar. Respostas deste roteiro não autorizam commit, push, merge, dados reais ou publicação |
 
-**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Lote 4 (IN-01/IN-02), antes próxima rodada, respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico apresentado e D1 a D8 aceitas em 18/11/2026 (seção 6.1), sem liberar o G0. Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.
+**Estado desta preparação:** autogestão, implantação e lote 3 aprovados conforme seção 5.1; alinhamento autorizado nesta revisão. Lote 4 (IN-01/IN-02), antes próxima rodada, respondido em 17/11/2026 (IN-01 A, IN-02 A); pacote técnico apresentado e D1 a D8 aceitas em 18/11/2026 (seção 6.1); critérios das PoCs (PC-01 a PC-09) e recorte da fase 1 (R6-01 a R6-06) aceitos na mesma data (seção 6.2); G0 não liberado, nenhuma PoC executada. Operador e canal reais antes do primeiro condomínio oficial; somente dados fictícios até lá. Desenho técnico, contratos estruturais, PoCs e G0/base continuam pendentes; nenhum ADR ou contrato inteiro aceito por consequência.

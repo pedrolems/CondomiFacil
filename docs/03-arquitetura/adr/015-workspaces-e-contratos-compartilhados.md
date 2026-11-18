@@ -1,6 +1,6 @@
 # ADR-015: Workspaces e contratos compartilhados
 
-- **Estado:** Aceito quanto à organização e às fontes; ferramentas de geração e versões pendentes
+- **Estado:** Aceito quanto à organização e às fontes; versões Node 26.13.1 e pnpm 12.21.0 aprovadas em 18/11/2026 (D1); ferramenta de geração pendente, condicionada à PoC P1 (R6-02)
 - **Data:** 14/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** prova de conceito do gerador antes da implementação dos contratos

@@ -193,6 +193,14 @@ Fica para as fases 2 e 3 o restante dos ADRs (001, 007 e 008 antes da fase 2; 00
 | RM11-03 | Fronteiras entre pacotes e apps com eslint-plugin-boundaries | **Resposta de Pedro em 18/11/2026: aceita** |
 | RM11-04 | Fim de linha padronizado com `.gitattributes` LF | **Resposta de Pedro em 18/11/2026: aceita** |
 
+**Resultado da P1 (18/11/2026):** aprovada; relatório em [critérios das PoCs](03-arquitetura/criterios-de-poc.md#resultado-18112026-aprovada).
+
+| ID | Decisão | Resposta |
+| --- | --- | --- |
+| P1-01 | Adotar openapi-typescript 7.13.0 + Ajv 8.20.0 + @asyncapi/parser 3.6.6, com a ressalva do peer de TypeScript (^5.x, não atendido com 6.0.3, mas funciona) e revalidação a cada atualização | **Resposta de Pedro em 18/11/2026: aceita** |
+| P1-02 | Manter bloqueado o script de instalação do @scarf/scarf (telemetria trazida pelo @asyncapi/parser) via `allowBuilds: '@scarf/scarf': false` | **Resposta de Pedro em 18/11/2026: aceita** |
+| P1-03 | Testar no RM-13 o Ajv no Hermes (Expo); se falhar, o gerador emite validadores pré-compilados (modo standalone do Ajv), sem mudar contrato nem escolha | **Resposta de Pedro em 18/11/2026: aceita** |
+
 ## 7. Lote 5 — fila restante por dependência
 
 Esta fila evita que uma questão de módulo impeça trabalho independente, sem liberá-la implicitamente. Para cada linha, o subagente prepara a pergunta concreta com 2–3 opções e evidência técnica quando chegar a vez; não há respostas presumidas aqui.

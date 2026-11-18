@@ -1009,7 +1009,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 | [ADR-012](adr/012-fuso-horario-por-condominio.md) | Fuso horário por condomínio para rotinas "à meia-noite" | Proposta | Produto |
 | [ADR-013](adr/013-rpo-rto-backup-pitr.md) | Objetivos de recuperação (RPO e RTO) e política de backup/PITR | Proposta; RNF-13 só define backup diário | Custo (RNF-18) |
 | [ADR-014](adr/014-primeira-conclusao-sync.md) | Menor horário do celular definido em RN-CH-04; implementação, empate exato e relógio incorreto | Proposta técnica, critério de produto definido em 08/11/2026 | Engenharia e exceções de produto |
-| [ADR-015](adr/015-workspaces-e-contratos-compartilhados.md) | Workspace pnpm único, contratos OpenAPI/AsyncAPI canônicos e Turborepo futuro | Aceito nesse escopo por Pedro em 14/11/2026 | Node 26.13.1 e pnpm 12.21.0 aprovados por Pedro em 18/11/2026 (D1); gerador pendente de validação, condicionado à PoC P1 |
+| [ADR-015](adr/015-workspaces-e-contratos-compartilhados.md) | Workspace pnpm único, contratos OpenAPI/AsyncAPI canônicos e Turborepo futuro | Aceito nesse escopo por Pedro em 14/11/2026 | Node 26.13.1 e pnpm 12.21.0 aprovados por Pedro em 18/11/2026 (D1); ferramenta de geração escolhida após a PoC P1 em 18/11/2026: openapi-typescript 7.13.0 + Ajv 8.20.0 + @asyncapi/parser 3.6.6 (com ressalva do peer de TypeScript) |
 | [ADR-016](adr/016-hospedagem-do-painel-web.md) | Hospedagem do painel web (site estático do Render, plano gratuito, em dev e staging; Vercel Pro rejeitada, Hobby fora) | Aceito, com ressalvas (16/11/2026) | Revisão obrigatória antes do piloto, junto com o ADR-004; limites do plano gratuito a confirmar |
 
 ### 9.2 Pendências de produto que bloqueiam partes do desenho (UF 17, AGENTS.md)

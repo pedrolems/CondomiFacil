@@ -2,7 +2,7 @@
 
 **Data:** 18/11/2026. **Atualizado em:** 18/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
-**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **nenhuma PoC executada**; G0 liberado em 18/11/2026 só para a fase 1: **P1 autorizada dentro do RM-12; P2 a P5 continuam não liberadas**. Os critérios, por si, não liberaram o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
+**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **P1 executada e aprovada em 18/11/2026** (resultado na seção P1); G0 liberado em 18/11/2026 só para a fase 1: **P2 a P5 continuam não liberadas**. Os critérios, por si, não liberaram o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
 
 **Regra comum a todas as PoCs:** dados fictícios, sem serviço pago, sem publicar, sem credencial no Git ou em log ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 141; [pacote técnico da fase 1](../09-infra/pacote-tecnico-fase-1.md)). Se uma PoC reprovar, revê-se a proposta, sem enfraquecer RLS, sigilo ou integridade ([roadmap](../roadmap.md), linhas 264-265). Versões de bibliotecas abaixo: registro npm consultado em 18/11/2026, **não** confirmadas em changelogs completos; confirmar antes de fixar.
 
@@ -27,6 +27,62 @@
 - **Reprovação:** perder `oneOf`/`discriminator`/nulo; exigir esquema manual equivalente; saída não determinística; `shared-types` importar NestJS ou React Native.
 - **Evidência:** saída da geração repetida, teste de rejeição, log do CI, relatório de cobertura de recursos.
 - **Se reprovar:** próximo candidato; se nenhum servir, voltar a Pedro com "tipos gerados + Ajv sobre JSON Schema canônico". Nunca Zod manual (ADR-015, linha 27).
+
+### Resultado (18/11/2026): aprovada
+
+Pedro aceitou a escolha em 18/11/2026, com ressalva. **Escolha:** openapi-typescript 7.13.0 (tipos) + Ajv 8.20.0 e ajv-formats 3.0.1 (validação em execução sobre o JSON Schema extraído do mesmo contrato) + @asyncapi/parser 3.6.6 (AsyncAPI) + @redocly/openapi-core 1.34.24 (bundle de `$ref`). Zod gerado não adotado. Nenhum contrato foi alterado.
+
+**Ressalva:** openapi-typescript declara peer `typescript ^5.x`; com TypeScript 6.0.3 (PC-09) geração, typecheck e testes passam, com aviso permanente no `pnpm peers check`. Versão fixada; revalidação obrigatória a cada atualização do gerador ou do TypeScript.
+
+**Comparação**
+
+| | openapi-typescript 7.13.0 + Ajv 8.20.0 | @hey-api/openapi-ts 0.99.0 (Zod 4.6.7) | orval 8.48.0 (Zod) |
+| --- | --- | --- | --- |
+| Peer de TypeScript | ^5.x, não atendido com 6.0.3 (funciona) | >=5.5.3 ou >=6.0.0, atendido | sem peer de TypeScript |
+| Determinismo | idêntico em 2 gerações | idêntico | idêntico |
+| Rejeição em execução | Ajv rejeita todos os casos testados | Zod aceita valor que casa com dois ramos de `oneOf` ([integer, number] com 1): `z.union` não exige exatamente um ramo | gerado; execução não testada |
+| `oneOf` | união; Ajv exige exatamente um ramo | `z.union` | `zod.union` |
+| `allOf` | interseção | `.and()` | n/d |
+| `discriminator` | etiqueta injetada nos ramos | idem | n/d |
+| Nulo 3.1 | `string \| null` preservado | `.nullable()`/`.nullish()` | `.nullish()` |
+| `$ref` entre arquivos | ok (bundle Redocly) | ok | exige configuração explícita |
+| Não suportado | some em silêncio (mitigado pela lista de palavras-chave permitidas do gerador) | idem | não testado |
+| Conclusão | escolhido | reprovado como principal: 0.x, perde a semântica do `oneOf`, não emite JSON Schema, AsyncAPI exigiria Ajv | reprovado: foco em clientes, saída inline repetida |
+
+**Critérios**
+
+| Critério | Resultado |
+| --- | --- |
+| Determinismo | Passa: 2 gerações idênticas; em clone, `git diff --exit-code` = 0 |
+| Artefato desatualizado | Passa: em clone temporário, campo novo em `SaudeComum` fez `verificar-contratos` sair com código 1 |
+| Resposta fora do esquema | Passa: 7/7 testes `node:test` (`SaudeComum` e `GET /v1/saude`; `oneOf` de `GET /v1/score`; nulos; eventos do AsyncAPI) |
+| Importação Node ESM pelo `exports` | Passa. Expo/Metro: pendente para o RM-13 |
+| Recurso não suportado | Passa: o gerador tem lista de palavras-chave permitidas e falha com mensagem (ex.: "Palavra-chave de esquema não suportada: \"if\""); Ajv estrito também falha |
+| `shared-types` sem NestJS/React Native | Passa (lint de fronteiras) |
+
+**Cobertura no recorte:** `oneOf` em 1 ocorrência (`GET /v1/score`); `allOf`, `discriminator` e `const` com 0 no recorte, cobertos por fixture de teste; nulo 3.1 coberto no contrato real; bundle com 52 esquemas e 32 caminhos, sem `$ref` externo remanescente.
+
+**Decisões de Pedro (18/11/2026)**
+
+| ID | Decisão |
+| --- | --- |
+| P1-01 | Adotar openapi-typescript 7.13.0 + Ajv 8.20.0 + @asyncapi/parser 3.6.6, com a ressalva do peer de TypeScript e revalidação a cada atualização |
+| P1-02 | Manter bloqueado o script de instalação do @scarf/scarf (telemetria trazida pelo @asyncapi/parser) via `allowBuilds: '@scarf/scarf': false` no `pnpm-workspace.yaml` |
+| P1-03 | Testar no RM-13 o Ajv no Hermes (Expo); se falhar, o gerador passa a emitir validadores pré-compilados (modo standalone do Ajv), sem mudar contrato nem escolha |
+
+**Pontos de atenção**
+
+- O recorte gerado é maior que `comum.yaml`: ele referencia `sindico.yaml`, que referencia `administradora.yaml` e `morador.yaml`; o bundle inclui só o alcançável (ex.: `EleicaoSindico`). Cobertura dos demais arquivos OpenAPI: decidir depois.
+- `discriminator` fica só nos tipos; no JSON Schema é removido (o `oneOf` já exige um ramo, e o `discriminator` do Ajv recusa ramos com `allOf`).
+- `verificar-contratos` (`git diff --exit-code` em `src/gerado`) só detecta divergência em artefatos já commitados; o CI (RM-15) roda depois do commit.
+- Parâmetros de rota, query e cabeçalho não têm esquema de execução; os objetos do contrato não usam `additionalProperties: false`, então campos extras passam.
+- Os testes da prova usam `node:test`; a ferramenta de testes do projeto é decidida no RM-13 (R6-06).
+
+**Pendências**
+
+- RM-13: Expo/Metro importar o pacote e Ajv no Hermes (P1-03).
+- RM-15: CI com gerar-contratos + `git diff --exit-code` sobre artefatos commitados.
+- Decidir a cobertura dos demais arquivos OpenAPI pelo gerador.
 
 ## P2 — Sessões e autenticação — ADR-007 (RM-16, antes da fase 2; 3 dias)
 

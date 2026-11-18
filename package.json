@@ -9,8 +9,10 @@
   },
   "scripts": {
     "lint": "eslint .",
+    "dev:api": "TURBO_TELEMETRY_DISABLED=1 turbo run dev --filter=@condomifacil/api",
     "check": "TURBO_TELEMETRY_DISABLED=1 turbo run lint gerar-contratos typecheck build test verificar-contratos",
-    "format:check": "prettier --check package.json turbo.json eslint.config.mjs prettier.config.mjs packages/config packages/shared-types/package.json packages/shared-types/tsconfig.json packages/shared-types/scripts packages/shared-types/src/index.ts packages/shared-types/test/contratos.test.mjs"
+    "format:check": "prettier --check package.json turbo.json eslint.config.mjs prettier.config.mjs packages/config packages/shared-types/package.json packages/shared-types/tsconfig.json packages/shared-types/scripts packages/shared-types/src/index.ts packages/shared-types/test/contratos.test.mjs backend/apps/api/package.json backend/apps/api/tsconfig.json backend/apps/api/tsconfig.build.json \"backend/apps/api/{src,test}/**/*.ts\" frontend/apps/mobile/package.json frontend/apps/mobile/tsconfig.json frontend/apps/mobile/turbo.json frontend/apps/mobile/app.config.ts \"frontend/apps/mobile/{src,test}/**/*.{ts,tsx}\"",
+    "dev:app": "TURBO_TELEMETRY_DISABLED=1 turbo run dev --filter=@condomifacil/mobile"
   },
   "devDependencies": {
     "@condomifacil/config": "workspace:*",

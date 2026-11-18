@@ -1,2 +1,16 @@
-// Configuração Expo por ambiente, links e permissões, conforme frontend.md §2.1.
-// Arquivo reservado, sem configuração ou implementação.
+import type { ExpoConfig } from 'expo/config';
+
+// Fase 1 (RM-13): configuração mínima. Identificadores de loja, links, permissões e ambientes
+// (dev, staging, produção) entram quando houver build de loja; tema claro/escuro é do RM-14.
+const config: ExpoConfig = {
+  name: 'CondomiFácil',
+  slug: 'condomifacil',
+  version: '0.1.0',
+  scheme: 'condomifacil',
+  orientation: 'portrait',
+  userInterfaceStyle: 'light',
+  plugins: ['expo-router'],
+  web: { bundler: 'metro' },
+};
+
+export default config;

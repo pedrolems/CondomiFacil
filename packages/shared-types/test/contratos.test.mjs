@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import * as pacote from '@condomifacil/shared-types';
-import { gerarAsyncApi, gerarOpenApi } from '../scripts/gerar.mjs';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import addFormatsModulo from 'ajv-formats';
+import { gerarAsyncApi, gerarOpenApi, gerarValidadores } from '../scripts/gerar.mjs';
 
 const fx = (nome) => fileURLToPath(new URL(`./fixtures/${nome}`, import.meta.url));
 const uuid = '3f6c1a52-8b1e-4d3a-9a0e-5c1d2b7e9f10';
@@ -11,7 +13,7 @@ const rejeitado = (r) => assert.equal(r.valido, false, 'deveria rejeitar');
 const aceito = (r) => assert.equal(r.valido, true, JSON.stringify(r.erros));
 
 test('critério 4: o exports do pacote é importável por Node em ESM', () => {
-  for (const nome of ['validarComum', 'validarEventoTempoReal', 'criarAjv', 'esquemaComum']) {
+  for (const nome of ['validarComum', 'validarEventoTempoReal', 'esquemaComum']) {
     assert.equal(typeof pacote[nome] !== 'undefined', true, nome);
   }
 });
@@ -104,7 +106,8 @@ test('PC-03: eventos do AsyncAPI validados por parser + JSON Schema + Ajv', () =
 
 test('PC-01: oneOf com discriminator, allOf, nulo obrigatório e $ref entre arquivos', async () => {
   const { esquema, tipos } = await gerarOpenApi(fx('discriminator.yaml'), 'urn:fixture:disc');
-  const ajv = pacote.criarAjv();
+  const ajv = new Ajv2020({ strict: true, allErrors: true });
+  (addFormatsModulo.default ?? addFormatsModulo)(ajv);
   ajv.addSchema(esquema);
   const ok = (nome, dado) => ajv.getSchema(`urn:fixture:disc#/$defs/${nome}`)(dado);
   const gato = { id: uuid, tipo: 'gato', vidas: 7, apelido: null };
@@ -144,4 +147,58 @@ test('critério 1: gerar duas vezes produz a mesma saída, igual aos arquivos ve
   assert.deepEqual(await gerarAsyncApi(asyncapi, 'x'), await gerarAsyncApi(asyncapi, 'x'));
   const gravado = readFileSync(new URL('../src/gerado/comum.tipos.ts', import.meta.url), 'utf8');
   assert.ok(gravado.includes(a.tipos.replaceAll('\r\n', '\n')));
+});
+
+test('P1-03: a validação em execução não usa Function, eval nem compilação do Ajv', () => {
+  const { Function: funcaoOriginal, eval: evalOriginal } = globalThis;
+  const proibido = () => {
+    throw new Error('Function/eval chamado durante a validação');
+  };
+  globalThis.Function = proibido;
+  globalThis.eval = proibido;
+  try {
+    aceito(pacote.validarComum('SaudeComum', { estado: 'disponivel', versao: '0.1.0' }));
+    rejeitado(pacote.validarComum('SaudeComum', { estado: 'x', versao: 1 }));
+    // formats (uuid, date-time) e minLength/pattern passam pelo módulo de apoio do Ajv
+    rejeitado(pacote.validarComum('res_comumObterScore_200', { saldo: 1 }));
+    aceito(
+      pacote.validarEventoTempoReal('visitante.editado', {
+        evento: 'visitante.editado',
+        visita_id: uuid,
+        ocorrido_em: '2026-11-12T14:30:00-03:00',
+      }),
+    );
+    rejeitado(
+      pacote.validarEventoTempoReal('visitante.editado', {
+        evento: 'visitante.editado',
+        visita_id: 'x',
+        ocorrido_em: 'ontem',
+      }),
+    );
+  } finally {
+    globalThis.Function = funcaoOriginal;
+    globalThis.eval = evalOriginal;
+  }
+});
+
+test('P1-03: o código de execução (dist) não contém new Function, eval nem compile', () => {
+  const dist = fileURLToPath(new URL('../dist/', import.meta.url));
+  const arquivos = readdirSync(dist, { recursive: true }).filter((f) => f.endsWith('.js'));
+  assert.ok(arquivos.length >= 5, arquivos.join(','));
+  for (const arquivo of arquivos) {
+    const codigo = readFileSync(`${dist}${arquivo}`, 'utf8');
+    assert.doesNotMatch(
+      codigo,
+      /new Function|\beval\s*\(|\.compile\(|new Ajv|getSchema|addSchema/,
+      arquivo,
+    );
+  }
+});
+
+test('P1-03: gerarValidadores falha para esquema que o Ajv estrito não aceita', () => {
+  const esquema = {
+    $id: 'urn:condomifacil:x',
+    $defs: { A: { type: 'object', palavraDesconhecida: true } },
+  };
+  assert.throws(() => gerarValidadores(esquema), /unknown keyword/);
 });

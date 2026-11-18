@@ -4,6 +4,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Parser } from '@asyncapi/parser';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import standaloneCode from 'ajv/dist/standalone/index.js';
+import addFormatsModulo from 'ajv-formats';
 import { bundle, createConfig } from '@redocly/openapi-core';
 import openapiTS, { astToString } from 'openapi-typescript';
 
@@ -174,6 +177,54 @@ export async function gerarAsyncApi(arquivo, id) {
   return { tipos, esquema: montarEsquema(id, defs), nomes: Object.keys(defs), eventos };
 }
 
+const addFormats = addFormatsModulo.default ?? addFormatsModulo;
+
+/**
+ * Compila os esquemas com o Ajv em tempo de geração (modo standalone, P1-03): o módulo emitido
+ * valida sem `new Function`, `eval` nem Ajv em execução (Hermes/iOS). Esquema que é só um `$ref`
+ * (ex.: respostas de erro) vira alias do validador de destino, para não duplicar código.
+ */
+export function gerarValidadores(esquema) {
+  const ajv = new Ajv2020({ strict: true, allErrors: true, code: { source: true, esm: true } });
+  addFormats(ajv);
+  ajv.addSchema(esquema);
+  const compilar = {};
+  const alias = {};
+  for (const [nome, def] of Object.entries(esquema.$defs)) {
+    if (!/^[A-Za-z_$][\w$]*$/.test(nome))
+      throw new Error(`Nome de esquema inválido como export: ${nome}`);
+    if (Object.keys(def).length === 1 && typeof def.$ref === 'string') {
+      alias[nome] = def.$ref.replace('#/$defs/', '');
+    } else {
+      compilar[nome] = `${esquema.$id}#/$defs/${nome}`;
+    }
+  }
+  const destino = (nome) => {
+    for (let i = 0; alias[nome]; i++) {
+      if (i > 20) throw new Error(`Ciclo de alias em ${nome}`);
+      nome = alias[nome];
+    }
+    if (!compilar[nome]) throw new Error(`Alias para esquema inexistente: ${nome}`);
+    return nome;
+  };
+  let codigo = standaloneCode(ajv, compilar);
+  // O Ajv emite `require()` dos módulos de apoio; em ESM viram imports estáticos. `__req` iguala o
+  // formato de módulo CJS visto pelo Node e pelo Metro (interop do Babel).
+  const modulos = [
+    ...new Set([...codigo.matchAll(/require\("([^"]+)"\)/g)].map((m) => m[1])),
+  ].sort();
+  const imports = modulos.map((m, i) => `import * as __m${i} from "${m}.js";`).join('\n');
+  modulos.forEach((m, i) => {
+    codigo = codigo.replaceAll(`require("${m}")`, `__req(__m${i})`);
+  });
+  const req =
+    'const __req = (ns) => (ns.default && typeof ns.default === "object" && "default" in ns.default ? ns.default : ns);';
+  const aliases = Object.keys(alias)
+    .map((nome) => `export const ${nome} = ${destino(nome)};`)
+    .join('\n');
+  return `// @ts-nocheck\n${CABECALHO}${imports}\n${req}\n${codigo}\n${aliases}\n`;
+}
+
 const ts = (nome, valor) =>
   `${CABECALHO}export const ${nome} = ${JSON.stringify(valor, null, 2)};\n`;
 const lf = (texto) => texto.replaceAll('\r\n', '\n');
@@ -191,6 +242,8 @@ async function principal() {
   const arquivos = {
     'comum.tipos.ts': CABECALHO + lf(http.tipos),
     'comum.esquema.ts': ts('esquemaComum', http.esquema),
+    'comum.validadores.ts': gerarValidadores(http.esquema),
+    'tempo-real.validadores.ts': gerarValidadores(tempoReal.esquema),
     'tempo-real.tipos.ts': CABECALHO + lf(tempoReal.tipos),
     'tempo-real.esquema.ts':
       ts('esquemaTempoReal', tempoReal.esquema) +

@@ -46,7 +46,16 @@ const fronteiras = {
 };
 
 export default tseslint.config(
-  { ignores: ['docs/**', 'prototipo/**', 'graphify-out/**', '**/dist/**', '**/gerado/**'] },
+  {
+    ignores: [
+      'docs/**',
+      'prototipo/**',
+      'graphify-out/**',
+      '**/dist/**',
+      '**/.expo/**',
+      '**/gerado/**',
+    ],
+  },
   js.configs.recommended,
   tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "package.json"]
+    },
+    "build": {
+      "inputs": ["src/**", "app.config.ts", "package.json"],
+      "env": ["EXPO_PUBLIC_API_URL"]
+    }
+  }
+}

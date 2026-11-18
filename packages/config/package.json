@@ -7,7 +7,8 @@
     "./eslint": "./eslint.mjs",
     "./prettier": "./prettier.mjs",
     "./tsconfig/base.json": "./tsconfig/base.json",
-    "./tsconfig/node.json": "./tsconfig/node.json"
+    "./tsconfig/node.json": "./tsconfig/node.json",
+    "./tsconfig/expo.json": "./tsconfig/expo.json"
   },
   "dependencies": {
     "@eslint/js": "10.0.1",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "eslint": "10.15.0",
+    "expo": "58.0.26",
     "prettier": "3.10.1",
     "typescript": "6.0.3"
   }

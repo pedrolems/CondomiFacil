@@ -14,7 +14,7 @@
       "cache": false
     },
     "typecheck": {
-      "dependsOn": ["gerar-contratos"],
+      "dependsOn": ["gerar-contratos", "^build"],
       "inputs": ["src/**", "tsconfig.json", "package.json"]
     },
     "build": {
@@ -26,6 +26,11 @@
       "dependsOn": ["build"],
       "inputs": ["src/**", "scripts/**", "test/**", "package.json"],
       "outputs": []
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
     }
   }
 }

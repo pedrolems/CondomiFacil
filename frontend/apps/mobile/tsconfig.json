@@ -1,0 +1,5 @@
+{
+  "extends": "@condomifacil/config/tsconfig/expo.json",
+  "compilerOptions": { "types": ["jest"] },
+  "include": ["src", "test", "app.config.ts"]
+}

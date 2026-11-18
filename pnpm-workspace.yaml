@@ -6,3 +6,5 @@ packages:
 shellEmulator: true
 allowBuilds:
   '@scarf/scarf': false
+  '@parcel/watcher': false
+  esbuild: false

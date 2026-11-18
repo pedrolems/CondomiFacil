@@ -78,7 +78,7 @@ graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 
 ## Protótipo (`prototipo/`)
 
-HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && python -m http.server 8765`. Só precisa de internet para a fonte Inter e os ícones Lucide (CDN). O `prototipo/README.md` lista todas as telas, perfis e simulações; leia-o antes de mexer.
+HTML/CSS/JS puro, sem build. Abrir `prototipo/index.html` ou `cd prototipo && python -m http.server 8765`. Roda sem internet (Inter e Lucide em `prototipo/vendor/`). O `prototipo/README.md` lista todas as telas, perfis e simulações; leia-o antes de mexer.
 
 - Rotas por hash: `#/perfil/tela/arg`.
 - `css/tokens.css` espelha o Design System (claro e escuro); `css/components.css` espelha a seção 10; `css/app.css` é só a moldura do protótipo.

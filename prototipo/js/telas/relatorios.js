@@ -1,5 +1,16 @@
 'use strict';
 
+// valor ilustrativo do protótipo; limite real ainda a definir (pendência de relatórios, 14/11/2026)
+const GRUPO_PEQUENO_MAX = 3;
+const MSG_GRUPO_PEQUENO = 'Grupo pequeno: valor ocultado para proteger a privacidade';
+const ocultoHtml = () => `<span class="row" style="gap:4px">${ic('eye-off')}${MSG_GRUPO_PEQUENO}</span>`;
+// Só os relatórios cuja contagem é pessoas/eventos (quantidade); valores em R$ e dias não entram.
+const COL_CONTAGEM = { atendimento: 2, reclamacoes: 3, reservas: 3 };
+const COL_OCULTAS = { atendimento: [2, 3, 4], reclamacoes: [3], reservas: [3, 4] };
+const pequeno = (relId, linha) => relId in COL_CONTAGEM && Number(linha[COL_CONTAGEM[relId]]) <= GRUPO_PEQUENO_MAX;
+// Mesma regra na tela, no gráfico e na exportação simulada: o valor de grupo pequeno nunca sai da linha.
+const mascarar = (relId, linha) => pequeno(relId, linha) ? linha.map((v, i) => COL_OCULTAS[relId].includes(i) ? MSG_GRUPO_PEQUENO : v) : linha;
+
 const RELATORIOS = [
   { id: 'financeiro', titulo: 'Financeiro do condomínio', colunas: ['Data', 'Tipo', 'Categoria', 'Valor', 'Fornecedor'], grafico: true, dados: [['2026-10-15', 'Despesa', 'Serviços', 400, 'Empresa Exemplo'], ['2026-11-01', 'Receita', 'Taxa condominial', 1800, '—']], nota: 'Receitas agregadas, sem unidade ou responsável financeiro. Não substitui a contabilidade.' },
   { id: 'cobrancas', titulo: 'Cobranças e pagamentos', colunas: ['Competência', 'Unidade', 'Estado', 'Valor', 'Vencimento'], grafico: false, dados: [['2026-10-01', 'A · 101', 'Paga', 620, '10/10/2026'], ['2026-11-01', 'A · 102', 'Emitida', 620, '10/11/2026']], nota: 'Conjunto individual de cobranças, exclusivo da administradora; separado das finanças agregadas.' },
@@ -8,7 +19,7 @@ const RELATORIOS = [
   { id: 'cadastros', titulo: 'Funcionários e empresas', colunas: ['Referência', 'Nome', 'Situação', 'Setor/serviço', 'Vínculo'], grafico: false, dados: [['2026-11-14', 'Empresa Exemplo', 'Ativa', 'Manutenção', 'Terceirizado'], ['2026-11-14', 'Funcionária Exemplo', 'Ativa', 'Limpeza', 'Próprio']], nota: 'Sem salário, documentos, score ou notas individuais da pesquisa.' },
   { id: 'solicitacoes', titulo: 'Solicitações administrativas', colunas: ['Abertura', 'Identificador', 'Estado', 'Tipo', 'Tramitação'], grafico: true, dados: [['2026-10-10', 'SOL-01', 'Concluída', 'Cadastro', '24h'], ['2026-11-10', 'SOL-02', 'Pendente', 'Locação', '96h']], nota: 'Sem textos ou anexos privados. Filtro do exemplo usa data de abertura.' },
   { id: 'atendimento', titulo: 'Avaliações de atendimento', colunas: ['Referência', 'Funcionário/empresa', 'Quantidade', 'Média', 'Distribuição'], grafico: true, dados: [['2026-11-14', 'Empresa Exemplo', 8, '4,0', '3★: 2 · 4★: 4 · 5★: 2']], nota: 'Somente agregado RN-CH-19, sem comentário, avaliador, unidade, chamado ou local. Período de cálculo não é definido neste exemplo.' },
-  { id: 'reclamacoes', titulo: 'Reclamações gerenciais', colunas: ['Referência', 'Categoria', 'Estado', 'Quantidade', 'Prazo'], grafico: true, dados: [['2026-10-31', 'Barulho', 'Encerrada', 12, 'No prazo'], ['2026-11-14', 'Uso de área', 'Aberta', 9, 'No prazo']], nota: 'Agregado fictício sem pessoa, unidade, relato, conversa, foto ou score. Política de pequenos grupos ainda será validada.' },
+  { id: 'reclamacoes', titulo: 'Reclamações gerenciais', colunas: ['Referência', 'Categoria', 'Estado', 'Quantidade', 'Prazo'], grafico: true, dados: [['2026-10-31', 'Barulho', 'Encerrada', 12, 'No prazo'], ['2026-11-14', 'Uso de área', 'Aberta', 9, 'No prazo'], ['2026-11-14', 'Animais', 'Aberta', 2, 'No prazo']], nota: 'Agregado fictício sem pessoa, unidade, relato, conversa, foto ou score. Política de pequenos grupos ainda será validada.' },
   { id: 'reservas', titulo: 'Reservas gerenciais', colunas: ['Referência', 'Área', 'Estado', 'Quantidade', 'Valores agregados'], grafico: true, dados: [['2026-10-31', 'Salão', 'Cumprida', 8, 'R$ 800,00'], ['2026-11-14', 'Quadra', 'Confirmada', 12, 'Gratuita']], nota: 'Sem pessoa, unidade ou rotina individual de quem reservou.' },
 ];
 
@@ -23,14 +34,15 @@ function bloqueioRelatorios(nav) {
 }
 function graficoRelatorio(relatorio, linhas) {
   if (!relatorio.grafico || !linhas.length) return '';
-  const soma = {};
-  linhas.forEach(linha => {
+  const soma = {}, ocultos = linhas.filter(l => pequeno(relatorio.id, l)).length;
+  linhas.filter(l => !pequeno(relatorio.id, l)).forEach(linha => {
     const grupo = relatorio.id === 'financeiro' ? linha[2] : relatorio.id === 'reclamacoes' ? linha[1] : relatorio.id === 'reservas' ? linha[1] : relatorio.id === 'atendimento' ? 'Avaliações recebidas' : linha[2];
     const valor = ['financeiro', 'inadimplencia', 'reclamacoes', 'reservas'].includes(relatorio.id) ? Number(linha[3]) : relatorio.id === 'atendimento' ? Number(linha[2]) : 1;
     soma[grupo] = (soma[grupo] || 0) + valor;
   });
   const max = Math.max(...Object.values(soma), 1);
-  return card({ icon: 'chart-column', title: 'Gráfico agregado · dados fictícios', sub: 'Condomínio: ' + S.condos[S.condo].nome + ' · referência: 14/11/2026', body: Object.entries(soma).map(([rotulo, valor]) => `<div class="stack" style="margin-bottom:12px"><span>${esc(rotulo)}: ${esc(valor)}</span><progress max="${max}" value="${valor}" aria-label="${esc(rotulo)}: ${valor}"></progress></div>`).join('') + table([{ t: 'Grupo' }, { t: 'Valor' }], Object.entries(soma).map(([rotulo, valor]) => `<tr><td>${esc(rotulo)}</td><td>${valor}</td></tr>`), { foot: false }) });
+  const aviso = ocultos ? `<p class="help row">${ic('eye-off')}${MSG_GRUPO_PEQUENO} (${ocultos} ${ocultos === 1 ? 'grupo' : 'grupos'} sem barra no gráfico).</p>` : '';
+  return card({ icon: 'chart-column', title: 'Gráfico agregado · dados fictícios', sub: 'Condomínio: ' + S.condos[S.condo].nome + ' · referência: 14/11/2026', body: Object.entries(soma).map(([rotulo, valor]) => `<div class="stack" style="margin-bottom:12px"><span>${esc(rotulo)}: ${esc(valor)}</span><progress max="${max}" value="${valor}" aria-label="${esc(rotulo)}: ${valor}"></progress></div>`).join('') + table([{ t: 'Grupo' }, { t: 'Valor' }], Object.entries(soma).map(([rotulo, valor]) => `<tr><td>${esc(rotulo)}</td><td>${valor}</td></tr>`), { foot: false }) + aviso });
 }
 
 def('admin', 'relatorios', 'Relatórios gerenciais', 'Relatórios (18)', () => {
@@ -48,10 +60,10 @@ def('admin', 'relatorios', 'Relatórios gerenciais', 'Relatórios (18)', () => {
   const pedir = () => {
     if (!podeRelatorios(condominio)) return toast('Acesso ou condomínio mudou. Consulte novamente.');
     const formato = formatos.includes(FORM.relFormato) ? FORM.relFormato : 'pdf';
-    estado.exportacoes.unshift({ id: uid(), condo: condominio, tipo: selecionado.titulo, formato, filtros: { periodo, busca }, linhas: linhas.map(l => [...l]), estado: 'Solicitada', referencia: '14/11/2026', acesso: true });
+    estado.exportacoes.unshift({ id: uid(), condo: condominio, tipo: selecionado.titulo, formato, filtros: { periodo, busca }, linhas: linhas.map(l => [...mascarar(selecionado.id, l)]), estado: 'Solicitada', referencia: '14/11/2026', acesso: true });
     go('admin/exportacoes-relatorios');
   };
-  return { nav: 'relatorios', body: head('Relatórios gerenciais', 'Nove tipos no MVP · administradora · dados fictícios', btn('Exportações', { v: 'secondary', on: 'admin/exportacoes-relatorios' })) + `<div class="stack">${banner('info', 'flask-conical', 'Simulação de consulta e processamento. Nenhum arquivo PDF, Excel ou imagem real é gerado.', { inline: true })}${field('Relatório', escolha('relTipo', RELATORIOS.map(r => [r.id, r.titulo]), selecionado.id))}${btn('Abrir relatório selecionado', { v: 'secondary', on: () => { FORM.relFormato = 'pdf'; FORM.relBusca = ''; rerender(); } })}${periodoPermitido ? field('Período do exemplo', escolha('relPeriodo', [['', 'Todos os períodos'], ['2026-10', 'Outubro/2026'], ['2026-11', 'Novembro/2026']], periodo)) : '<p class="help">Consulta do estado atual. Não cria filtro histórico sem contrato.</p>'}${field('Buscar no resultado fictício', input('relBusca', { ph: 'Texto do relatório' }))}${btn('Aplicar filtros', { v: 'secondary', on: () => rerender() })}${banner('neutral', 'shield-check', selecionado.nota, { inline: true })}<p>${linhas.length} registros no recorte · referência fictícia: 14/11/2026 · fuso do condomínio. ${periodo ? 'Período: ' + esc(periodo) : 'Todos os dados disponíveis no exemplo.'}</p>${linhas.length ? table(selecionado.colunas.map(t => ({ t })), linhas.map(l => '<tr>' + l.map((v, i) => '<td>' + esc(typeof v === 'number' && i === 3 && ['financeiro', 'cobrancas', 'inadimplencia'].includes(selecionado.id) ? money(v) : v) + '</td>').join('') + '</tr>')) : empty('search', 'Nenhum registro para esses filtros.')}${graficoRelatorio(selecionado, linhas)}${field('Formato', escolha('relFormato', formatos.map(f => [f, f.toUpperCase() + (['png', 'svg'].includes(f) ? ' · gráfico agregado' : ' · tabela')]), formatos.includes(FORM.relFormato) ? FORM.relFormato : 'pdf'))}${btn('Solicitar exportação simulada', { icon: 'download', on: pedir })}${btn('Simular revogação de acesso', { v: 'secondary', on: () => { estado.acesso = false; rerender(); } })}</div>` };
+  return { nav: 'relatorios', body: head('Relatórios gerenciais', 'Nove tipos no MVP · administradora · dados fictícios', btn('Exportações', { v: 'secondary', on: 'admin/exportacoes-relatorios' })) + `<div class="stack">${banner('info', 'flask-conical', 'Simulação de consulta e processamento. Nenhum arquivo PDF, Excel ou imagem real é gerado.', { inline: true })}${field('Relatório', escolha('relTipo', RELATORIOS.map(r => [r.id, r.titulo]), selecionado.id))}${btn('Abrir relatório selecionado', { v: 'secondary', on: () => { FORM.relFormato = 'pdf'; FORM.relBusca = ''; rerender(); } })}${periodoPermitido ? field('Período do exemplo', escolha('relPeriodo', [['', 'Todos os períodos'], ['2026-10', 'Outubro/2026'], ['2026-11', 'Novembro/2026']], periodo)) : '<p class="help">Consulta do estado atual. Não cria filtro histórico sem contrato.</p>'}${field('Buscar no resultado fictício', input('relBusca', { ph: 'Texto do relatório' }))}${btn('Aplicar filtros', { v: 'secondary', on: () => rerender() })}${banner('neutral', 'shield-check', selecionado.nota, { inline: true })}<p>${linhas.length} registros no recorte · referência fictícia: 14/11/2026 · fuso do condomínio. ${periodo ? 'Período: ' + esc(periodo) : 'Todos os dados disponíveis no exemplo.'}</p>${linhas.length ? table(selecionado.colunas.map(t => ({ t })), linhas.map(l => '<tr>' + mascarar(selecionado.id, l).map((v, i) => v === MSG_GRUPO_PEQUENO ? '<td>' + ocultoHtml() + '</td>' : '<td>' + esc(typeof v === 'number' && i === 3 && ['financeiro', 'cobrancas', 'inadimplencia'].includes(selecionado.id) ? money(v) : v) + '</td>').join('') + '</tr>')) : empty('search', 'Nenhum registro para esses filtros.')}${graficoRelatorio(selecionado, linhas)}${field('Formato', escolha('relFormato', formatos.map(f => [f, f.toUpperCase() + (['png', 'svg'].includes(f) ? ' · gráfico agregado' : ' · tabela')]), formatos.includes(FORM.relFormato) ? FORM.relFormato : 'pdf'))}${btn('Solicitar exportação simulada', { icon: 'download', on: pedir })}${btn('Simular revogação de acesso', { v: 'secondary', on: () => { estado.acesso = false; rerender(); } })}</div>` };
 });
 
 def('admin', 'exportacoes-relatorios', 'Exportações de relatórios', 'Relatórios (18)', () => {

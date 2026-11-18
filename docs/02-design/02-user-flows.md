@@ -1501,6 +1501,11 @@ Estes pontos não puderam ser resolvidos só com os documentos e dependem de uma
 | Saldo separado do fundo de reserva e da conta de obras | Hoje as cobranças extraordinárias aparecem discriminadas na receita, mas não há saldo próprio do fundo | Produto e contabilidade |
 | Plano de contas e categorias da contabilidade | As 9 categorias de despesa podem não casar com o plano da contabilidade de cada administradora | Administradoras parceiras |
 | Cobrança em atraso como notificação obrigatória | Proposta da revisão de fluxos; não está nas RN nem no US-NO-01 | Produto |
+| Risco de identificação nos comentários anônimos de avaliação ao funcionário (RN-CH-20) em condomínio pequeno | Com poucos moradores, 3 avaliações podem permitir deduzir a autoria. Mínimo de 3 mantido por decisão de Pedro de 17/11/2026, risco apenas documentado | Produto, validar no piloto |
+| Retenção das listas de visitantes | Os nomes são dados de outras pessoas; o prazo de guarda depende da política de privacidade (LGPD), ainda em definição; o protótipo não informa prazo | Produto e jurídico |
+| Relógio incorreto do celular na limpeza offline | O aviso é proposta do ADR-014, simulada no protótipo sem limite numérico; RN-CH-04 inalterada | Produto e arquitetura (ADR-014) |
+| Limite de pequenos grupos nos relatórios | O protótipo oculta valores de grupos pequenos com limite ilustrativo; o limite real está por definir | Produto |
+| Compensação do Desfazer da portaria depois da fila | O Desfazer cancela só a operação ainda pendente; depois do envio não há protocolo de compensação (pendência da API 16-18) | Arquitetura e produto |
 
 ## 18. Relatórios e exportações da administradora — 14/11/2026
 

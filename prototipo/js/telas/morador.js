@@ -259,6 +259,8 @@ def(RES, 'minhas-reservas', 'Minhas reservas', 'Reservas (5.2)', ctx => {
   };
 });
 
+/* RN-RE-14: o lembrete é só por push; sem notificações do aparelho, avisa (sem criar outro canal) */
+const avisoAparelho = () => S.notif.aparelho ? '' : banner('warning', 'bell-off', 'Notificações do aparelho desativadas: você não receberá o lembrete desta reserva. Ative nas configurações do celular.', { inline: true });
 def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
   const r = S.reservas.find(x => x.id === ctx.arg) || S.reservas[0], a = areaOf(r.area), p = ctx.p;
   const ativa = ['Confirmada', 'Aguardando pagamento'].includes(r.estado);
@@ -277,6 +279,7 @@ def(RES, 'reserva', 'Detalhe da reserva', 'Reservas (5.2)', ctx => {
       ${card({ icon: a.ico, title: a.nome, sub: `${r.dia} · ${r.hora}`, badge: st(r.estado) })}
       ${lr ? row({ icon: 'list-checks', title: `Lista: ${lrQ.total} ${lrQ.total === 1 ? 'pessoa' : 'pessoas'}`, sub: `${esc(lr.titulo)} · ${lrQ.chegaram} chegaram`, on: p + '/lista-visitantes/' + lr.id }) : sugereLista(r) ? bannerLista(r, p) : ''}
       ${r.valor ? `<div class="card"><div class="row-between"><span>Valor</span><b class="num">${money(r.valor)}</b></div>${r.estado === 'Aguardando pagamento' ? `<p class="t-body-sm c-warning row" style="margin:0">${ic('clock')}Pague até ${r.prazo} ou o horário é liberado.</p>` : ''}</div>` : ''}
+      ${r.estado === 'Confirmada' && dataReserva(r) > HOJE_PROTO ? avisoAparelho() : ''}
       ${r.estado === 'Confirmada' && a.paga ? banner('info', 'info', 'Cancelando com 12h ou mais de antecedência, você recebe o valor de volta.', { inline: true }) : ''}
       ${r.estado === 'Cancelada pelo condomínio' ? banner('info', 'info', `O condomínio cancelou esta reserva. Motivo: ${esc(r.motivoCancelamento || 'Manutenção')}. ${r.reembolso ? 'Reembolso solicitado, acompanhe no histórico.' : 'Sem devolução quando não houve recebimento.'}`,  { inline: true }) : ''}
       ${r.estado.startsWith('Cancelada com') ? row({ icon: 'file-check', title: 'Comprovante do reembolso', on: () => toast('Comprovante baixado.') }) : ''}
@@ -404,6 +407,7 @@ def(RES, 'lista-visitantes-nova', 'Montar lista de visitantes', 'Visitantes (6.5
       ${field('Local ou motivo (opcional)', input('lloc', { ph: 'Ex.: festa no salão', attr: 'autocomplete="off"' }))}
       <h3 class="t-title-sm" style="margin-bottom:-8px">Pessoas</h3>
       <div class="row-between"><span class="t-body-sm" aria-live="polite"><b class="num">${nm}</b> de ${max} pessoas</span></div>
+      <span class="help row">${ic('shield-check')}Os nomes desta lista são dados de outras pessoas. Por quanto tempo ficam guardados depende da política de privacidade, ainda em definição.</span>
       ${o && o.cap && nm > o.cap ? banner('warning', 'triangle-alert', `Você listou ${nm} pessoas e ${esc(o.area.nome.toLowerCase())} comporta até ${o.cap}. Pode enviar, mas confira se todos vão estar lá ao mesmo tempo.`, { inline: true }) : ''}
       ${E.pess ? `<span class="error-msg" role="alert">${ic('circle-x')}${E.pess}</span>` : ''}
       <div class="stack-2" role="list" aria-label="Pessoas da lista">${rows.map((p, i) => {
@@ -913,7 +917,7 @@ def([...RES, 'portaria', 'limpeza', 'proprietario'], 'notif-config', 'Notificaç
   const N = S.notif, lab = { reservas: 'Reservas', visitantes: 'Entrada de visitantes', encomendas: 'Encomendas', chamados: 'Andamento de chamados', comunicados: 'Comunicados', votacoes: 'Reuniões e votações', cobrancas: 'Lembretes de cobrança', pesquisa: 'Pesquisa do mês' };
   return {
     tab: 'menu', top: { title: 'Notificações', back: ctx.p + '/menu' },
-    body: `<div>${sw('Decisão de reclamação contra você', true, null, { disabled: true, sub: 'Obrigatória: você precisa saber para poder recorrer.' })}
+    body: `<div>${RES.includes(ctx.p) && S.reservas.some(r => r.estado === 'Confirmada' && dataReserva(r) > HOJE_PROTO) ? `<div style="margin-bottom:12px">${avisoAparelho()}</div>` : ''}${sw('Decisão de reclamação contra você', true, null, { disabled: true, sub: 'Obrigatória: você precisa saber para poder recorrer.' })}
       ${ctx.p === 'portaria' ? sw('Divergência ao sincronizar', true, null, { disabled: true, sub: 'Obrigatória: exige confirmar com o morador.' }) : ''}
       ${Object.keys(lab).map(k => sw(lab[k], N[k], () => { N[k] = !N[k]; toast('Preferência salva.'); }) + (k === 'reservas' && RES.includes(ctx.p) ? sw('Lembrete de reserva', N.lembreteReserva, () => { N.lembreteReserva = !N.lembreteReserva; toast('Preferência salva.'); }, { sub: 'Opcional: um aviso 24h antes do início da reserva confirmada, com atalho para ver ou cancelar.' }) : '')).join('')}</div>`,
   };

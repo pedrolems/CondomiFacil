@@ -13,7 +13,7 @@ const S = {
     casoOriginal: { saldo: 0, perdaEfetiva: 3, revertido: false, habilitadoTrocado: false, julgadorVigente: true },
     assinatura: { ciclo: 'novembro de 2026', valor: 499, estado: 'Aguardando tratamento', motivo: '' }
   },
-  theme: savedTheme, online: true, syncing: false, pending: [], lastSync: '14h32', training: false, termsPending: false,
+  theme: savedTheme, online: true, syncing: false, pending: [], vistoriaPend: {} /* id da vistoria -> { estado, form }: tentativa offline, NÃO entra na fila (RN-RE-13) */, relogioDiv: false /* proposta, ADR-014 pendente */, relogioAviso: false, lastSync: '14h32', training: false, termsPending: false,
   user: { nome: 'Ana Lima', email: 'ana.lima@email.com' }, conselho: false,
   unit: 0,
   units: [{ cond: 'Residencial Jardim Azul', name: 'Bloco A · Apto 101' }, { cond: 'Residencial Jardim Azul', name: 'Bloco B · Apto 302' }],
@@ -157,7 +157,7 @@ const S = {
     { nome: 'Manutenção', funcs: [{ id: 'f5', nome: 'Marcelo Dias' }] },
   ], notas: {}, respondida: false },
   transp: { sindico: 72, setores: [{ nome: 'Portaria', nota: 4.3 }, { nome: 'Limpeza', nota: 3.7 }, { nome: 'Manutenção', nota: null }] },
-  notif: { reservas: true, lembreteReserva: true, visitantes: true, encomendas: true, chamados: true, comunicados: true, votacoes: true, cobrancas: true, pesquisa: false },
+  notif: { aparelho: true, reservas: true, lembreteReserva: true, visitantes: true, encomendas: true, chamados: true, comunicados: true, votacoes: true, cobrancas: true, pesquisa: false },
   // Portaria
   esperados: [
     { id: 'x1', nome: 'Carlos Souza', un: 'Bloco A · Apto 101', bloco: 'A', estado: 'Esperado', cancelado: true },

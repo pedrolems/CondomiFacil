@@ -262,8 +262,19 @@ let toastTimer;
 function toast(text, o = {}) {
   const l = $('#toast'); if (!l) return;
   clearTimeout(toastTimer);
-  l.innerHTML = `<div class="snackbar" role="status" aria-live="polite"><span class="grow">${text}</span>${o.undo ? `<button type="button" ${cb(() => { l.innerHTML = ''; o.undo(); })}>Desfazer</button>` : ''}</div>`;
+  UNDO_PEND = o.undo ? (o.pend || null) : null;
+  l.innerHTML = `<div class="snackbar" role="status" aria-live="polite"><span class="grow">${text}</span>${o.undo ? `<button type="button" ${cb(() => { l.innerHTML = ''; UNDO_PEND = null; o.undo(); })}>Desfazer</button>` : ''}</div>`;
   toastTimer = setTimeout(() => { l.innerHTML = ''; }, o.undo ? 10000 : 5000);
+  toastPausa(l);
+}
+/* Aviso com Desfazer não some com hover ou foco (acessibilidade); volta a contar ao sair */
+let UNDO_PEND = null; // item da fila ao qual o Desfazer do aviso atual se refere
+function toastPausa(l) {
+  const s = l.querySelector('.snackbar'); if (!s || !s.querySelector('button')) return;
+  const parar = () => clearTimeout(toastTimer);
+  const voltar = e => { if (s.matches(':hover') || s.matches(':focus-within') || (e && e.relatedTarget && s.contains(e.relatedTarget))) return; clearTimeout(toastTimer); toastTimer = setTimeout(() => { l.innerHTML = ''; }, 10000); };
+  s.addEventListener('mouseenter', parar); s.addEventListener('focusin', parar);
+  s.addEventListener('mouseleave', voltar); s.addEventListener('focusout', voltar);
 }
 
 /* ---------- Tema ---------- */
@@ -293,7 +304,7 @@ function render(keepScroll) {
   const s = r.p === 'admin' && S.autogestao.ativa ? { body: empty('lock', 'Essencial com autogestão não possui administradora. Use Gestão no perfil Síndico.') } : fn(ctx) || {};
   const pendingToast = $('#toast') ? $('#toast').innerHTML : '';
   app.innerHTML = `<div class="proto">${renderSide(ctx)}<main class="proto-stage" id="main-content">${P.layout === 'web' ? renderWeb(ctx, s) : renderPhone(ctx, s)}</main></div>`;
-  if (keepScroll && pendingToast) $('#toast').innerHTML = pendingToast;
+  if (keepScroll && pendingToast) { $('#toast').innerHTML = pendingToast; toastPausa($('#toast')); }
   icons(app);
   const c = $('#content'); if (c) c.scrollTop = prevScroll;
   if (s.after) s.after();
@@ -325,6 +336,9 @@ function renderPhone(ctx, s) {
 /* Faixa automática por prioridade (10.10): sem internet > treinamento > termos > score */
 function autoBanner(ctx) {
   if (ctx.P.staff && !S.online) return banner('warning', 'wifi-off', `Sem internet. Lista salva às ${S.lastSync}. ${S.pending.length} ${S.pending.length === 1 ? 'registro aguardando' : 'registros aguardando'} envio.`);
+  const nVist = Object.keys(S.vistoriaPend).length;
+  if (ctx.P.staff && S.online && nVist) return banner('warning', 'triangle-alert', `Internet de volta. ${nVist} ${nVist === 1 ? 'marcação de vistoria ainda NÃO foi registrada' : 'marcações de vistoria ainda NÃO foram registradas'}. Abra Áreas e repita a marcação para confirmar.`);
+  if (ctx.P.staff && S.relogioAviso) return banner('warning', 'clock-alert', 'O horário do seu celular parece diferente do servidor. A conclusão foi registrada, mas pode ser revisada.', { action: btn('Entendi', { v: 'secondary', size: 'sm', on: () => { S.relogioAviso = false; rerender(); } }) });
   if (ctx.p === 'portaria' && S.training) return banner('info', 'graduation-cap', 'MODO TREINAMENTO · Nada aqui é real', { dashed: true, action: btn('Sair do treinamento', { v: 'secondary', size: 'sm', on: () => { S.training = false; toast('Você saiu do treinamento. Lista real carregada.'); rerender(); } }) });
   if (S.termsPending && !ctx.P.staff && ctx.p !== 'acesso' && ctx.p !== 'admin') return banner('info', 'file-text', 'Os termos mudaram. Leia e aceite para continuar.', { action: btn('Ler', { v: 'secondary', size: 'sm', on: 'acesso/novo-aceite' }) });
   return '';
@@ -340,12 +354,19 @@ function syncIndicator() {
      ${row({ icon: 'cloud-upload', title: n + (n === 1 ? ' registro pendente' : ' registros pendentes'), sub: n ? S.pending.map(p => p.t).join(' · ') : 'Nada aguardando envio' })}
      <p class="help">A fila pendente é separada do cache do dia e preservada até envio ou tratamento explícito. Retenção e acesso após sair da conta ainda serão definidos.</p>${btn(S.online ? 'Simular queda de internet' : 'Simular volta da internet', { v: 'secondary', block: true, icon: S.online ? 'wifi-off' : 'wifi', on: () => { closeLayer(); setOnline(!S.online); } })}`))}>${ic(iconN, cls)}<span>${txt}</span></button>`;
 }
+/* Papel ativo (só para quem acumula papéis): texto + ícone, sem alterar permissões */
+function papelAtivo(ctx) {
+  if (ctx.p === 'morador' && S.conselho) return 'Morador · Conselho fiscal';
+  if (ctx.p === 'subsindico') return S.substituicao ? 'Subsíndico · em substituição' : 'Subsíndico';
+  return '';
+}
 function unitSwitcher(ctx) {
   const u = S.units[S.unit];
   const multi = S.units.length > 1;
+  const papel = papelAtivo(ctx);
   return `<button type="button" class="unit-switch" ${multi ? cb(() => sheet(`<h2 class="t-title-md">Trocar unidade</h2><div class="t-label-sm muted">${esc(u.cond)}</div>
     ${S.units.map((x, i) => row({ icon: 'house', title: x.name, sub: x.cond, right: i === S.unit ? ic('check') : '', noChev: true, on: () => { S.unit = i; closeLayer(); rerender(); toast('Mostrando ' + x.name); } })).join('')}`)) : 'disabled'} aria-label="Unidade ativa: ${esc(u.name)}${multi ? '. Toque para trocar' : ''}">
-    <span class="u-cond">${esc(u.cond)}</span><span class="u-name">${esc(u.name)}${multi ? ic('chevrons-up-down') : ''}</span></button>`;
+    <span class="u-cond">${esc(u.cond)}</span><span class="u-name">${esc(u.name)}${multi ? ic('chevrons-up-down') : ''}</span>${papel ? `<span class="u-role">${ic('user-round-check')}Atuando como: ${esc(papel)}</span>` : ''}</button>`;
 }
 
 function renderWeb(ctx, s) {
@@ -376,7 +397,9 @@ function renderSide(ctx) {
     sim.push(btn('Sem gestor habilitado: ' + (S.autogestao.semGestor ? 'sim' : 'não'), { on: cenario(() => { S.autogestao.semGestor = !S.autogestao.semGestor; rerender(); }) }));
     [['sindico', 'Síndico disponível'], ['sub', 'Subsíndico disponível'], ['conselho', 'Conselho disponível'], ['designado', 'Usuário atual designado para esta eleição']].forEach(([k,l]) => sim.push(btn(l + ': ' + (S.eleitoral[k] ? 'sim' : 'não'), { on: () => { S.eleitoral[k] = !S.eleitoral[k]; if (k === 'designado') { S.eleitoral.designadoPerfil = S.eleitoral[k] ? ctx.p : null; S.eleitoral.validade = S.governanca.dia + 30; } rerender(); } })));
   }
+  if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) sim.push(`<button class="${S.notif.aparelho ? '' : 'on'}" aria-pressed="${!S.notif.aparelho}" ${cb(() => { S.notif.aparelho = !S.notif.aparelho; rerender(); })}>Notificações do aparelho: ${S.notif.aparelho ? 'ativadas' : 'desativadas'}</button>`);
   if (ctx.P.staff) sim.push(`<button class="${S.online ? '' : 'on'}" ${cb(() => setOnline(!S.online))}>${S.online ? 'Simular sem internet' : 'Voltar internet'}</button>`);
+  if (ctx.p === 'limpeza') sim.push(`<button class="${S.relogioDiv ? 'on' : ''}" aria-pressed="${S.relogioDiv}" ${cb(() => { S.relogioDiv = !S.relogioDiv; rerender(); })}>Relógio do celular diferente do servidor (proposta, ADR-014 pendente): ${S.relogioDiv ? 'sim' : 'não'}</button>`);
   if (['morador', 'sindico', 'subsindico'].includes(ctx.p)) {
     sim.push(`<button class="${S.score <= 60 ? 'on' : ''}" ${cb(() => { S.score = S.score <= 60 ? scoreContexto().base : 58; rerender(); })}>Score baixo nesta unidade (58)</button>`);
     sim.push(`<button class="${S.atraso ? 'on' : ''}" ${cb(() => { S.atraso = !S.atraso; rerender(); })}>Unidade em atraso</button>`);
@@ -465,6 +488,8 @@ function setOnline(v) {
   S.syncing = true; rerender();
   setTimeout(() => {
     S.syncing = false; const had = S.pending.slice(); S.pending = []; S.lastSync = nowH();
+    if (UNDO_PEND && had.includes(UNDO_PEND)) { clearTimeout(toastTimer); const t = $('#toast'); if (t) t.innerHTML = ''; UNDO_PEND = null; } // já enviado: sem Desfazer pela fila
+    if (S.relogioDiv && had.some(x => x.conclusao)) S.relogioAviso = true; // simulação, proposta ADR-014
     const avisosConclusao = had.filter(x => x.conclusao).map(x => { const c = S.chamados.find(c => c.id === x.chamadoId); return c ? aplicarConclusaoLimpeza(c, x.conclusao) : ''; }).filter(Boolean);
     rerender();
     const div = had.find(x => x.diverge), dup = had.find(x => x.dup);

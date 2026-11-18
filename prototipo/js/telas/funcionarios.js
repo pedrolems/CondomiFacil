@@ -19,7 +19,12 @@ function registrar(v, estado) {
     S.pending.push(pend);
   }
   rerender();
-  toast(`${estado === 'Saiu' ? 'Saída' : 'Entrada'} de ${v.nome} registrada`, { undo: () => { Object.assign(v, prev); if (pend) S.pending.splice(S.pending.indexOf(pend), 1); rerender(); toast('Registro desfeito.'); } });
+  const tipo = estado === 'Saiu' ? 'Saída' : 'Entrada';
+  // Offline: o Desfazer só cancela o item ainda pendente em S.pending (compensação após envio: pendência da API 16-18, não simulada)
+  toast(pend ? `${tipo} de ${v.nome} na fila de envio. Desfazer cancela a operação ainda pendente.` : `${tipo} de ${v.nome} registrada`, { pend, undo: () => {
+    const i = pend ? S.pending.indexOf(pend) : -1;
+    if (pend && i < 0) { rerender(); toast('Este registro já foi enviado. Não dá mais para desfazer pela fila.'); return; }
+    Object.assign(v, prev); if (pend) S.pending.splice(i, 1); rerender(); toast(pend ? 'Operação pendente cancelada.' : 'Registro desfeito.'); } });
 }
 function tocarEntrada(v) {
   if (v.bloqueio) {
@@ -148,15 +153,21 @@ const dataReservaStaff = w => '2026-' + w.dia.slice(3) + '-' + w.dia.slice(0, 2)
 const iniciouReserva = w => dataReservaStaff(w) < HOJE_PROTO || (dataReservaStaff(w) === HOJE_PROTO && w.inicioMin <= HORA_RESERVAS_PROTO);
 const terminouReserva = w => dataReservaStaff(w) < HOJE_PROTO || (dataReservaStaff(w) === HOJE_PROTO && w.fimMin <= HORA_RESERVAS_PROTO);
 const usoReservaAtivo = w => ['Confirmada', 'Em andamento'].includes(w.estado);
-const seloUsoReserva = w => badge(w.estado, TONES[w.estado] || 'neutral', w.estado === 'Em andamento' ? 'clock' : w.estado === 'Cumprida' ? 'circle-check' : w.estado === 'Não comparecimento' ? 'user-x' : 'calendar-days');
+const seloUsoReserva = w => badge(w.estado, TONES[w.estado] || 'neutral', w.estado === 'Em andamento' ? 'clock' : w.estado === 'Cumprida' ? 'circle-check' : w.estado === 'Não comparecimento' ? 'user-x' : 'calendar-days') + (S.vistoriaPend[w.id] ? badge('Aguardando internet', 'warning', 'wifi-off') : '');
 function marcarUsoReserva(w, estado, p) {
   if (!['portaria', 'limpeza'].includes(p)) return false;
   if (!['Em andamento', 'Cumprida', 'Não comparecimento'].includes(estado)) return false;
   if (p === 'portaria' && S.training) { toast('Treinamento: marcação simulada, sem alterar as reservas.'); return false; }
-  if (!S.online) { toast('Reservas e vistorias precisam de internet. Seu preenchimento foi mantido.'); return false; }
   if (estado === 'Em andamento' && (p !== 'portaria' || w.estado !== 'Confirmada' || !iniciouReserva(w))) return false;
   if (estado === 'Cumprida' && (!usoReservaAtivo(w) || !iniciouReserva(w))) return false;
   if (estado === 'Não comparecimento' && (w.estado !== 'Confirmada' || !terminouReserva(w))) return false;
+  if (!S.online) {
+    // RN-RE-13: exige internet e NÃO entra em S.pending; só guarda o preenchimento e mostra o estado pendente
+    S.vistoriaPend[w.id] = { estado, form: { usou: FORM.usou, chk: [...(FORM.chk || [])], vfotos: [...(FORM.vfotos || [])], dano: FORM.dano, vdano: FORM.vdano } };
+    rerender(); toast(`Marcação "${estado}" NÃO registrada: precisa de internet. Seu preenchimento foi mantido.`);
+    return false;
+  }
+  delete S.vistoriaPend[w.id];
   w.eventos.push({ anterior: w.estado, novo: estado, autor: p === 'portaria' ? 'José Ribeiro · Portaria' : 'Sandra Rocha · Limpeza', em: HOJE_PROTO + 'T14:30:00' });
   w.estado = estado;
   const reserva = S.reservas.find(r => r.id === w.reserva);
@@ -166,7 +177,7 @@ function marcarUsoReserva(w, estado, p) {
 def(['portaria', 'limpeza'], 'areas', 'Reservas e vistorias', 'Áreas (5.3)', ctx => {
   const hoje = S.vistorias.filter(w => w.dia === diaReservaStaff()).sort((a, b) => a.inicioMin - b.inicioMin);
   const pendentes = S.vistorias.filter(w => dataReservaStaff(w) < HOJE_PROTO && usoReservaAtivo(w));
-  const linhas = L => L.length ? L.map(w => row({ icon: 'calendar-days', title: w.area, sub: w.un + ' · ' + w.dia + ' · ' + w.horario, right: seloUsoReserva(w), on: () => { resetForm(); go(ctx.p + '/vistoria/' + w.id); } })).join('') : `<p class="pad t-body-sm muted">Nenhuma reserva neste grupo.</p>`;
+  const linhas = L => L.length ? L.map(w => row({ icon: 'calendar-days', title: w.area, sub: w.un + ' · ' + w.dia + ' · ' + w.horario, right: `<span class="stack-2" style="align-items:flex-end">${seloUsoReserva(w)}</span>`, on: () => { resetForm(S.vistoriaPend[w.id] && S.vistoriaPend[w.id].form); go(ctx.p + '/vistoria/' + w.id); } })).join('') : `<p class="pad t-body-sm muted">Nenhuma reserva neste grupo.</p>`;
   return {
     tab: 'areas', top: { title: 'Áreas' }, flush: true,
     body: `<div class="pad"><h2 class="t-title-sm">${ctx.p === 'portaria' ? 'Reservas de hoje' : 'Vistorias de hoje'}</h2><p class="help">Simulação: 05/11/2026, 14h30. Registros de uso e vistoria precisam de internet.</p></div>
@@ -175,7 +186,7 @@ def(['portaria', 'limpeza'], 'areas', 'Reservas e vistorias', 'Áreas (5.3)', ct
 });
 def(['portaria', 'limpeza'], 'vistoria', 'Fazer vistoria', 'Áreas (5.3)', ctx => {
   const w = S.vistorias.find(x => x.id === ctx.arg) || S.vistorias[0], p = ctx.p;
-  const usou = FORM.usou, chk = FORM.chk || [];
+  const usou = FORM.usou, chk = FORM.chk || [], pend = S.vistoriaPend[w.id];
   const ITENS = ['Área limpa', 'Móveis no lugar', 'Sem lixo', 'Equipamentos funcionando', 'Chave devolvida'];
   const done = (estado, msg) => { if (!marcarUsoReserva(w, estado, p)) return; go(p + '/areas'); setTimeout(() => toast(msg), 50); };
   const podeVistoriar = usoReservaAtivo(w) && iniciouReserva(w);
@@ -185,8 +196,8 @@ def(['portaria', 'limpeza'], 'vistoria', 'Fazer vistoria', 'Áreas (5.3)', ctx =
   return {
     tab: 'areas', top: { title: 'Vistoria', back: p + '/areas' },
     body: `<div class="stack-5">${card({ icon: 'clipboard-check', title: w.area, sub: w.un + ' · ' + w.dia + ' · ' + w.horario, badge: seloUsoReserva(w) })}
-      ${podeIniciar ? btn('Marcar em andamento', { v: 'secondary', block: true, size: 'lg', disabled: !S.online, on: () => { if (marcarUsoReserva(w, 'Em andamento', p)) { rerender(); toast('Uso em andamento registrado.'); } } }) : ''}
-      ${!S.online ? banner('warning', 'wifi-off', 'Reservas e vistorias precisam de internet. Seu preenchimento foi mantido.', { inline: true }) : ''}
+      ${podeIniciar ? btn('Marcar em andamento', { v: 'secondary', block: true, size: 'lg', on: () => { if (marcarUsoReserva(w, 'Em andamento', p)) { rerender(); toast('Uso em andamento registrado.'); } } }) : ''}
+      ${pend ? banner('warning', 'wifi-off', S.online ? `Internet de volta. A marcação "${pend.estado}" ainda NÃO foi registrada. Seu preenchimento foi mantido: repita a marcação para confirmar.` : `Aguardando internet. A marcação "${pend.estado}" ainda NÃO foi registrada e não vai para a fila de envio. Seu preenchimento foi mantido; repita a marcação quando a conexão voltar.`, { inline: true }) : !S.online ? banner('warning', 'wifi-off', 'Reservas e vistorias precisam de internet. Ao tentar marcar sem conexão, a marcação não é registrada e seu preenchimento é mantido.', { inline: true }) : ''}
       ${!podeVistoriar ? banner('info', 'info', usoReservaAtivo(w) ? 'O horário ainda não começou. As ações de uso serão liberadas a partir do início.' : 'Esta reserva não aceita novas marcações de uso.', { inline: true }) : `<div class="field"><span class="field-label">Como está o uso da área?</span><div class="stack-2">${choice('usou', 'sim', 'O uso terminou: fazer vistoria')}${podeFalta ? choice('usou', 'nao', 'Não houve comparecimento') : ''}</div><p class="help">Não comparecimento só pode ser registrado após o fim previsto e se não houve uso. Se o uso terminou antes, a vistoria pode ser feita; o intervalo reservado continua ocupado até o fim previsto.</p></div>`}
       ${podeVistoriar && usou === 'sim' ? `<div class="field"><span class="field-label">Checklist</span><div class="stack-2">${ITENS.map(i => choice('chk', i, i, { multi: true })).join('')}</div>${A.chkErr ? `<span class="error-msg">${ic('circle-x')}Marque todos os itens obrigatórios ou registre um dano.</span>` : ''}</div>
         <div class="field"><span class="field-label">Fotos</span>${photoPicker('vfotos')}</div>
@@ -194,8 +205,8 @@ def(['portaria', 'limpeza'], 'vistoria', 'Fazer vistoria', 'Áreas (5.3)', ctx =
         ${FORM.dano === 'sim' ? field('Descreva o dano', textarea('vdano')) + banner('info', 'info', 'Uma reclamação contra a unidade será aberta em nome do condomínio, com as fotos.', { inline: true }) : ''}` : ''}
       ${podeFalta && usou === 'nao' ? banner(w.paga ? 'info' : 'warning', w.paga ? 'info' : 'triangle-alert', w.paga ? 'Reserva paga: Não comparecimento não gera perda de pontos nem reembolso automático.' : 'Não comparecimento: a cada 2 faltas gratuitas no trimestre pelo mesmo vínculo de moradia, quem reservou perde 5 pontos.', { inline: true }) : ''}${historico}
     </div>`,
-    footer: !podeVistoriar || !usou ? '' : usou === 'nao' && podeFalta ? btn('Registrar não comparecimento', { block: true, size: 'lg', disabled: !S.online, on: () => done('Não comparecimento', 'Não comparecimento registrado.') })
-      : usou === 'sim' ? btn('Marcar cumprida', { block: true, size: 'lg', disabled: !S.online, on: () => {
+    footer: !podeVistoriar || !usou ? '' : usou === 'nao' && podeFalta ? btn('Registrar não comparecimento', { block: true, size: 'lg', on: () => done('Não comparecimento', 'Não comparecimento registrado.') })
+      : usou === 'sim' ? btn('Marcar cumprida', { block: true, size: 'lg', on: () => {
         if (FORM.dano !== 'sim' && chk.length < ITENS.length) { A.chkErr = true; rerender(); return; }
         if (!(FORM.vfotos || []).length) { toast('Anexe fotos da vistoria.'); return; }
         if (FORM.dano === 'sim' && !(FORM.vdano || '').trim()) { toast('Descreva o dano encontrado.'); return; }

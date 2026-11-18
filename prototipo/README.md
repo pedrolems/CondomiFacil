@@ -20,7 +20,7 @@ python -m http.server 8765
 # http://localhost:8765
 ```
 
-Precisa de internet só para a fonte Inter e os ícones Lucide (CDN).
+Funciona sem internet: a fonte Inter e os ícones Lucide 0.460.0 ficam em `vendor/` (licenças OFL e ISC ao lado dos arquivos).
 
 ## Estrutura
 
@@ -103,3 +103,27 @@ Todo estado desaparece ao recarregar. As simulações não comprovam segurança,
 Gestão → Substituição registra uma ausência fictícia de 7 dias, exibindo início/fim (exemplo a partir de 17/11/2026). O período do exemplo não fixa limite de duração das ausências reais. O titular pode registrar retorno; ambos os perfis podem simular a chegada do término como controle de cenário. Renderização e ações reavaliam o relógio e retiram a capacidade ao vencer. O subsíndico não concede a própria substituição.
 
 **Sem gestor habilitado** também bloqueia `plena()` e callbacks administrativos das telas de gestão, inclusive callbacks capturados antes da mudança de cenário. Navegação e conteúdo de consulta, funções de morador e condução eleitoral permanecem disponíveis. Alguns controles de filtro da própria tela administrativa também ficam inativos nesse cenário; não são execução de rotinas. O protótipo não executa rotinas reais nem revoga sessões de servidor.
+
+## Melhorias de 17/11/2026 (sem mudança de regra)
+
+Aprovadas por Pedro; nenhuma altera RN, RF ou US. Tudo em memória e some ao recarregar. Rastreabilidade: Design System, seção 18.
+
+- **Offline e vendor:** a fonte Inter e os ícones Lucide 0.460.0 ficam em `vendor/` (licenças ao lado), sem CDN.
+- **Painel lateral, novas simulações:**
+  - **Notificações do aparelho: ativadas/desativadas** (Morador, Síndico, Subsíndico): desativadas, o detalhe da reserva e Menu > Notificações avisam que o lembrete (RN-RE-14, só push) não chegará.
+  - **Relógio do celular diferente do servidor** (Limpeza): ligado, concluir um chamado sem internet e voltar a conexão mostra o aviso de horário divergente. É proposta do ADR-014, sem limite numérico; RN-CH-04 inalterada.
+  - **Simular sem internet / Voltar internet** (perfis de funcionários), usado nos dois itens abaixo.
+- **Papel ativo:** o seletor de unidade mostra "Atuando como: ..." para o morador que também é conselho fiscal (botão "Sou do conselho fiscal") e para o subsíndico, com "em substituição" quando ativa. Só indicação; sem novo perfil nem troca de papel.
+- **Vistoria pendente (Portaria e Limpeza > Áreas):** sem internet, a marcação de uso ou vistoria não vai para a fila (RN-RE-13); aparece o selo "Aguardando internet", o preenchimento é mantido e o aviso diz que ainda não foi registrada. Ao voltar a internet, é preciso repetir a marcação.
+- **Desfazer offline (Portaria):** sem internet, o aviso diz que a entrada está na fila e o Desfazer cancela só a operação pendente; depois de enviada, informa que não dá para desfazer pela fila (sem protocolo de compensação, pendência da API 16-18). O aviso com Desfazer fica enquanto houver hover ou foco.
+- **Listas de visitantes:** o texto de retenção informa que os nomes são dados de outras pessoas e que o prazo de guarda depende da política de privacidade, ainda em definição (nenhum prazo).
+- **Grupos pequenos nos relatórios:** valor oculto com "Grupo pequeno: valor ocultado para proteger a privacidade", sem barra no gráfico e sem dado individual na exportação simulada. O limite do protótipo (`GRUPO_PEQUENO_MAX` em `js/telas/relatorios.js`) é ilustrativo; o real está por definir.
+- **Comentários anônimos de avaliação (RN-CH-20):** mínimo de 3 avaliações mantido por decisão de Pedro; o risco em condomínio pequeno só está documentado.
+
+### Verificação de contraste
+
+```bash
+node prototipo/tools/verificar-contraste.mjs
+```
+
+Sem dependências e sem alterar arquivos. Lê `css/tokens.css` e confere o contraste WCAG 2.x dos pares de tokens nos temas claro e escuro (mínimo 4,5:1 para texto e 3:1 para ícones, bordas e componentes), além de a paleta da seção 4.1 do Design System estar declarada e de o bloco `prefers-color-scheme: dark` ser idêntico a `:root[data-theme="dark"]`. Sai com código 1 se algum par falhar. Última execução: 64 pares, 0 falhas; reporta 13 tons da paleta (`green`, `amber` e `red`) ausentes em `tokens.css`, decisão pendente de Pedro. Não verifica contraste sobre imagens, estados de foco nem a renderização real nas telas.

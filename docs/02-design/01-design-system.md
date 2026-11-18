@@ -674,6 +674,7 @@ Para quem tem mais de uma unidade (RF-AC-04, RN-CD-05).
 - Toque abre uma folha inferior com as unidades, agrupadas por condomínio, com a ativa marcada.
 - Ao trocar, a tela recarrega com os dados da nova unidade e uma mensagem rápida confirma: "Mostrando Bloco B · Apto 302".
 - Quem tem uma unidade só vê o nome, sem ícone e sem toque.
+- Quem acumula papéis vê abaixo do nome "Atuando como: [papel]" (por exemplo "Morador · Conselho fiscal" ou "Subsíndico · em substituição"), em texto com ícone `user-round-check`. É só indicação: não troca de papel nem muda permissão.
 
 ### 10.17 Avaliação por estrelas
 
@@ -769,14 +770,14 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 - **Tela inicial = lista "Esperados hoje"**, já aberta, com a busca fixa no topo (nome, unidade ou bloco) e chips de bloco quando a portaria atende mais de um.
 - Cada linha mostra nome em `type.body.lg`, unidade, selo de estado e um **botão grande "Entrada"** (ou "Saída", para quem já entrou) à direita.
-- **Toque 1:** "Entrada". **Toque 2 (opcional):** "Desfazer", na mensagem rápida. Não há diálogo de confirmação: o desfazer de 10 s substitui a confirmação e mantém os 2 toques.
+- **Toque 1:** "Entrada". **Toque 2 (opcional):** "Desfazer", na mensagem rápida. Não há diálogo de confirmação: o desfazer de 10 s substitui a confirmação e mantém os 2 toques. Sem internet, o aviso diz que a entrada está na fila e o "Desfazer" cancela só a operação ainda pendente; depois do envio, informa que não dá para desfazer pela fila. O aviso com "Desfazer" permanece enquanto houver hover ou foco.
 - **Lista de visitantes (RN-VI-17):** as pessoas de uma lista aparecem agrupadas sob "Listas de visitantes", com o contador "N pessoas, M chegaram"; a entrada continua pessoa a pessoa (11.13).
 - **Visitante sem cadastro:** botão flutuante "Entrada sem cadastro" → nome, unidade e marcação "Autorizado por interfone".
 - **Lista de bloqueio (RN-VI-05):** ao buscar ou tocar em "Entrada" para alguém da lista, abre um diálogo bloqueante em tom `danger` com ícone `ban`, o motivo do bloqueio e duas ações: "Não liberar" (primário) e "Liberar mesmo assim" (secundário, pede o motivo). A decisão fica registrada.
 - **Divergência ao sincronizar (RN-OF-04):** diálogo bloqueante em tom `warning`: "Carlos Souza entrou às 14h10, mas a visita tinha sido cancelada pelo morador. Ligue para Bloco A · Apto 101 pelo interfone." Ação única: "Confirmei com o morador". O diálogo não tem botão de fechar.
 - Faixa "Sem internet" e indicador de sincronização sempre visíveis quando se aplicam (10.10 e 10.23).
 - Texto principal de 18 dp, botões de 56 dp e contraste alto, pensando em turnos longos, pouca familiaridade com tecnologia e telas com reflexo.
-- **Áreas > Reservas de hoje:** lista por horário com área, intervalo, unidade e estado, sem valores, meios de pagamento ou score. Reserva Confirmada a partir do início oferece "Marcar em andamento" (`clock`); após o uso, "Fazer vistoria" permite "Marcar cumprida" (`circle-check`). "Registrar não comparecimento" (`user-x`) só aparece para Confirmada depois do fim previsto, paga ou gratuita, sem uso constatado. Checklist/fotos só quando houve uso; dano segue reclamação. Não exige marcar o início antes de concluir, nem libera antecipadamente o intervalo reservado. Sem internet, ações de envio desabilitadas com explicação, sem adicionar vistoria à fila offline (RN-RE-09, RN-RE-13, RF-RE-08, RF-RE-09).
+- **Áreas > Reservas de hoje:** lista por horário com área, intervalo, unidade e estado, sem valores, meios de pagamento ou score. Reserva Confirmada a partir do início oferece "Marcar em andamento" (`clock`); após o uso, "Fazer vistoria" permite "Marcar cumprida" (`circle-check`). "Registrar não comparecimento" (`user-x`) só aparece para Confirmada depois do fim previsto, paga ou gratuita, sem uso constatado. Checklist/fotos só quando houve uso; dano segue reclamação. Não exige marcar o início antes de concluir, nem libera antecipadamente o intervalo reservado. Sem internet, a marcação não é enviada nem entra na fila offline: aparece o selo `warning` "Aguardando internet" (`wifi-off`), o preenchimento é mantido e um aviso diz que a marcação ainda não foi registrada; ao voltar a conexão, o porteiro repete a marcação (RN-RE-09, RN-RE-13, RF-RE-08, RF-RE-09).
 
 ### 11.2 Limpeza
 
@@ -807,7 +808,7 @@ Objetivo: registrar a entrada em até 2 toques (US-VI-03), também sem internet 
 
 Ao cancelar depois do prazo de reembolso, o diálogo avisa antes de confirmar (RN-CA-03).
 
-**Lembrete de reserva (RN-RE-14).** O push de lembrete (13.5) abre o detalhe da reserva confirmada, que mostra o botão "Cancelar reserva" com as mesmas regras e avisos de reembolso acima.
+**Lembrete de reserva (RN-RE-14).** O push de lembrete (13.5) abre o detalhe da reserva confirmada, que mostra o botão "Cancelar reserva" com as mesmas regras e avisos de reembolso acima. Com as notificações do aparelho desativadas, o detalhe e as preferências de notificação trazem uma faixa `warning` (`bell-off`): "você não receberá o lembrete desta reserva"; não há outro canal.
 
 **Sugestão de lista de visitantes (RN-RE-12).** Na confirmação e no detalhe de uma reserva confirmada, com data depois de hoje e sem lista vinculada, aparece uma faixa `info` (10.10) com ícone `list-checks`: "Vai receber convidados? Monte a lista de visitantes.", o botão secundário "Montar lista" (abre a 11.13 com data, horário e local da reserva) e o botão de texto "Agora não" (esconde a sugestão para aquela reserva). Não aparece em reserva aguardando pagamento, expirada, cancelada, em andamento, cumprida ou com data de hoje. Com lista vinculada, o detalhe mostra uma linha (10.9) "Lista: N pessoas", com o nome da lista e "M chegaram", que abre o detalhe da lista. Na confirmação, a faixa fica abaixo do status; no detalhe, abaixo do cartão da reserva.
 
@@ -927,6 +928,7 @@ Telas de RF-VI-14 e RF-VI-15 (fluxo 6.5).
 - Seção "Listas" no topo da aba Esperados: uma linha de lista (10.9) por lista, com ícone `list-checks`, o nome, "N pessoas, M chegaram" e a data. Listas canceladas ficam no Histórico, com selo de estado.
 - **Montar lista:** faixa de origem (`info`, ícone `calendar-days`) quando vem de uma reserva; seção "Sobre a lista" (nome, data, das/até opcionais, local ou motivo opcional); seção "Pessoas" com a lista editável (10.25), "Frequentes" e "Recentes", o interruptor (10.6) "Salvar esta lista para usar de novo" e o botão "Enviar lista (N pessoas)" no rodapé.
 - Com origem de reserva, data e horário ficam desabilitados com a ajuda "Vem da reserva.". Passou da capacidade da área: faixa `warning` com ícone `triangle-alert`, sem bloquear o envio (RN-VI-14).
+- **Retenção:** a tela de montar lista avisa que os nomes são dados de outras pessoas e que o prazo de guarda depende da política de privacidade, ainda em definição; nenhum prazo é informado.
 - **Detalhe da lista:** cartão (10.7) com nome, data, local e selo "M de N chegaram"; linhas de pessoas com selo de estado (4.5) e botão de ícone "Remover [nome] da lista" só para quem ainda não chegou; rodapé com "Adicionar pessoa" e "Cancelar lista" (diálogo 10.13 com o que acontece com quem já entrou).
 
 **Portaria**
@@ -1026,6 +1028,7 @@ MVP por decisão do Pedro em 14/11/2026. RN-RL-01 a 08; RF-RL-01 a 11; US-RL-01 
 - Ações: “Exportar tabela”, “Exportar relatório em PDF” e “Exportar gráfico”; formatos conforme catálogo de RN-RL-02. PDF/CSV/XLSX para tabela; PNG/SVG só gráfico agregado.
 - Exportações mostra pedidos próprios com formato, filtros, referência e estado em texto+ícone: Solicitada (clock), Em processamento (loader-circle), Pronta (download), Falhou (circle-alert), Expirada (clock-alert). Não oferecer download antes de Pronta.
 - Falhou permite nova solicitação; arquivo expirado exige nova geração. Link expirado pode ser renovado se arquivo/acesso continuarem válidos. Mudança de função revoga o acesso também à tela aberta.
+- Grupo pequeno: a linha mostra "Grupo pequeno: valor ocultado para proteger a privacidade", sem barra no gráfico, e a exportação não leva o dado individual. O limite numérico real está pendente (o do protótipo é ilustrativo).
 - Sem dados mostra estado vazio; sem rede informa tentativa posterior. Nunca incluir campo protegido no arquivo ou imagem por estar oculto visualmente.
 
 ## 12. Navegação por perfil
@@ -1175,6 +1178,7 @@ Estas regras traduzem RN-SC-02, SEG-07 e SEG-17 em decisões de tela. Valem em l
 | Notas individuais da pesquisa | O próprio funcionário, sem saber quem avaliou | Transparência e qualquer tela de morador |
 | Avaliação do atendimento de um chamado | Quem avaliou; síndico e subsíndico, no detalhe do chamado (nota, comentário e base); funcionário, só como média e comentários anônimos com 3 ou mais avaliações; administradora, só média e quantidade | Qualquer tela do funcionário com unidade, morador, chamado ou local; notificações ao funcionário; Transparência |
 | Documento do visitante | Portaria e o morador que cadastrou | Notificações |
+| Comentários anônimos da avaliação do funcionário | O funcionário, só com 3 ou mais avaliações (RN-CH-20) | Qualquer tela com identidade do avaliador; em condomínio pequeno o conjunto pode permitir deduzir a autoria (risco documentado, mínimo de 3 mantido) |
 
 Regra geral: quando a interface precisa mostrar que existe uma restrição sem revelar o motivo a terceiros, ela mostra só "Indisponível".
 
@@ -1245,6 +1249,11 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 17/11/2026 | Vistoria e uso de reserva sem internet (11.2): selo `warning` "Aguardando internet" com ícone `wifi-off`, preenchimento mantido, aviso de que a marcação ainda não foi registrada e, ao voltar a conexão, pedido para repetir a marcação; nada entra na fila offline. "Desfazer" da entrada offline (11.1): o aviso diz que a entrada está na fila e que o Desfazer cancela só a operação ainda pendente; depois do envio, informa que não dá para desfazer pela fila; o aviso com Desfazer permanece enquanto houver hover ou foco. Sem componente nem token novo | Pedro aprovou melhorias do protótipo sem mudar regra (RN-RE-13 e o desfazer de 10 s inalterados): evitar que o porteiro ache que a vistoria foi registrada e que o Desfazer desfaça o que já foi enviado. Compensação depois da fila segue pendência da API (User Flows 17) |
+| 17/11/2026 | Indicador de papel ativo "Atuando como: ..." no seletor de unidade (10.16), só para quem acumula papéis (morador que também é conselho fiscal; subsíndico, com "em substituição" quando ativa), em texto e ícone `user-round-check`. A classe `.u-role` é só estilo do protótipo, sem token nem componente novo no Design System | Pedro aprovou melhoria sem mudar permissão: deixar claro em que papel a pessoa age. Sem 12º perfil nem regra de troca de papel |
+| 17/11/2026 | Aviso de notificações do aparelho desativadas no detalhe da reserva e nas preferências de notificação (11.4, 13.5): o morador não receberá o lembrete da reserva; ícone `bell-off`, faixa `warning` inline. Sem canal novo | RN-RE-14 inalterada (só push): avisar quando o lembrete não chegará por escolha do aparelho, sem criar outro canal |
+| 17/11/2026 | Texto de retenção nas listas de visitantes (11.13) e supressão de pequenos grupos nos relatórios (11.18): "Grupo pequeno: valor ocultado para proteger a privacidade", sem barra no gráfico e sem dado individual na exportação simulada. O limite numérico do protótipo é ilustrativo; o real está pendente. Aviso de relógio do celular divergente na limpeza offline (11.2): proposta do ADR-014, só simulada, sem limite numérico | Decisões de Pedro de 17/11/2026 sem mudar regra: nomes de listas são dados de outras pessoas e o prazo de guarda depende da política LGPD, ainda em definição (sem prazo inventado); proteger a privacidade em grupos pequenos; relógio incorreto segue proposta técnica (RN-CH-04 inalterada) |
+| 17/11/2026 | Comentários anônimos da avaliação do funcionário (RN-CH-20): mantido o mínimo de 3 avaliações; risco de identificação em condomínio pequeno apenas documentado (15 e User Flows 17) | Decisão de Pedro: não alterar a regra; validar o risco no piloto |
 | 17/11/2026 | Detalhar implantação/autogestão e lote 3 em 11.17: prova e revisão, validade eleitoral, aprovação bancária, operações manuais, ausência de julgador, transição e atendimento; retirar perfil Manutenção | Pedro aprovou 1C, 8B e demais A da rodada de 14 decisões: dados fictícios e operador antes do primeiro condomínio oficial; rastreabilidade RN 3.1, RN-CD-12, RN-VO-13/15, RN-PG-01, RN-FI-29, RN-RC-03/14 e RN 11.1. Sem liberação de lote 4 ou controles técnicos reais |
 | 17/11/2026 | Alinhamento documental de 11.17 às direções aceitas AG-01 A, AG-02 A e AG-07 C: distribuição local, primeira habilitação restrita e validação de mandatos | Decisão de Pedro e autorização para alinhar produto, fluxos e descrição do protótipo; procedimentos pendentes preservados. Sem mudança visual, token, componente ou código do protótipo nesta revisão |
 | 16/11/2026 | Texto das regras de cancelamento no resumo da reserva (11.4) de "Cancelamento com reembolso até 12h antes do início" para "Cancelando com 12h ou mais de antecedência, você recebe o valor de volta"; sem componente nem token novo | Alinhar texto à RN-CA-02, igualdade incluída: "até 12h antes" era ambíguo; decisão do Pedro de 16/11/2026 confirma reembolso integral com antecedência maior ou igual a 12h (configurável) |

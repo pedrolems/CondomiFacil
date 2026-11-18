@@ -183,7 +183,9 @@ i[data-lucide], svg.lucide { flex: none; stroke-width: 2; }
 .topbar .unit-switch { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--text-onBrand); text-align: left; padding: 6px 8px; cursor: pointer; border-radius: var(--radius-sm); }
 .unit-switch .u-cond { font-size: 12px; line-height: 16px; font-weight: 500; opacity: .85; display: block; }
 .unit-switch .u-name { font-size: 18px; line-height: 24px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.unit-switch .u-name i, .unit-switch .u-name svg { width: 18px; height: 18px; }
+.unit-switch .u-role { font-size: 12px; line-height: 16px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.unit-switch .u-role i, .unit-switch .u-role svg { width: 14px; height: 14px; flex: none; }
+.unit-switch .u-name i,.unit-switch .u-name svg { width: 18px; height: 18px; }
 .sync-ind { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border-radius: var(--radius-full); background: rgba(255,255,255,.14); color: var(--text-onBrand); border: 0; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .sync-ind i, .sync-ind svg { width: 16px; height: 16px; }
 .spin { animation: spin 1s linear infinite; }

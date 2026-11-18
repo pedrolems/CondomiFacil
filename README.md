@@ -10,7 +10,32 @@ Autor e responsável pelo produto: [Pedro Lemos](https://github.com/pedrolems).
 
 A estrutura preparatória usa um workspace pnpm na raiz, mantendo [backend](backend/README.md) e [frontend](frontend/README.md). [Contratos compartilhados](packages/shared-types/README.md) e [presets de ferramentas](packages/config/README.md) têm uma única localização em `packages/`. OpenAPI/AsyncAPI serão a fonte de geração dos tipos e esquemas; ferramenta e versões dependem de validação antes da implementação. Turborepo será configurado quando houver tarefas executáveis. Decisão de Pedro em 14/11/2026: [ADR-015](docs/03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md).
 
-Ainda não há dependências, lockfile ou scripts executáveis. Antes da primeira instalação, fixar Node/pnpm e `packageManager`, então gerar um único lockfile real na raiz. O protótipo continua independente dessa preparação.
+Ainda não há dependências nem scripts executáveis. Node 26.13.1 e pnpm 12.21.0 estão fixados (`.node-version`, `packageManager` e `engines` no `package.json` da raiz) e há um único `pnpm-lock.yaml` na raiz. O protótipo continua independente dessa preparação.
+
+## Como instalar
+
+Testado no Windows 11 com PowerShell. O Node do sistema pode ser outro; o fnm isola a versão do projeto.
+
+```powershell
+winget install Schniz.fnm
+# abra um novo terminal para o fnm entrar no PATH
+fnm install 26.13.1
+fnm exec --using 26.13.1 -- cmd /c "npm install -g pnpm@12.21.0"
+fnm exec --using 26.13.1 -- cmd /c "pnpm install --frozen-lockfile"
+```
+
+Observações:
+
+- O `fnm exec` não executa arquivos `.cmd` diretamente (`npm`, `pnpm`); por isso o `cmd /c`.
+- O npm do Node 26 avisa que o `postinstall` do pnpm não foi executado (`allowScripts`); o `pnpm -v` retorna `12.21.0` mesmo assim.
+- O Corepack não existe no Node 26; o pnpm é instalado pelo npm.
+- Conferir: `fnm exec --using 26.13.1 -- node -v` (v26.13.1) e `fnm exec --using 26.13.1 -- cmd /c "pnpm -v"` (12.21.0).
+
+Passo opcional, por conta do usuário, para usar `node` e `pnpm` direto no terminal: adicionar ao perfil do PowerShell (`notepad $PROFILE`) a linha abaixo. O fnm passa a ler o `.node-version` ao entrar na pasta do projeto.
+
+```powershell
+fnm env --use-on-cd --shell power-shell | Out-String | Invoke-Expression
+```
 
 ## Navegação
 

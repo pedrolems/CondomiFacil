@@ -96,8 +96,8 @@ Contagens conferidas por script antes dos acréscimos da seção 2.1: 150 RF, 18
 | M2 Design (fase 0) | Em andamento documental | roadmap.md:138 |
 | Marco 1 — protótipo validado | Pulado — Inacessível (RM-02); só retorno positivo de moradores | roadmap.md:63, :165 |
 | Marco 2 — parecer jurídico | Pulado — Inacessível para G0 (RM-03); obrigatório antes do piloto (decisão desta rodada) | roadmap.md:166; seção 2 |
-| **G0 — pronto para o MVP** | **Aberto.** 1 de 4 itens marcado (decisões de implantação). Esta baseline atende parte dos itens 2 e 3; o item 4 (liberação de Pedro) segue aberto | roadmap.md:174-181 |
-| M3–M6 MVP (fases 1 a 5) | Fase 1 bloqueada por G0; demais não iniciadas | roadmap.md:139-143 |
+| **G0 — pronto para o MVP** | **Liberado por Pedro em 18/11/2026 para a fase 1** (registro posterior a esta baseline; ver roadmap RM-09 e seção 4.2). Estado de 17–18/11/2026, antes da liberação: aberto, 1 de 4 itens marcado | roadmap.md:174-181 |
+| M3–M6 MVP (fases 1 a 5) | Fase 1 liberada em 18/11/2026, não iniciada (era bloqueada por G0); demais não iniciadas | roadmap.md:139-143 |
 | G1 — MVP homologado | Não iniciado | roadmap.md:492 |
 | M7 Piloto / G2 | Não iniciado; passa a exigir parecer (BL-DV-04) | roadmap.md:538 |
 | M8 Lançamento | Não iniciado | roadmap.md:145 |
@@ -269,7 +269,7 @@ Atende ao item 2 do checklist G0. Classificação de bloqueio conforme roadmap �
 
 | Tema | Fonte | Dono | Evidência esperada | Próxima ação | Bloqueio |
 | --- | --- | --- | --- | --- | --- |
-| Divergências BL-DV-01 a 03 | Seção 8.1 | Documentação / engenharia | Textos alinhados; saúde no contrato | Pedro autorizar pacote (Q-15) | Geral de início |
+| Divergências BL-DV-01 a 03 | Seção 8.1 | Documentação / engenharia | Textos alinhados; saúde no contrato | Concluído (aplicadas em 18/11/2026) | Resolvido (era geral de início) |
 | Revisão desta baseline e recorte da primeira entrega | Este documento; RM-05, RM-06 | Pedro | Aceite registrado em 18/11/2026 | Concluído | Resolvido (era geral de início) |
 | RF/US da plataforma e verificação restrita | Seção 2.1; BL-DV-05 | Produto | RF/US com cobertura; depois fluxos, DS, API | Produto concluído em 17/11/2026; alinhar demais artefatos (BL-DV-05) | Módulo acesso |
 | ADRs propostos (001, 003, 006 a 014) | adr/README.md; roadmap §5.4 | Engenharia | Aceite com limites e critérios de PoC | Revisar antes de cada módulo | Módulo (conforme ADR) |

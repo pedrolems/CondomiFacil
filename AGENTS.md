@@ -2,7 +2,7 @@
 
 App de gestão de condomínios para o Brasil (moradores, porteiros, limpeza, síndico, subsíndico, administradora, conselho fiscal, proprietário não residente, suporte e admin da plataforma). Cobre visitantes e portaria (inclusive offline), reservas pagas, encomendas e entregas esperadas, chamados, reclamações com score, comunicados, assembleias e votações, pesquisa mensal de funcionários, cobrança da taxa condominial e controle de receitas e despesas.
 
-**Estado atual: fase de Design, antes do código.** O repositório só tem documentação e um protótipo HTML. Não existe backend, app nem banco. Idioma de tudo: português do Brasil (docs, UI, commits, nomes de telas).
+**Estado atual: Design fechado; o G0 foi liberado por Pedro em 18/11/2026 só para a fase 1 (base executável, RM-10 a RM-15, incluindo a prova do gerador P1 no RM-12), que ainda não começou. Ainda não existe código.** O repositório só tem documentação e um protótipo HTML. Não existe backend, app nem banco. Idioma de tudo: português do Brasil (docs, UI, commits, nomes de telas).
 
 Autor e dono do produto: Pedro Lemos.
 
@@ -12,11 +12,11 @@ Autor e dono do produto: Pedro Lemos.
 docs/
   01-produto/       Fonte da verdade do negócio (ver abaixo)
   02-design/        Design System e User Flows
-  03-arquitetura/   Documento de arquitetura e ADRs (ver abaixo)
+  03-arquitetura/   Documento de arquitetura, ADRs e `criterios-de-poc.md` (ver abaixo)
   04-banco-de-dados/ MER/DER do banco (ver abaixo)
   05-backend/       Documentação do backend (ver abaixo) e contrato da API em 05-backend/api/
   06-frontend/     frontend.md (mobile) e painel-web.md (administradora)
-  07-seguranca/ ... 09-infra/   Vazias (.gitkeep): segurança, qualidade, infra
+  07-seguranca/ ... 09-infra/   Segurança/LGPD, plano de testes, infra e DevOps; `09-infra/pacote-tecnico-fase-1.md` é o pacote da fase 1
 prototipo/          Wireframes navegáveis em HTML/CSS/JS puro (sem build)
 graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 ```
@@ -180,6 +180,8 @@ Definir a branch de destino conforme a indicação do Pedro; não presumir `main
 
 ## Próximos passos
 
+**G0 liberado por Pedro em 18/11/2026 só para a fase 1** (RM-10 a RM-15, com a prova do gerador P1 no RM-12), conforme o pacote técnico (D1 a D8), R6-01 a R6-06 e PC-01 a PC-09. **Próximo passo: RM-10** na branch `feat/fase-1-base-executavel`, criada a partir de `develop`, seguindo `docs/09-infra/pacote-tecnico-fase-1.md` (Node 26.13.1, pnpm 12.21.0). Continuam bloqueados: PoCs P2 a P5 (RM-16), banco e acesso (fase 2), deploy no Render ou Supabase, dados reais e commit, merge ou push sem aprovação específica do Pedro.
+
 1. **Resolver as pendências do negócio** (User Flows seção 17), que bloqueiam partes do desenho:
    - Parecer jurídico sobre reclamações (SEG-16) e sobre as regras de locação; é o marco 2 do roadmap. Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto). Pacote preparado em 16/11/2026; parecer não emitido nem aprovado.
    - Gateway de pagamento: o Asaas está escolhido (ADR-002). Seguem pendentes os prazos reais de confirmação de boleto e Pix, o KYC da subconta, o chargeback e a conta principal em CNPJ (definem prazos e erros dos fluxos 5.1 e 13.1); a prova de conceito no sandbox os verifica.
@@ -189,7 +191,7 @@ Definir a branch de destino conforme a indicação do Pedro; não presumir `main
 2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso. Pulado — Inacessível (17/11/2026): não bloqueia G0; não realizado nem aprovado. Retomar quando houver acesso aos participantes.
 3. **Perfil Manutenção resolvido (17/11/2026):** retirado do protótipo; preservar empresas e chamados pelo síndico.
 4. **Validar os ADRs de `docs/03-arquitetura/adr/`**: os ADRs 002, 004 e 005 (10/11/2026) e 015 (14/11/2026, organização e fontes) já estão aceitos com ressalvas (a nuvem do piloto tem revisão obrigatória do ADR-004 antes do piloto com dados reais); aceitar, rejeitar ou ajustar os demais (dependem de PoC, custo ou parecer). Validar também o contrato da API de `docs/05-backend/api/` e decidir as pendências consolidadas em `api/README.md` e **preencher as pastas ainda vazias de `docs/`** na ordem natural: 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
-5. **Iniciar o MVP (M3 a M6)** só depois dos itens 1 e 2, exceto o parecer jurídico (SEG-16) e a validação do protótipo, que estão Pulado — Inacessível (17/11/2026) e não bloqueiam G0: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
+5. **Demais fases do MVP (M3 a M6; só a fase 1 está liberada)** dependem dos itens 1 e 2, exceto o parecer jurídico (SEG-16) e a validação do protótipo, que estão Pulado — Inacessível (17/11/2026) e não bloqueiam G0: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 
 ## Ferramentas e memória
@@ -203,4 +205,4 @@ Pedro autorizou antecipar relatórios ao MVP e alinhar documentação, contratos
 
 ## Complementos de autogestão e lote 3 — 17/11/2026
 
-Pedro aprovou a rodada de 14 decisões: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**, com alinhamento de docs e protótipo autorizado. Fonte vigente: `docs/01-produto/06-autogestao-e-conducao-eleitoral.md`, seção 2.1. Somente dados fictícios até o primeiro condomínio oficial; nomear operador antes dele, sem atribuir Admin a Pedro. Conta recebedora exige aprovação local independente, sem Admin financeiro. Canal técnico/comercial por e-mail terá responsável/endereço antes de disponibilizar; não há canal operante presumido. Lote 4 respondido em 17/11/2026: **IN-01 A** (primeiro pacote após G0: base local reproduzível, depois acesso, portaria/offline e cobrança) e **IN-02 A** (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). G0 segue aberto, sem liberação automática de app/API executáveis, dados reais, ADRs, PoCs ou Git.
+Pedro aprovou a rodada de 14 decisões: **1C, 2A, 3A, 4A, 5A, 6A, 7A, 8B, 9A, 10A, 11A, 12A, 13A, 14A**, com alinhamento de docs e protótipo autorizado. Fonte vigente: `docs/01-produto/06-autogestao-e-conducao-eleitoral.md`, seção 2.1. Somente dados fictícios até o primeiro condomínio oficial; nomear operador antes dele, sem atribuir Admin a Pedro. Conta recebedora exige aprovação local independente, sem Admin financeiro. Canal técnico/comercial por e-mail terá responsável/endereço antes de disponibilizar; não há canal operante presumido. Lote 4 respondido em 17/11/2026: **IN-01 A** (primeiro pacote após G0: base local reproduzível, depois acesso, portaria/offline e cobrança) e **IN-02 A** (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). G0 liberado em 18/11/2026 só para a fase 1; continuam sem liberação automática dados reais, ADRs, demais PoCs e Git.

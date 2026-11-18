@@ -2,7 +2,7 @@
 
 **Data:** 18/11/2026. **Atualizado em:** 18/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
-**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **nenhuma PoC executada nem liberada**. Isso não libera o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
+**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **nenhuma PoC executada**; G0 liberado em 18/11/2026 só para a fase 1: **P1 autorizada dentro do RM-12; P2 a P5 continuam não liberadas**. Os critérios, por si, não liberaram o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
 
 **Regra comum a todas as PoCs:** dados fictícios, sem serviço pago, sem publicar, sem credencial no Git ou em log ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 141; [pacote técnico da fase 1](../09-infra/pacote-tecnico-fase-1.md)). Se uma PoC reprovar, revê-se a proposta, sem enfraquecer RLS, sigilo ou integridade ([roadmap](../roadmap.md), linhas 264-265). Versões de bibliotecas abaixo: registro npm consultado em 18/11/2026, **não** confirmadas em changelogs completos; confirmar antes de fixar.
 

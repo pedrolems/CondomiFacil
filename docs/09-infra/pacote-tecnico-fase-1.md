@@ -2,7 +2,7 @@
 
 **Data:** 18/11/2026. **Atualizado em:** 18/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
-**Estado:** decisões D1 a D8 aceitas por Pedro em 18/11/2026; **G0 não liberado**. Pedro decidiu que o G0 será revisado depois deste registro; as versões de Node e pnpm (D1) foram confirmadas e aprovadas por ele em 18/11/2026 (seção 5), e o G0 segue pendente só da revisão de Pedro. Nada aqui libera código, instalação, dependências, dados reais, publicação, commit ou push. É o pacote técnico concreto previsto no [lote 4](../decisoes-para-iniciar-o-desenvolvimento.md#6-lote-4--o-mínimo-para-liberar-a-primeira-entrega-técnica) (IN-01 A) e no [roadmap](../roadmap.md), fase 1 (RM-10 a RM-15).
+**Estado:** decisões D1 a D8 aceitas por Pedro em 18/11/2026; **G0 liberado em 18/11/2026; fase 1 não iniciada** (limite no [roadmap](../roadmap.md), RM-09). O G0 não estava liberado quando as decisões foram registradas; Pedro o revisou depois; as versões de Node e pnpm (D1) foram confirmadas e aprovadas por ele em 18/11/2026 (seção 5), e o G0 foi liberado depois, só para a fase 1. Nada aqui libera código, instalação, dependências, dados reais, publicação, commit ou push. É o pacote técnico concreto previsto no [lote 4](../decisoes-para-iniciar-o-desenvolvimento.md#6-lote-4--o-mínimo-para-liberar-a-primeira-entrega-técnica) (IN-01 A) e no [roadmap](../roadmap.md), fase 1 (RM-10 a RM-15).
 
 ## Índice
 

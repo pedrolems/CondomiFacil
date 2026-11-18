@@ -73,7 +73,7 @@ Aceitas por Pedro em 18/11/2026.
 | PC-06 | P3 e P5 em PostgreSQL local descartável, sem provisionar Supabase |
 | PC-07 | Limites: P1 2 dias, P2 3, P3 3, P4 4, P5 2 |
 | PC-08 | Dev build local autorizado só para a P4, sem conta de loja (exceção ao D8) |
-| PC-09 | TypeScript: fixar no RM-10 a versão 5.x mais recente compatível com Expo SDK 58 e NestJS 12, confirmada em fonte oficial |
+| PC-09 | TypeScript: **TypeScript 6.0.3** (alterado em 18/11/2026, substitui a regra anterior). Motivo: o template oficial do Expo SDK 58 (`expo-template-default@sdk-58`) declara `typescript ~6.0.3`; `@nestjs/cli` e `@nestjs/schematics` 12.0.13 exigem `typescript >=6.0.0`; o typescript-eslint 8.73.0 aceita `<6.1.0`. A 5.9.3 não serve e a 7.0.2 sai do peer do typescript-eslint. Fonte: manifestos do registro npm consultados em 18/11/2026; a página docs.expo.dev/guides/typescript não fixa versão. *Texto anterior (histórico, aceito em 18/11/2026): fixar no RM-10 a versão 5.x mais recente compatível com Expo SDK 58 e NestJS 12, confirmada em fonte oficial.* |
 
 ## Riscos
 

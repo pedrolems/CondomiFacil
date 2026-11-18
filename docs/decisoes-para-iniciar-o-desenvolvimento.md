@@ -171,7 +171,7 @@ Pedro aceitou em 18/11/2026 todas as recomendações do IN-02 A (critérios das 
 | PC-06 | P3 e P5 em PostgreSQL local descartável, sem provisionar Supabase | **Resposta de Pedro em 18/11/2026: aceita** |
 | PC-07 | Limites de tempo: P1 2 dias, P2 3, P3 3, P4 4, P5 2 | **Resposta de Pedro em 18/11/2026: aceita** |
 | PC-08 | Dev build local autorizado só para a P4, sem conta de loja (exceção ao D8) | **Resposta de Pedro em 18/11/2026: aceita** |
-| PC-09 | TypeScript 5.x mais recente compatível com Expo SDK 58 e NestJS 12, fixado no RM-10 após confirmação em fonte oficial | **Resposta de Pedro em 18/11/2026: aceita** |
+| PC-09 | **TypeScript 6.0.3** (alterado em 18/11/2026, substitui a regra anterior). Motivo: o template oficial do Expo SDK 58 (`expo-template-default@sdk-58`) declara `typescript ~6.0.3`; `@nestjs/cli` e `@nestjs/schematics` 12.0.13 exigem `typescript >=6.0.0`; o typescript-eslint 8.73.0 aceita `<6.1.0`. A 5.9.3 não serve e a 7.0.2 sai do peer do typescript-eslint. Fonte: manifestos do registro npm consultados em 18/11/2026; a página docs.expo.dev/guides/typescript não fixa versão. *Texto anterior (histórico): TypeScript 5.x mais recente compatível com Expo SDK 58 e NestJS 12, fixado no RM-10 após confirmação em fonte oficial.* | **Resposta de Pedro em 18/11/2026: aceita** |
 
 | ID | Recorte da fase 1 (RM-06) | Resposta |
 | --- | --- | --- |
@@ -183,6 +183,15 @@ Pedro aceitou em 18/11/2026 todas as recomendações do IN-02 A (critérios das 
 | R6-06 | Ferramenta de testes decidida na prova do RM-11/RM-13, com hipótese inicial Vitest na API (NestJS 12 só ESM) e Jest no app | **Resposta de Pedro em 18/11/2026: aceita** |
 
 Fica para as fases 2 e 3 o restante dos ADRs (001, 007 e 008 antes da fase 2; 003 e 014 antes da fase 3; 006, 012, 009, 010 e 013 antes dos módulos dependentes), MER, política de acesso e demais contratos. Divergências conhecidas, sem correção: [critérios das PoCs](03-arquitetura/criterios-de-poc.md#divergências-conhecidas).
+
+**Decisões do RM-11 (18/11/2026)**, tomadas por Pedro durante o RM-11:
+
+| ID | Decisão | Resposta |
+| --- | --- | --- |
+| RM11-01 | Turborepo só com `lint` por enquanto. Não existe código-fonte real (os `.ts` atuais só têm comentários "reservado"); typecheck ou build agora seriam tarefas vazias, proibidas pelo ADR-015. Typecheck e build entram por pacote quando houver código: `shared-types` no RM-12, apps no RM-13, `ui` e `design-tokens` no RM-14. A prova do RM-11 passa a ser `pnpm turbo run lint` com a regra de fronteiras (antes: `lint typecheck build`) | **Resposta de Pedro em 18/11/2026: aceita** |
+| RM11-02 | ESLint: a major mais nova compatível com typescript-eslint, eslint-plugin-boundaries e eslint-config-prettier (a 10 se todos declararem suporte, senão a 9.39.5) | **Resposta de Pedro em 18/11/2026: aceita** |
+| RM11-03 | Fronteiras entre pacotes e apps com eslint-plugin-boundaries | **Resposta de Pedro em 18/11/2026: aceita** |
+| RM11-04 | Fim de linha padronizado com `.gitattributes` LF | **Resposta de Pedro em 18/11/2026: aceita** |
 
 ## 7. Lote 5 — fila restante por dependência
 

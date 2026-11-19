@@ -1,0 +1,12 @@
+{
+  "extends": "@condomifacil/config/tsconfig/expo.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.stories.tsx"]
+}

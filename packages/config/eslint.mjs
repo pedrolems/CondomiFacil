@@ -45,6 +45,24 @@ const fronteiras = {
   },
 };
 
+// DS 17: cor em hexadecimal só na paleta (`frontend/packages/design-tokens`); o resto usa tokens.
+const HEX = '/^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/';
+const MENSAGEM_HEX = 'Cor em hex solta: use os tokens de @condomifacil/design-tokens (DS 17).';
+const semHexSolto = {
+  files: ['frontend/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+  ignores: ['frontend/packages/design-tokens/**'],
+  rules: {
+    'no-restricted-syntax': [
+      'error',
+      { selector: `Literal[value=${HEX}]`, message: MENSAGEM_HEX },
+      {
+        selector: `TemplateLiteral[expressions.length=0] > TemplateElement[value.raw=${HEX}]`,
+        message: MENSAGEM_HEX,
+      },
+    ],
+  },
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -54,11 +72,14 @@ export default tseslint.config(
       '**/dist/**',
       '**/.expo/**',
       '**/gerado/**',
+      '**/storybook-static/**',
+      '**/.rnstorybook/storybook.requires.ts',
     ],
   },
   js.configs.recommended,
   tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },
   fronteiras,
+  semHexSolto,
   prettier,
 );

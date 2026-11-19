@@ -1,0 +1,10 @@
+{
+  "extends": "@condomifacil/config/tsconfig/base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "types": []
+  },
+  "include": ["src"]
+}

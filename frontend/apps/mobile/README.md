@@ -1,6 +1,6 @@
 # Aplicativo e versão web
 
-Aplicativo React Native + TypeScript com Expo SDK 58 e Expo Router, para Android, iOS e web (react-native-web). **Fase 1 (RM-13):** uma única tela, que chama `GET /v1/saude` e mostra carregando, API disponível, API indisponível, sem conexão ou resposta fora do contrato (sempre texto e ícone). Sem telas de domínio, sessão, offline ou push. Tokens e componentes do Design System chegam no RM-14; por isso a tela usa só os padrões do sistema.
+Aplicativo React Native + TypeScript com Expo SDK 58 e Expo Router, para Android, iOS e web (react-native-web). **Fase 1 (RM-13):** uma única tela, que chama `GET /v1/saude` e mostra carregando, API disponível, API indisponível, sem conexão ou resposta fora do contrato (sempre texto e ícone). Sem telas de domínio, sessão, offline ou push. **RM-14:** a tela usa o tema (claro, escuro ou igual ao aparelho) e os componentes `StatusView` e `Button` de `@condomifacil/ui`, com tokens de `@condomifacil/design-tokens` e ícones Lucide.
 
 Os demais diretórios de `src/` seguem reservados (READMEs). Referência: `docs/06-frontend/frontend.md`, seção 2.1.
 
@@ -13,6 +13,7 @@ Na raiz do repositório, com o Node e o pnpm fixados (`pnpm install` antes):
 | `pnpm dev:app` | Expo (Metro) persistente; abre os menus `w` (web), `a` (Android) e o QR Code do Expo Go |
 | `pnpm --filter @condomifacil/mobile test` | Jest (jest-expo) e Testing Library |
 | `pnpm --filter @condomifacil/mobile build` | `expo export --platform web`, saída em `dist/` |
+| `pnpm --filter @condomifacil/mobile storybook` | Storybook nativo no lugar do app (`STORYBOOK_ENABLED=true expo start`), para Expo Go, emulador ou `w` (web); ver `.rnstorybook/README.md` |
 | `pnpm check` | lint, contratos, typecheck, build e testes de todo o workspace |
 
 ## URL da API: `EXPO_PUBLIC_API_URL`
@@ -44,7 +45,8 @@ O iOS recusa HTTP puro em apps de produção (ATS); o Expo Go em desenvolvimento
 
 ## Decisões técnicas
 
-- **Metro no monorepo pnpm:** sem `metro.config.js`. O Expo SDK 58 já configura monorepos (pastas observadas, links simbólicos do pnpm e `exports` de pacotes), e `@condomifacil/shared-types` é resolvido pelo `exports`.
+- **Metro no monorepo pnpm:** o `metro.config.js` parte do `getDefaultConfig` do Expo SDK 58, que já configura monorepos (pastas observadas, links simbólicos do pnpm e `exports` de pacotes); `@condomifacil/shared-types` é resolvido pelo `exports`. A única adição é o `withStorybook`, inerte sem `STORYBOOK_ENABLED=true`.
+- **Storybook nativo (RM-14):** entrada própria em `.rnstorybook/`, trocada pelo Metro só com `STORYBOOK_ENABLED=true`; o build de produção não contém Storybook nem stories (verificado no bundle Android e web). Abrir no Android ou iPhone com Expo Go: passo a passo em `.rnstorybook/README.md`.
 - **Tipos:** preset `@condomifacil/config/tsconfig/expo.json` (estende `expo/tsconfig.base`).
 - **Contrato:** o cliente em `src/infraestrutura/api/saude.ts` valida a resposta com `validarComum('SaudeComum', ...)` (Ajv, prova P1-03).
 - **Testes (R6-06):** Jest com `jest-expo`, o preset oficial do Expo (transforma React Native e resolve Expo Router). Os testes da tela mockam o cliente; os do cliente usam o Ajv real.

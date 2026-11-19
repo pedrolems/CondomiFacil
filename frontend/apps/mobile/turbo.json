@@ -7,7 +7,7 @@
       "inputs": ["src/**", "test/**", "package.json"]
     },
     "build": {
-      "inputs": ["src/**", "app.config.ts", "package.json"],
+      "inputs": ["src/**", "app.config.ts", "metro.config.js", "package.json"],
       "env": ["EXPO_PUBLIC_API_URL"]
     }
   }

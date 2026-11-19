@@ -1,5 +1,23 @@
 {
   "name": "@condomifacil/design-tokens",
   "private": true,
-  "description": "Tokens compartilhados planejados, sem implementação."
+  "description": "Tokens do Design System: paleta, temas, tipografia, espaçamento, raios e movimento.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@condomifacil/config": "workspace:*",
+    "typescript": "6.0.3"
+  }
 }

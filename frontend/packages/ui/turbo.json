@@ -1,0 +1,16 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "typecheck": {
+      "inputs": ["src/**", "test/**", "tsconfig.json", "package.json"]
+    },
+    "build": {
+      "inputs": ["src/**", "tsconfig.json", "tsconfig.build.json", "package.json"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "package.json"]
+    }
+  }
+}

@@ -4,3 +4,4 @@ docs/superpowers/
 node_modules/
 .turbo/
 dist/
+storybook-static/

@@ -1,2 +1,2 @@
-// Raios: caminho reservado conforme biblioteca-de-componentes.md §2.2.
-// Sem valores ou implementação; usar a fonte única do Design System ao implementar.
+// Raios (DS 7.1).
+export const radius = { sm: 8, md: 12, lg: 20, fab: 16, full: 999 } as const;

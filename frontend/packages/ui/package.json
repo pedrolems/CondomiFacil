@@ -1,5 +1,48 @@
 {
   "name": "@condomifacil/ui",
   "private": true,
-  "description": "Biblioteca de componentes planejada, sem implementação."
+  "description": "Biblioteca de componentes do Design System (React Native e web).",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@condomifacil/design-tokens": "workspace:*",
+    "lucide-react-native": "1.73.0"
+  },
+  "peerDependencies": {
+    "react": "^19.3.0",
+    "react-native": "^0.88.1",
+    "react-native-svg": "^15.16.0"
+  },
+  "devDependencies": {
+    "@condomifacil/config": "workspace:*",
+    "@react-native/jest-preset": "0.88.1",
+    "@testing-library/react-native": "14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "19.3.0",
+    "expo": "58.0.26",
+    "jest": "30.5.2",
+    "jest-expo": "58.0.15",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-svg": "15.16.0",
+    "typescript": "6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
+    }
+  }
 }

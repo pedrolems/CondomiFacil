@@ -1,0 +1,18 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "typecheck": {
+      "inputs": [".storybook/**", "vitest.config.ts", "tsconfig.json", "package.json"]
+    },
+    "build": {
+      "inputs": [
+        ".storybook/**",
+        "package.json",
+        "$TURBO_ROOT$/frontend/packages/ui/src/**",
+        "$TURBO_ROOT$/frontend/packages/design-tokens/src/**"
+      ],
+      "outputs": ["storybook-static/**"]
+    }
+  }
+}

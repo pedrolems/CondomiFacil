@@ -5,3 +5,8 @@ node_modules/
 .turbo/
 dist/
 storybook-static/
+
+# Segredos locais (SEG-02); só o modelo sem valores vai para o Git.
+.env
+.env.*
+!.env.example

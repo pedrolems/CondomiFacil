@@ -1,0 +1,55 @@
+# CI de pull request só de verificação (D6, RM-15). Sem promoção, publicação nem segredos.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  verificar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .node-version
+
+      # O Node 26 não traz o Corepack: o pnpm é instalado explicitamente, na versão de `packageManager`.
+      - name: Instalar o pnpm
+        run: npm install -g pnpm@12.21.0
+
+      - name: Instalar dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      # Lint, geração de contratos (valida o AsyncAPI), tipos, build, testes e geração sem diff.
+      - name: Verificar (lint, contratos, tipos, build, testes)
+        run: pnpm check
+
+      - name: Formatação
+        run: pnpm format:check
+
+      - name: Lint do OpenAPI (Redocly)
+        run: pnpm lint:openapi
+
+      - name: Varredura de segredos (gitleaks)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_VERSION: 8.30.1

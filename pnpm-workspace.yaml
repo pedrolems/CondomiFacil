@@ -7,4 +7,5 @@ shellEmulator: true
 allowBuilds:
   '@scarf/scarf': false
   '@parcel/watcher': false
+  core-js: false
   esbuild: false

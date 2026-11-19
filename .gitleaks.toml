@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+# Exemplos fictícios do contrato OpenAPI (tokens de amostra), só nestes dois arquivos e nestas duas regras.
+[[allowlists]]
+targetRules = ["jwt", "generic-api-key"]
+paths = [
+  '''docs/05-backend/api/openapi/comum\.yaml''',
+  '''packages/shared-types/src/gerado/comum\.tipos\.ts''',
+]

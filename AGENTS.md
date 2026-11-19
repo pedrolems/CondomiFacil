@@ -2,7 +2,7 @@
 
 App de gestão de condomínios para o Brasil (moradores, porteiros, limpeza, síndico, subsíndico, administradora, conselho fiscal, proprietário não residente, suporte e admin da plataforma). Cobre visitantes e portaria (inclusive offline), reservas pagas, encomendas e entregas esperadas, chamados, reclamações com score, comunicados, assembleias e votações, pesquisa mensal de funcionários, cobrança da taxa condominial e controle de receitas e despesas.
 
-**Estado atual: Design fechado; o G0 foi liberado por Pedro em 18/11/2026 só para a fase 1 (base executável, RM-10 a RM-15, incluindo a prova do gerador P1 no RM-12), que ainda não começou. Ainda não existe código.** O repositório só tem documentação e um protótipo HTML. Não existe backend, app nem banco. Idioma de tudo: português do Brasil (docs, UI, commits, nomes de telas).
+**Estado atual: Design fechado; fase 1 (base executável, RM-10 a RM-15) executada entre 18 e 19/11/2026 na branch `feat/fase-1-base-executavel`, com a prova do gerador P1 aprovada no RM-12.** Existe só a base: monorepo pnpm + Turborepo, API NestJS com `GET /v1/saude` sem banco, app Expo com a tela de saúde, design tokens e componentes da tela de saúde com Storybook, tipos gerados do contrato em `shared-types` e CI de PR só de verificação. Nenhuma funcionalidade de negócio implementada; não existe banco nem deploy. Idioma de tudo: português do Brasil (docs, UI, commits, nomes de telas).
 
 Autor e dono do produto: Pedro Lemos.
 
@@ -17,6 +17,11 @@ docs/
   05-backend/       Documentação do backend (ver abaixo) e contrato da API em 05-backend/api/
   06-frontend/     frontend.md (mobile) e painel-web.md (administradora)
   07-seguranca/ ... 09-infra/   Segurança/LGPD, plano de testes, infra e DevOps; `09-infra/pacote-tecnico-fase-1.md` é o pacote da fase 1
+backend/apps/api/   API NestJS (hoje só a saúde, RM-13)
+frontend/apps/      mobile (Expo, tela de saúde) e catalogo-componentes (Storybook web)
+frontend/packages/  design-tokens e ui (RM-14)
+packages/           shared-types (tipos e validação gerados do contrato, RM-12) e config
+.github/workflows/  ci.yml: CI de PR só de verificação (RM-15)
 prototipo/          Wireframes navegáveis em HTML/CSS/JS puro (sem build)
 graphify-out/       Grafo de conhecimento gerado, ignorado pelo git
 ```
@@ -176,11 +181,12 @@ Definir a branch de destino conforme a indicação do Pedro; não presumir `main
 - Protótipo navegável com os fluxos de todos os perfis, incluindo as últimas adições: finanças do condomínio, entregas esperadas, listas de visitantes, avaliação de chamados, urgência e ordenação de chamados, semáforo de prazo de reclamação, política de locação e interface do subsíndico.
 - Portaria com reservas do dia e registro de uso/vistoria: Em andamento, Cumprida e Não comparecimento, inclusive em reserva paga não usada; limpeza mantém vistoria (decisão de Pedro em 08/11/2026).
 - Escolhas de infraestrutura (decisão de Pedro em 10/11/2026, aceitas com ressalvas): Asaas (ADR-002), Supabase + Render para construir o MVP em dev e staging, sem custo (ADR-004) e Resend (ADR-005).
-- Contrato da API em `docs/05-backend/api/` (proposta de 10/11/2026, não aceita pelo Pedro): guia de convenções, 11 arquivos OpenAPI 3.1, AsyncAPI do tempo real, catálogo de eventos e webhooks, integrações externas e tabela de cobertura RF -> operação. É contrato escrito antes do código; não existe backend.
+- Contrato da API em `docs/05-backend/api/` (proposta de 10/11/2026, não aceita pelo Pedro): guia de convenções, 11 arquivos OpenAPI 3.1, AsyncAPI do tempo real, catálogo de eventos e webhooks, integrações externas e tabela de cobertura RF -> operação. É contrato escrito antes do código; do backend só existe a operação de saúde.
+- **Fase 1 — base executável (RM-10 a RM-15, 18 e 19/11/2026):** Node 26.13.1 e pnpm 12.21.0 fixados com lockfile; lint, Prettier, TypeScript e Turborepo; geração de tipos e validação a partir do OpenAPI/AsyncAPI (P1 aprovada: openapi-typescript + Ajv + @asyncapi/parser); API NestJS com `GET /v1/saude` e app Expo exibindo a saúde; tokens, tema claro/escuro, componentes da tela de saúde e Storybook web e nativo; CI de PR com `pnpm check`, lint do OpenAPI e gitleaks. Resultados e limitações de cada etapa em `docs/09-infra/pacote-tecnico-fase-1.md`, seção 3.
 
 ## Próximos passos
 
-**G0 liberado por Pedro em 18/11/2026 só para a fase 1** (RM-10 a RM-15, com a prova do gerador P1 no RM-12), conforme o pacote técnico (D1 a D8), R6-01 a R6-06 e PC-01 a PC-09. **Próximo passo: RM-10** na branch `feat/fase-1-base-executavel`, criada a partir de `develop`, seguindo `docs/09-infra/pacote-tecnico-fase-1.md` (Node 26.13.1, pnpm 12.21.0). Continuam bloqueados: PoCs P2 a P5 (RM-16), banco e acesso (fase 2), deploy no Render ou Supabase, dados reais e commit, merge ou push sem aprovação específica do Pedro.
+**G0 liberado por Pedro em 18/11/2026 só para a fase 1** (RM-10 a RM-15, com a prova do gerador P1 no RM-12), conforme o pacote técnico (D1 a D8), R6-01 a R6-06 e PC-01 a PC-09. **Fase 1 executada (RM-10 a RM-15, 18 e 19/11/2026)** na branch `feat/fase-1-base-executavel`; RM-10 a RM-15 já estão em `develop`, `staging`, `main` e `docs/design-system-e-user-flows`. Provas do app em dispositivo (D8, 19/11/2026): emulador Android passou com "API disponível"; iPhone via Expo Go passou em parte, com o estado "Sem conexão com a API". Pendências da fase 1: decidir se a prova do iPhone basta, Storybook nativo em Android e iPhone (a cargo de Pedro), primeira execução do CI no GitHub (exige push) e `test:a11y` fora do CI. **Próximo passo:** Pedro liberar a etapa seguinte (PoCs P2 a P5 do RM-16 e fase 2). Continuam bloqueados: PoCs P2 a P5 (RM-16), banco e acesso (fase 2), deploy no Render ou Supabase, dados reais e commit, merge ou push sem aprovação específica do Pedro.
 
 1. **Resolver as pendências do negócio** (User Flows seção 17), que bloqueiam partes do desenho:
    - Parecer jurídico sobre reclamações (SEG-16) e sobre as regras de locação; é o marco 2 do roadmap. Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto). Pacote preparado em 16/11/2026; parecer não emitido nem aprovado.
@@ -191,7 +197,7 @@ Definir a branch de destino conforme a indicação do Pedro; não presumir `main
 2. **Validar o protótipo** com síndicos, porteiros e moradores (marco 1 do roadmap) e ajustar docs e telas com o que sair disso. Pulado — Inacessível (17/11/2026): não bloqueia G0; não realizado nem aprovado. Retomar quando houver acesso aos participantes.
 3. **Perfil Manutenção resolvido (17/11/2026):** retirado do protótipo; preservar empresas e chamados pelo síndico.
 4. **Validar os ADRs de `docs/03-arquitetura/adr/`**: os ADRs 002, 004 e 005 (10/11/2026) e 015 (14/11/2026, organização e fontes) já estão aceitos com ressalvas (a nuvem do piloto tem revisão obrigatória do ADR-004 antes do piloto com dados reais); aceitar, rejeitar ou ajustar os demais (dependem de PoC, custo ou parecer). Validar também o contrato da API de `docs/05-backend/api/` e decidir as pendências consolidadas em `api/README.md` e **preencher as pastas ainda vazias de `docs/`** na ordem natural: 07-seguranca (SEG-* e LGPD), 08-qualidade (estratégia de testes a partir dos critérios de aceite), 09-infra. A 04-banco-de-dados já tem o MER/DER em `docs/04-banco-de-dados/01-mer-e-der.md` e a 05-backend já tem a proposta em `docs/05-backend/01-backend.md`, ambos a validar.
-5. **Demais fases do MVP (M3 a M6; só a fase 1 está liberada)** dependem dos itens 1 e 2, exceto o parecer jurídico (SEG-16) e a validação do protótipo, que estão Pulado — Inacessível (17/11/2026) e não bloqueiam G0: monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
+5. **Demais fases do MVP (M3 a M6; só a fase 1 foi liberada e executada)** dependem dos itens 1 e 2, exceto o parecer jurídico (SEG-16) e a validação do protótipo, que estão Pulado — Inacessível (17/11/2026) e não bloqueiam G0: sobre a base do monorepo Expo + NestJS, começando por acesso e conta, portaria offline e cobrança, que são os módulos de maior risco.
 6. Manter o README raiz (hoje só o nome) com uma descrição curta e links para os docs.
 
 ## Ferramentas e memória

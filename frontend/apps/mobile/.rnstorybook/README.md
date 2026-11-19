@@ -41,4 +41,5 @@ No emulador Android, com um AVD criado no Android Studio: rode o passo 2 e tecle
 ## Limitações conhecidas
 
 - **Windows:** o `liteMode` do `withStorybook` 10.7.2 compara caminhos com `/` e não esvazia a interface completa. O `metro.config.js` contorna esvaziando `@storybook/react-native-ui` pelo nome do módulo (comentário `shortcut:`); remover quando o pacote corrigir.
-- O pacote declara testes com React Native 0.86 e Expo 57; com 0.88 e Expo 58 o bundle compila e a interface abre na web, mas a abertura em aparelho ou emulador ainda não foi feita nesta máquina (sem AVD configurado).
+- O pacote declara testes com React Native 0.86 e Expo 57; com 0.88 e Expo 58 o bundle compila, a interface abre na web e, em 19/11/2026, abriu no emulador Android 36.1 com Expo Go (troca de tema e navegação entre stories funcionando). Falta abrir no iPhone.
+- **Emulador Android:** se o Expo Go travar em "Bundling" pela rede local, encaminhe a porta e abra por localhost: `adb reverse tcp:<porta> tcp:<porta>` e `adb shell am start -a android.intent.action.VIEW -d "exp://127.0.0.1:<porta>" host.exp.exponent`.

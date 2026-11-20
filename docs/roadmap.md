@@ -362,7 +362,7 @@ Fontes operacionais: [Segurança](07-seguranca/seguranca.md), [LGPD](07-seguranc
 
 ## 6. Fase 1 — preparar a base executável
 
-**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026. RM-10 a RM-15 executados em 18 e 19/11/2026, com resultados no [pacote técnico](09-infra/pacote-tecnico-fase-1.md), seção 3: app alcança a API na web, no emulador Android e no iPhone; Storybook nativo aberto no emulador Android e no iPhone (20/11/2026); CI passou no GitHub em 19/11/2026. Pendente para a saída: decisão sobre `test:a11y` no CI; reprodução da instalação e da execução por outra pessoa a partir das instruções; RM-16 (PoCs P2 a P5), ainda não liberado.
+**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026. RM-10 a RM-15 executados em 18 e 19/11/2026, com resultados no [pacote técnico](09-infra/pacote-tecnico-fase-1.md), seção 3: app alcança a API na web, no emulador Android e no iPhone; Storybook nativo aberto no emulador Android e no iPhone (20/11/2026); CI passou no GitHub em 19/11/2026. `test:a11y` (axe) no CI desde 20/11/2026. Pendente para a saída: reprodução da instalação e da execução por outra pessoa a partir das instruções; RM-16 (PoCs P2 a P5), ainda não liberado.
 
 | ID | Pacote | Dependência | Entrega verificável |
 | --- | --- | --- | --- |

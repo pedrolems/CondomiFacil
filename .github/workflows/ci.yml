@@ -41,6 +41,14 @@ jobs:
       - name: Verificar (lint, contratos, tipos, build, testes)
         run: pnpm check
 
+      # Chromium na versão do Playwright do lockfile, com as bibliotecas de sistema do Ubuntu.
+      - name: Instalar o Chromium do Playwright
+        run: pnpm --filter @condomifacil/catalogo-componentes exec playwright install --with-deps chromium
+
+      # axe do addon-a11y em todas as stories, nos temas claro e escuro.
+      - name: Acessibilidade das stories (axe)
+        run: pnpm --filter @condomifacil/catalogo-componentes test:a11y
+
       - name: Formatação
         run: pnpm format:check
 

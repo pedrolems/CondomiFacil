@@ -14,6 +14,6 @@ Antes do primeiro `test:a11y`, instale o Chromium do Playwright (download único
 pnpm --filter @condomifacil/catalogo-componentes exec playwright install chromium
 ```
 
-O `test:a11y` usa `@storybook/addon-vitest` (Vitest 5.1.0 em modo navegador, Playwright 1.65.1) com `a11y.test: 'error'`. Fica fora do `pnpm check` porque precisa desse navegador. O `design-tokens` precisa estar compilado (`pnpm turbo run build`).
+O `test:a11y` usa `@storybook/addon-vitest` (Vitest 5.1.0 em modo navegador, Playwright 1.65.1) com `a11y.test: 'error'`. Fica fora do `pnpm check` porque precisa desse navegador; no CI roda em passo próprio, depois do `pnpm check`, com o Chromium instalado pelo workflow. O `design-tokens` precisa estar compilado (`pnpm turbo run build`).
 
 `fixtures/` guarda exemplos sintéticos comuns; não incluir dados pessoais reais nem credenciais.

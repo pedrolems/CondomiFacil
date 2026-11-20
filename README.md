@@ -2,15 +2,15 @@
 
 O CondomiFacil é um projeto de aplicativo de gestão de condomínios para o Brasil. Reúne moradores, síndico, portaria e administração em tarefas como controle de visitantes, encomendas, reservas de áreas comuns, chamados, comunicados, assembleias, cobranças e acompanhamento financeiro.
 
-**Estado atual: fase de Design.** Este repositório contém a documentação do produto e um protótipo navegável em HTML, CSS e JavaScript. O aplicativo, o backend e o banco de dados ainda não foram implementados.
+**Estado atual: Design fechado e fase 1 (base executável) em andamento.** Este repositório contém a documentação do produto, um protótipo navegável em HTML, CSS e JavaScript e a base técnica: API NestJS com só a rota de saúde (`GET /v1/saude`), app Expo com a tela que consulta essa rota, biblioteca de componentes com Storybook e CI de PR. Nenhuma funcionalidade de negócio foi implementada, e ainda não há banco de dados nem deploy.
 
 Autor e responsável pelo produto: [Pedro Lemos](https://github.com/pedrolems).
 
 ## Organização técnica
 
-A estrutura preparatória usa um workspace pnpm na raiz, mantendo [backend](backend/README.md) e [frontend](frontend/README.md). [Contratos compartilhados](packages/shared-types/README.md) e [presets de ferramentas](packages/config/README.md) têm uma única localização em `packages/`. OpenAPI/AsyncAPI serão a fonte de geração dos tipos e esquemas; ferramenta e versões dependem de validação antes da implementação. Turborepo será configurado quando houver tarefas executáveis. Decisão de Pedro em 14/11/2026: [ADR-015](docs/03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md).
+A estrutura preparatória usa um workspace pnpm na raiz, mantendo [backend](backend/README.md) e [frontend](frontend/README.md). [Contratos compartilhados](packages/shared-types/README.md) e [presets de ferramentas](packages/config/README.md) têm uma única localização em `packages/`. Os tipos e esquemas de validação são gerados do OpenAPI/AsyncAPI (openapi-typescript, Ajv e @asyncapi/parser, escolhidos na prova P1). O Turborepo orquestra lint, tipos, build e testes. Decisão de Pedro em 14/11/2026: [ADR-015](docs/03-arquitetura/adr/015-workspaces-e-contratos-compartilhados.md).
 
-Ainda não há dependências nem scripts executáveis. Node 26.13.1 e pnpm 12.21.0 estão fixados (`.node-version`, `packageManager` e `engines` no `package.json` da raiz) e há um único `pnpm-lock.yaml` na raiz. O protótipo continua independente dessa preparação.
+Node 26.13.1 e pnpm 12.21.0 estão fixados (`.node-version`, `packageManager` e `engines` no `package.json` da raiz) e há um único `pnpm-lock.yaml` na raiz. O protótipo continua independente dessa preparação.
 
 ## Como instalar
 

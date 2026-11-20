@@ -1,0 +1,38 @@
+﻿{
+    "cenario":  "queda",
+    "ok":  true,
+    "ms":  30387,
+    "r":  {
+              "tent1":  {
+                            "enviadas":  0,
+                            "ok":  false,
+                            "erro":  "Error: fetch failed: java.io.IOException: unexpected end of stream on http://10.0.2.2:4545/..."
+                        },
+              "pendAposQueda":  2000,
+              "srvAposQueda":  {
+                                   "unicas":  500,
+                                   "duplicatasRecebidas":  250,
+                                   "violacoesOrdem":  0,
+                                   "ordemCrescente":  true,
+                                   "divergentes":  0,
+                                   "ciclos":  {
+
+                                              }
+                               },
+              "tent2":  {
+                            "enviadas":  2000,
+                            "ok":  true
+                        },
+              "pendFinal":  0,
+              "servidor":  {
+                               "unicas":  2000,
+                               "duplicatasRecebidas":  750,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  0,
+                               "ciclos":  {
+
+                                          }
+                           }
+          }
+}

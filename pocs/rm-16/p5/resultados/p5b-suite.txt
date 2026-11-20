@@ -1,0 +1,64 @@
+▶ kysely + pg
+  ✔ não abre conexão antes do primeiro comTenant (nem ao ser criado) (4502.8453ms)
+  ✔ transação com set_config local e consulta sob RLS: cada condomínio vê só o seu (331.4154ms)
+  ✔ escrita em outro condomínio é recusada pela RLS (42501) e a reserva alheia não é alterável (298.5275ms)
+  ✔ EXCLUDE: sobreposição na mesma área é recusada (23P01); cancelada não bloqueia (711.0021ms)
+  ✔ gatilho grava auditoria pela RLS do próprio condomínio; outro condomínio não a vê (347.6319ms)
+  ✔ concorrência: duas transações em conexões distintas na mesma faixa; exatamente uma vence (1186.3957ms)
+  ✔ conexão volta limpa ao pool: após commit, erro SQL e exceção JS (mesma conexão física) (43.7321ms)
+  ✔ controle negativo: set_config de SESSÃO vaza para a próxima transação e o teste detecta (16.1102ms)
+  ✔ queda da conexão no meio da transação: o pool descarta e a próxima usa conexão nova (404.2867ms)
+  ✔ biblioteca usada fora do TenantContext é bloqueada antes de chegar ao banco (19.6093ms)
+✔ kysely + pg (7866.0545ms)
+▶ kysely + postgres.js
+  ✔ não abre conexão antes do primeiro comTenant (nem ao ser criado) (1079.5062ms)
+  ✔ transação com set_config local e consulta sob RLS: cada condomínio vê só o seu (34.0371ms)
+  ✔ escrita em outro condomínio é recusada pela RLS (42501) e a reserva alheia não é alterável (19.9048ms)
+  ✔ EXCLUDE: sobreposição na mesma área é recusada (23P01); cancelada não bloqueia (86.7153ms)
+  ✔ gatilho grava auditoria pela RLS do próprio condomínio; outro condomínio não a vê (22.3339ms)
+  ✔ concorrência: duas transações em conexões distintas na mesma faixa; exatamente uma vence (597.8491ms)
+  ✔ conexão volta limpa ao pool: após commit, erro SQL e exceção JS (mesma conexão física) (40.8642ms)
+  ✔ controle negativo: set_config de SESSÃO vaza para a próxima transação e o teste detecta (12.4545ms)
+  ✔ queda da conexão no meio da transação: o pool descarta e a próxima usa conexão nova (340.825ms)
+  ✔ biblioteca usada fora do TenantContext é bloqueada antes de chegar ao banco (23.687ms)
+✔ kysely + postgres.js (2266.8028ms)
+▶ drizzle + pg
+  ✔ não abre conexão antes do primeiro comTenant (nem ao ser criado) (1086.4854ms)
+  ✔ transação com set_config local e consulta sob RLS: cada condomínio vê só o seu (31.8997ms)
+  ✔ escrita em outro condomínio é recusada pela RLS (42501) e a reserva alheia não é alterável (17.2196ms)
+  ✔ EXCLUDE: sobreposição na mesma área é recusada (23P01); cancelada não bloqueia (53.9914ms)
+  ✔ gatilho grava auditoria pela RLS do próprio condomínio; outro condomínio não a vê (32.728ms)
+  ✔ concorrência: duas transações em conexões distintas na mesma faixa; exatamente uma vence (487.1586ms)
+  ✔ conexão volta limpa ao pool: após commit, erro SQL e exceção JS (mesma conexão física) (39.2124ms)
+  ✔ controle negativo: set_config de SESSÃO vaza para a próxima transação e o teste detecta (14.1424ms)
+  ✔ queda da conexão no meio da transação: o pool descarta e a próxima usa conexão nova (192.8836ms)
+  ✔ biblioteca usada fora do TenantContext é bloqueada antes de chegar ao banco (57.7239ms)
+✔ drizzle + pg (2017.4994ms)
+▶ drizzle + postgres.js
+  ✔ não abre conexão antes do primeiro comTenant (nem ao ser criado) (924.693ms)
+  ✔ transação com set_config local e consulta sob RLS: cada condomínio vê só o seu (31.0036ms)
+  ✔ escrita em outro condomínio é recusada pela RLS (42501) e a reserva alheia não é alterável (21.2197ms)
+  ✔ EXCLUDE: sobreposição na mesma área é recusada (23P01); cancelada não bloqueia (56.8577ms)
+  ✔ gatilho grava auditoria pela RLS do próprio condomínio; outro condomínio não a vê (31.3037ms)
+  ✔ concorrência: duas transações em conexões distintas na mesma faixa; exatamente uma vence (501.5025ms)
+  ✔ conexão volta limpa ao pool: após commit, erro SQL e exceção JS (mesma conexão física) (37.1019ms)
+  ✔ controle negativo: set_config de SESSÃO vaza para a próxima transação e o teste detecta (28.3212ms)
+  ✔ queda da conexão no meio da transação: o pool descarta e a próxima usa conexão nova (167.1065ms)
+  ✔ biblioteca usada fora do TenantContext é bloqueada antes de chegar ao banco (16.2925ms)
+✔ drizzle + postgres.js (1823.3967ms)
+▶ kysely + pg: cancelamento de consulta
+  ✔ com inflightQueryAbortStrategy 'cancel query' o Kysely abre um pg.Client FORA do pool; o padrão do acesso proíbe (5153.2516ms)
+✔ kysely + pg: cancelamento de consulta (5153.56ms)
+✔ catálogo de RLS: toda tabela do Flyway com RLS habilitada, forçada, dono migrador e privilégios cobertos (27.8433ms)
+✔ catálogo pega tabela nova esquecida sem RLS (o teste não é cego) (351.2133ms)
+✔ objetos da migração de exemplo: EXCLUDE com btree_gist, gatilho ativo, índice CONCURRENTLY válido (6.5964ms)
+✔ app_user: sem BYPASSRLS, não dono, sem TRUNCATE/REFERENCES/TRIGGER, sem acesso ao histórico do Flyway (7.4129ms)
+✔ verificação estática: driver fora da camada de acesso e segunda cadeia de migrations são apontados (1.3634ms)
+ℹ tests 46
+ℹ suites 5
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21245.3283

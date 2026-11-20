@@ -1,0 +1,78 @@
+# checksum — 2026-11-20T17:58:27.359Z
+
+===== histórico após migrate (versão|checksum|sucesso) =====
+1|-670124091|true
+2|740937774|true
+3|-38862011|true
+
+===== validate com V2 alterado =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+ERROR: Validate failed: Migrations have failed validation
+Migration checksum mismatch for migration version 2
+-> Applied to database : 740937774
+-> Resolved locally    : -1520608540
+Either revert the changes to the migration, or run repair to update the schema history.
+Need more flexibility with validation rules? Learn more: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=flyway-blog/older-posts/customize-validation-rules-with-ignoremigrationpatterns
+Run with -X to see debug output.
+
+===== migrate com V2 alterado (validateOnMigrate) =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+ERROR: Validate failed: Migrations have failed validation
+Migration checksum mismatch for migration version 2
+-> Applied to database : 740937774
+-> Resolved locally    : -1520608540
+Either revert the changes to the migration, or run repair to update the schema history.
+Need more flexibility with validation rules? Learn more: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=flyway-blog/older-posts/customize-validation-rules-with-ignoremigrationpatterns
+Run with -X to see debug output.
+
+===== validate com V1_5 fora de ordem =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+ERROR: Validate failed: Migrations have failed validation
+Detected resolved migration not applied to database: 1.5.
+To ignore this migration, set -ignoreMigrationPatterns='*:ignored'. To allow executing this migration, set -outOfOrder=true.
+Need more flexibility with validation rules? Learn more: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=flyway-blog/older-posts/customize-validation-rules-with-ignoremigrationpatterns
+Run with -X to see debug output.
+
+===== validate sem o V3 (última aplicada) — padrão =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Successfully validated 4 migrations (execution time 00:00.040s)
+
+===== validate sem o V3 com -ignoreMigrationPatterns= (vazio, estrito) =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+ERROR: Validate failed: Migrations have failed validation
+Detected applied migration not resolved locally: 3.
+If you removed this migration intentionally, run repair to mark the migration as deleted.
+Need more flexibility with validation rules? Learn more: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=flyway-blog/older-posts/customize-validation-rules-with-ignoremigrationpatterns
+Run with -X to see debug output.
+
+===== validate sem o V1 (aplicada, no meio) — padrão =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+ERROR: Validate failed: Migrations have failed validation
+Detected applied migration not resolved locally: 1.
+If you removed this migration intentionally, run repair to mark the migration as deleted.
+Need more flexibility with validation rules? Learn more: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=flyway-blog/older-posts/customize-validation-rules-with-ignoremigrationpatterns
+Run with -X to see debug output.

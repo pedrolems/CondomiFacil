@@ -1,0 +1,2 @@
+{ "dialect": "postgresql", "out": "../resultados/drizzle-pull", "schemaFilter": ["app"],
+  "dbCredentials": { "url": "postgres://app_user:app_local_ficticia@127.0.0.1:54329/p5" } }

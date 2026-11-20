@@ -1,0 +1,17 @@
+✔ checksum e validação: arquivo alterado, inserido fora de ordem ou apagado é detectado (22759.8898ms)
+✔ lock de sessão (transactional.lock=false): dois migradores concorrentes aplicam cada versão uma vez (10009.7409ms)
+✔ lock: migrador que morre segurando a trava a libera; o outro termina sozinho (16110.1867ms)
+✔ controle: com o lock transacional padrão, a migration CONCURRENTLY trava (por isso transactional.lock=false) (46240.0117ms)
+✔ SSL e modo de conexão: sem SSL é recusado, verify-full passa, nome errado no certificado falha (7686.4966ms)
+✔ arquivo não transacional: CONCURRENTLY com .conf roda fora de transação e gera índice válido (7781.4537ms)
+✔ reconexão: banco indisponível no início é esperado com connectRetries (10823.3698ms)
+✔ reconexão: conexão derrubada no meio de migration transacional não deixa resto; reexecução aplica (25065.319ms)
+✔ reconexão: queda no meio de CONCURRENTLY deixa índice inválido; repair + forma segura recuperam (49072.369ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201615.1403

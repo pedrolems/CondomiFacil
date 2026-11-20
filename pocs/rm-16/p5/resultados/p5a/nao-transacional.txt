@@ -1,0 +1,37 @@
+# nao-transacional — 2026-11-20T18:00:10.170Z
+
+===== migrate das migrations de exemplo =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Creating schema "migracao" ...
+Creating Schema History table "migracao"."flyway_schema_history" ...
+Current version of schema "migracao": null
+Migrating schema "migracao" to version "1 - base tenant"
+Migrating schema "migracao" to version "2 - reservas exclude gatilho"
+Migrating schema "migracao" to version "3 - indice reserva por unidade" [non-transactional]
+DB: index "reserva_por_unidade" does not exist, skipping
+Successfully applied 3 migrations to schema "migracao", now at version v3 (execution time 00:00.141s)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+===== migrate de CONCURRENTLY sem .conf =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Creating schema "migracao" ...
+Creating Schema History table "migracao"."flyway_schema_history" ...
+Current version of schema "migracao": null
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - indice sem conf" [non-transactional]
+Successfully applied 2 migrations to schema "migracao", now at version v2 (execution time 00:00.025s)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

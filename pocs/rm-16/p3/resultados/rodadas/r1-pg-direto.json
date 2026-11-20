@@ -1,0 +1,70 @@
+{
+  "driver": "pg",
+  "alvo": "direto",
+  "segundos": 30,
+  "pool": 20,
+  "trabalhadores": {
+    "portariasA": 10,
+    "moradoresA": 20,
+    "outrosCondominios": 20
+  },
+  "inicio": "2026-11-20T17:11:23.303Z",
+  "transacoesPorSegundo": 660.1,
+  "geral_ms": {
+    "n": 19802,
+    "p50": 55.74,
+    "p95": 201.34,
+    "p99": 315.42,
+    "max": 594.39
+  },
+  "porOperacao_ms": {
+    "lista": {
+      "n": 6015,
+      "p50": 55.47,
+      "p95": 202.44,
+      "p99": 321,
+      "max": 594.39
+    },
+    "entrada": {
+      "n": 1798,
+      "p50": 60.82,
+      "p95": 210.09,
+      "p99": 339.21,
+      "max": 556.93
+    },
+    "criar": {
+      "n": 3886,
+      "p50": 60.06,
+      "p95": 209.39,
+      "p99": 291.86,
+      "max": 548.1
+    },
+    "daUnidade": {
+      "n": 3886,
+      "p50": 53.58,
+      "p95": 194.1,
+      "p99": 337.62,
+      "max": 593.46
+    },
+    "porId": {
+      "n": 4217,
+      "p50": 52.09,
+      "p95": 192.52,
+      "p99": 309.87,
+      "max": 559.7
+    }
+  },
+  "visibilidadeNaPortaria_ms": {
+    "n": 3885,
+    "p50": 24.38,
+    "p95": 84.62,
+    "p99": 147.72,
+    "max": 278.32
+  },
+  "criadasNaoVistas": 1,
+  "conflitosEntrada": 198,
+  "erros": 0,
+  "errosAmostra": [],
+  "cruzamentos": 0,
+  "rnf01_p95_abaixo_de_500ms": true
+}

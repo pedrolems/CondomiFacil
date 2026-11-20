@@ -1,0 +1,29 @@
+﻿{
+    "cenario":  "perf",
+    "ok":  true,
+    "ms":  146998,
+    "r":  {
+              "N":  10000,
+              "enfileirar_ms":  105923,
+              "ms_por_op":  10.5923,
+              "pendentes_antes":  10000,
+              "reabrir_ms":  32,
+              "pendentes_ao_reabrir":  10000,
+              "sync_ms":  40898,
+              "sync":  {
+                           "enviadas":  10000,
+                           "ok":  true
+                       },
+              "pendentes_depois":  0,
+              "servidor":  {
+                               "unicas":  10000,
+                               "duplicatasRecebidas":  0,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  0,
+                               "ciclos":  {
+
+                                          }
+                           }
+          }
+}

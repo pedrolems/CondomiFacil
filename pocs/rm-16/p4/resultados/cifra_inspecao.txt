@@ -1,0 +1,4 @@
+﻿tamanho 45056 primeiros 16 bytes 7b4e5ee60d82d7266484a71c30628ed1
+comeca com "SQLite format 3"? False
+contem MARCADOR-FICTICIO-ZEBRA-42? False | contem "entrada_visitante"? False | contem "CREATE TABLE"? False
+sqlite3 padrao do Python 3.50.4 -> DatabaseError file is not a database

@@ -1,0 +1,42 @@
+##### modo/pool: transaction 5
+
+LOCKS 6561|true|1567084735|active|select pg_sleep(0.5)
+A code 0 
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - lenta em passos" [non-transactional]
+Successfully applied 2 migrations to schema "migracao", now at version v2 (execution time 00:06.233s)
+B code 0 
+Successfully validated 3 migrations (execution time 00:00.086s)
+Schema "migracao" is up to date. No migration necessary.
+MARCAS -1 em t: 1
+HIST 1|true
+2|true
+LOCKS DEPOIS 
+##### modo/pool: transaction 1
+
+LOCKS 6614|true|1567084735|active|select pg_sleep(0.5)
+A code 0 
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - lenta em passos" [non-transactional]
+Successfully applied 2 migrations to schema "migracao", now at version v2 (execution time 00:06.133s)
+B code 0 
+Successfully validated 3 migrations (execution time 00:00.209s)
+Schema "migracao" is up to date. No migration necessary.
+MARCAS -1 em t: 1
+HIST 1|true
+2|true
+LOCKS DEPOIS 
+##### modo/pool: session 5
+
+LOCKS 6667|true|1567084735|active|select pg_sleep(0.5)
+A code 0 
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - lenta em passos" [non-transactional]
+Successfully applied 2 migrations to schema "migracao", now at version v2 (execution time 00:06.140s)
+B code 0 
+Successfully validated 3 migrations (execution time 00:00.099s)
+Schema "migracao" is up to date. No migration necessary.
+MARCAS -1 em t: 1
+HIST 1|true
+2|true
+LOCKS DEPOIS 

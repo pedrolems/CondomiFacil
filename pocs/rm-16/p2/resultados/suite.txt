@@ -1,0 +1,73 @@
+
+ RUN  v5.1.0 C:/Users/pedro/OneDrive/Documentos/CondomiFacil/pocs/rm-16/p2
+
+ ✓ test/sessoes.test.ts > JWT de acesso > 15 min, so sub e sid (sem papeis nem condominios), com kid, HS256 e iss/aud 141ms
+ ✓ test/sessoes.test.ts > JWT de acesso > expira depois de 15 min (relogio controlado) e antes disso vale 104ms
+ ✓ test/sessoes.test.ts > JWT de acesso > recusa alg none, assinatura adulterada, chave errada, kid desconhecido e token de outro emissor 146ms
+ ✓ test/sessoes.test.ts > JWT de acesso > rotacao de kid: token antigo vale enquanto a chave antiga existir; apos aposentar, 401 161ms
+ ✓ test/sessoes.test.ts > JWT de acesso > sid de outra sessao ou sub trocado nao autentica (sessao e usuario precisam casar) 157ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > so o hash SHA-256 fica no banco, nunca o token 83ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > cada uso gera outro; o novo funciona e o antigo fica marcado como usado 127ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > replay indevido revoga a sessao inteira (sucessor e access incluidos) 105ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > renovacao concorrente: de 8 usos simultaneos do mesmo token so 1 vence, e a sessao e revogada 367ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > refresh expirado ou desconhecido: 401, sem abrir sessao nova e sem revogar a vigente 90ms
+ ✓ test/sessoes.test.ts > refresh opaco rotativo > perda de resposta da renovacao (retry legitimo) hoje derruba a sessao: custo da politica estrita 73ms
+ ✓ test/sessoes.test.ts > revogacao de sessao > logout: access e refresh morrem na hora; outras sessoes do usuario continuam 118ms
+ ✓ test/sessoes.test.ts > revogacao de sessao > troca de senha: revoga todas as sessoes, abre uma nova; senha antiga deixa de entrar 333ms
+ ✓ test/sessoes.test.ts > revogacao de sessao > troca de senha com senha atual errada: 401 e nada e revogado 124ms
+ ✓ test/sessoes.test.ts > revogacao de sessao > exclusao LGPD: revoga tudo, anonimiza o acesso e impede novo login e renovacao 164ms
+ ✓ test/sessoes.test.ts > revogacao de sessao > login: e-mail inexistente e senha errada respondem igual (sem enumeracao) 77ms
+ ✓ test/contexto.test.ts > contexto X-Condominio-Id > ausente, malformado ou sem vinculo: 403; com vinculo: 200 168ms
+ ✓ test/contexto.test.ts > contexto X-Condominio-Id > vinculo inativo nao abre contexto 71ms
+ ✓ test/contexto.test.ts > contexto X-Condominio-Id > suporte: abre contexto so no plano Gestao + Suporte 68ms
+ ✓ test/contexto.test.ts > contexto X-Condominio-Id > o 403 do contexto e igual para condominio de outro e para inexistente (sem confirmar existencia) 67ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > troca de papel vale dentro do tempo do cache: antes da janela vale o velho, depois da janela o novo 92ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > vinculo desativado vale ao fim da janela 80ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > substituicao do sindico e dado: subsindico ganha e perde o papel de sindico sem codigo novo 77ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > plano mudou para Gestao + Suporte: suporte passa a abrir contexto ao fim da janela 86ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > o cache poupa a consulta: 50 requisicoes na janela = 1 consulta de papel; fora dela, nova consulta 242ms
+ ✓ test/contexto.test.ts > papel resolvido no servidor, com cache > sem cache (0 ms) a mudanca vale na proxima requisicao 104ms
+ ✓ test/contexto.test.ts > RLS como ultima barreira > dois condominios: cada um ve so os avisos do seu; recurso do outro e 404 (nunca 403) 146ms
+ ✓ test/contexto.test.ts > RLS como ultima barreira > com os privilegios reais do app_user: sem contexto = zero linhas; so as linhas do proprio usuario; escrita em outro tenant = 42501 164ms
+ ✓ test/contexto.test.ts > RLS como ultima barreira > catalogo: so as 3 tabelas do plano de autenticacao ficam sem RLS; papel sem BYPASSRLS; refresh e sessao so mudam colunas permitidas 15ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > o refresh vai so no cookie (HttpOnly, Secure, SameSite=Lax, Path restrito) e nunca no corpo; o access nunca vai em cookie 130ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > renova pelo cookie com Origin e cabecalho proprio; o cookie rotaciona e o antigo deixa de valer 75ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > CSRF: sem Origin, Origin de terceiro ou sem o cabecalho proprio = 403, e o token NAO e consumido 87ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > login web tambem exige Origin e cabecalho (login CSRF) 5ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > CORS: preflight de origem de terceiro nao autoriza; a origem do painel recebe credentials e nada de curinga 2ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > replay do cookie antigo revoga a sessao e limpa o cookie; logout limpa e revoga 223ms
+ ✓ test/web.test.ts > web: refresh em cookie httpOnly > sem cookie e sem corpo: 401; logout web revoga e apaga o cookie 80ms
+stdout | test/carga.test.ts > RNF-01 > consulta de papel isolada (transacao + set_config + join, sob RLS), 2.000 vezes em sequencia
+consulta de papel isolada (sequencial)                     n= 2000  p50=1.05 ms  p95=1.69 ms  p99=2.15 ms
+
+ ✓ test/carga.test.ts > RNF-01 > consulta de papel isolada (transacao + set_config + join, sob RLS), 2.000 vezes em sequencia 2735ms
+stdout | test/carga.test.ts > RNF-01 > requisicao HTTP completa GET /v1/recursos, sem cache de papel (0 ms): 3.000 requisicoes, 20 em paralelo
+GET /v1/recursos, sem cache de papel (0 ms)                n= 3000  p50=26.86 ms  p95=34.55 ms  p99=42.30 ms
+
+ ✓ test/carga.test.ts > RNF-01 > requisicao HTTP completa GET /v1/recursos, sem cache de papel (0 ms): 3.000 requisicoes, 20 em paralelo 4968ms
+stdout | test/carga.test.ts > RNF-01 > requisicao HTTP completa GET /v1/recursos, com cache de papel (5.000 ms): 3.000 requisicoes, 20 em paralelo
+GET /v1/recursos, com cache de papel (5.000 ms)            n= 3000  p50=14.79 ms  p95=18.97 ms  p99=24.85 ms
+
+ ✓ test/carga.test.ts > RNF-01 > requisicao HTTP completa GET /v1/recursos, com cache de papel (5.000 ms): 3.000 requisicoes, 20 em paralelo 2650ms
+ ✓ test/cliente.test.ts > app (expo-secure-store) > guarda o refresh no armazenamento seguro, access so em memoria; app reaberto restaura pela renovacao 201ms
+ ✓ test/cliente.test.ts > app (expo-secure-store) > single-flight: 6 chamadas com access vencido geram UMA renovacao e todas passam 142ms
+ ✓ test/cliente.test.ts > app (expo-secure-store) > dois processos do mesmo aparelho (app + tarefa em segundo plano) renovando juntos derrubam a sessao: risco registrado 179ms
+ ✓ test/cliente.test.ts > app (expo-secure-store) > resposta da renovacao perdida: o retry com o token antigo derruba a sessao e o app volta ao login 102ms
+ ✓ test/cliente.test.ts > web (cookie httpOnly) > o codigo do cliente nunca tem o refresh: so o access em memoria; reload recupera pelo cookie; single-flight vale 134ms
+ ✓ test/cliente.test.ts > tipo Armazenamento do app aceita o adaptador do expo-secure-store 0ms
+stdout | test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > armadilha: sem `algorithms` explicito aceita HS512 (e emissor/audiencia nao sao checados por padrao); a jose recusa por construcao quando o guard fixa o algoritmo
+nestjs/jwt: verifyAsync sem opcoes aceitou HS512 com emissor/audiencia quaisquer; com algorithms+issuer+audience recusou
+
+ ✓ test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > cobre os mesmos casos de recusa quando o guard fixa algoritmo, emissor e audiencia 8ms
+ ✓ test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > armadilha: sem `algorithms` explicito aceita HS512 (e emissor/audiencia nao sao checados por padrao); a jose recusa por construcao quando o guard fixa o algoritmo 6ms
+ ✓ test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > rotacao por kid exige secretOrKeyProvider proprio (header lido a mao); com jose o chaveiro faz o mesmo em uma funcao 1ms
+stdout | test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > desempenho: assinar e verificar 5.000 tokens (so para dimensionar; nao decide)
+microbench (us por operacao, 5000x): jose assina 39.3 / verifica 36.6; @nestjs/jwt assina 22.7 / verifica 20.9
+
+ ✓ test/comparacao-nestjs-jwt.test.ts > @nestjs/jwt como alternativa > desempenho: assinar e verificar 5.000 tokens (so para dimensionar; nao decide) 599ms
+
+ Test Files  6 passed (6)
+      Tests  49 passed (49)
+   Start at  15:14:11
+   Duration  22.44s (tests 78%, import 21%)
+

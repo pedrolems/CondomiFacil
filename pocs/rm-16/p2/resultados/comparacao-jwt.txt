@@ -1,0 +1,2 @@
+nestjs/jwt: verifyAsync sem opcoes aceitou HS512 com emissor/audiencia quaisquer; com algorithms+issuer+audience recusou
+microbench (us por operacao, 5000x): jose assina 39.0 / verifica 36.5; @nestjs/jwt assina 22.4 / verifica 28.3

@@ -1,0 +1,33 @@
+﻿{
+    "cenario":  "kill_b",
+    "ok":  true,
+    "ms":  11935,
+    "r":  {
+              "pendentes_ao_retomar":  2400,
+              "srvAntes":  {
+                               "unicas":  700,
+                               "duplicatasRecebidas":  0,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  0,
+                               "ciclos":  {
+
+                                          }
+                           },
+              "r":  {
+                        "enviadas":  2400,
+                        "ok":  true
+                    },
+              "pendFinal":  0,
+              "servidor":  {
+                               "unicas":  3000,
+                               "duplicatasRecebidas":  100,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  0,
+                               "ciclos":  {
+
+                                          }
+                           }
+          }
+}

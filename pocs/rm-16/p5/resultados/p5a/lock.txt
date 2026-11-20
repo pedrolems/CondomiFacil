@@ -1,0 +1,52 @@
+# lock — 2026-11-20T17:58:50.122Z
+
+===== pid dormindo na migration V2 =====
+6753
+
+===== pg_locks advisory (pid|concedida|tipo|objid) =====
+6753|true|advisory|1567084735
+
+===== pg_stat_activity do migrador =====
+6753|active|-- P5a: migration não transacional e lenta. Com o lock transacional (padrão) o Flyway não 
+6776|idle|SELECT pg_try_advisory_lock(77431237497023)
+
+===== migrador A =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Creating schema "migracao" ...
+Creating Schema History table "migracao"."flyway_schema_history" ...
+Current version of schema "migracao": null
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - lenta nao transacional" [non-transactional]
++----------+
+| pg_sleep |
++----------+
+|          |
++----------+
+
+Successfully applied 2 migrations to schema "migracao", now at version v2 (execution time 00:06.053s)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+===== migrador B =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Successfully validated 3 migrations (execution time 00:00.081s)
+Current version of schema "migracao": 2
+Schema "migracao" is up to date. No migration necessary.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+===== histórico final =====
+1|-1300598366|true
+2|-1001233580|true

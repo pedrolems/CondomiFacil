@@ -1,0 +1,20 @@
+﻿{
+    "cenario":  "logout",
+    "ok":  true,
+    "ms":  2318,
+    "r":  {
+              "antes":  {
+                            "cache":  true,
+                            "fila":  true,
+                            "pend":  5
+                        },
+              "depois":  {
+                             "cache":  false,
+                             "fila":  true
+                         },
+              "pendDepoisDoLogout":  5,
+              "pendOutroUsuario":  0,
+              "outroUsuarioComChaveDele":  "Error: file is not a database",
+              "chaveFilaMantida":  true
+          }
+}

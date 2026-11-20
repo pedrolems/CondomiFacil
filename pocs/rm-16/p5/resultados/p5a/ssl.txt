@@ -1,0 +1,48 @@
+# ssl — 2026-11-20T18:00:02.483Z
+
+===== sslmode=disable =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+ERROR: Unable to obtain connection from database (jdbc:postgresql:********) for user 'migrador': FATAL: pg_hba.conf rejects connection for host "172.19.0.4", user "migrador", database "p5a_ssl", no encryption
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL State  : 28000
+Error Code : 0
+Message    : FATAL: pg_hba.conf rejects connection for host "172.19.0.4", user "migrador", database "p5a_ssl", no encryption
+
+Caused by: org.postgresql.util.PSQLException: FATAL: pg_hba.conf rejects connection for host "172.19.0.4", user "migrador", database "p5a_ssl", no encryption
+Run with -X to see debug output.
+
+===== verify-full pelo IP 172.19.0.2 (fora do SAN do certificado) =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Nov 20, 2026 6:00:06 PM org.postgresql.ssl.PGjdbcHostnameVerifier verify
+SEVERE: Server name validation failed: certificate for host 172.19.0.2 dNSName entries subjectAltName, but none of them match. Assuming server name validation failed
+ERROR: Unable to obtain connection from database (jdbc:postgresql:********) for user 'migrador': The hostname 172.19.0.2 could not be verified by hostnameverifier PgjdbcHostnameVerifier.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL State  : 08006
+Error Code : 0
+Message    : The hostname 172.19.0.2 could not be verified by hostnameverifier PgjdbcHostnameVerifier.
+
+Caused by: org.postgresql.util.PSQLException: The hostname 172.19.0.2 could not be verified by hostnameverifier PgjdbcHostnameVerifier.
+Run with -X to see debug output.
+
+===== verify-full por poc-rm16-pg =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Creating schema "migracao" ...
+Creating Schema History table "migracao"."flyway_schema_history" ...
+Current version of schema "migracao": null
+Migrating schema "migracao" to version "1 - evidencia ssl"
+Successfully applied 1 migration to schema "migracao", now at version v1 (execution time 00:00.011s)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+===== pg_stat_ssl da sessão do Flyway (ssl|versão|cifra|usuário) =====
+true|TLSv1.3|TLS_AES_256_GCM_SHA384|migrador

@@ -1,0 +1,75 @@
+﻿{
+    "cenario":  "adr014",
+    "ok":  true,
+    "ms":  236,
+    "r":  {
+              "servidor":  {
+                               "unicas":  7,
+                               "duplicatasRecebidas":  0,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  0,
+                               "ciclos":  {
+                                              "c1":  {
+                                                         "efetiva":  "daa7a91f-d1cd-46aa-a8fb-3866455e6ce4",
+                                                         "superadas":  2,
+                                                         "efetiva_registrado_em":  1795189545315
+                                                     },
+                                              "c2":  {
+                                                         "efetiva":  "885cbdf9-2f7c-4cde-8a38-d476b53460c6",
+                                                         "superadas":  1,
+                                                         "efetiva_registrado_em":  1795193145315
+                                                     },
+                                              "c3":  {
+                                                         "efetiva":  "2b8da46b-9a0c-4ddd-b33a-89c59dcef08e",
+                                                         "superadas":  1,
+                                                         "efetiva_registrado_em":  1795110345315
+                                                     }
+                                          }
+                           },
+              "ops":  [
+                          {
+                              "seq":  1,
+                              "op_id":  "97b7a543-196a-438c-ba03-5b350e1a4e0b",
+                              "registrado_em":  1795193145315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  2,
+                              "op_id":  "daa7a91f-d1cd-46aa-a8fb-3866455e6ce4",
+                              "registrado_em":  1795189545315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  3,
+                              "op_id":  "7bdd7bb2-843c-4ca3-8b93-1d5f01aeae55",
+                              "registrado_em":  1795189545315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  4,
+                              "op_id":  "885cbdf9-2f7c-4cde-8a38-d476b53460c6",
+                              "registrado_em":  1795193145315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  5,
+                              "op_id":  "9ab5ce73-e51f-4db9-b53e-4cc707bbf19a",
+                              "registrado_em":  1795369545315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  6,
+                              "op_id":  "ba6bceb5-b3e3-4f0b-b865-637ba9f590fe",
+                              "registrado_em":  1795193145315,
+                              "resultado":  "aplicada"
+                          },
+                          {
+                              "seq":  7,
+                              "op_id":  "2b8da46b-9a0c-4ddd-b33a-89c59dcef08e",
+                              "registrado_em":  1795110345315,
+                              "resultado":  "aplicada"
+                          }
+                      ]
+          }
+}

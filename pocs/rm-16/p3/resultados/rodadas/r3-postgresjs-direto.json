@@ -1,0 +1,70 @@
+{
+  "driver": "postgres.js",
+  "alvo": "direto",
+  "segundos": 30,
+  "pool": 20,
+  "trabalhadores": {
+    "portariasA": 10,
+    "moradoresA": 20,
+    "outrosCondominios": 20
+  },
+  "inicio": "2026-11-20T17:16:41.180Z",
+  "transacoesPorSegundo": 1446.1,
+  "geral_ms": {
+    "n": 43382,
+    "p50": 29.47,
+    "p95": 64.03,
+    "p99": 120.61,
+    "max": 485.78
+  },
+  "porOperacao_ms": {
+    "lista": {
+      "n": 13385,
+      "p50": 29.46,
+      "p95": 62.74,
+      "p99": 120.44,
+      "max": 484.64
+    },
+    "entrada": {
+      "n": 3581,
+      "p50": 34.53,
+      "p95": 72.73,
+      "p99": 146.83,
+      "max": 473.49
+    },
+    "criar": {
+      "n": 8306,
+      "p50": 35.38,
+      "p95": 71.37,
+      "p99": 133.34,
+      "max": 485.78
+    },
+    "daUnidade": {
+      "n": 8306,
+      "p50": 25.82,
+      "p95": 56.93,
+      "p99": 95.85,
+      "max": 471.57
+    },
+    "porId": {
+      "n": 9804,
+      "p50": 25.5,
+      "p95": 55.34,
+      "p99": 106.81,
+      "max": 480.35
+    }
+  },
+  "visibilidadeNaPortaria_ms": {
+    "n": 8303,
+    "p50": 23.23,
+    "p95": 55.54,
+    "p99": 82.12,
+    "max": 372.49
+  },
+  "criadasNaoVistas": 3,
+  "conflitosEntrada": 358,
+  "erros": 0,
+  "errosAmostra": [],
+  "cruzamentos": 0,
+  "rnf01_p95_abaixo_de_500ms": true
+}

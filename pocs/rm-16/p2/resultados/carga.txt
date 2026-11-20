@@ -1,0 +1,22 @@
+consulta de papel isolada (sequencial)                     n= 2000  p50=1.12 ms  p95=1.86 ms  p99=2.40 ms
+EXPLAIN (como app_user, com RLS):
+  Result (actual time=0.057..0.058 rows=1 loops=1)
+    One-Time Filter: ((NULLIF(current_setting('app.usuario_id'::text, true), ''::text))::uuid = '326866df-3ee8-433f-8ef1-f78e1a639cef'::uuid)
+    ->  Nested Loop (actual time=0.055..0.056 rows=1 loops=1)
+          ->  Index Scan using vinculo_usuario_id_condominio_id_key on vinculo v (actual time=0.017..0.018 rows=1 loops=1)
+                Index Cond: ((usuario_id = '326866df-3ee8-433f-8ef1-f78e1a639cef'::uuid) AND (condominio_id = '6f4f85d3-397f-44da-8f8b-62a0a9facd74'::uuid))
+                Filter: ativo
+          ->  Index Only Scan using condominio_pkey on condominio c (actual time=0.037..0.037 rows=1 loops=1)
+                Index Cond: (id = '6f4f85d3-397f-44da-8f8b-62a0a9facd74'::uuid)
+                Filter: (ANY (id = (hashed SubPlan 2).col1))
+                Heap Fetches: 1
+                SubPlan 2
+                  ->  Index Only Scan using vinculo_usuario_id_condominio_id_key on vinculo v_1 (actual time=0.007..0.008 rows=1 loops=1)
+                        Index Cond: (usuario_id = (NULLIF(current_setting('app.usuario_id'::text, true), ''::text))::uuid)
+                        Heap Fetches: 0
+  Planning Time: 0.164 ms
+  Execution Time: 0.084 ms
+GET /v1/recursos, sem cache de papel (0 ms)                n= 3000  p50=29.68 ms  p95=40.98 ms  p99=57.01 ms
+  vazao 640 req/s; falhas 0; consultas de papel ao banco: 3100
+GET /v1/recursos, com cache de papel (5.000 ms)            n= 3000  p50=15.79 ms  p95=20.55 ms  p99=28.15 ms
+  vazao 1218 req/s; falhas 0; consultas de papel ao banco: 1

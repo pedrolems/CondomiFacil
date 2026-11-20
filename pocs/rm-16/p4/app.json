@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "P4 Offline PoC",
+    "slug": "condomifacil-poc-p4",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "android": { "package": "br.com.condomifacil.poc.p4" },
+    "ios": { "bundleIdentifier": "br.com.condomifacil.poc.p4" },
+    "plugins": [
+      "expo-secure-store",
+      ["expo-sqlite", { "useSQLCipher": true }],
+      "expo-dev-client",
+      "./plugins/debuggable.js",
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+    ]
+  }
+}

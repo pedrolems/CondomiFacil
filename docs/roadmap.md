@@ -2,7 +2,7 @@
 
 **Data de elaboração:** 15/11/2026. **Atualizado em:** 20/11/2026. **Referência das decisões e do diagnóstico:** 14/11/2026, com atualizações registradas de 16/11/2026 e 17/11/2026. **Autor e responsável pelas decisões de produto:** Pedro Lemos.
 
-**Estado:** plano detalhado para revisão e acompanhamento. Design fechado e fase 1 em andamento: RM-10 a RM-15 executados em 18 e 19/11/2026 (base do monorepo, API NestJS só com `GET /v1/saude`, app Expo com a tela de saúde, tokens e componentes da tela de saúde com Storybook, tipos gerados do contrato e CI de PR); RM-16 (PoCs P2 a P5) não liberado. Não há funcionalidade de negócio, banco, integrações nem infraestrutura operacional implementados. Criar este roadmap não autoriza iniciar o MVP, contratar serviços, executar PoCs, publicar, commitar ou enviar alterações.
+**Estado:** plano detalhado para revisão e acompanhamento. Design fechado e fase 1 em andamento: RM-10 a RM-15 executados em 18 e 19/11/2026 (base do monorepo, API NestJS só com `GET /v1/saude`, app Expo com a tela de saúde, tokens e componentes da tela de saúde com Storybook, tipos gerados do contrato e CI de PR); RM-16 (PoCs P2 a P5) liberado e executado em 20/11/2026, com as quatro aprovadas e aguardando aceite de Pedro. Não há funcionalidade de negócio, banco, integrações nem infraestrutura operacional implementados. Criar este roadmap não autoriza iniciar o MVP, contratar serviços, executar PoCs, publicar, commitar ou enviar alterações.
 
 Este documento organiza o caminho até a entrega do MVP, o piloto, o lançamento e a Versão 2 já prevista. Manutenção e operação continuam depois dessas entregas. A ordem de trabalho e os critérios operacionais aqui propostos dependem da validação de Pedro; decisões de produto já aprovadas conservam seus limites e suas fontes.
 
@@ -136,7 +136,7 @@ O desenho mostra dependências principais, não obriga esperar todo um módulo p
 | --- | --- | --- | --- |
 | Descoberta e documentação inicial | Artefatos disponíveis; não declarar pesquisa de mercado concluída sem evidência | Necessidade do produto | Visão, escopo e decisões registrados; revisar hipóteses com validação |
 | 0 — fechamento do Design | G0 satisfeito em 18/11/2026 (liberação de Pedro para a fase 1); testes com usuários e parecer jurídico pulados por inacessibilidade | Fontes e protótipo existentes | G0 satisfeito e liberação explícita de Pedro para o pacote de implementação |
-| 1 — base executável | Em andamento desde 18/11/2026 (RM-10 a RM-15 executados em 18 e 19/11/2026; RM-16 não liberado; pendências na seção 6) | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
+| 1 — base executável | Em andamento desde 18/11/2026 (RM-10 a RM-15 executados em 18 e 19/11/2026; RM-16 executado em 20/11/2026, P2 a P5 aprovadas, aguardando aceite; pendências na seção 6) | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
 | 2 — fundação funcional | Não iniciada | Base e decisões de acesso/dados validadas | Fluxo completo de acesso/contexto com isolamento e revogação demonstrados |
 | 3 — riscos centrais | Não iniciada | Fundação, decisões e PoCs específicas | Portaria/offline e cobrança funcionam com falhas e recuperação verificadas |
 | 4 — restante do MVP | Não iniciada | Dependências de cada módulo satisfeitas | Critérios de aceite do escopo MVP implementados, testados e rastreados |
@@ -362,7 +362,7 @@ Fontes operacionais: [Segurança](07-seguranca/seguranca.md), [LGPD](07-seguranc
 
 ## 6. Fase 1 — preparar a base executável
 
-**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026. RM-10 a RM-15 executados em 18 e 19/11/2026, com resultados no [pacote técnico](09-infra/pacote-tecnico-fase-1.md), seção 3: app alcança a API na web, no emulador Android e no iPhone; Storybook nativo aberto no emulador Android e no iPhone (20/11/2026); CI passou no GitHub em 19/11/2026. `test:a11y` (axe) no CI desde 20/11/2026. Pendente para a saída: reprodução da instalação e da execução por outra pessoa a partir das instruções; RM-16 (PoCs P2 a P5), ainda não liberado.
+**Entrada:** G0 satisfeito, escopo autorizado e decisões de base revisadas. **G0 satisfeito em 18/11/2026. Estado:** em andamento desde 18/11/2026. RM-10 a RM-15 executados em 18 e 19/11/2026, com resultados no [pacote técnico](09-infra/pacote-tecnico-fase-1.md), seção 3: app alcança a API na web, no emulador Android e no iPhone; Storybook nativo aberto no emulador Android e no iPhone (20/11/2026); CI passou no GitHub em 19/11/2026. `test:a11y` (axe) no CI desde 20/11/2026. Pendente para a saída: reprodução da instalação e da execução por outra pessoa a partir das instruções; RM-16 (PoCs P2 a P5), liberado e executado em 20/11/2026, com as quatro aprovadas e aguardando aceite de Pedro ([resultados](03-arquitetura/criterios-de-poc.md)): ordem P3, P5, P2, com a P4 em paralelo; código descartável em `pocs/rm-16/`, na branch `poc/rm-16`; PostgreSQL em Docker na versão principal do Supabase (PC-06); P4 em dev build local no emulador Android com 3 GB (PC-08). Não libera a fase 2.
 
 | ID | Pacote | Dependência | Entrega verificável |
 | --- | --- | --- | --- |

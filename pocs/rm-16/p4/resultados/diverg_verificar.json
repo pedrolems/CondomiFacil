@@ -1,0 +1,17 @@
+﻿{
+    "cenario":  "diverg_verificar",
+    "ok":  true,
+    "ms":  63,
+    "r":  {
+              "linhas":  [
+                             {
+                                 "op_id":  "35d557de-e5a3-4d73-97af-9d2aa771ed69",
+                                 "confirmada_por":  "porteiro_ficticio",
+                                 "confirmada_em":  1795196981727
+                             }
+                         ],
+              "abertas":  [
+
+                          ]
+          }
+}

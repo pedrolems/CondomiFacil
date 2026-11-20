@@ -1,0 +1,27 @@
+{
+  "name": "poc-p4-offline",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PoC P4 (RM-16): expo-sqlite + SQLCipher e outbox propria. Descartavel, fora do workspace.",
+  "main": "index.js",
+  "scripts": {
+    "servidor": "node servidor/servidor.mjs",
+    "teste:servidor": "node --test servidor/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "58.0.26",
+    "expo-build-properties": "~58.0.12",
+    "expo-crypto": "~58.0.8",
+    "expo-dev-client": "~58.0.21",
+    "expo-file-system": "~58.0.14",
+    "expo-secure-store": "~58.0.3",
+    "expo-sqlite": "~58.0.18",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "6.0.3"
+  }
+}

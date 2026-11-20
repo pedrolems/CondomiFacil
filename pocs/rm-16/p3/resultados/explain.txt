@@ -1,0 +1,96 @@
+EXPLAIN gerado em 2026-11-20T17:07:56.480Z (PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1))
+
+=== Q1 lista do dia da portaria — app_user com RLS ===
+Limit  (cost=34815.59..34815.60 rows=1 width=45) (actual time=4.092..4.099 rows=50 loops=1)
+  Buffers: shared hit=370
+  ->  Sort  (cost=34815.59..34815.60 rows=1 width=45) (actual time=4.090..4.094 rows=50 loops=1)
+        Sort Key: criada_em DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=370
+        ->  Bitmap Heap Scan on visita  (cost=984.62..34815.58 rows=1 width=45) (actual time=0.407..3.052 rows=8000 loops=1)
+              Recheck Cond: ((condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND (dia = CURRENT_DATE))
+              Filter: ((estado = ANY ('{esperada,dentro}'::text[])) AND ((NULLIF(current_setting('app.papel'::text, true), ''::text) = ANY ('{porteiro,sindico}'::text[])) OR ((NULLIF(current_setting('app.papel'::text, true), ''::text) = 'morador'::text) AND (unidade_id = (NULLIF(current_setting('app.unidade_id'::text, true), ''::text))::uuid))))
+              Rows Removed by Filter: 2000
+              Heap Blocks: exact=257
+              Buffers: shared hit=370
+              ->  Bitmap Index Scan on visita_lista_do_dia  (cost=0.00..984.62 rows=18405 width=0) (actual time=0.379..0.380 rows=14538 loops=1)
+                    Index Cond: ((condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND (dia = CURRENT_DATE))
+                    Buffers: shared hit=113
+Planning Time: 0.137 ms
+Execution Time: 4.129 ms
+
+--- linha de base sem RLS (fixtures, filtro explícito) ---
+Limit  (cost=0.56..20681.37 rows=50 width=45) (actual time=0.067..0.083 rows=50 loops=1)
+  Buffers: shared hit=70
+  ->  Index Scan using visita_lista_do_dia on visita  (cost=0.56..61215.75 rows=148 width=45) (actual time=0.066..0.080 rows=50 loops=1)
+        Index Cond: ((condominio_id = 'fc0eacf6-ca96-060b-bcd7-a58b61635ce8'::uuid) AND (dia = CURRENT_DATE))
+        Filter: (estado = ANY ('{esperada,dentro}'::text[]))
+        Rows Removed by Filter: 12
+        Buffers: shared hit=70
+Planning Time: 0.075 ms
+Execution Time: 0.096 ms
+
+=== Q2 registrar entrada (2 toques) — app_user com RLS ===
+Update on visita  (cost=0.43..8.49 rows=1 width=62) (actual time=0.055..0.057 rows=1 loops=1)
+  Buffers: shared hit=7
+  ->  Index Scan using visita_pkey on visita  (cost=0.43..8.49 rows=1 width=62) (actual time=0.019..0.020 rows=1 loops=1)
+        Index Cond: (id = 'ed642e8a-5d18-c9fd-8da1-ccec186bc98e'::uuid)
+        Filter: ((estado = 'esperada'::text) AND (condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND ((NULLIF(current_setting('app.papel'::text, true), ''::text) = ANY ('{porteiro,sindico}'::text[])) OR ((NULLIF(current_setting('app.papel'::text, true), ''::text) = 'morador'::text) AND (unidade_id = (NULLIF(current_setting('app.unidade_id'::text, true), ''::text))::uuid))))
+        Buffers: shared hit=4
+Planning Time: 0.128 ms
+Trigger for constraint visita_condominio_id_portaria_entrada_id_fkey: time=0.056 calls=1
+Execution Time: 0.132 ms
+
+=== Q3 morador cria visita — app_user com RLS ===
+Insert on visita  (cost=0.00..0.02 rows=1 width=148) (actual time=0.150..0.151 rows=1 loops=1)
+  Buffers: shared hit=10 read=1 dirtied=1
+  ->  Result  (cost=0.00..0.02 rows=1 width=148) (actual time=0.032..0.032 rows=1 loops=1)
+Planning Time: 0.084 ms
+Trigger for constraint visita_condominio_id_unidade_id_fkey: time=0.135 calls=1
+Trigger for constraint visita_condominio_id_portaria_entrada_id_fkey: time=0.003 calls=1
+Execution Time: 0.316 ms
+
+=== Q4 visitas da unidade (morador, segundo nível) — app_user com RLS ===
+Limit  (cost=206.75..206.75 rows=1 width=49) (actual time=0.125..0.127 rows=20 loops=1)
+  Buffers: shared hit=67
+  ->  Sort  (cost=206.75..206.75 rows=1 width=49) (actual time=0.124..0.125 rows=20 loops=1)
+        Sort Key: dia DESC
+        Sort Method: top-N heapsort  Memory: 27kB
+        Buffers: shared hit=67
+        ->  Bitmap Heap Scan on visita  (cost=5.08..206.74 rows=1 width=49) (actual time=0.029..0.110 rows=62 loops=1)
+              Recheck Cond: ((condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND (unidade_id = '4df0529f-5088-4064-de8b-e3cdab5871dd'::uuid) AND (dia >= (CURRENT_DATE - 30)))
+              Filter: ((NULLIF(current_setting('app.papel'::text, true), ''::text) = ANY ('{porteiro,sindico}'::text[])) OR ((NULLIF(current_setting('app.papel'::text, true), ''::text) = 'morador'::text) AND (unidade_id = (NULLIF(current_setting('app.unidade_id'::text, true), ''::text))::uuid)))
+              Heap Blocks: exact=64
+              Buffers: shared hit=67
+              ->  Bitmap Index Scan on visita_por_unidade  (cost=0.00..5.08 rows=51 width=0) (actual time=0.017..0.017 rows=66 loops=1)
+                    Index Cond: ((condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND (unidade_id = '4df0529f-5088-4064-de8b-e3cdab5871dd'::uuid) AND (dia >= (CURRENT_DATE - 30)))
+                    Buffers: shared hit=3
+Planning Time: 0.136 ms
+Execution Time: 0.143 ms
+
+--- linha de base sem RLS (fixtures, filtro explícito) ---
+Limit  (cost=0.43..82.33 rows=20 width=49) (actual time=0.017..0.032 rows=20 loops=1)
+  Buffers: shared hit=23
+  ->  Index Scan using visita_por_unidade on visita  (cost=0.43..209.26 rows=51 width=49) (actual time=0.017..0.031 rows=20 loops=1)
+        Index Cond: ((condominio_id = 'fc0eacf6-ca96-060b-bcd7-a58b61635ce8'::uuid) AND (unidade_id = '4df0529f-5088-4064-de8b-e3cdab5871dd'::uuid) AND (dia >= (CURRENT_DATE - 30)))
+        Buffers: shared hit=23
+Planning Time: 0.076 ms
+Execution Time: 0.042 ms
+
+=== Q5 busca por ID de outro condomínio (caminho do 404) — app_user com RLS ===
+Index Scan using visita_pkey on visita  (cost=0.43..8.49 rows=1 width=16) (actual time=0.017..0.017 rows=0 loops=1)
+  Index Cond: (id = 'b429af65-0300-50ba-c16c-fdfef60d5597'::uuid)
+  Filter: ((condominio_id = (NULLIF(current_setting('app.condominio_id'::text, true), ''::text))::uuid) AND ((NULLIF(current_setting('app.papel'::text, true), ''::text) = ANY ('{porteiro,sindico}'::text[])) OR ((NULLIF(current_setting('app.papel'::text, true), ''::text) = 'morador'::text) AND (unidade_id = (NULLIF(current_setting('app.unidade_id'::text, true), ''::text))::uuid))))
+  Rows Removed by Filter: 1
+  Buffers: shared hit=4
+Planning Time: 0.120 ms
+Execution Time: 0.027 ms
+
+--- linha de base sem RLS (fixtures, filtro explícito) ---
+Index Scan using visita_pkey on visita  (cost=0.43..8.45 rows=1 width=16) (actual time=0.015..0.015 rows=0 loops=1)
+  Index Cond: (id = 'b429af65-0300-50ba-c16c-fdfef60d5597'::uuid)
+  Filter: (condominio_id = 'fc0eacf6-ca96-060b-bcd7-a58b61635ce8'::uuid)
+  Rows Removed by Filter: 1
+  Buffers: shared hit=4
+Planning Time: 0.056 ms
+Execution Time: 0.024 ms

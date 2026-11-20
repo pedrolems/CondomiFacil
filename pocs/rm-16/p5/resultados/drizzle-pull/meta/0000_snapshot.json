@@ -1,0 +1,427 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "app.condominio": {
+      "name": "condominio",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {
+        "tenant": {
+          "name": "tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "app_user"
+          ],
+          "withCheck": "(id = app.condominio_atual())",
+          "using": "(id = app.condominio_atual())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "app.unidade": {
+      "name": "unidade",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "condominio_id": {
+          "name": "condominio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bloco": {
+          "name": "bloco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero": {
+          "name": "numero",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "unidade_condominio_id_fkey": {
+          "name": "unidade_condominio_id_fkey",
+          "tableFrom": "unidade",
+          "tableTo": "condominio",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "condominio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {
+        "tenant": {
+          "name": "tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "app_user"
+          ],
+          "withCheck": "(condominio_id = app.condominio_atual())",
+          "using": "(condominio_id = app.condominio_atual())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "app.area": {
+      "name": "area",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "condominio_id": {
+          "name": "condominio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "area_condominio_id_fkey": {
+          "name": "area_condominio_id_fkey",
+          "tableFrom": "area",
+          "tableTo": "condominio",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "condominio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {
+        "tenant": {
+          "name": "tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "app_user"
+          ],
+          "withCheck": "(condominio_id = app.condominio_atual())",
+          "using": "(condominio_id = app.condominio_atual())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "app.reserva": {
+      "name": "reserva",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "condominio_id": {
+          "name": "condominio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_id": {
+          "name": "area_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unidade_id": {
+          "name": "unidade_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "periodo": {
+          "name": "periodo",
+          "type": "tstzrange",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'confirmada'"
+        },
+        "criada_em": {
+          "name": "criada_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "reserva_por_unidade": {
+          "name": "reserva_por_unidade",
+          "columns": [
+            {
+              "expression": "condominio_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "unidade_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "range_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "periodo",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "range_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "reserva_condominio_id_area_id_fkey": {
+          "name": "reserva_condominio_id_area_id_fkey",
+          "tableFrom": "reserva",
+          "tableTo": "area",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "condominio_id",
+            "area_id"
+          ],
+          "columnsTo": [
+            "id",
+            "condominio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "reserva_condominio_id_unidade_id_fkey": {
+          "name": "reserva_condominio_id_unidade_id_fkey",
+          "tableFrom": "reserva",
+          "tableTo": "unidade",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "condominio_id",
+            "unidade_id"
+          ],
+          "columnsTo": [
+            "id",
+            "condominio_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "reserva_periodo_check": {
+          "name": "reserva_periodo_check",
+          "value": "(NOT isempty(periodo)) AND lower_inc(periodo) AND (NOT upper_inc(periodo))"
+        },
+        "reserva_estado_check": {
+          "name": "reserva_estado_check",
+          "value": "estado = ANY (ARRAY['confirmada'::text, 'cancelada'::text])"
+        }
+      },
+      "policies": {
+        "tenant": {
+          "name": "tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "app_user"
+          ],
+          "withCheck": "(condominio_id = app.condominio_atual())",
+          "using": "(condominio_id = app.condominio_atual())"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "app.reserva_auditoria": {
+      "name": "reserva_auditoria",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "app.reserva_auditoria_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "app"
+          }
+        },
+        "condominio_id": {
+          "name": "condominio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reserva_id": {
+          "name": "reserva_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acao": {
+          "name": "acao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "estado_antes": {
+          "name": "estado_antes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado_depois": {
+          "name": "estado_depois",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "em": {
+          "name": "em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "reserva_auditoria_condominio_id_fkey": {
+          "name": "reserva_auditoria_condominio_id_fkey",
+          "tableFrom": "reserva_auditoria",
+          "tableTo": "condominio",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "condominio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "reserva_auditoria_acao_check": {
+          "name": "reserva_auditoria_acao_check",
+          "value": "acao = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text])"
+        }
+      },
+      "policies": {
+        "tenant_inserir": {
+          "name": "tenant_inserir",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "app_user"
+          ],
+          "withCheck": "(condominio_id = app.condominio_atual())"
+        },
+        "tenant_ler": {
+          "name": "tenant_ler",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "app_user"
+          ]
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "app": "app"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}

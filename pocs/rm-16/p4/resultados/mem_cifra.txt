@@ -1,0 +1,4 @@
+14:36:57            TOTAL PSS:    64906            TOTAL RSS:   195156       TOTAL SWAP PSS:      362
+14:45:57            TOTAL PSS:    78342            TOTAL RSS:   208712       TOTAL SWAP PSS:      237
+15:01:56            TOTAL PSS:    68720            TOTAL RSS:   182864       TOTAL SWAP PSS:      306
+15:01:58            TOTAL PSS:    85563            TOTAL RSS:   213692       TOTAL SWAP PSS:      151

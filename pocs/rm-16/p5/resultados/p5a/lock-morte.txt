@@ -1,0 +1,41 @@
+# lock-morte — 2026-11-20T17:59:00.132Z
+
+===== docker kill do migrador A =====
+p5a-morte-a
+
+===== migrador A (morto) =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Creating schema "migracao" ...
+Creating Schema History table "migracao"."flyway_schema_history" ...
+Current version of schema "migracao": null
+Migrating schema "migracao" to version "1 - tabela"
+Migrating schema "migracao" to version "2 - lenta nao transacional" [non-transactional]
+
+===== migrador B =====
+Flyway OSS Edition 13.12.2 by Redgate
+
+See release notes here: https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+Environment: default
+Database: jdbc:postgresql:******** (PostgreSQL 17.12)
+Successfully validated 3 migrations (execution time 00:00.070s)
+Current version of schema "migracao": 1
+Migrating schema "migracao" to version "2 - lenta nao transacional" [non-transactional]
++----------+
+| pg_sleep |
++----------+
+|          |
++----------+
+
+Successfully applied 1 migration to schema "migracao", now at version v2 (execution time 00:06.041s)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+A more recent version of Flyway is available. Find out more about Flyway 13.13.0 at https://help.red-gate.com/help/flyway-cli13/help_12.aspx?topic=release-notes-and-older-versions/release-notes-for-flyway-engine
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+===== histórico final =====
+1|-1300598366|true
+2|-1001233580|true

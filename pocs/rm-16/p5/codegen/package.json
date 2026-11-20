@@ -1,0 +1,18 @@
+{
+  "name": "poc-rm16-p5-codegen",
+  "private": true,
+  "type": "module",
+  "description": "Geradores de tipos a partir do banco p5 já migrado pelo Flyway (só introspecção, nunca migração).",
+  "scripts": {
+    "kysely": "kysely-codegen --dialect postgres --url postgres://app_user:app_local_ficticia@127.0.0.1:54329/p5 --include-pattern app.* --out-file ../src/tipos-kysely.ts",
+    "drizzle": "drizzle-kit pull --config drizzle.config.json"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.11",
+    "drizzle-orm": "0.45.4",
+    "kysely": "0.29.9",
+    "kysely-codegen": "0.20.0",
+    "pg": "8.23.1",
+    "typescript": "6.0.3"
+  }
+}

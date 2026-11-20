@@ -1,0 +1,23 @@
+﻿{
+    "cenario":  "diverg",
+    "ok":  true,
+    "ms":  200,
+    "r":  {
+              "abertas":  [
+                              {
+                                  "op_id":  "35d557de-e5a3-4d73-97af-9d2aa771ed69",
+                                  "mensagem":  "Visitante v-77 foi cancelado pelo morador. Confirme por interfone."
+                              }
+                          ],
+              "servidor":  {
+                               "unicas":  3,
+                               "duplicatasRecebidas":  0,
+                               "violacoesOrdem":  0,
+                               "ordemCrescente":  true,
+                               "divergentes":  1,
+                               "ciclos":  {
+
+                                          }
+                           }
+          }
+}

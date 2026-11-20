@@ -1,0 +1,6 @@
+﻿{
+    "cenario":  "cifra",
+    "ok":  false,
+    "erro":  "Error: SQLCipher ausente neste build: banco NAO esta criptografado",
+    "stack":  "Error: SQLCipher ausente neste build: banco NAO esta criptografado\n    at ?anon_0_abrir (address at index.android.bundle:1:836698)\n    at next (native)\n    at anonymous (address at InternalBytecode.js:1:42307)\n    at step (address at InternalBytecode.js:1:40105)\n    at anonymous (address at InternalBytecode.js:1:41206)\n    at tryCallOne (address at InternalBytecode.js:1:27784)\n    at anonymous (address at InternalBytecode.js:1:37199)"
+}

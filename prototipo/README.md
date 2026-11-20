@@ -78,7 +78,7 @@ As [19 escolhas aprovadas](../docs/01-produto/05-decisoes-de-complementacao.md) 
 | Finanças > lançamentos; Exportar CSV/PDF > Acompanhar exportações | Receitas por dia/categoria, sem unidade. Pedido assíncrono não oferece arquivo antes da conclusão; pode simular falha; fechar a folha não a reabre ao concluir, e pedido pode ser retomado pelo acompanhamento | 17A/18A |
 | Administradora > Assinatura da plataforma | Consulta cobrança assistida/manual separada do dinheiro condominial; cliente pode anotar contato comercial, sem emitir/baixar cobrança nem agir como equipe da plataforma | 19A |
 
-A tolerância controlada de refresh (16A), operador LGPD, privacidade do acesso histórico/moderação, retenção/logout da fila, sigilo/substituição do voto e integrações Asaas continuam condições de desenho/validação externa. O protótipo não demonstra essas garantias técnicas. As simulações não substituem testes de implementação ou validação visual com usuários.
+A tolerância de refresh (16A) foi definida em 20/11/2026 (30 s, ADR-007), mas o protótipo não a demonstra. Operador LGPD, privacidade do acesso histórico/moderação, retenção/logout da fila, sigilo/substituição do voto e integrações Asaas continuam condições de desenho/validação externa. O protótipo não demonstra essas garantias técnicas. As simulações não substituem testes de implementação ou validação visual com usuários.
 
 ## Relatórios do MVP — revisão de 14/11/2026
 

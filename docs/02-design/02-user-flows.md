@@ -1,6 +1,6 @@
 # User Flows — CondomiFacil
 
-04/11/2026 · Atualizado em 17/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 20/11/2026 · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -1417,7 +1417,7 @@ Notificações obrigatórias: decisão de reclamação contra a pessoa e diverg�
 
 Dentro de Reserva, o interruptor opcional "Lembrete de reserva" (ligado por padrão) controla o push enviado 24h antes do início de reserva confirmada, ou às 21:00 da noite anterior quando esse horário cair entre 00:00 e 08:59 (fluxo 5.1, RN-RE-14).
 
-**LGPD e sessão (12/11/2026):** automatizar só procedimento definido; exceções aguardam operador autorizado ainda sem função/permissão definida. Não presumir suporte/admin como operador. Refresh deve prever tolerância controlada a retry legítimo; duração, mecanismo e defesa contra replay ficam sujeitos à revisão de segurança. Retenção é por finalidade; não há prazo novo aprovado.
+**LGPD e sessão (12/11/2026):** automatizar só procedimento definido; exceções aguardam operador autorizado ainda sem função/permissão definida. Não presumir suporte/admin como operador. Refresh com tolerância controlada a retry legítimo, definida por Pedro em 20/11/2026: reuso único do refresh anterior por 30 s enquanto o sucessor não foi usado; fora disso é replay e encerra a sessão (ADR-007, aceito com ressalvas). Retenção é por finalidade; não há prazo novo aprovado.
 
 ## 15. Mensagens de erro transversais
 

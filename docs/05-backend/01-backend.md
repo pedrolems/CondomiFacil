@@ -1,6 +1,6 @@
 # Backend: CondomiFacil
 
-**Status:** Proposta, em 09/11/2026; atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md); atualizada em 15/11/2026 (rotina 22 de conciliação diária e referência ao registro de autogestão e condução eleitoral). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
+**Status:** Proposta, em 09/11/2026; atualizada em 20/11/2026 só no estado dos ADRs 001, 003, 007 e 008 (aceitos com ressalvas por Pedro em 20/11/2026); atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md); atualizada em 15/11/2026 (rotina 22 de conciliação diária e referência ao registro de autogestão e condução eleitoral). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
 
 ## Índice
 
@@ -184,7 +184,7 @@ modulos/reservas/
     cobranca-de-reserva.porta.ts   pede ao módulo pagamentos a cobrança da reserva
     parametros-de-reserva.porta.ts
   infra/                           implementações de portas do próprio módulo
-    reserva.repositorio-sql.ts     SQL pelo TenantContext (Kysely ou Drizzle, ADR-008)
+    reserva.repositorio-sql.ts     SQL pelo TenantContext (Kysely, ADR-008)
     mapeadores/
   eventos/
     publicados/                    reserva.confirmada, reserva.cancelada, reserva.expirada (nomes Proposta)
@@ -547,7 +547,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 | Push (Expo Push e FCM) | Notificações | `PushSender` e `integracoes/push/` | **Decidido** (PRD 10) | n/a |
 | Armazenamento de objetos (S3 ou equivalente) | Fotos, atas, comprovantes | `ArmazenamentoDeObjetos` e `integracoes/armazenamento/` | Tipo **decidido** (PRD 10); no MVP, Storage do Supabase por API compatível com S3 (dev e staging) | ADR-004 |
 | Sentry | Erros e monitoramento | `integracoes/monitoramento/` | **Decidido** (PRD 10) | n/a |
-| PostgreSQL com RLS | Dados, fila (pg-boss), outbox | Cliente encapsulado no `TenantContext` | **Decidido** (PRD 10); biblioteca de acesso Proposta | ADR-001, ADR-006, ADR-008 |
+| PostgreSQL com RLS | Dados, fila (pg-boss), outbox | Cliente encapsulado no `TenantContext` | **Decidido** (PRD 10); biblioteca de acesso: Kysely com postgres.js (ADR-008, aceito com ressalvas em 20/11/2026) | ADR-001, ADR-006, ADR-008 |
 | Nuvem e região | Hospedagem de API, worker, banco, objetos, cofre | Fora do código | **Decidido** para construir o MVP (Supabase + Render, dev e staging, custo zero); nuvem do piloto **em aberto**, com revisão obrigatória antes do piloto | ADR-004 |
 
 ### 6.2 Gateway de pagamento e webhooks
@@ -591,7 +591,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 
 ### 6.7 PostgreSQL com RLS e nuvem
 
-- **PostgreSQL:** `app_user` sem `BYPASSRLS`, não dono das tabelas, `FORCE ROW LEVEL SECURITY`; migrações pelo papel dono em etapa separada do deploy, somente para frente, no padrão expandir e contrair (arq. 4.3, 6.6). Biblioteca de acesso: Kysely ou Drizzle, com SQL explícito e controle da transação (ADR-008, Proposto). Falhas: transação com tempo limite; falha fecha (sem contexto, nenhuma linha).
+- **PostgreSQL:** `app_user` sem `BYPASSRLS`, não dono das tabelas, `FORCE ROW LEVEL SECURITY`; migrações pelo papel dono em etapa separada do deploy, somente para frente, no padrão expandir e contrair (arq. 4.3, 6.6). Biblioteca de acesso: Kysely 0.29.9 com postgres.js, com SQL explícito e controle da transação (ADR-008, aceito com ressalvas em 20/11/2026). Falhas: transação com tempo limite; falha fecha (sem contexto, nenhuma linha).
 - **Nuvem e região (ADR-004, aceito com ressalvas):** para construir o MVP, Supabase (só PostgreSQL e Storage, região São Paulo) e Render (API, WebSocket e worker no mesmo serviço web no plano gratuito; o serviço dorme sem tráfego e as rotinas param junto), em dev e staging, sem custo. A nuvem do piloto com dados reais é revisão obrigatória antes do piloto. O código do backend não deve depender dela: tudo passa por porta e por variáveis de ambiente validadas em `compartilhado/config/`.
 - **Segredos do banco:** cadeia de conexão dos papéis `app_user` e dono no cofre, separadas.
 - **Ambientes:** contêiner local, instância pequena em dev, mesma configuração da produção em staging, gerenciado com backup e PITR em produção (arq. 6.1, 6.9).
@@ -604,7 +604,7 @@ Regras comuns (Proposta): cada serviço entra por uma **porta** em `compartilhad
 | Nuvem e região do piloto com dados reais | Serviços gerenciados, cofre, bucket, backup e PITR; revisão obrigatória do ADR-004 antes do piloto (dono: Pedro) | ADR-004, ADR-013 |
 | Saída de dados de e-mail do Brasil pelo Resend (LGPD) | Ponto de LGPD a tratar na revisão antes do piloto (dono: Pedro) | ADR-005 |
 | Fila e agendador (pg-boss ou BullMQ + Redis) e `NOTIFY` ou Redis pub/sub | Implementação de `RotinaBase`, do despacho do outbox e do tempo real | ADR-006 |
-| ORM ou query builder (Kysely ou Drizzle) | Repositórios em `infra/`, migrações | ADR-008 |
+| Query builder (Kysely, ADR-008) | Repositórios em `infra/`, migrações | ADR-008 |
 | Fuso por condomínio (ADR-012) | Catálogo de rotinas; efeitos fora de hora | ADR-012 |
 | Parecer jurídico SEG-16 (reclamações, score, sigilo do voto) | Pode mudar `convivencia` e `governanca` (ADR-009, ADR-010); regras e prazos já são parâmetros | UF 17, arq. 9.2 |
 | Canal dos lembretes de cobrança | Rotina 17 e adaptador de e-mail ou push | RF-FI-11 |

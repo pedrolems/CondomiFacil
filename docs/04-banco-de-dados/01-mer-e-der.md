@@ -1,7 +1,7 @@
 # MER e DER — CondomiFacil
 
 - **Estado:** Proposta para validação de Pedro Lemos.
-- **Data:** 08/11/2026. **Atualizado em:** 15/11/2026.
+- **Data:** 08/11/2026. **Atualizado em:** 20/11/2026.
 - **Escopo:** modelo conceitual e modelo lógico de dados do MVP; sem criação de banco, migrações ou alteração das regras de produto.
 - **Limite:** os nomes, agrupamentos e mecanismos de integridade abaixo são propostas de modelagem. Nenhum ADR passa a Aceito por estar representado aqui. Os pontos da seção 9 precisam de decisão antes do modelo físico.
 
@@ -208,7 +208,7 @@ erDiagram
 | --- | --- | --- |
 | `usuario` / G | `nome`, `email_normalizado?`, `senha_hash?`, `estado`, `tema_preferido`, `anonimizado_em?` | Email único enquanto identificável; senha ausente antes da ativação e após anonimização. Identidade não contém condomínio, unidade ou score único embutido. Preservar identificador técnico sem dados pessoais após exclusão, conforme política a validar |
 | `atribuicao_plataforma` / G | `usuario_id → usuario`, `papel`, `inicio`, `fim?`, `concedente_usuario_id → usuario`, `concedida_em` | Papel Admin da plataforma ou Suporte; sem sobreposição do mesmo papel/pessoa. Admin concede acessos de suporte conforme PRD; origem administrativa da primeira atribuição global será definida na implantação. Função global não concede leitura operacional nem substitui autorização C |
-| `sessao` / G | `usuario_id → usuario`, `renovacao_hash`, `expira_em`, `revogada_em?`, `dispositivo_identificador?` | Segredo de renovação não armazenado puro; rotação é proposta ADR-007. Redefinir senha encerra outras sessões |
+| `sessao` / G | `usuario_id → usuario`, `renovacao_hash`, `expira_em`, `revogada_em?`, `dispositivo_identificador?` | Segredo de renovação não armazenado puro; rotação conforme ADR-007 (aceito com ressalvas em 20/11/2026). Redefinir senha encerra outras sessões |
 | `desafio_acesso` / G | `usuario_id? → usuario`, `destino_protegido`, `finalidade`, `codigo_hash`, `emitido_em`, `expira_em`, `tentativas`, `consumido_em?`, `invalidado_em?` | Ativação/recuperação; código 6 dígitos, 15 min, 5 tentativas, reenvio 60 s invalida anterior. Não é necessário criar usuário para email não cadastrado; resposta externa uniforme |
 | `controle_login` / G | `usuario_id? → usuario`, `chave_tentativa_protegida`, `falhas`, `bloqueado_ate?` | Suporta pausa de 15 min após 5 senhas erradas; limites adicionais e retenção ainda não definidos |
 | `vinculo_condominio` / C | `usuario_id → usuario`, `inicio`, `fim?`, `estado` | Um vínculo base vigente por pessoa/condomínio (UQ condicional), com funções detalhadas nas entidades seguintes. O vínculo base sozinho não concede acesso a todas as unidades |
@@ -782,7 +782,7 @@ Operações que envolvem serviço externo não cabem em uma única transação d
 
 ### 6.1 RLS por condomínio, unidade e função
 
-PostgreSQL com RLS é planejado no PRD e em SEG-05. A forma técnica proposta por ADR-001/007 usa contexto por transação, papel sem `BYPASSRLS`, `FORCE ROW LEVEL SECURITY` e bloqueio quando o contexto está ausente. Este documento não aprova esses ADRs; especifica os resultados de isolamento que o modelo deve permitir.
+PostgreSQL com RLS é planejado no PRD e em SEG-05. A forma técnica dos ADR-001/007 (aceitos com ressalvas em 20/11/2026) usa contexto por transação, papel sem `BYPASSRLS`, `FORCE ROW LEVEL SECURITY` e bloqueio quando o contexto está ausente. Este documento não aprova esses ADRs (o aceite é de Pedro, registrado nos ADRs); especifica os resultados de isolamento que o modelo deve permitir.
 
 Identidade global é consultada por caminhos limitados. Não se concede consulta irrestrita de `usuario` a quem conhece um UUID. O usuário autenticado escolhe um condomínio/unidade e o servidor valida seu vínculo, a função vigente e a ação. Emprego, mandato, procuração e contrato encerrados não continuam dando acesso por estarem no histórico.
 
@@ -858,7 +858,7 @@ As referências por intervalo significam todos os requisitos daquele intervalo, 
 | Relatórios e exportações gerais | RN-RL-01 a 08; RF-RL-01 a 11; SEG-05, SEG-08, SEG-17, SEG-18 | US-RL-01 a 03; UF 18; DS 11.18; painel-web.md |
 | Finanças, recorrências, estornos, comentários e exportações | RN-FI-21 a RN-FI-32; RF-FI-17 a RF-FI-24; SEG-08, SEG-18 | US-FI-07 a US-FI-10; UF 13.3 e 13.4; DS 11.15 |
 | Notificações, direitos do titular e auditoria | RF-NO-01, RF-LG-01, RF-LG-02; SEG-01, SEG-02, SEG-08 a SEG-11, SEG-14; RN 14 | US-NO-01, US-LG-01; UF 14 e 15; DS 15; arq. 3.7 a 3.9 |
-| Isolamento e sincronização | SEG-05; RNF-06 a RNF-08, RNF-10, RNF-11, RNF-16, RNF-17; RN-OF-01 a RN-OF-06; RN-CH-04 | US-VI-04, US-CH-02; arq. 4; ADR-001, ADR-003, ADR-014 propostos |
+| Isolamento e sincronização | SEG-05; RNF-06 a RNF-08, RNF-10, RNF-11, RNF-16, RNF-17; RN-OF-01 a RN-OF-06; RN-CH-04 | US-VI-04, US-CH-02; arq. 4; ADR-001 e ADR-003 aceitos com ressalvas (20/11/2026); ADR-014 proposto |
 
 RN-FI-18, RF-FI-14 e US-FI-06 são V2; não se modelam acordo e parcelas como parte obrigatória do MVP. O modo treinamento da portaria (RF-VI-12) usa dados fictícios separados, sem eventos/recebimentos/notificações reais; não exige duplicar cada entidade de negócio com indicador de treinamento em produção.
 

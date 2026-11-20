@@ -1,7 +1,7 @@
 # ADR-001: Multi-tenant com banco compartilhado, `condominio_id` e RLS
 
-- **Estado:** Proposto
-- **Data:** 06/11/2026
+- **Estado:** Aceito, com ressalvas (RLS por `condominio_id` com `app_user`, `FORCE RLS` e `set_config` por transação). Decisão de Pedro em 20/11/2026
+- **Data:** 06/11/2026 (proposta); 20/11/2026 (decisão)
 - **Decisores:** Pedro Lemos
 - **Depende de:** prova de conceito de RLS com carga (RNF-17)
 - **Relacionado a:** [ADR-007](007-autorizacao-jwt-sem-papeis.md), [ADR-008](008-orm-query-builder-migracoes.md), [ADR-006](006-fila-agendador-eventos.md), [ADR-010](010-anonimato-identidade-separada.md)
@@ -82,3 +82,15 @@ Evolução se um tenant crescer demais, em ordem de custo: réplica de leitura e
 - `docs/01-produto/02-prd.md`: seção 10; RNF-10, RNF-11, RNF-17, RNF-18; SEG-05.
 - `docs/01-produto/03-regras-de-negocio.md`: RN-CD-05, RN-CD-16, RN-PL-06.
 - Visão de Produto (`docs/01-produto/01-visao-de-produto.md`): meta de custo por condomínio.
+
+## Decisão de Pedro em 20/11/2026 (aceite com ressalvas)
+
+Após a PoC P3 ([relatório](../../../pocs/rm-16/p3/RELATORIO.md); [critérios, resultado da P3](../criterios-de-poc.md)), Pedro aceitou o ADR com ressalvas. A "Decisão (proposta)" vale; a carga RNF-17 (5.000 unidades, 10 portarias) ficou sem cruzamento de tenant em 454.598 transações, pior p95 de 309 ms, com postgres.js.
+
+**Ressalvas**
+
+- Não foi testado no Supavisor (pooler do Supabase).
+- A lista do dia da portaria fica mais lenta sob RLS (cerca de 4,1 ms contra 0,1 ms), com mitigações propostas no relatório que preservam a RLS.
+- A latência da API inteira (NestJS, rede e TLS) fica para a carga da fase 2.
+
+**Exceção registrada ([ADR-007](007-autorizacao-jwt-sem-papeis.md), 20/11/2026):** o módulo `autenticacao`, com papel de banco próprio e privilégio por coluna, acessa as tabelas de usuário, sessão e refresh sem RLS e fora do `TenantContext`; elas aparecem como exceção explícita no teste de catálogo de RLS. Nenhum outro módulo usa esse papel.

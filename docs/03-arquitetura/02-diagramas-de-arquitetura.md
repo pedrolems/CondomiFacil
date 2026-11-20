@@ -19,7 +19,7 @@
 
 **Escopo.** Só o que `01-arquitetura.md`, os ADRs, o PRD e as Regras de Negócio sustentam. O que os docs não definem aparece como "não definido nos docs". Nomes de módulos, tabelas e rotas são ilustrativos; o esquema real vem em `docs/04-banco-de-dados`.
 
-**Status do documento.** Proposta, em 08/11/2026, atualizada em 15/11/2026. O documento em si não foi aceito pelo Pedro. Dos 16 ADRs, 002 (Asaas), 004 (Supabase + Render, só para construir o MVP) e 005 (Resend) foram aceitos, com ressalvas, em 10/11/2026; os demais continuam Propostos.
+**Status do documento.** Proposta, em 08/11/2026, atualizada em 20/11/2026. O documento em si não foi aceito pelo Pedro. Dos 16 ADRs, 002 (Asaas), 004 (Supabase + Render, só para construir o MVP) e 005 (Resend) foram aceitos, com ressalvas, em 10/11/2026; 001 (RLS), 003 (offline), 007 (sessões) e 008 (Kysely e Flyway) foram aceitos, com ressalvas, em 20/11/2026; os demais continuam Propostos (o 014 segue condicionado).
 
 ### 1.1 O modelo C4 em cinco linhas
 
@@ -156,7 +156,7 @@ Fontes: arq. 2.1, 2.4, 3.6 a 3.8, 5.1, 6.4, 6.8; PRD 3 e 10; RF-AC-06, RF-AD-14;
 flowchart TB
     subgraph CLIENTES["Clientes: um único projeto Expo (apps/mobile)"]
         APP["App mobile<br/>Expo / React Native + TypeScript<br/>Android 9+ e iOS"]
-        LOCALDB[("Banco local offline<br/>SQLite + SQLCipher e outbox local<br/>(Proposta, ADR-003)<br/>só portaria e limpeza")]
+        LOCALDB[("Banco local offline<br/>SQLite + SQLCipher e outbox local<br/>(Aceito com ressalvas, ADR-003)<br/>só portaria e limpeza")]
         WEB["Web<br/>React Native Web<br/>Chrome, Safari, Edge"]
         APP --- LOCALDB
     end
@@ -240,8 +240,8 @@ Fontes: arq. 2.2, 2.3, 3.1 a 3.8, 4.5 a 4.8, 5.1 a 5.3, 6.5, 6.8; PRD 10; RNF-05
 | Web | API (renovação) | HTTPS | Refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax`; access token só em memória | Proposta |
 | App, web | WebSocket | WSS | Token no handshake; salas `c:{condominio_id}:portaria:{portaria_id}` atribuídas pelo servidor | Proposta |
 | App, web | Armazenamento | HTTPS | URL assinada de envio e de leitura, curta, emitida pela API só após autorizar | Proposta |
-| App (offline) | API `/sync` | HTTPS | Mesmo JWT; `POST /sync/push` em lote ordenado e idempotente por `op_id`; `GET /sync/pull?desde=cursor` | Proposta (ADR-003) |
-| API, WebSocket, worker | PostgreSQL | SQL (pool) | Papel `app_user` sem `BYPASSRLS`; transação com `set_config(..., true)` | Proposta alinhada a SEG-05 (ADR-001) |
+| App (offline) | API `/sync` | HTTPS | Mesmo JWT; `POST /sync/push` em lote ordenado e idempotente por `op_id`; `GET /sync/pull?desde=cursor` | Proposta de contrato; ADR-003 aceito com ressalvas (20/11/2026) |
+| API, WebSocket, worker | PostgreSQL | SQL (pool) | Papel `app_user` sem `BYPASSRLS`; transação com `set_config(..., true)` | Alinhada a SEG-05; ADR-001 aceito com ressalvas (20/11/2026) |
 | API | Worker | Fila e outbox no PostgreSQL | Payload com `condominio_id`; outbox gravado na mesma transação | Proposta (ADR-006) |
 | Worker | WebSocket | `NOTIFY` do PostgreSQL | Evento mínimo por condomínio; cliente relê pela API | Proposta |
 | API | Gateway | HTTPS | Credencial do Asaas no cofre; tempo limite, nova tentativa com recuo, disjuntor | Asaas decidido (ADR-002); resiliência Proposta |
@@ -260,7 +260,7 @@ flowchart LR
 
     subgraph APARELHO["Aparelho da portaria"]
         TELA["Tela da lista do dia"]
-        LOC[("SQLite cifrado<br/>lista do dia e outbox local<br/>(Proposta, ADR-003)")]
+        LOC[("SQLite cifrado<br/>lista do dia e outbox local<br/>(Aceito com ressalvas, ADR-003)")]
         SYNC["Cliente de sincronização<br/>(Proposta)"]
     end
 
@@ -540,7 +540,7 @@ flowchart LR
     NOT --> MAILER
 ```
 
-- Ninguém se cadastra sozinho: pré-cadastro pela administradora ou suporte (RN-CD-01). Senha com Argon2id; refresh token rotativo (Proposta, ADR-007).
+- Ninguém se cadastra sozinho: pré-cadastro pela administradora ou suporte (RN-CD-01). Senha com Argon2id; refresh token rotativo (ADR-007, aceito com ressalvas em 20/11/2026).
 - Uma unidade ocupada tem um único morador habilitado (RN-CD-19). Substituição do síndico é dado, não código (RN-CD-12, RN-CD-28).
 - `parametro_valor` nunca é atualizado, só versionado; a regra vigente é copiada como `regras_aplicadas` quando necessário (RN-GE-01 a 03).
 - O papel `plataforma` não tem acesso às tabelas de tenant (arq. 4.4).
@@ -889,7 +889,7 @@ Todas são Proposta: valem para os diagramas e esperam validação do Pedro. Nen
 
 - O diagrama 2.2 de `01-arquitetura.md` mostra WebSocket como caixa separada, enquanto o texto propõe o mesmo processo da API. D2 desenha os dois dentro do mesmo deploy.
 - O diagrama 2.2 não mostra fila nem outbox, embora a arquitetura dependa deles. D2 e D12 os mostram.
-- A seção 9.1 de `01-arquitetura.md` usa "Proposta, a decidir" para ADR-003 e ADR-006, e o índice dos ADRs usa "Proposto". É a mesma situação.
+- A seção 9.1 de `01-arquitetura.md` usa "Proposta, a decidir" para ADR-003 e ADR-006, e o índice dos ADRs usava "Proposto". Era a mesma situação; ADR-003 foi aceito com ressalvas em 20/11/2026 e o ADR-006 segue Proposto.
 - PRD 10 cita web para "administradora, suporte e síndico"; a arquitetura acrescenta o admin da plataforma. D1 segue a arquitetura (arq. 2.4).
 
 ## 6. Rastreabilidade

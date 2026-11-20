@@ -1,8 +1,8 @@
 # Critérios das PoCs — IN-02 A (P1 a P5)
 
-**Data:** 18/11/2026. **Atualizado em:** 18/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
+**Data:** 18/11/2026. **Atualizado em:** 20/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
-**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **P1 executada e aprovada em 18/11/2026** (resultado na seção P1); G0 liberado em 18/11/2026 só para a fase 1: **P2 a P5 continuam não liberadas**. Os critérios, por si, não liberaram o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
+**Estado:** critérios aceitos por Pedro em 18/11/2026 (PC-01 a PC-09); **P1 executada e aprovada em 18/11/2026** (resultado na seção P1); G0 liberado em 18/11/2026 só para a fase 1; **P2 a P5 executadas e aprovadas em 20/11/2026 e aceitas por Pedro na mesma data** (ADRs 001, 003, 007 e 008 aceitos com ressalvas; ADR-014 continua condicionado; fase 2 não liberada). Os critérios, por si, não liberaram o G0: PoCs só rodam depois do G0 e da autorização de escopo ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 139). Este documento responde ao IN-02 A (comparação curta e PoCs com critérios; desenho aceito condicionado à prova). Aceitar critérios não aceita ADR, ferramenta nem contrato.
 
 **Regra comum a todas as PoCs:** dados fictícios, sem serviço pago, sem publicar, sem credencial no Git ou em log ([decisões](../decisoes-para-iniciar-o-desenvolvimento.md), linha 141; [pacote técnico da fase 1](../09-infra/pacote-tecnico-fase-1.md)). Se uma PoC reprovar, revê-se a proposta, sem enfraquecer RLS, sigilo ou integridade ([roadmap](../roadmap.md), linhas 264-265). Versões de bibliotecas abaixo: registro npm consultado em 18/11/2026, **não** confirmadas em changelogs completos; confirmar antes de fixar.
 
@@ -105,12 +105,12 @@ A liberação não libera a fase 2 nem os ADRs condicionados; cada um depende do
 - **Reprovação:** permissão antiga além da janela; reuso aceito; token acessível ao JavaScript na web; sessão irrevogável.
 - **Evidência:** suíte de integração e relatório para revisão de segurança. **Se reprovar:** revisar o ADR-007 com Pedro; a fase 2 não começa.
 
-### Resultado (20/11/2026): aprovada, aguardando aceite de Pedro
+### Resultado (20/11/2026): aprovada; aceita por Pedro em 20/11/2026 (ADR-007 aceito com ressalvas)
 
 Relatório: [`pocs/rm-16/p2/RELATORIO.md`](../../pocs/rm-16/p2/RELATORIO.md) (branch `poc/rm-16`). Implementação própria com jose 6.2.17, refresh opaco com hash SHA-256 e argon2 0.45.2, NestJS 12.5.1, Kysely com postgres.js. Suíte de integração: 49/49, conferida pelo orquestrador.
 
 - Aprovados todos os critérios: JWT de 15 min só com `sub` e `sid`; replay revoga a sessão; 8 renovações concorrentes com uma só vencedora; troca de papel efetiva entre 4,9 s e 5,1 s (cache de 5 s); `X-Condominio-Id` sem vínculo recusado; suporte só no plano Gestão + Suporte; logout, troca de senha e exclusão LGPD revogam; cookie httpOnly, Secure e SameSite=Lax com CSRF. Consulta de papel com p95 de 1,69 ms (RNF-01).
-- **Decisão pendente para Pedro e revisão de segurança:** retry legítimo (ADR-007, linha 91). A política estrita derruba a sessão quando a resposta da renovação se perde; o relatório compara cinco alternativas, sem fixar duração.
+- **Retry legítimo (ADR-007, linha 91), decidido por Pedro em 20/11/2026: alternativa B+E do relatório, com 30 s.** O token anterior vale uma única vez por 30 s, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nesses 30 s, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. *Texto anterior (histórico): decisão pendente; a política estrita derruba a sessão quando a resposta da renovação se perde, e o relatório comparava cinco alternativas, sem fixar duração.*
 - Achados para a fase 2: login e renovação rodam fora do `TenantContext`, o que exige exceção explícita e estreita à regra da P5; `@nestjs/jwt` só é seguro com `algorithms`, `issuer` e `audience` fixados numa função única; HS256 é simétrico.
 - Não provados: expo-secure-store em aparelho, várias abas na web, carga RNF-17, limites de taxa e memória do Argon2 no Render.
 
@@ -122,7 +122,7 @@ Relatório: [`pocs/rm-16/p2/RELATORIO.md`](../../pocs/rm-16/p2/RELATORIO.md) (br
 - **Reprovação:** qualquer cruzamento de tenant; necessidade de credencial dona ou `service_role` na API; RNF-01 violado sem mitigação que preserve RLS.
 - **Ambiente:** PostgreSQL local descartável, na mesma versão principal do destino, sem projeto Supabase novo. **Se reprovar:** rever políticas/índices ou o ADR-001; nunca relaxar RLS.
 
-### Resultado (20/11/2026): aprovada, aguardando aceite de Pedro
+### Resultado (20/11/2026): aprovada; aceita por Pedro em 20/11/2026 (ADR-001 aceito com ressalvas)
 
 Relatório: [`pocs/rm-16/p3/RELATORIO.md`](../../pocs/rm-16/p3/RELATORIO.md). PostgreSQL 17.12 (versão principal do Supabase) em Docker. Suíte: 34/34, conferida pelo orquestrador.
 
@@ -139,7 +139,7 @@ Relatório: [`pocs/rm-16/p3/RELATORIO.md`](../../pocs/rm-16/p3/RELATORIO.md). Po
 - **Reprovação:** perda ou duplicação; banco legível sem chave; criptografia que falha sem aviso.
 - Exige dev build local (exceção ao D8, aprovada em PC-08). **Se reprovar:** avaliar op-sqlite ou WatermelonDB.
 
-### Resultado (20/11/2026): aprovada, aguardando aceite de Pedro
+### Resultado (20/11/2026): aprovada; aceita por Pedro em 20/11/2026 (ADR-003 aceito com ressalvas)
 
 Relatório: [`pocs/rm-16/p4/RELATORIO.md`](../../pocs/rm-16/p4/RELATORIO.md). expo-sqlite 58.0.18 com SQLCipher 4.17.0 e outbox própria, dev build local no emulador Android com 3 GB. Testes do servidor de sync: 4/4, conferidos pelo orquestrador; as provas no emulador não foram repetidas.
 
@@ -155,12 +155,12 @@ Antes das primeiras migrations funcionais; pode usar o mesmo banco da P3.
 - **P5a — executor** (MS-01, Flyway Community SQL-first, [estratégia de migrations](../04-banco-de-dados/03-estrategia-de-migrations-e-seeds.md), linha 42): só Flyway 13.12.2 (CLI com Java 25); alternativa (dbmate, node-pg-migrate) só se o Flyway falhar. **Aprovação** (mesma estratégia, linha 356; [roadmap](../roadmap.md), linha 311): histórico com checksum e validação; lock com `transactional.lock=false` e dois migradores concorrentes; SSL e modo de conexão; arquivo não transacional (`CONCURRENTLY`); reconexão após erro. **Reprovação:** recurso pago ou lock não confiável.
 - **P5b — acesso a dados** (ADR-008): kysely 0.29.9 ou drizzle-orm 0.45.4. **Aprovação** ([ADR-008](adr/008-orm-query-builder-migracoes.md), linhas 68-70): transação com `set_config` local, consulta sob RLS, conexão limpa ao voltar ao pool; migração de exemplo com RLS forçada, `EXCLUDE` e gatilho pelo papel dono; teste de catálogo de RLS. **Reprovação:** biblioteca abrir conexão fora do `TenantContext`.
 
-### Resultado (20/11/2026): P5a e P5b aprovadas, aguardando aceite de Pedro
+### Resultado (20/11/2026): P5a e P5b aprovadas; aceitas por Pedro em 20/11/2026 (ADR-008 aceito com ressalvas)
 
 Relatório: [`pocs/rm-16/p5/RELATORIO.md`](../../pocs/rm-16/p5/RELATORIO.md). Suítes: P5a 9/9 (saída registrada) e P5b 46/46, esta conferida pelo orquestrador.
 
 - **P5a, Flyway 13.12.2 OSS:** checksum e validação detectam migration alterada, fora de ordem ou removida; dois migradores concorrentes com `transactional.lock=false` aplicam cada versão uma vez, mesmo com um deles derrubado; SSL `verify-full`; `CREATE INDEX CONCURRENTLY`; reconexão após erro. Sem recurso pago.
-- **P5b:** Kysely e Drizzle passaram; **recomendado Kysely 0.29.9 com postgres.js** (`kysely-postgres-js` 5.1.0). O Drizzle perdeu na geração de esquema e no tratamento de erros; a falta de integração oficial do Kysely com Zod precisa ser harmonizada com o ADR-015 na revisão do ADR-008.
+- **P5b:** Kysely e Drizzle passaram; **recomendado Kysely 0.29.9 com postgres.js** (`kysely-postgres-js` 5.1.0). O Drizzle perdeu na geração de esquema e no tratamento de erros; a falta de integração oficial do Kysely com Zod foi resolvida por Pedro em 20/11/2026: sem Zod (borda validada pelo Ajv gerado do contrato; tipos do banco pelo kysely-codegen).
 - Regras para a fase 2: `validate` estrito (`-ignoreMigrationPatterns=` vazio); `CONCURRENTLY` reexecutável (drop e create); listener de erro no driver; migrations só por ligação direta ou pooler em modo session; `inflightQueryAbortStrategy` padrão, sem conexão de controle.
 - Não provados: Supabase real e Supavisor, custo do Kysely sob carga, telemetria do Flyway e o peso de 1,1 GB da imagem no CI.
 
@@ -187,7 +187,7 @@ Aceitas por Pedro em 18/11/2026.
 - RLS pode pesar no RNF-01.
 - Java a mais no CI (Flyway).
 - NestJS 12 só funciona com ESM.
-- O ADR-008 pede tipos "compatíveis com Zod" (linha 40) e o ADR-015 proíbe Zod manual concorrente; harmonizar na revisão do ADR-008.
+- ~~O ADR-008 pede tipos "compatíveis com Zod" (linha 40) e o ADR-015 proíbe Zod manual concorrente; harmonizar na revisão do ADR-008.~~ **Resolvido em 20/11/2026:** Pedro retirou do ADR-008 a exigência de Zod; a borda da API é validada pelo Ajv gerado do contrato (P1, ADR-015) e os tipos do banco vêm do kysely-codegen (P5); cada camada tem uma única fonte.
 
 ## Divergências conhecidas
 
@@ -201,7 +201,7 @@ Registradas aqui, **não corrigidas** (fora do pedido). Não duplicar em outros 
 - `.env.example` só com nomes (`infra-e-devops.md`, linha 180) x valores fictícios (`seguranca.md`, linha 175).
 - `backend/apps/api/.env.example` lista variáveis fora da fase 1.
 - Esqueletos Dialog e DataTable fora do D4.
-- `02-diagramas-de-arquitetura.md` linha 22 lista só 002, 004 e 005 como aceitos.
+- ~~`02-diagramas-de-arquitetura.md` linha 22 lista só 002, 004 e 005 como aceitos.~~ Atualizada em 20/11/2026 (inclui 001, 003, 007 e 008).
 
 ## Rastreabilidade
 

@@ -2,7 +2,7 @@
 
 **Autor do produto:** Pedro Lemos  
 **Data:** 14/11/2026  
-**Atualizado em:** 17/11/2026  
+**Atualizado em:** 20/11/2026  
 **Estado:** proposta técnica para revisão do Pedro; organização do workspace e fontes dos contratos aprovadas em 14/11/2026 (ADR-015); demais escolhas não aceitas. O projeto está em Design, sem aplicativo implementado.
 
 ## 1. Objetivo, escopo e fontes
@@ -218,7 +218,7 @@ Ausência de cache utilizável exige estado claro: “Conecte-se para carregar o
 
 ### 5.2 Banco local, fila e proteção
 
-O ADR-003 recomenda **expo-sqlite com SQLCipher e fila própria**, ainda sujeito a PoC e aprovação; WatermelonDB segue alternativa. Separar cache de consulta, outbox e arquivos pendentes tanto no ciclo de vida quanto no acesso. O particionamento é por usuário/condomínio e recorte autorizado; não basta filtrar uma lista global depois de ler.
+O ADR-003 recomenda **expo-sqlite com SQLCipher e fila própria**, aceito com ressalvas em 20/11/2026 após a PoC P4 (iOS, aparelho real e web sem SQLCipher não testados); WatermelonDB segue alternativa. Separar cache de consulta, outbox e arquivos pendentes tanto no ciclo de vida quanto no acesso. O particionamento é por usuário/condomínio e recorte autorizado; não basta filtrar uma lista global depois de ler.
 
 SQLCipher precisa de build nativa própria, não Expo Go. Verificar efetivamente a disponibilidade da criptografia antes de gravar dados, pois abrir SQLite e configurar uma chave sem suporte compilado não garante criptografia. Validar na PoC a proteção dos anexos e a guarda de chaves no armazenamento seguro. Ver [Expo SQLite/SQLCipher](https://docs.expo.dev/versions/latest/sdk/sqlite/) e [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/).
 

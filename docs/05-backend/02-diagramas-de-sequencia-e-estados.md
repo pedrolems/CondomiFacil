@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026. **Atualizado em:** 15/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 20/11/2026.
 
 **Escopo:** comportamento do MVP, documentado antes do código. Não existe backend, banco ou integração implementada. Este documento não aceita ADRs, altera regras ou transforma simulações do protótipo em operações reais.
 
@@ -1605,7 +1605,7 @@ Complementação de 12/11/2026. A contagem passa a **38 sequências, 11 máquina
 | Execução autorizada, contexto, TX e outbox | S01/S35 | Completo no recorte transversal | SEG-05/08/13/17/18; backend §4; implementação ainda deve provar isolamento e efeitos |
 | Conta: pré-cadastro, ativação, aceites e encerramento | S02–S04/S34 | Parcial | RN-CD-01/02/03/18; MER §4.1; não há enum completo de conta; importação e exclusão têm protocolos pendentes |
 | Desafio de ativação/recuperação | S03/C01 | Completo no recorte de validade/consumo | RN-CD-02, MER §4.1; cinco tentativas, 15 min, reenvio 60 s; limites adicionais/retenção não definidos |
-| Sessão e renovação | S04/S37/C02 | Parcial | Escolha 16A aprova direção de tolerância; mecanismo/janela e revisão ADR-007 pendentes; access expirado não encerra sessão |
+| Sessão e renovação | S04/S37/C02 | Parcial | Escolha 16A aprova direção de tolerância; ADR-007 aceito com ressalvas em 20/11/2026 (retry B+E de 30 s, a provar na fase 2); access expirado não encerra sessão |
 | Solicitação administrativa | S05/E11 | Completo no recorte do contrato proposto | RN-CD-06/23, RN-PL-03/05; `SolicitacaoAdministradora.estado`; alinhamento transacional entre atendimento e efeito ainda necessário |
 | Moradia, locação e dependentes | S06 | Parcial | RN-CD-07/18–26, MER §4.2; vigências e efeitos representados; sem máquina integral de contrato |
 | Mandato e substituição | S07/S29 | Parcial | RN-CD-10–14/27/28; reatribuição vigente decidida em 8A; ciclos completos e sigilo eleitoral ainda pendentes |
@@ -1707,7 +1707,7 @@ sequenceDiagram
 <a id="c02"></a>
 ### C02 — Fatos de sessão e permissão atual
 
-**Fontes:** S04/S37, MER §4.1, ADR-007 proposto, RN-CD-05/07/18. Recorte de fatos, **sem enum de sessão**. Revogar sessão é distinto de encerrar vínculo e de expirar access token.
+**Fontes:** S04/S37, MER §4.1, ADR-007 aceito com ressalvas em 20/11/2026, RN-CD-05/07/18. Recorte de fatos, **sem enum de sessão**. Revogar sessão é distinto de encerrar vínculo e de expirar access token.
 
 ```mermaid
 flowchart TD

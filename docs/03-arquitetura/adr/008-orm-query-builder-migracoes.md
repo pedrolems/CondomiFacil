@@ -1,8 +1,8 @@
 # ADR-008: ORM ou query builder e migrações
 
-- **Estado:** Proposto
+- **Estado:** Aceito, com ressalvas (Kysely 0.29.9 com postgres.js e Flyway 13.12.2 OSS). Decisão de Pedro em 20/11/2026
 - **Data:** 06/11/2026
-- **Atualizado em:** 14/11/2026
+- **Atualizado em:** 20/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** necessidade de controle da transação (contexto de tenant)
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-011](011-ambientes-branches-eas-ota.md)
@@ -37,7 +37,7 @@ Critérios de desempate:
 
 1. A transação e a conexão do `TenantContext` são nossas, com `set_config` antes de qualquer consulta.
 2. Migração escrita em SQL, capaz de expressar RLS, `FORCE ROW LEVEL SECURITY`, `EXCLUDE`, gatilhos e criação concorrente de índices.
-3. Tipos gerados ou inferidos do esquema, compatíveis com Zod.
+3. ~~Tipos gerados ou inferidos do esquema, compatíveis com Zod.~~ **Substituído em 20/11/2026:** sem Zod. Os tipos do banco vêm do kysely-codegen (P5); a borda da API é validada pelo Ajv gerado do contrato (P1, ADR-015). Cada camada tem uma única fonte.
 
 Regras que valem para qualquer escolha:
 
@@ -69,6 +69,29 @@ Regras que valem para qualquer escolha:
 - Escrever uma migração de exemplo com RLS forçada, `EXCLUDE` e gatilho, e rodá-la pelo papel dono.
 - Teste de catálogo de RLS funcionando sobre o esquema produzido pela ferramenta.
 - Aprovação do Pedro.
+
+## Decisão de Pedro em 20/11/2026 (aceite com ressalvas)
+
+Após a PoC P5 ([relatório](../../../pocs/rm-16/p5/RELATORIO.md); [critérios, resultado da P5](../criterios-de-poc.md)), Pedro aceitou o ADR com ressalvas. A "Decisão (proposta)" acima vale com a escolha fechada abaixo.
+
+| Item | Decisão |
+| --- | --- |
+| Acesso a dados | **Kysely 0.29.9** com **postgres.js** (`kysely-postgres-js` 5.1.0). O Drizzle não foi escolhido |
+| Migrations | **Flyway 13.12.2 OSS**, SQL-first, executado pelo papel dono |
+| Zod | Sem Zod. Retirada a exigência de tipos "compatíveis com Zod": a borda da API é validada pelo Ajv gerado do contrato (P1, ADR-015) e os tipos do banco vêm do kysely-codegen (P5). Resolve o risco "ADR-008 x ADR-015" de `criterios-de-poc.md` |
+
+**Ressalvas**
+
+- Não foi testado no Supabase real nem no Supavisor (pooler do Supabase).
+- A imagem do Flyway tem cerca de 1,1 GB no CI.
+
+**Regras da P5 para a fase 2**
+
+- Validação estrita do Flyway (`-ignoreMigrationPatterns=` vazio).
+- `CREATE INDEX CONCURRENTLY` reexecutável (drop e create).
+- Listener de erro no driver.
+- Migrations só por ligação direta ou pooler em modo session.
+- `inflightQueryAbortStrategy` padrão, sem conexão de controle.
 
 ## Referências
 

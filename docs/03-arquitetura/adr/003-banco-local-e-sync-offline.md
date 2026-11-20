@@ -1,8 +1,8 @@
 # ADR-003: Banco local do aparelho e sincronização offline
 
-- **Estado:** Proposto
+- **Estado:** Aceito, com ressalvas (expo-sqlite com SQLCipher e outbox própria). Decisão de Pedro em 20/11/2026. O [ADR-014](014-primeira-conclusao-sync.md) continua condicionado
 - **Data:** 06/11/2026
-- **Atualizado em:** 12/11/2026
+- **Atualizado em:** 20/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** prova de conceito de criptografia e de fila de 10.000 operações
 - **Relacionado a:** [ADR-014](014-primeira-conclusao-sync.md), [ADR-011](011-ambientes-branches-eas-ota.md), [ADR-001](001-multi-tenant-rls.md)
@@ -90,3 +90,15 @@ A regra de "primeira conclusão" tem decisão própria na [ADR-014](014-primeira
 ## Direção de Pedro em 12/11/2026
 
 Fila pendente é separada do cache apagável, preservada protegida até sincronização ou tratamento explícito. Retenção, acesso após logout e tratamento não estão definidos; não autorizar retenção indefinida nem descartar fatos silenciosamente. Este registro não aceita integralmente o ADR. [Decisões consolidadas](../../01-produto/05-decisoes-de-complementacao.md).
+
+## Decisão de Pedro em 20/11/2026 (aceite com ressalvas)
+
+Após a PoC P4 ([relatório](../../../pocs/rm-16/p4/RELATORIO.md); [critérios, resultado da P4](../criterios-de-poc.md)), Pedro aceitou o ADR com ressalvas. A "Decisão (proposta)" vale com **expo-sqlite 58.0.18 com SQLCipher 4.17.0 e outbox própria**; os critérios de validação acima foram atendidos no emulador Android com 3 GB.
+
+**Ressalvas**
+
+- Não foi testado no iOS (sem Mac) nem em aparelho real.
+- Na web não há SQLCipher.
+- O [ADR-014](014-primeira-conclusao-sync.md) **continua condicionado** (desempate exato e relógio incorreto) e **não foi aceito**.
+
+**Achados para a fase 3** (do relatório): a idempotência por `op_id` no servidor é obrigatória, porque o React Native reenvia POST sozinho; o logout fecha as conexões antes de apagar o cache e mantém a fila em arquivo cifrado separado; o build nativo no Windows esbarra no limite de 260 caracteres de caminho.

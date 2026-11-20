@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026. **Atualizado em:** 15/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 20/11/2026.
 
 **Natureza:** política documental baseada no MER/DER lógico; não contém SQL executável, migrações nem concessões de acesso implementadas.
 
@@ -84,7 +84,7 @@ Fonte: PRD §3; RN-CD-04 a RN-CD-05, RN-CD-11 a RN-CD-28; RN-SC-02; RN-FI-03 e R
 
 **Regra:** isolamento entre condomínios com RLS no PostgreSQL (SEG-05, RNF-11); restrições por unidade, função, titularidade e sigilo continuam obrigatórias (SEG-06, SEG-07, SEG-17 e SEG-18). Uma política só de tenant não cumpre a matriz de produto.
 
-**Proposta técnica — ADR-001/007, ainda Propostos:**
+**Técnica — ADR-001/007, aceitos com ressalvas em 20/11/2026:**
 
 1. A API autentica sessão e usuário, valida os vínculos com condomínio/unidade declarados e resolve a função vigente no servidor. O cliente não pode definir a própria autorização em cabeçalhos, token, corpo ou campo de formulário.
 2. `TenantContext` abre uma transação e define contexto local: `app.condominio_id`, `app.usuario_id`, `app.unidade_id` quando aplicável e `app.papel` efetivo. Não se inventa unidade para profissional, funcionário ou job sem unidade. O tratamento físico de contexto sem unidade precisa preservar as ações legítimas desses sujeitos.

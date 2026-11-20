@@ -1,8 +1,8 @@
 # ADR-007: Autorização com papéis no servidor, JWT sem papéis e refresh rotativo
 
-- **Estado:** Proposto
+- **Estado:** Aceito, com ressalvas (jose; refresh com retry B+E de 30 s). Decisão de Pedro em 20/11/2026
 - **Data:** 06/11/2026
-- **Atualizado em:** 15/11/2026
+- **Atualizado em:** 20/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** revisão de segurança
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-008](008-orm-query-builder-migracoes.md)
@@ -98,3 +98,28 @@ Regra de produto de 13/11/2026, atualizada em 15/11/2026: ver `docs/01-produto/0
 Suporte da plataforma atua somente no plano Gestão + Suporte, inclusive na condução eleitoral; não recebe acesso ao Essencial nem a reclamações e scores em qualquer plano.
 
 **Impacto neste ADR:** a autorização por ação é contextual (condomínio, mandato, ausência/vacância e concessão) e revalidada em cada leitura e ação, sem papéis no JWT; a concessão eleitoral temporária do proprietário designado é resolvida no servidor e não amplia gestão, finanças, reclamações nem autoconcessão. O mecanismo técnico continua proposto; esta atualização não aceita o ADR.
+
+## Decisão de Pedro em 20/11/2026 (aceite com ressalvas)
+
+Após a PoC P2 ([relatório](../../../pocs/rm-16/p2/RELATORIO.md); [critérios, resultado da P2](../criterios-de-poc.md)), Pedro aceitou o ADR com ressalvas. Os trechos acima que dizem "proposta" e "continua pendente de revisão" valem com o que segue; o texto de 12/11/2026 sobre retry e a linha 40 ficam como histórico, **substituídos** nos pontos abaixo.
+
+**Retry legítimo do refresh: alternativa B+E do relatório da P2**
+
+- O token anterior vale **uma única vez por 30 s**, enquanto o sucessor ainda não foi usado. Fora disso, o reuso é tratado como replay e revoga a sessão.
+- O cliente impede renovações simultâneas: single-flight por processo, trava entre abas na web (Web Locks API ou BroadcastChannel) e trava entre processos no app.
+- Risco aceito: durante esses 30 s, um token roubado também renova.
+- Ainda não implementado nem provado; a prova fica para a fase 2.
+
+**Exceção do plano de autenticação à regra "nada fora do TenantContext"**
+
+- Fica num módulo `autenticacao` com um papel de banco próprio, que acessa só as tabelas de usuário, sessão e refresh, com privilégio por coluna e sem acesso a nenhuma tabela de condomínio.
+- Essas tabelas ficam sem RLS e aparecem como exceção explícita no teste de catálogo de RLS ([ADR-001](001-multi-tenant-rls.md)).
+- Nenhum outro módulo usa esse papel.
+
+**Biblioteca e ressalvas**
+
+- Biblioteca: **jose**. O `@nestjs/jwt` só serve com verificação numa função única que fixe algoritmo, emissor e audiência.
+- A chave HS256 é simétrica: rever EdDSA ou ES256 se mais componentes verificarem o JWT.
+- O `expo-secure-store` não foi provado em aparelho.
+- Continuam não provados: várias abas na web, carga RNF-17, limites de taxa e memória do Argon2 no Render.
+- Mudanças de contrato decorrentes (por exemplo, `/v1/acesso/renovar`) não foram feitas; ver a entrega da tarefa.

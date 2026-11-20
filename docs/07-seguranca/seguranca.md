@@ -1,6 +1,6 @@
 # Segurança — CondomiFacil
 
-**Data:** 14/11/2026. **Atualizado em:** 17/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 20/11/2026. **Estado:** proposta para revisão de Pedro Lemos.
 
 O projeto está na fase de Design: ainda não há backend, aplicativo, banco ou controles de produção implementados. Este documento consolida os requisitos existentes e propõe sua aplicação na autenticação, autorização, isolamento entre condomínios, criptografia, gestão de segredos, limitação de requisições e resposta a incidentes. Não comprova conformidade, não aceita ADRs nem altera permissões de produto.
 
@@ -56,14 +56,14 @@ Ninguém se cadastra sozinho. RN-CD-01 prevê pré-cadastro pela administradora,
 
 Proposta de implementação: consumir o código uma única vez, validar finalidade e expiração no servidor, não armazená-lo em texto aberto e não registrá-lo em logs. O mecanismo de proteção do código e seus parâmetros precisam de revisão própria; não reutilizar hash de identificador público como proteção. Argon2id é a direção proposta pela arquitetura/ADR-007 (Proposto); algoritmo final e parâmetros de custo devem ser validados, sem transformar a alternativa permitida pelo PRD em decisão já aceita.
 
-### 3.2 Sessão proposta no ADR-007 e no contrato
+### 3.2 Sessão no ADR-007 (aceito com ressalvas em 20/11/2026) e no contrato
 
 | Item | Direção documentada e limite |
 | --- | --- |
 | Token de acesso | JWT assinado, com validade de 15 minutos, `sub` e `sid`; sem funções nem condomínios como fonte de permissão |
 | Validação | Verificar assinatura, validade e sessão; algoritmos admitidos, emissor e destinatário esperados precisam ser fechados na revisão técnica |
 | Renovação | Refresh token opaco, aleatório, persistido como hash e rotativo; replay indevido revoga a sessão |
-| Rede instável | A direção proposta no ADR-007 (ainda Proposto) admite tolerância controlada ao retry legítimo; janela e mecanismo permanecem pendentes, sem reutilização irrestrita |
+| Rede instável | O ADR-007 (aceito com ressalvas em 20/11/2026) admite retry legítimo pela alternativa B+E: o token anterior vale uma única vez por 30 s e o cliente impede renovações simultâneas; fora disso, o reuso é replay e revoga a sessão. A implementar e provar na fase 2 |
 | Revogação | Logout, troca de senha e exclusão da conta revogam sessões conforme o desenho de sessão |
 | Mobile | Tokens no armazenamento seguro previsto, `expo-secure-store`; nunca em cache de consulta, logs ou carga da fila offline |
 | Web | Refresh em cookie `httpOnly`, `Secure`, `SameSite=Lax`; token de acesso apenas em memória; proteção CSRF no fluxo que usa cookie |
@@ -146,7 +146,7 @@ SEG-10 fixa anonimização de visitantes após seis meses, com parametrização 
 
 ### 5.3 Aparelhos e operação offline
 
-SEG-09/RN-OF-06 exigem cache de consulta criptografado e apagado no fim do dia/logout, separado da fila pendente. O frontend/ADR-003 propõem `expo-sqlite` com SQLCipher, chave no armazenamento seguro e partição por usuário/condomínio. WatermelonDB continua alternativa; a decisão depende de PoC e aprovação.
+SEG-09/RN-OF-06 exigem cache de consulta criptografado e apagado no fim do dia/logout, separado da fila pendente. O frontend/ADR-003 propõem `expo-sqlite` com SQLCipher, chave no armazenamento seguro e partição por usuário/condomínio. WatermelonDB continua alternativa; ADR-003 aceito com ressalvas em 20/11/2026 após a PoC P4.
 
 Validar em build nativa que a criptografia está efetivamente disponível antes de persistir dados; abrir SQLite com uma chave configurada não basta como evidência. A proteção dos anexos e arquivos temporários também precisa ser comprovada. Portaria guarda somente recorte do dia/blocos atendidos; limpeza, seus chamados admitidos. Vistoria e demais ações online não ganham suporte offline por estarem no mesmo aplicativo.
 
@@ -284,7 +284,7 @@ Estes cenários orientam a futura estratégia de qualidade; nenhum teste de apli
 | Cenário | Resultado esperado |
 | --- | --- |
 | Código expirado, esgotado, substituído ou já usado; e-mail inexistente | Recusa coerente com os limites e resposta sem enumeração |
-| Cinco erros de senha, renovação concorrente e replay indevido | Pausa prevista; retry legítimo tratado somente pela janela proposta no ADR-007 (Proposto, a validar); sessão comprometida revogada |
+| Cinco erros de senha, renovação concorrente e replay indevido | Pausa prevista; retry legítimo tratado somente pela janela de 30 s do ADR-007 (aceito com ressalvas em 20/11/2026; a provar na fase 2); sessão comprometida revogada |
 | Usuário altera condomínio/unidade/ID por URL, cabeçalho ou corpo | Sem leitura, escrita ou confirmação de recurso de outro escopo |
 | Conexão de pool passa do tenant A para B; contexto ausente | Nenhum resíduo de A; ausência de contexto falha fechada |
 | Criação/atualização tenta referenciar unidade de outro tenant | Recusa por aplicação e integridade/política do banco |
@@ -322,12 +322,12 @@ Pendências bloqueiam a parte correspondente do desenho/implementação; não si
 | SEG-01 | Seções 5 e 9.5: trânsito, repouso, campos e recuperação | Arquitetura 7; inventário/chaves e provedor a validar |
 | SEG-02 | Seção 6: servidor, ambientes, cofre, rotação e exposição | Arquitetura 6.5; integrações 1/2.4 |
 | SEG-03 | Seção 3.1: aceite versionado por usuário/contexto | PRD 8; MER de identidade/aceites |
-| SEG-04 | Seções 3 e 7: hashes, códigos, pausas e antiabuso | RN-CD-02; guia 2/10; ADR-007 proposto |
-| SEG-05 | Seção 4.2: RLS e contexto transacional | Arquitetura 4; política de acesso 3; ADR-001 proposto |
+| SEG-04 | Seções 3 e 7: hashes, códigos, pausas e antiabuso | RN-CD-02; guia 2/10; ADR-007 aceito com ressalvas (20/11/2026) |
+| SEG-05 | Seção 4.2: RLS e contexto transacional | Arquitetura 4; política de acesso 3; ADR-001 aceito com ressalvas (20/11/2026) |
 | SEG-06 | Seções 2, 4.1 e 5.2: voto separado e sigilo | RN-VO-13; ADR-009 proposto; parecer pendente |
 | SEG-07 | Seções 2, 4 e 5.2: score, reclamante e projeções | RN-SC-02; política de acesso 6.1; ADR-010 proposto |
 | SEG-08 | Seção 8: trilha de efeitos e acesso restrito | Arquitetura 3.9.1; retenção pendente |
-| SEG-09 | Seções 3.2 e 5.3: cópia local, fila e tokens | RN-OF-06; frontend 5.2; P-07/ADR-003 pendentes |
+| SEG-09 | Seções 3.2 e 5.3: cópia local, fila e tokens | RN-OF-06; frontend 5.2; P-07 pendente; ADR-003 aceito com ressalvas (20/11/2026) |
 | SEG-10 | Seção 5.2: anonimização de visitantes | RN de visitantes; MER/política de retenção |
 | SEG-11 | Seções 5.2 e 9.5: direitos, terceiros e restauração | RF-LG-01/02; política de acesso 7; operador excepcional pendente |
 | SEG-12 | Seções 2 e 6: dados de cartão fora da API/banco/logs, integração pelo gateway | PRD 8; ADR-002 e integrações; fluxo hospedado/tokenizado a validar |
@@ -337,7 +337,7 @@ Pendências bloqueiam a parte correspondente do desenho/implementação; não si
 | SEG-16 | Seções 5.2, 9.4 e 11: parecer e limites do documento | Pulado — Inacessível (17/11/2026): não bloqueia G0; obrigatório antes do primeiro dado real (piloto), conforme roadmap. Pacote preparado em 16/11/2026 |
 | SEG-17 | Seções 2, 4.2/4.3 e 9.3: unidade, webhook e conciliação | PRD 8; Asaas por token conforme ADR-002, não assinatura de corpo |
 | SEG-18 | Seções 2, 4 e 8: agregação, finalidade e auditoria | RN financeiras; mês fechado imutável, correções por estorno; autogestão com pendências |
-| RNF-06/07/08/16 | Seções 5.3, 7 e 10: offline, sincronização e critérios | RN-OF-*; frontend 5; ADR-003/014 propostos |
+| RNF-06/07/08/16 | Seções 5.3, 7 e 10: offline, sincronização e critérios | RN-OF-*; frontend 5; ADR-003 aceito com ressalvas (20/11/2026); ADR-014 proposto |
 | RNF-11 | Seções 2, 4 e 10: isolamento em todos os canais | Arquitetura 4 e política de acesso |
 | RNF-09/13 | Seções 8 e 9.5: continuidade e restauração | ADR-004/013; RPO/RTO sem compromisso aprovado |
 | RNF-01/05/10/17/18 | Seções 7, 8 e 11: dimensionamento, observabilidade e limites da infraestrutura | Testes de carga e revisão de custo/infra antes do piloto |

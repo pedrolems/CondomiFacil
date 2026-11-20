@@ -1,6 +1,6 @@
 # Infra e DevOps — CondomiFacil
 
-**Data:** 14/11/2026. **Atualizado em:** 16/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
+**Data:** 14/11/2026. **Atualizado em:** 20/11/2026. **Autor do produto e responsável pelas aprovações:** Pedro Lemos.
 
 **Estado:** documentação de planejamento, antes do código. A hospedagem do painel web está no [ADR-016](../03-arquitetura/adr/016-hospedagem-do-painel-web.md), aceito com ressalvas por Pedro em 16/11/2026: site estático do Render, plano gratuito, em dev e staging, com revisão obrigatória antes do piloto com dados reais, junto com o ADR-004 (Vercel Pro rejeitada por custo recorrente; Vercel Hobby fora por ser de uso não comercial). Para os demais componentes, este documento escolhe manter **Render para API, WebSocket e processamento de jobs, e Supabase para PostgreSQL e arquivos**, conforme o ADR-004, aceito com ressalvas apenas para construir o MVP em dev e staging. A hospedagem do piloto com dados reais continua sujeita à revisão obrigatória desse ADR. As políticas operacionais abaixo detalham uma proposta; não declaram infraestrutura provisionada nem aceitam os ADRs ainda propostos.
 
@@ -300,7 +300,7 @@ Contas e recursos ficam sob controle do produto, com MFA, menor privilégio e in
 | Backup e arquivos | Diário/sete dias/mensal; destino independente, consistência banco/objetos e recuperação comprovados |
 | RPO/RTO/PITR | ADR-013 segue proposto; fechar metas, plano e orçamento antes do piloto |
 | CI/CD e mobile | ADR-011 segue proposto; validar responsáveis, proteção das branches, gates, artefatos, EAS e rollback |
-| Banco/fila/identidade | Validar decisões ainda propostas, privilégios e PoCs, sem aceitar ADR-001/006/007/008/010/014 por consequência |
+| Banco/fila/identidade | Validar decisões ainda propostas, privilégios e PoCs, sem aceitar ADR-006/010/014 por consequência (001, 007 e 008 foram aceitos com ressalvas por Pedro em 20/11/2026) |
 | LGPD | Inventário de subprocessadores (Render, Supabase, Resend, Sentry, Expo, Asaas), regiões, acessos de suporte, transferências, retenção e exclusões/restauro revisados |
 | Domínios e contas | Nome, titularidade, DNS, renovação, MFA e recuperação confirmados |
 

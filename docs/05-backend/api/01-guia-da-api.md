@@ -1,6 +1,6 @@
 # Guia da API — CondomiFacil
 
-**Estado:** Proposta de 10/11/2026, atualizada em 15/11/2026, não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
+**Estado:** Proposta de 10/11/2026, atualizada em 20/11/2026, não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
 
 ## Índice
 
@@ -301,7 +301,7 @@ Essa forma foi conferida com o `lint` e valida; as operações usam `security: [
 | --- | --- |
 | Cabeçalho | `Authorization: Bearer <JWT>` |
 | Token de acesso | JWT assinado, 15 min, só com `sub` (usuário) e `sid` (sessão). **Sem papéis nem condomínios** |
-| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; replay indevido revoga a sessão; direção de tolerância controlada a retry legítimo aprovada em 12/11/2026, com mecanismo e janela ainda sujeitos à revisão. Renovação em `POST /v1/acesso/renovar` |
+| Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; replay revoga a sessão inteira; retry após resposta perdida (decisão de Pedro em 20/11/2026, [ADR-007](../../03-arquitetura/adr/007-autorizacao-jwt-sem-papeis.md)): o refresh anterior vale uma única vez por 30 s, enquanto o sucessor ainda não foi usado; o cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app); risco aceito: nos 30 s um token roubado também renova; ainda não implementado, a prova fica para a fase 2. Renovação em `POST /v1/acesso/renovar` |
 | Chaves | Identificador de chave (`kid`) para rotação sem derrubar sessões |
 | App | Tokens no `expo-secure-store` |
 | Web | Refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax`; token de acesso só em memória; exige proteção CSRF para o cookie de refresh |
@@ -625,7 +625,7 @@ Documentos de origem:
 
 Aplicar as [19 escolhas](../../01-produto/05-decisoes-de-complementacao.md). Cancelamentos pelo condomínio exigem motivo e idempotência; moderação valida destinatário vigente e projeção sem identidade protegida; eleição regular segue RN-VO-13 atualizada em 13/11/2026: síndico em exercício; na ausência ou vacância, subsíndico; sem ambos, conselho fiscal; sem todos, proprietário designado com permissão temporária restrita à eleição; administradora também pode, e o suporte autorizado só no Gestão + Suporte (ver a atualização de 13/11/2026 abaixo). Exportação financeira é sempre assíncrona: POST retorna 202 sem arquivo pronto, consulta informa andamento/falha e somente o estado `pronta` permite arquivo privado, com autorização revalidada. Estados (enum único `EstadoExportacao`, RN-RL-06, 15/11/2026): `solicitada`, `em_processamento`, `pronta`, `falhou`, `expirada` (antes `concluida`, sem `expirada`); TTL e retenção não definidos.
 
-Refresh deve distinguir replay indevido de retry legítimo de resposta perdida; direção de tolerância controlada aprovada, mas janela/mecanismo e defesa contra replay exigem revisão antes da implementação (ADR-007 continua Proposto). Fila offline pendente é separada do cache; prazo e acesso após logout ainda não definidos. Operador de exceções LGPD não tem função/permissão concedida neste contrato.
+Refresh distingue replay de retry legítimo de resposta perdida: reuso único do refresh anterior por 30 s, enquanto o sucessor não foi usado; fora disso é replay e revoga a sessão (decisão de Pedro em 20/11/2026, ADR-007 aceito com ressalvas; implementação e prova na fase 2). Fila offline pendente é separada do cache; prazo e acesso após logout ainda não definidos. Operador de exceções LGPD não tem função/permissão concedida neste contrato.
 
 
 ## Atualização de autogestão e eleições — 13/11/2026

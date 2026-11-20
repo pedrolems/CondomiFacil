@@ -1,6 +1,6 @@
 # Histórias de Usuário e Critérios de Aceite — CondomiFacil
 
-04/11/2026 · Atualizado em 17/11/2026 (RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+04/11/2026 · Atualizado em 20/11/2026 (US-AC-04: retry do refresh, ADR-007; antes, 17/11/2026, RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## Como ler
 
@@ -59,7 +59,7 @@ Requisitos: RF-AC-03 · RN-CD-02
 - [ ] Dado o código válido, quando crio uma nova senha, então a senha antiga deixa de funcionar e as outras sessões são encerradas.
 - [ ] Dado 5 senhas erradas seguidas no login, quando tento de novo, então o acesso fica pausado por 15 minutos, com a opção de redefinir a senha (SEG-04).
 
-- [ ] Resposta de renovação perdida exige desenho de tolerância controlada a retry legítimo sem replay; parâmetros/mecanismo aguardam revisão de segurança, sem aceitar todo ADR-007.
+- [ ] Dado que a resposta de uma renovação de sessão se perdeu, quando o app repete a renovação em até 30 segundos e antes de usar a nova credencial, então a sessão continua e eu não preciso entrar de novo; reuso fora dessa condição é tratado como replay, encerra a sessão e exige entrar de novo (decisão de Pedro em 20/11/2026, ADR-007).
 
 ### US-AC-05 — Trocar de unidade
 

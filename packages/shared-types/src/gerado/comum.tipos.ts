@@ -91,7 +91,7 @@ export interface paths {
         put?: never;
         /**
          * Renova o token de acesso
-         * @description **Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay indevido revoga a sessão. Direção aprovada em 12/11/2026: tolerância controlada ao retry legítimo após resposta perdida; duração/mecanismo e proteção contra replay continuam pendentes da revisão de segurança, bloqueando a implementação dessa exceção (ADR-007, Proposta). No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.
+         * @description **Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.
          */
         post: operations["comumRenovar"];
         delete?: never;
@@ -1709,7 +1709,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["Erro400"];
-            /** @description Refresh token inválido, expirado, revogado ou reutilizado. O cliente volta ao login e depois à tela onde estava (UF 15). */
+            /** @description Refresh token inválido, expirado, revogado ou reutilizado fora da tolerância de 30 segundos (replay, que revoga a sessão inteira); o mesmo erro vale para todos esses casos. O cliente volta ao login e depois à tela onde estava (UF 15). */
             401: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];

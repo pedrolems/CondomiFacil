@@ -384,7 +384,7 @@ paths:
     post:
       operationId: comumRenovar
       summary: Renova o token de acesso
-      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay indevido revoga a sessão. Direção aprovada em 12/11/2026: tolerância controlada ao retry legítimo após resposta perdida; duração/mecanismo e proteção contra replay continuam pendentes da revisão de segurança, bloqueando a implementação dessa exceção (ADR-007, Proposta). No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
+      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
       tags:
       - acesso
       security: []
@@ -420,7 +420,7 @@ paths:
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
-          description: Refresh token inválido, expirado, revogado ou reutilizado. O cliente volta ao login e depois à tela onde estava (UF 15).
+          description: Refresh token inválido, expirado, revogado ou reutilizado fora da tolerância de 30 segundos (replay, que revoga a sessão inteira); o mesmo erro vale para todos esses casos. O cliente volta ao login e depois à tela onde estava (UF 15).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -3622,7 +3622,7 @@ x-lacunas:
 - 'Tempo de expiração dos URLs assinados de envio e de leitura ("minutos" e "curta duração"): lacuna (arquitetura 3.8).'
 - 'Lista de tipos de mídia aceitos, formato do hash, verificação de vírus e retenção de arquivos: lacuna (arquitetura 3.8).'
 - 'Estados de `pedido_lgpd` e códigos de `origem_tipo` de `movimento_score`: o MER/DER não os lista; ficam como texto livre com exemplo.'
-- "Direção de tolerância controlada a retry legítimo de refresh aprovada em 12/11/2026; mecanismo, janela, classificação de replay e revisão de segurança ainda pendentes no ADR-007."
+- "Retry do refresh resolvido em 20/11/2026 (ADR-007): reuso único do refresh anterior por 30 s; fora disso, replay revoga a sessão. Ainda não implementado nem provado; a prova fica para a fase 2."
 - 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem ID de produto que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`) e são Proposta. O guia só aceita IDs RF, RN, US e SEG em `x-rastreabilidade`, por isso a lista dessas operações fica vazia.'
 - 'Lista de notificações (`GET /v1/eu/notificacoes`): RF-NO-01 só trata da escolha de tipos; a lista vem do MER (`notificacao`) e da arquitetura 3.7. Marcar como lida (`lida_em`) ficou fora por falta de RF.'
 - 'Primeira unidade ativa lembrada entre sessões e ordem do seletor de unidade: sem regra nos docs; o cliente decide.'
@@ -3635,7 +3635,7 @@ x-lacunas:
 
 x-decisoes-12-11-2026:
 - "RN-RC-13: ações de denúncia definidas em 12/11/2026; lista/decisão constam neste contrato. Proteção de identidades na projeção e conflito sobre administradora denunciar ainda exigem revisão."
-- "Refresh: tolerância controlada a retry legítimo aprovada como direção; duração e mecanismo continuam pendentes, sem autorizar replay."
+- "Refresh: tolerância controlada a retry legítimo aprovada como direção em 12/11/2026; janela e mecanismo definidos em 20/11/2026 (reuso único por 30 s, ADR-007), sem autorizar replay."
 - "LGPD: automatizar procedimento definido, exceção assistida; operador ainda não definido, sem permissão implícita."
 
 x-decisoes-autogestao-17-11-2026:

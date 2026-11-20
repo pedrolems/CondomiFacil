@@ -69,6 +69,8 @@ export default tseslint.config(
       'docs/**',
       'prototipo/**',
       'graphify-out/**',
+      // PoCs descartáveis do RM-16, fora do workspace e do padrão de produto.
+      'pocs/**',
       '**/dist/**',
       '**/.expo/**',
       '**/gerado/**',

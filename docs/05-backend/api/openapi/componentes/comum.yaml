@@ -219,7 +219,7 @@ components:
 
   responses:
     Erro400:
-      description: Entrada inválida (validação Zod). Corpo ou parâmetro fora do esquema.
+      description: Entrada inválida (validação pelo Ajv gerado do contrato). Corpo ou parâmetro fora do esquema.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/XRequestId'

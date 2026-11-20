@@ -1,6 +1,6 @@
 # Backend: CondomiFacil
 
-**Status:** Proposta, em 09/11/2026; atualizada em 20/11/2026 só no estado dos ADRs 001, 003, 007 e 008 (aceitos com ressalvas por Pedro em 20/11/2026); atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md); atualizada em 15/11/2026 (rotina 22 de conciliação diária e referência ao registro de autogestão e condução eleitoral). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
+**Status:** Proposta, em 09/11/2026; atualizada em 20/11/2026 no estado dos ADRs 001, 003, 007 e 008 (aceitos com ressalvas por Pedro em 20/11/2026) e, em 20/11/2026, na tabela de erros 409/422, na guarda de 24 h da idempotência e na validação da config sem Zod; atualizada em 10/11/2026 com as escolhas de Asaas, Supabase + Render e Resend (ADR-002, ADR-004 e ADR-005, aceitos com ressalvas por Pedro) e com o contrato da API em [`api/`](api/README.md); atualizada em 15/11/2026 (rotina 22 de conciliação diária e referência ao registro de autogestão e condução eleitoral). Nenhuma outra decisão deste documento foi aceita pelo Pedro. Onde o texto diz **Decidido**, a decisão vem de um documento de produto ou do PRD; onde diz **Proposta** ou **Proposta técnica**, é recomendação a validar, no mesmo regime dos ADRs. O que não está nas fontes aparece como Proposta técnica (fora das RN) ou como pendência na seção 7.
 
 ## Índice
 
@@ -143,7 +143,7 @@ backend/apps/api/
       rotinas/                     RotinaBase e contrato de rotina (abstração usada pelos módulos)
       parametros/                  porta ParametrosService (implementada por configuracao)
       erros/                       hierarquia de erros e filtro global
-      config/                      leitura e validação das variáveis de ambiente (Zod)
+      config/                      leitura e validação das variáveis de ambiente, por código próprio, sem Zod (ADR-008)
       logger/                      log estruturado com filtro de dados sensíveis
   test/
     isolamento/                    testes de tenant e de vazamento (arq. 4.11)
@@ -329,8 +329,8 @@ Formato único de erro (Proposta): `{ codigo, mensagem, detalhes?, request_id }`
 | Versão do app abaixo do mínimo | `426` | Guard de versão (Proposta, D11); UF 15 ("Atualize o app para continuar.") |
 | Recurso de outro condomínio | `404` | Indistinguível de "não existe", nunca `403` que confirme existência (arq. 4.11) |
 | Entrada inválida | `400` | Validação estrutural pelo contrato |
-| Regra de negócio violada (ex.: horário fora da antecedência) | `422` | Erro de domínio (código HTTP da regra de negócio: Proposta) |
-| Conflito (horário já reservado, dado alterado por outra pessoa, voto repetido) | `409` | RN-RE-04, `EXCLUDE` no banco, UF 15 ("Estas informações mudaram...") |
+| Regra de negócio violada: prazo, regra temporal ou de cadastro (ex.: horário fora da antecedência) e mês financeiro fechado | `422` | Erro de domínio; decisão de Pedro em 16/11/2026 (guia da API, seção 8). Substituído em 20/11/2026: antes todo erro de regra de negócio era `422` (Proposta) |
+| Conflito (horário já reservado, dado alterado por outra pessoa, voto repetido) e estado inválido do recurso (`<MODULO>_ESTADO_INVALIDO`) | `409` | RN-RE-04, `EXCLUDE` no banco, UF 15 ("Estas informações mudaram..."); decisão de Pedro em 16/11/2026 (guia da API, seção 8). Substituído em 20/11/2026: antes só conflito |
 | Limite de taxa excedido | `429` | Lacuna de limites (arq. 3.3); proposta de partida por IP e e-mail |
 | Erro do servidor | `500` e `503` | UF 15 ("Algo deu errado do nosso lado..."); enviado ao Sentry com dados filtrados |
 
@@ -346,14 +346,14 @@ Resposta de acesso (`/acesso/codigo`) é a mesma para e-mail cadastrado ou não 
 | Webhook do gateway | Unicidade em `evento_gateway` por provedor, conta recebedora e id do evento (ou só provedor e id, quando o provedor o garante único); repetição responde `200` sem reprocessar; evento sem correlação válida vai para `evento_gateway_quarentena` | arq. 3.6, MER/DER 4.10, SEG-17 |
 | Jobs e rotinas | Cada rotina grava só o que falta; chave única por efeito (ex.: cobrança do mês X da unidade Y) | arq. 3.5, `execucao_rotina.chave_idempotencia` |
 | Consumidores do outbox | Idempotentes, sem presumir entrega exatamente uma vez; `chave_idempotencia` em `notificacao` e `evento_saida` | MER/DER 4.12 |
-| Ações do cliente que cobram ou reservam (POST) | Cabeçalho `Idempotency-Key` opcional por requisição, guardado por um tempo curto | **Proposta técnica (fora das RN)**; a reserva já tem trava por `EXCLUDE` no banco |
+| Ações do cliente que cobram ou reservam (POST) | Cabeçalho `Idempotency-Key` opcional por requisição, guardado por 24 h, em tabela por condomínio, usuário e chave com hash do corpo; mesma chave com corpo diferente responde `422` (E17, aprovada por Pedro em 20/11/2026) | **Proposta técnica (fora das RN)**; a reserva já tem trava por `EXCLUDE` no banco |
 | Pagamento em duplicidade | Alerta à administradora, devolução ou abatimento auditados | RN-FI-19 |
 
 ### 4.7 Transações, outbox e auditoria
 
 - **Uma requisição, uma transação, um contexto de condomínio.** O caso de uso roda dentro de `TenantContext.executar(contexto, fn)`; não existe acesso ao banco fora dele e o pool não pode ser usado direto (regra de lint, arq. 4.3).
 - **Outbox transacional (Proposta, arq. 3.3 e ADR-006).** A mudança de domínio, o `evento_saida` e a linha de `auditoria` são gravados na mesma transação. O worker despacha o outbox (consulta com `FOR UPDATE SKIP LOCKED` e `NOTIFY` para o tempo real) para push, e-mail e WebSocket. Se o processo cair, nada se perde.
-- **Auditoria append-only (SEG-08, arq. 3.9.1).** O papel de banco da aplicação só tem `INSERT` e `SELECT`; gatilho rejeita alteração. Cobre as ações listadas em SEG-08 e RN 14.
+- **Auditoria append-only (SEG-08, arq. 3.9.1).** O papel de banco da aplicação só tem `INSERT` e `SELECT`; gatilho rejeita alteração e exclusão. Cobre as ações listadas em SEG-08 e RN 14.
 - **Operações indivisíveis** com função ou restrição no banco quando o MER/DER manda: estorno (`estornar_lancamento`), conflito de reserva (`EXCLUDE`), voto (duas inserções na mesma transação, `voto_registro` e `voto_conteudo`, ADR-009).
 
 ### 4.8 Logs e auditoria de execução

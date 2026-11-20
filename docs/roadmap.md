@@ -137,7 +137,7 @@ O desenho mostra dependências principais, não obriga esperar todo um módulo p
 | Descoberta e documentação inicial | Artefatos disponíveis; não declarar pesquisa de mercado concluída sem evidência | Necessidade do produto | Visão, escopo e decisões registrados; revisar hipóteses com validação |
 | 0 — fechamento do Design | G0 satisfeito em 18/11/2026 (liberação de Pedro para a fase 1); testes com usuários e parecer jurídico pulados por inacessibilidade | Fontes e protótipo existentes | G0 satisfeito e liberação explícita de Pedro para o pacote de implementação |
 | 1 — base executável | Em andamento desde 18/11/2026 (RM-10 a RM-15 executados em 18 e 19/11/2026; RM-16 executado em 20/11/2026, P2 a P5 aprovadas e aceitas por Pedro em 20/11/2026; pendências na seção 6) | Marcos e escopo autorizados | Workspace instala/reproduz; app e API iniciam; geração e verificações demonstradas |
-| 2 — fundação funcional | Não iniciada | Base e decisões de acesso/dados validadas | Fluxo completo de acesso/contexto com isolamento e revogação demonstrados |
+| 2 — fundação funcional | Liberada por Pedro em 20/11/2026; [pacote técnico](09-infra/pacote-tecnico-fase-2.md) aguardando aprovação das decisões E1 a E22, sem código de produto antes dela; PostgreSQL 17 local em Docker, sem deploy; ordem RM-25 e RM-24, RM-20 e RM-21, RM-23, RM-22 | Base e decisões de acesso/dados validadas | Fluxo completo de acesso/contexto com isolamento e revogação demonstrados |
 | 3 — riscos centrais | Não iniciada | Fundação, decisões e PoCs específicas | Portaria/offline e cobrança funcionam com falhas e recuperação verificadas |
 | 4 — restante do MVP | Não iniciada | Dependências de cada módulo satisfeitas | Critérios de aceite do escopo MVP implementados, testados e rastreados |
 | 5 — homologação | Não iniciada | Candidato integrado | G1: produto homologado, sem bloqueadores e com evidências |
@@ -381,6 +381,8 @@ Os comandos reais testados estão nos READMEs dos pacotes e no pacote técnico (
 ## 7. Fase 2 — implementar acesso, condomínio e permissões
 
 **Entrada:** base demonstrada; decisões de primeira implantação, ADR-001/007/008 e dados/contrato do recorte validados. Entregar jornadas completas entre tela, API e banco, com estados de erro e acesso negado.
+
+**Liberação (20/11/2026):** Pedro liberou a fase 2, com a reprodução da instalação por outra pessoa (fase 1) como pendência em paralelo, que não a bloqueia. Nenhum código de produto antes da aprovação do [pacote técnico da fase 2](09-infra/pacote-tecnico-fase-2.md) (decisões E1 a E22, que também aprovam o recorte do MER, da política de acesso e do contrato). Banco: PostgreSQL 17 local em Docker, sem Supabase nem Render, com Postgres de serviço no CI. Ordem: fundação (RM-25 e RM-24), depois RM-20 e RM-21, depois RM-23 e por último RM-22. Continuam bloqueados deploy, dados reais e commit, merge ou push sem aprovação específica de Pedro.
 
 | ID | Pacote | Conteúdo e verificações |
 | --- | --- | --- |

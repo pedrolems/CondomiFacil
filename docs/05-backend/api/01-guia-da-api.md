@@ -1,6 +1,6 @@
 # Guia da API — CondomiFacil
 
-**Estado:** Proposta de 10/11/2026, atualizada em 20/11/2026, não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
+**Estado:** Proposta de 10/11/2026, atualizada em 20/11/2026 (inclui o retry do refresh e a guarda de 24 h da idempotência), não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
 
 ## Índice
 
@@ -308,7 +308,7 @@ Essa forma foi conferida com o `lint` e valida; as operações usam `security: [
 | Revogação | Tabela de sessões; sair da conta, troca de senha e exclusão LGPD revogam |
 | Sessão expirada | `401` com `SESSAO_EXPIRADA`; o cliente volta ao login e depois à tela onde estava (UF 15) |
 
-Lacuna: a tolerância da rotação do refresh em rede instável (uma renovação perdida derruba a sessão legítima) está em aberto no ADR-007.
+Substituído em 20/11/2026: a lacuna da tolerância da rotação do refresh em rede instável foi decidida por Pedro (alternativa B+E, 30 s, como na linha do refresh token acima; ADR-007); falta só a implementação e a prova na fase 2.
 
 ```mermaid
 sequenceDiagram
@@ -561,12 +561,12 @@ Em uso no contrato: `RESERVA_ESTADO_INVALIDO`, `VISITA_ESTADO_INVALIDO`, `ENCOME
 
 | Ponto | Mecanismo | Origem |
 | --- | --- | --- |
-| POST que cobra ou reserva | Cabeçalho `Idempotency-Key` opcional (componente `IdempotencyKey`), guardado por um tempo curto. Mesma chave e mesmo corpo devolvem a resposta original sem repetir o efeito | **Proposta técnica, fora das RN** (`01-backend.md` 4.6). A reserva já tem trava por `EXCLUDE` no banco |
+| POST que cobra ou reserva | Cabeçalho `Idempotency-Key` opcional (componente `IdempotencyKey`), guardado por 24 h (E17, 20/11/2026). Mesma chave e mesmo corpo devolvem a resposta original sem repetir o efeito | **Proposta técnica, fora das RN** (`01-backend.md` 4.6). A reserva já tem trava por `EXCLUDE` no banco |
 | Sincronização offline | `op_id` único por condomínio; reenvio não duplica; carga diferente com o mesmo `op_id` é recusada | ADR-003, MER/DER 4.12 |
 | Webhook | Unicidade por provedor e id do evento; repetição responde `200` sem reprocessar | `01-backend.md` 4.6, arquitetura 3.6, SEG-17 |
 | Pagamento em duplicidade | Alerta à administradora, devolução ou abatimento auditados | RN-FI-19 |
 
-Lacuna: o tempo de guarda da `Idempotency-Key` não está definido.
+Substituído em 20/11/2026: a lacuna do tempo de guarda da `Idempotency-Key` foi decidida por Pedro (E17 do pacote técnico da fase 2, opção A): tabela por condomínio, usuário e chave, com hash do corpo, guarda de 24 h e `422` para corpo diferente com a mesma chave.
 
 ## 10. Limite de taxa
 

@@ -1224,7 +1224,7 @@ export interface components {
         };
     };
     responses: {
-        /** @description Entrada inválida (validação Zod). Corpo ou parâmetro fora do esquema. */
+        /** @description Entrada inválida (validação pelo Ajv gerado do contrato). Corpo ou parâmetro fora do esquema. */
         Erro400: {
             headers: {
                 "X-Request-Id": components["headers"]["XRequestId"];

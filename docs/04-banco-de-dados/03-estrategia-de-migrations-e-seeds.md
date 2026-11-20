@@ -108,10 +108,10 @@ Editar DDL por emergência exige registro de incidente e reconciliação explíc
 | Provisionamento inicial | Cria schemas, roles e extensões permitidas pelo provedor. Credencial administrativa fica no cofre; não integra o runtime da aplicação |
 | Migrador | Login de publicação separado, que assume o papel dono dos objetos próprios. Pode executar DDL; não fica acessível à API, worker ou tester. Não precisa ser superusuário nem usar bypass para alterar o esquema |
 | `app_user` | Não dono, sem superusuário, `BYPASSRLS`, criação de objetos, alteração de políticas ou `TRUNCATE`. Opera somente pelas permissões da política e pelo contexto validado |
-| Executor de backfill | Função e privilégios por finalidade, transações curtas por tenant e acesso apenas ao necessário. Não herda poder de condução eleitoral ou de suporte |
-| Carga de fixtures | Credencial exclusiva de banco descartável; prepara dados e encerra a sessão antes dos testes como `app_user`. Não é um perfil de produto nem é disponibilizada no ambiente com dados reais |
+| Executor de backfill | Função e privilégios por finalidade, transações curtas por tenant e acesso apenas ao necessário. Não herda poder de condução eleitoral ou de suporte. **Decisão E6 (20/11/2026): a identidade que executa backfill não está entre as cinco definidas (provisionamento, `migrador`, `app_user`, `app_autenticacao`, `fixtures`); fica a definir antes do primeiro backfill** |
+| Carga de fixtures | Substituído em 20/11/2026 pela decisão E6: identidade `fixtures` com `BYPASSRLS`, só em banco descartável (local e CI), nunca em staging, piloto ou produção. Texto anterior: credencial exclusiva de banco descartável; prepara dados e encerra a sessão antes dos testes como `app_user`. Não é um perfil de produto nem é disponibilizada no ambiente com dados reais |
 
-`FORCE ROW LEVEL SECURITY` também submete o dono à RLS nas operações de dados; não presumir que o papel de migration possa preencher todas as tabelas automaticamente. DDL e DML são analisados separadamente. Para bootstrap local/CI, as factories usam contexto explícito e caminhos de preparação restritos ao banco descartável; eventual política técnica auxiliar é temporária, não distribuída como permissão operacional e deve ser removida e verificada antes dos testes. Backfill em ambiente persistente requer caminho revisado, nunca desabilitação geral de RLS. Superusuários e roles com `BYPASSRLS` ignoram a RLS mesmo com `FORCE`; operações como `TRUNCATE` não são filtradas por linha. [Políticas de segurança do PostgreSQL](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
+`FORCE ROW LEVEL SECURITY` também submete o dono à RLS nas operações de dados; não presumir que o papel de migration possa preencher todas as tabelas automaticamente. DDL e DML são analisados separadamente. Para bootstrap local/CI, as factories usam contexto explícito e caminhos de preparação restritos ao banco descartável; Substituído em 20/11/2026 pela decisão E6: as fixtures usam a identidade `fixtures` com `BYPASSRLS` em banco descartável, sem política auxiliar temporária; a proposta anterior era uma política técnica auxiliar temporária, removida e verificada antes dos testes. Backfill em ambiente persistente requer caminho revisado, nunca desabilitação geral de RLS. Superusuários e roles com `BYPASSRLS` ignoram a RLS mesmo com `FORCE`; operações como `TRUNCATE` não são filtradas por linha. [Políticas de segurança do PostgreSQL](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
 
 Uma execução por ambiente será serializada no CI, com fila exclusiva de publicação; Flyway também mantém seu lock no PostgreSQL. Para suportar índices concorrentes, esta proposta configura `flyway.postgresql.transactional.lock=false`, usando lock de sessão, e testa concorrência de dois migradores na PoC. Não usar pool em modo transação no migrador. A semântica do lock vem da [referência PostgreSQL do Flyway](https://documentation.red-gate.com/flyway/reference/database-driver-reference/postgresql-database).
 
@@ -124,7 +124,7 @@ Exemplo sem segredos, destinado à futura configuração fixada e testada:
 ```properties
 flyway.locations=filesystem:backend/apps/api/db/migracoes
 flyway.defaultSchema=infra_migracoes
-flyway.schemas=infra_migracoes,condomifacil
+flyway.schemas=infra_migracoes,condomifacil,extensoes
 flyway.createSchemas=false
 flyway.validateOnMigrate=true
 flyway.ignoreMigrationPatterns=
@@ -136,7 +136,7 @@ flyway.mixed=false
 flyway.postgresql.transactional.lock=false
 ```
 
-O provisionamento cria os dois schemas antes da primeira execução. Caminhos do exemplo são relativos à raiz do futuro monorepo. URL, usuário e senha vêm de variáveis protegidas específicas da publicação; não passam na linha de comando, não entram no repositório e não aparecem em log. O migrador não compartilha a variável de conexão da aplicação.
+O provisionamento cria os três schemas (`condomifacil` para os objetos, `infra_migracoes` para o histórico do Flyway e `extensoes` para `btree_gist`; o schema `app` da PoC não entra; decisão de 20/11/2026) antes da primeira execução. Caminhos do exemplo são relativos à raiz do futuro monorepo. URL, usuário e senha vêm de variáveis protegidas específicas da publicação; não passam na linha de comando, não entram no repositório e não aparecem em log. O migrador não compartilha a variável de conexão da aplicação.
 
 `validateOnMigrate` será mantido ativo; `outOfOrder` será explicitamente desativado. `ignoreMigrationPatterns` vazio remove a tolerância padrão a versões futuras: a publicação não ignora banco mais adiantado que o artefato. A proposta fixa esses comportamentos mesmo se defaults mudarem. [Validação na execução](https://documentation.red-gate.com/flyway/reference/configuration/flyway-namespace/flyway-validate-on-migrate-setting), [ordenação](https://documentation.red-gate.com/flyway/reference/configuration/flyway-namespace/flyway-out-of-order-setting), [padrões ignorados](https://documentation.red-gate.com/flyway/reference/configuration/flyway-namespace/flyway-ignore-migration-patterns-setting).
 
@@ -165,7 +165,7 @@ Esse exemplo não aprova uma coluna ou índice do DER. O PostgreSQL pode deixar 
 
 Criar tabela de tenant com `condominio_id` obrigatório, chaves e FKs compostas pertinentes, RLS habilitada/forçada e políticas completas; liberar privilégios apenas no estado protegido. Testar `USING` e `WITH CHECK`, troca indevida de tenant/unidade, contextos ausentes e conexões devolvidas ao pool.
 
-Mudanças de função, view, projeção e grant são migrations versionadas. `SECURITY DEFINER`, quando indispensável e já justificável pelas fontes, exige `search_path` controlado, nomes qualificados, `EXECUTE` restrito e teste de fronteira; não serve como correção genérica de erro de permissão. `TRUNCATE` não será dado à aplicação nem usado como limpeza de cenário por tenant. Uma migration não deve criar janela em que políticas permissivas revelem reclamações, votos, folha individual ou dinheiro de outra unidade.
+Mudanças de função, view, projeção e grant são migrations versionadas. Substituído em 20/11/2026 pela decisão E7 do pacote da fase 2 (sem `SECURITY DEFINER`; leituras sem condomínio aberto por políticas explícitas sob `app_user`): o texto a seguir sobre `SECURITY DEFINER` não vale para a fase 2. `SECURITY DEFINER`, quando indispensável e já justificável pelas fontes, exige `search_path` controlado, nomes qualificados, `EXECUTE` restrito e teste de fronteira; não serve como correção genérica de erro de permissão. `TRUNCATE` não será dado à aplicação nem usado como limpeza de cenário por tenant. Uma migration não deve criar janela em que políticas permissivas revelem reclamações, votos, folha individual ou dinheiro de outra unidade.
 
 ## 5. Mudanças de dados e compatibilidade
 

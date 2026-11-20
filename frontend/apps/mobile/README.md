@@ -6,7 +6,7 @@ Os demais diretórios de `src/` seguem reservados (READMEs). Referência: `docs/
 
 ## Comandos
 
-Na raiz do repositório, com o Node e o pnpm fixados (`pnpm install` antes):
+Na raiz do repositório, com o Node 26.13.1 e o pnpm 12.21.0 no PATH (ver [Como instalar](../../../README.md#como-instalar)) e `pnpm install` antes:
 
 | Comando | O que faz |
 | --- | --- |

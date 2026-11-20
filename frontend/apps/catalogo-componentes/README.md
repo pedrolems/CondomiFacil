@@ -2,6 +2,8 @@
 
 Storybook web, o catálogo principal da biblioteca (`@storybook/react-native-web-vite` 10.6.7 e `@storybook/addon-a11y`). As stories ficam junto dos componentes, em `frontend/packages/ui/src/components/*/*.stories.tsx`, e o catálogo as importa. O aplicativo não depende do catálogo nem das stories. Referência: docs/06-frontend/biblioteca-de-componentes.md, seções 5.2, 6 e 7.
 
+Comandos na raiz do repositório, com o Node 26.13.1 e o pnpm 12.21.0 no PATH (ver [Como instalar](../../../README.md#como-instalar)):
+
 | Comando | O que faz |
 | --- | --- |
 | `pnpm --filter @condomifacil/catalogo-componentes storybook` | Abre o catálogo em `http://localhost:6006` |

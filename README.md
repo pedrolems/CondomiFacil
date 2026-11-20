@@ -32,11 +32,18 @@ Observações:
 - Conferir: `fnm exec --using 26.13.1 -- node -v` (v26.13.1) e `fnm exec --using 26.13.1 -- cmd /c "pnpm -v"` (12.21.0).
 - Verificação do projeto: `fnm exec --using 26.13.1 -- cmd /c "pnpm check"` (lint pelo Turborepo). A telemetria do Turborepo está desligada no projeto: o script `check` define `TURBO_TELEMETRY_DISABLED=1` e o `shellEmulator` do pnpm (`pnpm-workspace.yaml`) faz isso funcionar no Windows e no Linux.
 
-Passo opcional, por conta do usuário, para usar `node` e `pnpm` direto no terminal: adicionar ao perfil do PowerShell (`notepad $PROFILE`) a linha abaixo. O fnm passa a ler o `.node-version` ao entrar na pasta do projeto.
+### `node` e `pnpm` no PATH
+
+Os comandos `pnpm ...` dos READMEs (por exemplo `pnpm check`, `pnpm dev:api` e `pnpm dev:app`) supõem o Node 26.13.1 e o pnpm 12.21.0 no PATH. Para isso, adicione ao perfil do PowerShell (`notepad $PROFILE`) a linha abaixo e abra um novo terminal. O fnm passa a ler o `.node-version` ao entrar na pasta do projeto.
 
 ```powershell
 fnm env --use-on-cd --shell power-shell | Out-String | Invoke-Expression
 ```
+
+Na pasta do projeto, `node -v` deve mostrar `v26.13.1` e `pnpm -v`, `12.21.0`.
+
+- **"pnpm não é reconhecido":** o perfil não foi carregado ou o pnpm foi instalado em outro Node. O `npm install -g` instala o pnpm só no Node ativo naquele momento; repita o comando de instalação do pnpm acima.
+- **Sem alterar o perfil** (ou se o PowerShell recusar carregá-lo): rode cada comando pelo fnm, por exemplo `fnm exec --using 26.13.1 -- cmd /c "pnpm dev:api"`.
 
 ## Navegação
 

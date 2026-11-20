@@ -32,7 +32,7 @@ grep -a -c "getStorybookUI" <pasta>/_expo/static/js/android/*.hbc   # 0
 ## Abrir no aparelho (Android ou iPhone, com Expo Go)
 
 1. Instale o Expo Go no aparelho; aparelho e computador na mesma rede Wi-Fi.
-2. Na raiz do repositório: `pnpm --filter @condomifacil/mobile storybook` (no PowerShell também funciona, o pnpm emula o shell). Se a rede bloquear, acrescente `-- --tunnel`.
+2. Na raiz do repositório, com o pnpm no PATH (ver [Como instalar](../../../../README.md#como-instalar)): `pnpm --filter @condomifacil/mobile storybook` (no PowerShell também funciona, o pnpm emula o shell). Se a rede bloquear, acrescente `-- --tunnel`.
 3. Escaneie o QR Code (câmera no iPhone, app Expo Go no Android). Abre o Storybook no lugar do app; o menu lateral lista Ações, Feedback e Fundamentos.
 4. Se aparecer o app em vez do Storybook, pare o Metro e rode de novo com `-- --clear` (cache da entrada anterior).
 

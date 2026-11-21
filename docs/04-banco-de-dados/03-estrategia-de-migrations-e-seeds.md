@@ -1,6 +1,6 @@
 # Estratégia de migrations e seeds
 
-**Data:** 13/11/2026. **Atualizado em:** 20/11/2026. **Estado:** proposta técnica para revisão de Pedro Lemos. **Escopo:** PostgreSQL do backend e dados fictícios para desenvolvimento, integração e testes de aceitação futuros.
+**Data:** 13/11/2026. **Atualizado em:** 21/11/2026. **Estado:** proposta técnica para revisão de Pedro Lemos. **Escopo:** PostgreSQL do backend e dados fictícios para desenvolvimento, integração e testes de aceitação futuros.
 
 O projeto permanece em Design: não existe banco, backend, migration, seed ou pipeline implementado. Pedro autorizou escolher a arquitetura desta estratégia; as escolhas abaixo formam a proposta concreta deste documento, sem aceitar integralmente o MER, a política de acesso ou os ADRs relacionados. Os exemplos descrevem artefatos futuros e não foram executados.
 
@@ -201,7 +201,7 @@ Não recalcular fatos históricos com parâmetros atuais, sobrescrever preço j�
 | Fixtures de teste automatizado | Factories/cenários TypeScript no Git; versão/manifesto compatíveis com o esquema | Mínimo necessário por teste; testes de comandos criam seus próprios fatos; execução apenas no banco descartável |
 | Base fictícia para aceitação/manual | Pacote de cenários reproduzíveis; carga explícita em dev/staging sem dados reais | Conta/documentos/arquivos e credenciais sintéticos, integrações bloqueadas; não é bootstrap de um condomínio real |
 
-O catálogo da RN §13 é referência, não licença para criar valores novos. `parametro_padrao` no MER requer autoria e momento; o modelo atual não define autoria técnica de bootstrap sem usuário humano. Antes da primeira carga física, revisar representação de ator técnico/sistema e histórico com Pedro: não inventar um administrador humano padrão nem senha global para satisfazer a FK. Enquanto essa lacuna não for resolvida, a migration correspondente fica bloqueada; não removê-la do modelo silenciosamente.
+O catálogo da RN §13 é referência, não licença para criar valores novos. `parametro_padrao` no MER requer autoria e momento; o modelo atual não define autoria técnica de bootstrap sem usuário humano. Substituído em 21/11/2026 pela decisão E4 (opção A, pacote da fase 2, Pedro): `parametro_padrao` ganha `origem` (`carga_versionada` ou `usuario`) e `versao_migracao?`, e `registrado_por_id` fica nulo só quando `origem = 'carga_versionada'`, garantido por constraint; não há administrador humano padrão nem senha global, e a autoria da carga fica rastreável pelo histórico do Flyway. A tabela nasce no RM-25 sem a FK para `usuario`, que entra no RM-20. Texto anterior: antes da primeira carga física, revisar representação de ator técnico/sistema e histórico com Pedro; enquanto a lacuna não fosse resolvida, a migration correspondente ficava bloqueada.
 
 No cadastro real, valores iniciais por condomínio são criados pelo caso de uso autorizado, a partir da versão aplicável do catálogo. Reaplicar migrations nunca redefine o que o condomínio configurou, altera assinatura em vigor ou concede a primeira gestão. Esses casos continuam seguindo o produto e as pendências da autogestão.
 
@@ -366,7 +366,7 @@ O pnpm foi escolhido por Pedro em 14/11/2026 (ADR-015), com workspace e lockfile
 | Ferramenta de migrations | Flyway Community SQL-first, sem undo e sem recurso pago necessário | Fixar versão/distribuição e provar os critérios acima; se falhar, revisar a ferramenta em vez de contornar RLS |
 | Acesso a dados | Separado da migration | Prova de Kysely/Drizzle do ADR-008; este documento não escolhe o query builder |
 | Modelo físico | Schemas próprios e execução com dono separado propostos | Nomes/colunas/constraints, extensões e política técnica de provisionamento; validação do MER e da política de acesso |
-| Autoria dos catálogos | Carga obrigatória versionada, sem administrador humano fictício | Representação do ator técnico e FKs de autoria no MER, antes da primeira migration de catálogo |
+| Autoria dos catálogos | Carga obrigatória versionada, sem administrador humano fictício | Substituído em 21/11/2026 pela decisão E4: coluna `origem` com `versao_migracao`, `registrado_por_id` nulo só na carga versionada, por constraint (MER, `parametro_padrao`). Texto anterior: representação do ator técnico e FKs de autoria no MER, antes da primeira migration de catálogo |
 | Ambiente real | Seeds de teste proibidos | Revisão obrigatória de nuvem/backup, responsáveis de publicação/incidente, custo e RPO/RTO; não presumir cobertura do gratuito |
 | Regras pendentes | Cenários identificam bloqueios em vez de inventar resultado | Sigilo/substituição de voto, fuso, empate/relógio offline, retenção e demais MER §9/UF §17 |
 | Autogestão | Cenários incluem as diretrizes de 13/11 | Distribuição fina de poderes, primeira habilitação, mandatos e designação eleitoral conforme AG-01 a AG-12 |

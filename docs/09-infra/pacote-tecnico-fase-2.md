@@ -65,8 +65,8 @@ Os nomes vêm do [MER/DER](../04-banco-de-dados/01-mer-e-der.md) e as ações po
 
 | Pacote | Tabelas (MER) | Classe | Política resumida (política de acesso, 5.1 a 5.12) |
 | --- | --- | --- | --- |
-| RM-25/RM-24 | `parametro_definicao`, `parametro_padrao` | G | Catálogo carregado por migration versionada; o processo lê; Admin publica padrões. Autoria da carga em E4 |
-| RM-25/RM-24 | `parametro_condominio` | T | Administradora ou suporte configura, pelo processo; RN-GE-01 (autor, data, valor antigo e novo) |
+| RM-25/RM-24 | `parametro_definicao`, `parametro_padrao` | G | Catálogo carregado por migration versionada; o processo lê; Admin publica padrões. Autoria da carga (E4, solução de Pedro em 21/11/2026): coluna `origem` (`carga_versionada` ou `usuario`) com `versao_migracao`; `registrado_por_id` nulo só na carga, por constraint; carga dos 36 parâmetros da RN 13 na migration `V202611210003__carga_parametros.sql`; FK para `usuario` no RM-20 |
+| RM-20 (decisão de Pedro, 21/11/2026; antes RM-25/RM-24) | `parametro_condominio` | T | Administradora ou suporte configura, pelo processo; RN-GE-01 (autor, data, valor antigo e novo) |
 | RM-24 | `auditoria` | T | Só inserção e leitura pelo `app_user`, gravada na mesma transação do ato; sem alteração nem exclusão (P5) |
 | RM-24 | `auditoria_plataforma` | G | Inserção pelo processo; consulta humana não definida (8.2) |
 | RM-24 | `evento_saida` | T | Gravado na transação do fato; sem acesso humano (E13) |
@@ -206,7 +206,7 @@ Regras mantidas: a pasta organiza, não protege (backend 3.4); `dominio/` sem Ne
 - **Carga com Kysely e NestJS não medida:** RNF-01 e RNF-17 da API inteira ficam para a carga antes do lançamento.
 - **Imagem do Flyway de cerca de 1,1 GB:** pesa no CI, e a telemetria da CLI não foi verificada.
 - **Docker no Windows:** variação de desempenho entre rodadas e limite de 260 caracteres de caminho no build nativo (P4).
-- **Contrato e MER propostos:** E2, E4 e E17 mudam o MER, e E9 e E11 mudam o contrato. Implementar antes de registrar essas mudanças quebraria a rastreabilidade.
+- **Contrato e MER propostos:** E2, E4 e E17 mudam o MER, e E9 e E11 mudam o contrato. Implementar antes de registrar essas mudanças quebraria a rastreabilidade. Em 21/11/2026, a E4 já foi registrada no MER (P-17 e `parametro_padrao`) e a E2 também já consta (P-10); a E17 continua a registrar antes do RM-24; E9 e E11 seguem como estão.
 - **Divergências encontradas, não corrigidas (fora do pedido):**
   - RN-CD-18 (`03-regras-de-negocio.md`, linha 94) tem texto embaralhado.
   - RF-AD-01, 04 e 05 (PRD) citam só a administradora, enquanto RN-CD-01 inclui o responsável local da autogestão.

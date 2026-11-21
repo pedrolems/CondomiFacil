@@ -24,7 +24,15 @@
     },
     "test": {
       "dependsOn": ["build"],
-      "inputs": ["src/**", "scripts/**", "test/**", "package.json"],
+      "inputs": [
+        "src/**",
+        "scripts/**",
+        "test/**",
+        "db/**",
+        "vitest.config.ts",
+        "vitest.banco.config.ts",
+        "package.json"
+      ],
       "outputs": []
     },
     "dev": {

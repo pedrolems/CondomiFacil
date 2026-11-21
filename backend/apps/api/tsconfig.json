@@ -1,5 +1,5 @@
 {
   "extends": "@condomifacil/config/tsconfig/node.json",
   "compilerOptions": { "noEmit": true },
-  "include": ["src", "test"]
+  "include": ["src", "test", "db", "vitest.config.ts", "vitest.banco.config.ts"]
 }

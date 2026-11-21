@@ -61,3 +61,56 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_COMMENTS: "false"
           GITLEAKS_VERSION: 8.30.1
+
+  # E18 (fase 2): PostgreSQL 17 como serviço, migrations Flyway e testes de banco real. Em todo PR, sem filtro de caminho.
+  banco:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17@sha256:b60e90042aa6b8dbecd58e224b3e36114dbf8ad754465264c2476ad58a86e45c
+        env:
+          # Valor fictício de teste, de um banco efêmero do job (não é segredo do repositório).
+          POSTGRES_PASSWORD: senha-ficticia-do-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DB_COMPOSE: '0'
+      DB_HOST: localhost
+      DB_PORTA: '5432'
+      FLYWAY_REDE: host
+      FLYWAY_DB_HOST: localhost
+      FLYWAY_DB_PORTA: '5432'
+      DB_SENHA_SUPERUSUARIO: senha-ficticia-do-ci
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .node-version
+
+      - name: Instalar o pnpm
+        run: npm install -g pnpm@12.21.0
+
+      - name: Instalar dependências (lockfile congelado)
+        run: pnpm install --frozen-lockfile
+
+      # Senhas aleatórias só deste job, mascaradas no log.
+      - name: Gerar senhas dos papéis do banco
+        run: |
+          for v in DB_SENHA_MIGRADOR DB_SENHA_APP DB_SENHA_APP_AUTENTICACAO DB_SENHA_FIXTURES; do
+            s=$(openssl rand -hex 18)
+            echo "::add-mask::$s"
+            echo "$v=$s" >> "$GITHUB_ENV"
+          done
+
+      # Provisiona, migra (Flyway por Docker, rede do host) e testa.
+      - name: Testes de banco (PostgreSQL 17 + Flyway)
+        run: pnpm --filter @condomifacil/api test:banco

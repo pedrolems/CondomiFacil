@@ -1,0 +1,24 @@
+# PostgreSQL 17 local e descartável do CondomiFacil (fase 2, RM-25).
+# Mesma versão principal do Supabase; sem Supabase nem Render. Só escuta em 127.0.0.1.
+# Imagem oficial fixada por digest do índice multiarquitetura (Docker Hub, library/postgres,
+# tag 17, conferido com "docker buildx imagetools inspect postgres:17" em 21/11/2026).
+# A senha do superusuário vem de db/.env (ignorado pelo Git; gerado por "pnpm db:instalar").
+name: condomifacil-db
+
+services:
+  postgres:
+    image: postgres:17@sha256:b60e90042aa6b8dbecd58e224b3e36114dbf8ad754465264c2476ad58a86e45c
+    environment:
+      POSTGRES_PASSWORD: ${DB_SENHA_SUPERUSUARIO:?defina DB_SENHA_SUPERUSUARIO em db/.env}
+    ports:
+      - '127.0.0.1:${DB_PORTA:-54320}:5432'
+    healthcheck:
+      # TCP em 127.0.0.1: o servidor temporário da inicialização não escuta TCP.
+      test: ['CMD', 'pg_isready', '-q', '-h', '127.0.0.1', '-U', 'postgres']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+networks:
+  default:
+    name: condomifacil-db

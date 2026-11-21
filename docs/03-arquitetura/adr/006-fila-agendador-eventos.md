@@ -1,10 +1,12 @@
 # ADR-006: Fila, agendador e distribuição de eventos
 
-- **Estado:** Proposto
+- **Estado:** Proposto, com aceite parcial em 21/11/2026 (ver nota abaixo)
 - **Data:** 06/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** carga esperada (RNF-17)
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-004](004-nuvem-regiao-residencia-dados.md), [ADR-012](012-fuso-horario-por-condominio.md)
+
+> **Aceite parcial (21/11/2026, decisão E13, opção A, do [pacote da fase 2](../../09-infra/pacote-tecnico-fase-2.md)):** Pedro aceitou do ADR-006 só o outbox transacional em PostgreSQL e um despachante em laço no processo worker (no plano gratuito, no mesmo serviço), sem decidir fila nem agendador. O restante do ADR segue Proposto.
 
 ## Contexto
 

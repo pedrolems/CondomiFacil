@@ -5,9 +5,9 @@ description: Orienta quem escreve, altera ou revisa o backend do CondomiFacil (A
 
 # Backend do CondomiFacil
 
-Estado em 20/11/2026: **só existe `GET /v1/saude`** (sem banco). Worker (`main.worker.ts`), rotinas, integrações e módulos são esqueleto ou README. A fase 2 (acesso) foi liberada, mas **nenhum código de produto, migration ou pasta de código vale antes de Pedro aprovar E1 a E22** ([pacote da fase 2](../../../docs/09-infra/pacote-tecnico-fase-2.md), seção 7). Idioma de tudo: português do Brasil.
+Estado em 21/11/2026: **só existe `GET /v1/saude`** (sem banco). Worker (`main.worker.ts`), rotinas, integrações e módulos são esqueleto ou README. As decisões E1 a E22 da fase 2 (acesso) foram **aprovadas em A (20 e 21/11/2026)** e o código da fase 2 está liberado, na ordem RM-25 e RM-24, RM-20 e RM-21, RM-23 e RM-22, com commit por pacote RM aprovado por Pedro ([pacote da fase 2](../../../docs/09-infra/pacote-tecnico-fase-2.md), seção 7). Idioma de tudo: português do Brasil.
 
-Legenda usada aqui e nas referências: **Implementado** (está no código), **Aceito** (Pedro, com data), **Proposta** (documentada, não aceita), **Pendente** (E1 a E22 ou lacuna).
+Legenda usada aqui e nas referências: **Implementado** (está no código), **Aceito** (Pedro, com data), **Proposta** (documentada, não aceita), **Pendente** (lacuna ou ponto ainda não decidido).
 
 ## 1. Antes de codar
 
@@ -16,9 +16,9 @@ Anote, em uma linha cada:
 1. **Perfil e rota**: pasta de `interfaces/http/<perfil>/` e caminho `/v1/<perfil>/<recurso>`. Não existe pasta de subsíndico; Manutenção foi retirado (17/11/2026).
 2. **Módulo e caso de uso**: `modulos/<dominio>/`.
 3. **IDs que sustentam**: RN-XX-nn, RF-*, US-XX-nn.
-4. **Estado da decisão**: o que dela é aceito e o que é proposta ou pendente (E1 a E22).
+4. **Estado da decisão**: o que dela é aceito e o que é proposta ou pendente (E1 a E22 aprovadas em A, em 20 e 21/11/2026).
 
-Se houver decisão de produto ou arquitetura, ampliação de escopo ou conflito entre fontes, **pergunte ao Pedro** com opções, consequências e recomendação, e pause até a resposta (AGENTS.md). Sem aprovação de E1 a E22, só leitura, planejamento e o que o briefing autorizar explicitamente.
+Se houver decisão de produto ou arquitetura, ampliação de escopo ou conflito entre fontes, **pergunte ao Pedro** com opções, consequências e recomendação, e pause até a resposta (AGENTS.md). Fora do recorte aprovado de E1 a E22, só leitura, planejamento e o que o briefing autorizar explicitamente.
 
 ## 2. Fontes de trabalho
 

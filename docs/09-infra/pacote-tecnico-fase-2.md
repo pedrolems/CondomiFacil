@@ -1,8 +1,8 @@
 # Pacote técnico da fase 2 — acesso, condomínio e permissões (RM-20 a RM-25)
 
-**Data:** 20/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
+**Data:** 20/11/2026. **Atualizado em:** 21/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
-**Estado:** fase 2 liberada por Pedro em 20/11/2026. **Pacote aguardando a aprovação de Pedro (decisões E1 a E22, seção 7).** Nenhum código de produto, migration ou pasta de código antes dessa aprovação. O recorte do MER, da política de acesso e do contrato descrito aqui só vale depois do aceite em E1. Até lá, esses documentos continuam propostas não aceitas. Nada aqui libera deploy no Render ou no Supabase, dados reais, integração com o Asaas, commit, push ou merge. O formato segue o [pacote da fase 1](pacote-tecnico-fase-1.md). As fontes são o [roadmap](../roadmap.md) (seções 5.5, 5.6, 5.8 e 7), os [resultados das PoCs P2 a P5](../03-arquitetura/criterios-de-poc.md) e os relatórios em `pocs/rm-16/*/RELATORIO.md`.
+**Estado:** fase 2 liberada por Pedro em 20/11/2026. **Pacote aprovado por Pedro em 21/11/2026, com todas as decisões E1 a E22 na opção A (E1, E6, E7 e E17 já aprovadas em A em 20/11/2026; as demais em 21/11/2026; seção 7).** O código de produto da fase 2 está liberado, na ordem RM-25 e RM-24, RM-20 e RM-21, RM-23 e RM-22, na branch `feat/fase-2-acesso`, com commit por pacote RM aprovado um a um por Pedro (E22). O recorte do MER, da política de acesso e do contrato descrito aqui vale pelo aceite em E1 (opção A); o restante desses documentos continua proposta não aceita. Nada aqui libera deploy no Render ou no Supabase, dados reais, integração com o Asaas, commit, push ou merge. O formato segue o [pacote da fase 1](pacote-tecnico-fase-1.md). As fontes são o [roadmap](../roadmap.md) (seções 5.5, 5.6, 5.8 e 7), os [resultados das PoCs P2 a P5](../03-arquitetura/criterios-de-poc.md) e os relatórios em `pocs/rm-16/*/RELATORIO.md`.
 
 ## Índice
 
@@ -12,7 +12,7 @@
 4. [Recorte de contrato](#4-recorte-de-contrato)
 5. [Estrutura no monorepo](#5-estrutura-no-monorepo-preserva-esqueletos-existentes)
 6. [Etapas e verificações](#6-etapas-e-verificações-na-ordem-decidida)
-7. [Decisões E1 a E22](#7-decisões-e1-a-e22--aguardando-pedro-recomendações)
+7. [Decisões E1 a E22 — aprovadas (opção A)](#7-decisões-e1-a-e22--aprovadas-opção-a)
 8. [Riscos](#8-riscos)
 9. [Rastreabilidade](#9-rastreabilidade)
 
@@ -21,9 +21,10 @@
 | Nº | Decisão |
 | --- | --- |
 | 1 | **Fase 2 liberada.** A reprodução da instalação por outra pessoa continua pendente da fase 1 e corre em paralelo, sem bloquear a fase 2 |
-| 2 | **Pacote técnico primeiro.** Nenhum código de produto antes de Pedro aprovar as decisões deste pacote. O recorte do MER, da política de acesso e do contrato para RM-20 a RM-25 é aprovado por meio do pacote |
+| 2 | **Pacote técnico primeiro.** Nenhum código de produto antes de Pedro aprovar as decisões deste pacote (aprovadas em 21/11/2026, decisão 5). O recorte do MER, da política de acesso e do contrato para RM-20 a RM-25 é aprovado por meio do pacote |
 | 3 | **Banco:** PostgreSQL 17 local em Docker, a versão principal do Supabase, como nas PoCs, sem Supabase nem Render. Deploy continua bloqueado. No CI, um Postgres de serviço para os testes de isolamento |
 | 4 | **Ordem:** primeiro a fundação (RM-25 com dados, migrations e fixtures; RM-24 com erros, idempotência, transações, auditoria, outbox e observabilidade mínima). Depois RM-20 (conta, acesso e sessões) e RM-21 (condomínios, unidades e vínculos). Em seguida RM-23 (autorização em todos os canais) e, por último, RM-22 (implantação por modalidade) |
+| 5 | **Pacote aprovado (21/11/2026).** Pedro aprovou todas as decisões E1 a E22 na opção A (E1, E6, E7 e E17 já em 20/11/2026). Código de produto liberado na ordem da decisão 4, com commit por pacote RM aprovado um a um (E22). Deploy, dados reais e commit, merge ou push sem aprovação específica seguem bloqueados |
 
 **Já fechado e aplicado aqui, sem reabrir:**
 
@@ -167,7 +168,9 @@ Regras mantidas: a pasta organiza, não protege (backend 3.4); `dominio/` sem Ne
 | 6 | RM-22 | Cadastro de condomínio com plano e modalidade pela plataforma; administradora vinculada; autogestão (síndico executa, sub em substituição, conselho fiscaliza, AG-01 A); solicitações; suporte só no Gestão + Suporte; primeira habilitação conforme E11 | Ninguém concede poder a si mesmo (decisão 3A); solicitação só é atendida por outro perfil; transição de modalidade auditada (RN-PL, 11.1); primeiro responsável só com a comprovação aprovada em E11; todas as ações em `auditoria` ou `auditoria_plataforma` |
 | Saída | Fase 2 | Jornada completa: pré-cadastro, primeiro acesso, aceites, contexto, tela permitida por perfil | Critérios do roadmap, seção 7; `pnpm check`, job de banco do CI e `test:a11y` passando; relatório com versões, hashes, saída dos testes e falhas, sem segredo |
 
-## 7. Decisões E1 a E22 — aguardando Pedro (recomendações)
+## 7. Decisões E1 a E22 — aprovadas (opção A)
+
+**Vigente: a opção A de todas as decisões.** Aprovadas por Pedro em 20/11/2026: E1, E6, E7 e E17. Aprovadas por Pedro em 21/11/2026: E2, E3, E4, E5, E8 a E16 e E18 a E22. As colunas abaixo preservam as opções e a recomendação apresentadas na época.
 
 | ID | Decisão | Opções e consequência | Recomendação e motivo |
 | --- | --- | --- | --- |

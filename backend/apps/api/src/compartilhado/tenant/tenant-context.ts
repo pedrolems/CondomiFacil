@@ -18,6 +18,14 @@ export class TenantContext {
     return abrirTransacao(this.banco, ctx, fn);
   }
 
+  /** Escopo só de usuário (sem condomínio): dados do próprio titular, como perfil e aceites. */
+  executarComoUsuario<T>(
+    ctx: { usuarioId: string },
+    fn: (tx: Transacao) => Promise<T>,
+  ): Promise<T> {
+    return abrirTransacao(this.banco, { usuarioId: ctx.usuarioId }, fn);
+  }
+
   /** Escopo de plataforma: só permite INSERIR em auditoria_plataforma (sem SELECT, sem RETURNING). */
   executarComoPlataforma<T>(
     ctx: { usuarioId: string },

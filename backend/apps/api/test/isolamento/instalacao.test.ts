@@ -30,13 +30,21 @@ test('(a) db:instalar aplica todas as migrations do zero e termina com validate 
     const tabelas = await su<{ t: string }[]>`select tablename::text as t from pg_tables
       where schemaname = 'condomifacil' order by 1`;
     expect(tabelas.map((t) => t.t)).toEqual([
+      'aceite',
       'auditoria',
       'auditoria_plataforma',
       'condominio',
+      'controle_login',
+      'desafio_acesso',
+      'documento',
+      'documento_versao',
       'evento_saida',
+      'parametro_condominio',
       'parametro_definicao',
       'parametro_padrao',
       'requisicao_idempotente',
+      'sessao',
+      'usuario',
     ]);
   } finally {
     await su.end();
@@ -59,6 +67,8 @@ test('(g) recriar o banco e recarregar o cenário dá o mesmo inventário', asyn
   expect(primeira['condomifacil.condominio']).toMatch(/^3:/);
   expect(primeira['condomifacil.parametro_definicao']).toMatch(/^36:/);
   expect(primeira['condomifacil.parametro_padrao']).toMatch(/^35:/);
+  expect(primeira['condomifacil.documento']).toMatch(/^3:/);
+  expect(primeira['condomifacil.documento_versao']).toMatch(/^3:/);
   expect(segunda).toEqual(primeira);
   console.log('inventário restaurado:', primeira);
 });

@@ -1,13 +1,12 @@
 import { validarComum, type ComponentesComum } from '@condomifacil/shared-types';
+import { ErroDeRede, RespostaForaDoContrato } from './erros';
+
+export { ErroDeRede, RespostaForaDoContrato };
 
 export type SaudeComum = ComponentesComum['schemas']['SaudeComum'];
 
-/** Sem resposta utilizável da rede: URL ausente, falha de conexão ou tempo esgotado. */
-export class ErroDeRede extends Error {}
 /** A API respondeu, mas não com `200` (por exemplo `503`). */
 export class ApiIndisponivel extends Error {}
-/** `200` com corpo que o contrato `SaudeComum` não aceita. */
-export class RespostaForaDoContrato extends Error {}
 
 const TEMPO_LIMITE_MS = 10_000;
 

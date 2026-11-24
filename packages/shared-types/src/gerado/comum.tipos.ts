@@ -31,7 +31,7 @@ export interface paths {
         put?: never;
         /**
          * Ativa a conta com o código e cria a senha
-         * @description Valida o código recebido por e-mail e grava a senha (mínimo de 8 caracteres) na mesma chamada; devolve a sessão (RF-AC-01, RN-CD-02). Código errado conta uma das 5 tentativas; na quinta o código é invalidado e é preciso pedir outro. As respostas de erro são as mesmas para e-mail não cadastrado, inclusive a contagem de tentativas restantes, que o servidor simula (Proposta). Antes de usar o app, o usuário ainda precisa aceitar os documentos (`aceites_pendentes`, RN-CD-03). Sem `Authorization` nem cabeçalhos de contexto.
+         * @description Valida o código recebido por e-mail e grava a senha (mínimo de 8 caracteres) na mesma chamada; devolve a sessão (RF-AC-01, RN-CD-02). Código errado conta uma das 5 tentativas; na quinta o código é invalidado e é preciso pedir outro. Acumulados 10 códigos errados em 24 horas para o e-mail (a janela começa no primeiro erro), o pedido e o uso de código ficam pausados por 24 horas, com `429 CODIGO_PAUSADO` e `Retry-After`, já na 10ª tentativa errada, igual para e-mail não cadastrado (decisão de Pedro em 24/11/2026). As respostas de erro são as mesmas para e-mail não cadastrado, inclusive a contagem de tentativas restantes, que o servidor simula (Proposta). Antes de usar o app, o usuário ainda precisa aceitar os documentos (`aceites_pendentes`, RN-CD-03). Sem `Authorization` nem cabeçalhos de contexto.
          */
         post: operations["comumAtivar"];
         delete?: never;
@@ -51,7 +51,7 @@ export interface paths {
         put?: never;
         /**
          * Entra com e-mail e senha
-         * @description Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
+         * @description Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; a própria 5ª senha errada seguida já responde `429 ACESSO_PAUSADO` e pausa o acesso por 15 minutos (SEG-04; UF 3.2); a tentativa é contada antes da verificação da senha, então tentativas simultâneas não burlam o limite. Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
          */
         post: operations["comumEntrar"];
         delete?: never;
@@ -71,7 +71,7 @@ export interface paths {
         put?: never;
         /**
          * Redefine a senha com o código recebido
-         * @description Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
+         * @description Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04). O teto de 10 códigos errados em 24 horas (`429 CODIGO_PAUSADO`) vale aqui também (RN-CD-02); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
          */
         post: operations["comumRedefinirSenha"];
         delete?: never;
@@ -239,7 +239,7 @@ export interface paths {
         put?: never;
         /**
          * Troca a senha com a sessão aberta
-         * @description Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos após 5 erros seguidos (SEG-04), no mesmo contador do login: com a troca pausada, responde `429 ACESSO_PAUSADO` com `Retry-After`. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.
+         * @description Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos (SEG-04), no mesmo contador do login: a própria 5ª senha errada seguida já responde `429 ACESSO_PAUSADO` com `Retry-After`, e com a troca pausada as chamadas seguintes respondem igual. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.
          */
         post: operations["comumTrocarSenha"];
         delete?: never;
@@ -1425,7 +1425,7 @@ export interface components {
     headers: {
         /** @description Identificador da requisição, devolvido em toda resposta (Proposta). Igual a `request_id` do corpo de erro. */
         XRequestId: string;
-        /** @description Segundos até a próxima tentativa, nas respostas `429` (e `503`, quando houver). Os valores de limite de taxa são lacuna. */
+        /** @description Segundos inteiros, arredondados para cima e nunca 0, até a próxima tentativa, nas respostas `429` (e `503`, quando houver). Os valores de limite de taxa são lacuna. */
         RetryAfter: number;
     };
     pathItems: never;
@@ -1470,7 +1470,7 @@ export interface operations {
             };
             400: components["responses"]["Erro400"];
             426: components["responses"]["Erro426"];
-            /** @description Reenvio antes de 60 segundos ou limite de taxa por IP e por e-mail. A resposta vale igual para qualquer e-mail, cadastrado ou não, para não revelar quem tem conta. Traz `Retry-After`. */
+            /** @description Reenvio antes de 60 segundos, pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02) ou limite de taxa por IP e por e-mail. A resposta vale igual para qualquer e-mail, cadastrado ou não, para não revelar quem tem conta. Traz `Retry-After`, em segundos inteiros. */
             429: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
@@ -1536,7 +1536,7 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "token_acesso": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
+                     *       "token_acesso": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
                      *       "token_acesso_expira_em": "2026-11-10T14:45:00-03:00",
                      *       "refresh_token": "rt_9Zk2Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E",
                      *       "aceites_pendentes": true
@@ -1558,7 +1558,17 @@ export interface operations {
                 };
             };
             426: components["responses"]["Erro426"];
-            429: components["responses"]["Erro429"];
+            /** @description Pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02; a própria 10ª tentativa errada já responde assim), ou limite de taxa. Vale igual para e-mail não cadastrado. Traz `Retry-After`, em segundos inteiros. */
+            429: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
             500: components["responses"]["Erro500"];
             503: components["responses"]["Erro503"];
         };
@@ -1613,7 +1623,7 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "token_acesso": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
+                     *       "token_acesso": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
                      *       "token_acesso_expira_em": "2026-11-10T14:45:00-03:00",
                      *       "refresh_token": "rt_Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E9Zk2",
                      *       "aceites_pendentes": false
@@ -1644,7 +1654,7 @@ export interface operations {
                 };
             };
             426: components["responses"]["Erro426"];
-            /** @description Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`. */
+            /** @description Acesso pausado por 15 minutos a partir da 5ª senha errada seguida (a própria 5ª já responde assim; SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`, em segundos inteiros. */
             429: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
@@ -1710,7 +1720,7 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "token_acesso": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
+                     *       "token_acesso": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
                      *       "token_acesso_expira_em": "2026-11-10T14:45:00-03:00",
                      *       "refresh_token": "rt_Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5Wc8",
                      *       "aceites_pendentes": false
@@ -1732,7 +1742,17 @@ export interface operations {
                 };
             };
             426: components["responses"]["Erro426"];
-            429: components["responses"]["Erro429"];
+            /** @description Pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02; a própria 10ª tentativa errada já responde assim), ou limite de taxa. Vale igual para e-mail não cadastrado. Traz `Retry-After`, em segundos inteiros. */
+            429: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
             500: components["responses"]["Erro500"];
             503: components["responses"]["Erro503"];
         };
@@ -1782,7 +1802,7 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "token_acesso": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
+                     *       "token_acesso": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo",
                      *       "token_acesso_expira_em": "2026-11-10T15:00:00-03:00",
                      *       "refresh_token": "rt_Wc8Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5",
                      *       "aceites_pendentes": false

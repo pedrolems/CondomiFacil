@@ -1,6 +1,6 @@
 # Histórias de Usuário e Critérios de Aceite — CondomiFacil
 
-04/11/2026 · Atualizado em 24/11/2026 (US-AC-07: trocar senha, decisão de Pedro de 24/11/2026; antes, 20/11/2026, US-AC-04: retry do refresh, ADR-007; antes, 17/11/2026, RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (US-AC-01 e US-AC-04: teto de 10 códigos errados em 24 h; US-AC-07: trocar senha; decisões de Pedro de 24/11/2026; antes, 20/11/2026, US-AC-04: retry do refresh, ADR-007; antes, 17/11/2026, RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## Como ler
 
@@ -25,6 +25,7 @@ Requisitos: RF-AC-01 · RN-CD-01, RN-CD-02
 - [ ] Dado o código correto e dentro da validade, quando o informo, então crio minha senha e entro no app.
 - [ ] Dado um código errado 5 vezes, quando tento de novo, então o código é invalidado e preciso pedir outro.
 - [ ] Dado um e-mail não pré-cadastrado, quando peço acesso, então vejo a mesma mensagem exibida para e-mails cadastrados ("se o e-mail estiver cadastrado, enviamos um código"), com a orientação de procurar a administradora ou o síndico se o código não chegar.
+- [ ] Dado 10 códigos errados em 24 horas para o mesmo e-mail, somando todos os códigos, quando peço ou informo um código, então o pedido e o uso de código ficam pausados por 24 horas, com a mensagem "Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde.", igual para e-mail cadastrado ou não (RN-CD-02, SEG-04).
 - [ ] Dado que pedi um código, quando peço outro, então o botão só é liberado após 60 segundos e o código anterior deixa de valer.
 - [ ] Dado a criação da senha, quando informo menos de 8 caracteres, então o app mostra o requisito e não avança.
 
@@ -56,6 +57,7 @@ Como usuário, quero redefinir minha senha pelo e-mail, para voltar a entrar se 
 Requisitos: RF-AC-03 · RN-CD-02
 
 - [ ] Dado um e-mail cadastrado, quando peço para redefinir, então recebo um código com as mesmas regras do primeiro acesso.
+- [ ] Dado 10 códigos errados em 24 horas para o mesmo e-mail, somando os de primeiro acesso e de recuperação, quando peço ou informo um código, então o pedido e o uso de código ficam pausados por 24 horas, com a mesma mensagem e a mesma resposta para e-mail cadastrado ou não (RN-CD-02, SEG-04).
 - [ ] Dado o código válido, quando crio uma nova senha, então a senha antiga deixa de funcionar e as outras sessões são encerradas.
 - [ ] Dado 5 senhas erradas seguidas no login, quando tento de novo, então o acesso fica pausado por 15 minutos, com a opção de redefinir a senha (SEG-04).
 

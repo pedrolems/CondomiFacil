@@ -37,6 +37,7 @@ export const esquemaComum = {
       "properties": {
         "identificador_instalacao": {
           "type": "string",
+          "maxLength": 64,
           "description": "Identificador da instalação do app no aparelho (Proposta).",
           "examples": [
             "inst-8f3a2c1d-aparelho-exemplo"
@@ -63,6 +64,7 @@ export const esquemaComum = {
         "email": {
           "type": "string",
           "format": "email",
+          "maxLength": 254,
           "examples": [
             "ana.exemplo@example.com"
           ]
@@ -105,7 +107,8 @@ export const esquemaComum = {
       "properties": {
         "email": {
           "type": "string",
-          "format": "email"
+          "format": "email",
+          "maxLength": 254
         },
         "codigo": {
           "type": "string",
@@ -117,6 +120,7 @@ export const esquemaComum = {
         },
         "nova_senha": {
           "type": "string",
+          "maxLength": 128,
           "minLength": 8,
           "writeOnly": true,
           "description": "Senha com no mínimo 8 caracteres (RF-AC-01). Nunca é devolvida."
@@ -137,7 +141,8 @@ export const esquemaComum = {
       "properties": {
         "email": {
           "type": "string",
-          "format": "email"
+          "format": "email",
+          "maxLength": 254
         },
         "codigo": {
           "type": "string",
@@ -148,6 +153,7 @@ export const esquemaComum = {
         },
         "nova_senha": {
           "type": "string",
+          "maxLength": 128,
           "minLength": 8,
           "writeOnly": true
         },
@@ -166,10 +172,12 @@ export const esquemaComum = {
       "properties": {
         "email": {
           "type": "string",
-          "format": "email"
+          "format": "email",
+          "maxLength": 254
         },
         "senha": {
           "type": "string",
+          "maxLength": 128,
           "writeOnly": true
         },
         "dispositivo": {
@@ -186,11 +194,13 @@ export const esquemaComum = {
       "properties": {
         "senha_atual": {
           "type": "string",
+          "maxLength": 128,
           "writeOnly": true,
           "description": "Senha em uso. Nunca é devolvida."
         },
         "nova_senha": {
           "type": "string",
+          "maxLength": 128,
           "minLength": 8,
           "writeOnly": true,
           "description": "Senha com no mínimo 8 caracteres (RF-AC-09). Nunca é devolvida."
@@ -317,6 +327,7 @@ export const esquemaComum = {
         "documento_versao_ids": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 20,
           "items": {
             "$ref": "#/$defs/Uuid"
           },
@@ -557,7 +568,8 @@ export const esquemaComum = {
       ],
       "properties": {
         "identificador_instalacao": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 64
         },
         "plataforma": {
           "type": "string",

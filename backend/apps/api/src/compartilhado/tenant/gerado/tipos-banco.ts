@@ -26,6 +26,13 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface Aceite {
+  aceito_em: Generated<Timestamp>;
+  documento_versao_id: string;
+  id: Generated<string>;
+  usuario_id: string;
+}
+
 export interface Auditoria {
   acao: string;
   antes_sanitizado: Json | null;
@@ -61,6 +68,44 @@ export interface Condominio {
   nome: string;
 }
 
+export interface ControleLogin {
+  bloqueado_ate: Timestamp | null;
+  chave_tentativa_protegida: string;
+  falhas: Generated<number>;
+  id: Generated<string>;
+  janela_iniciada_em: Timestamp | null;
+  usuario_id: string | null;
+}
+
+export interface DesafioAcesso {
+  codigo_hash: string;
+  consumido_em: Timestamp | null;
+  destino_protegido: string;
+  emitido_em: Generated<Timestamp>;
+  expira_em: Timestamp;
+  finalidade: string;
+  id: Generated<string>;
+  invalidado_em: Timestamp | null;
+  tentativas: Generated<number>;
+  usuario_id: string | null;
+}
+
+export interface Documento {
+  condominio_id: string | null;
+  id: Generated<string>;
+  tipo: string;
+  titulo: string;
+}
+
+export interface DocumentoVersao {
+  conteudo_texto: string;
+  documento_id: string;
+  id: Generated<string>;
+  numero: number;
+  publicado_em: Generated<Timestamp>;
+  vigente_desde: Timestamp;
+}
+
 export interface EventoSaida {
   carga_minima_restrita: Json;
   chave_idempotencia: string;
@@ -72,6 +117,16 @@ export interface EventoSaida {
   tentativas: Generated<number>;
   tipo: string;
   ultimo_erro_sanitizado: string | null;
+}
+
+export interface ParametroCondominio {
+  condominio_id: string;
+  definicao_id: string;
+  id: Generated<string>;
+  registrado_em: Generated<Timestamp>;
+  registrado_por_id: string;
+  valor_json: Json;
+  vigente_desde: Timestamp;
 }
 
 export interface ParametroDefinicao {
@@ -109,12 +164,43 @@ export interface RequisicaoIdempotente {
   usuario_id: string;
 }
 
+export interface Sessao {
+  anterior_reusado_em: Timestamp | null;
+  criada_em: Generated<Timestamp>;
+  dispositivo_identificador: string | null;
+  expira_em: Timestamp;
+  id: Generated<string>;
+  renovacao_hash: string;
+  renovacao_hash_anterior: string | null;
+  revogada_em: Timestamp | null;
+  rotacionada_em: Timestamp | null;
+  usuario_id: string;
+}
+
+export interface Usuario {
+  anonimizado_em: Timestamp | null;
+  email_normalizado: string | null;
+  estado: Generated<string>;
+  id: Generated<string>;
+  nome: string;
+  senha_hash: string | null;
+  tema_preferido: Generated<string>;
+}
+
 export interface DB {
+  aceite: Aceite;
   auditoria: Auditoria;
   auditoria_plataforma: AuditoriaPlataforma;
   condominio: Condominio;
+  controle_login: ControleLogin;
+  desafio_acesso: DesafioAcesso;
+  documento: Documento;
+  documento_versao: DocumentoVersao;
   evento_saida: EventoSaida;
+  parametro_condominio: ParametroCondominio;
   parametro_definicao: ParametroDefinicao;
   parametro_padrao: ParametroPadrao;
   requisicao_idempotente: RequisicaoIdempotente;
+  sessao: Sessao;
+  usuario: Usuario;
 }

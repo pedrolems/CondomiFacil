@@ -81,7 +81,7 @@ paths:
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
-          description: Reenvio antes de 60 segundos ou limite de taxa por IP e por e-mail. A resposta vale igual para qualquer e-mail, cadastrado ou não, para não revelar quem tem conta. Traz `Retry-After`.
+          description: Reenvio antes de 60 segundos, pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02) ou limite de taxa por IP e por e-mail. A resposta vale igual para qualquer e-mail, cadastrado ou não, para não revelar quem tem conta. Traz `Retry-After`, em segundos inteiros.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -97,6 +97,12 @@ paths:
                   value:
                     codigo: CODIGO_REENVIO_ANTECIPADO
                     mensagem: Você poderá pedir um novo código em instantes.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                codigoPausado:
+                  summary: 10 códigos errados em 24 h (texto de UF 3.1; código aprovado por Pedro em 24/11/2026)
+                  value:
+                    codigo: CODIGO_PAUSADO
+                    mensagem: Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 limiteDeTaxa:
                   summary: Excesso de pedidos por IP ou e-mail (texto Proposta)
@@ -120,7 +126,7 @@ paths:
     post:
       operationId: comumAtivar
       summary: Ativa a conta com o código e cria a senha
-      description: Valida o código recebido por e-mail e grava a senha (mínimo de 8 caracteres) na mesma chamada; devolve a sessão (RF-AC-01, RN-CD-02). Código errado conta uma das 5 tentativas; na quinta o código é invalidado e é preciso pedir outro. As respostas de erro são as mesmas para e-mail não cadastrado, inclusive a contagem de tentativas restantes, que o servidor simula (Proposta). Antes de usar o app, o usuário ainda precisa aceitar os documentos (`aceites_pendentes`, RN-CD-03). Sem `Authorization` nem cabeçalhos de contexto.
+      description: Valida o código recebido por e-mail e grava a senha (mínimo de 8 caracteres) na mesma chamada; devolve a sessão (RF-AC-01, RN-CD-02). Código errado conta uma das 5 tentativas; na quinta o código é invalidado e é preciso pedir outro. Acumulados 10 códigos errados em 24 horas para o e-mail (a janela começa no primeiro erro), o pedido e o uso de código ficam pausados por 24 horas, com `429 CODIGO_PAUSADO` e `Retry-After`, já na 10ª tentativa errada, igual para e-mail não cadastrado (decisão de Pedro em 24/11/2026). As respostas de erro são as mesmas para e-mail não cadastrado, inclusive a contagem de tentativas restantes, que o servidor simula (Proposta). Antes de usar o app, o usuário ainda precisa aceitar os documentos (`aceites_pendentes`, RN-CD-03). Sem `Authorization` nem cabeçalhos de contexto.
       tags:
       - acesso
       security: []
@@ -155,7 +161,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessaoAbertaComum'
               example:
-                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
                 token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
                 refresh_token: rt_9Zk2Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E
                 aceites_pendentes: true
@@ -188,7 +194,29 @@ paths:
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+          description: Pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02; a própria 10ª tentativa errada já responde assim), ou limite de taxa. Vale igual para e-mail não cadastrado. Traz `Retry-After`, em segundos inteiros.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                codigoPausado:
+                  summary: 10 códigos errados em 24 h (texto de UF 3.1; código aprovado por Pedro em 24/11/2026)
+                  value:
+                    codigo: CODIGO_PAUSADO
+                    mensagem: Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                limiteDeTaxa:
+                  summary: Excesso de pedidos por IP ou e-mail (texto Proposta)
+                  value:
+                    codigo: LIMITE_DE_TAXA_EXCEDIDO
+                    mensagem: Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '500':
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
@@ -204,7 +232,7 @@ paths:
     post:
       operationId: comumEntrar
       summary: Entra com e-mail e senha
-      description: 'Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
+      description: 'Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; a própria 5ª senha errada seguida já responde `429 ACESSO_PAUSADO` e pausa o acesso por 15 minutos (SEG-04; UF 3.2); a tentativa é contada antes da verificação da senha, então tentativas simultâneas não burlam o limite. Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
       tags:
       - acesso
       security: []
@@ -238,7 +266,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessaoAbertaComum'
               example:
-                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
                 token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
                 refresh_token: rt_Qm7xVb3LpA0sTn5Wc8Hd1Yf4Ju6E9Zk2
                 aceites_pendentes: false
@@ -285,7 +313,7 @@ paths:
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
-          description: Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`.
+          description: Acesso pausado por 15 minutos a partir da 5ª senha errada seguida (a própria 5ª já responde assim; SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`, em segundos inteiros.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -297,7 +325,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 acessoPausado:
-                  summary: 5 senhas erradas (texto de UF 3.2)
+                  summary: 5ª senha errada e as seguintes (texto de UF 3.2)
                   value:
                     codigo: ACESSO_PAUSADO
                     mensagem: Por segurança, o acesso foi pausado por 15 minutos. Você pode redefinir a senha agora.
@@ -316,7 +344,7 @@ paths:
     post:
       operationId: comumRedefinirSenha
       summary: Redefine a senha com o código recebido
-      description: 'Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
+      description: 'Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04). O teto de 10 códigos errados em 24 horas (`429 CODIGO_PAUSADO`) vale aqui também (RN-CD-02); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
       tags:
       - acesso
       security: []
@@ -351,7 +379,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessaoAbertaComum'
               example:
-                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
                 token_acesso_expira_em: '2026-11-10T14:45:00-03:00'
                 refresh_token: rt_Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5Wc8
                 aceites_pendentes: false
@@ -384,7 +412,29 @@ paths:
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro429
+          description: Pausa de 24 horas depois de 10 códigos errados em 24 horas para o e-mail (`CODIGO_PAUSADO`, RN-CD-02; a própria 10ª tentativa errada já responde assim), ou limite de taxa. Vale igual para e-mail não cadastrado. Traz `Retry-After`, em segundos inteiros.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                codigoPausado:
+                  summary: 10 códigos errados em 24 h (texto de UF 3.1; código aprovado por Pedro em 24/11/2026)
+                  value:
+                    codigo: CODIGO_PAUSADO
+                    mensagem: Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                limiteDeTaxa:
+                  summary: Excesso de pedidos por IP ou e-mail (texto Proposta)
+                  value:
+                    codigo: LIMITE_DE_TAXA_EXCEDIDO
+                    mensagem: Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '500':
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
@@ -428,7 +478,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessaoAbertaComum'
               example:
-                token_acesso: eyJhbGciOiJFUzI1NiIsImtpZCI6ImsxIn0.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
+                token_acesso: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZjZjMWE1Mi04YjFlLTRkM2EtOWEwZS01YzFkMmI3ZTlmMTAiLCJzaWQiOiJiMmU0ZjZhOC0xYzNkLTRlNWYtOGE3Yi05YzBkMWUyZjNhNGIifQ.assinatura-de-exemplo
                 token_acesso_expira_em: '2026-11-10T15:00:00-03:00'
                 refresh_token: rt_Wc8Hd1Yf4Ju6E9Zk2Qm7xVb3LpA0sTn5
                 aceites_pendentes: false
@@ -935,7 +985,7 @@ paths:
     post:
       operationId: comumTrocarSenha
       summary: Troca a senha com a sessão aberta
-      description: 'Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos após 5 erros seguidos (SEG-04), no mesmo contador do login: com a troca pausada, responde `429 ACESSO_PAUSADO` com `Retry-After`. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.'
+      description: 'Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos (SEG-04), no mesmo contador do login: a própria 5ª senha errada seguida já responde `429 ACESSO_PAUSADO` com `Retry-After`, e com a troca pausada as chamadas seguintes respondem igual. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.'
       tags:
       - acesso
       security:
@@ -994,7 +1044,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 acessoPausado:
-                  summary: 5 senhas atuais erradas (texto de UF 3.4)
+                  summary: 5ª senha atual errada e as seguintes (texto de UF 3.4)
                   value:
                     codigo: ACESSO_PAUSADO
                     mensagem: Por segurança, a troca de senha foi pausada por 15 minutos. Você pode redefinir a senha agora.
@@ -2778,6 +2828,7 @@ components:
       properties:
         identificador_instalacao:
           type: string
+          maxLength: 64
           description: Identificador da instalação do app no aparelho (Proposta).
           examples:
           - inst-8f3a2c1d-aparelho-exemplo
@@ -2797,6 +2848,7 @@ components:
         email:
           type: string
           format: email
+          maxLength: 254
           examples:
           - ana.exemplo@example.com
         finalidade:
@@ -2828,6 +2880,7 @@ components:
         email:
           type: string
           format: email
+          maxLength: 254
         codigo:
           type: string
           pattern: ^[0-9]{6}$
@@ -2836,6 +2889,7 @@ components:
           - '483920'
         nova_senha:
           type: string
+          maxLength: 128
           minLength: 8
           writeOnly: true
           description: Senha com no mínimo 8 caracteres (RF-AC-01). Nunca é devolvida.
@@ -2852,6 +2906,7 @@ components:
         email:
           type: string
           format: email
+          maxLength: 254
         codigo:
           type: string
           pattern: ^[0-9]{6}$
@@ -2859,6 +2914,7 @@ components:
           - '102938'
         nova_senha:
           type: string
+          maxLength: 128
           minLength: 8
           writeOnly: true
         dispositivo:
@@ -2873,8 +2929,10 @@ components:
         email:
           type: string
           format: email
+          maxLength: 254
         senha:
           type: string
+          maxLength: 128
           writeOnly: true
         dispositivo:
           $ref: '#/components/schemas/DispositivoInfoComum'
@@ -2886,10 +2944,12 @@ components:
       properties:
         senha_atual:
           type: string
+          maxLength: 128
           writeOnly: true
           description: Senha em uso. Nunca é devolvida.
         nova_senha:
           type: string
+          maxLength: 128
           minLength: 8
           writeOnly: true
           description: Senha com no mínimo 8 caracteres (RF-AC-09). Nunca é devolvida.
@@ -2981,6 +3041,7 @@ components:
         documento_versao_ids:
           type: array
           minItems: 1
+          maxItems: 20
           items:
             $ref: ./componentes/comum.yaml#/components/schemas/Uuid
           description: Versões vigentes que o usuário aceita agora.
@@ -3155,6 +3216,7 @@ components:
       properties:
         identificador_instalacao:
           type: string
+          maxLength: 64
         plataforma:
           type: string
           enum:

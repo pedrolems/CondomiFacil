@@ -2,7 +2,7 @@
 
 - **Estado:** Aceito, com ressalvas (jose; refresh com retry B+E de 30 s). Decisão de Pedro em 20/11/2026
 - **Data:** 06/11/2026
-- **Atualizado em:** 20/11/2026
+- **Atualizado em:** 24/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** revisão de segurança
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-008](008-orm-query-builder-migracoes.md)
@@ -123,3 +123,12 @@ Após a PoC P2 ([relatório](../../../pocs/rm-16/p2/RELATORIO.md); [critérios, 
 - O `expo-secure-store` não foi provado em aparelho.
 - Continuam não provados: várias abas na web, carga RNF-17, limites de taxa e memória do Argon2 no Render.
 - Mudanças de contrato decorrentes (por exemplo, `/v1/acesso/renovar`) não foram feitas; ver a entrega da tarefa.
+
+## Ressalva de 24/11/2026 (modelo físico do RM-20)
+
+Registro técnico, sem mudar a decisão de 20/11/2026.
+
+- O texto acima que diz que as tabelas de usuário ficam sem RLS foi **superado** pelo pacote da fase 2: `usuario` tem RLS forçada, com política própria para o `app_autenticacao`. Seguem sem RLS, por exceção explícita no teste de catálogo, `sessao`, `desafio_acesso` e `controle_login`.
+- O refresh token tem o formato `<sessao_id>.<segredo>`, opaco para o cliente: o servidor acha a sessão pelo id; um segredo que não seja o vigente nem o retry válido é replay e revoga a sessão.
+- Modelo de **uma linha por sessão** para o B+E (`renovacao_hash_anterior`, `rotacionada_em`, `anterior_reusado_em`), que substitui a tabela de hashes aposentados da P2.
+- **Teto absoluto da sessão (decisão de Pedro de 24/11/2026, depois da revisão de segurança do RM-20):** a sessão expira **90 dias depois do login**, mesmo em uso. A janela deslizante de 30 dias continua valendo; o teto é parâmetro configurável. Acrescenta-se à decisão de 20/11/2026, sem reescrevê-la.

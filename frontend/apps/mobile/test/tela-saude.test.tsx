@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 import { ThemeProvider } from '@condomifacil/ui';
-import TelaSaude from '../src/app/index';
+import TelaSaude from '../src/app/saude';
 import {
   consultarSaude,
   ApiIndisponivel,

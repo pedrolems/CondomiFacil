@@ -16,6 +16,8 @@ export const Secundario = {
   args: { rotulo: 'Ver regras da área', variante: 'secundario' },
 };
 
+export const Texto = { name: 'Texto', args: { rotulo: 'Esqueci minha senha', variante: 'texto' } };
+
 export const GrandePortaria = {
   name: 'Grande (56 dp, portaria)',
   args: { rotulo: 'Registrar entrada', tamanho: 'grande', icone: DoorOpen },

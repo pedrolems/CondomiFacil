@@ -1,6 +1,6 @@
 # User Flows — CondomiFacil
 
-04/11/2026 · Atualizado em 24/11/2026 (fluxo 3.4, trocar senha) · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (fluxos 3.1 e 3.2, pausa de 24 h do código; fluxo 3.4, trocar senha) · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -97,6 +97,7 @@ flowchart TD
     G --> H{"Código correto e no prazo?"}
     H -->|"Errado, menos de 5 tentativas"| E2["Código incorreto; mostra tentativas restantes"]
     E2 --> G
+    H -->|"10 códigos errados em 24 h"| E6(["Pedido e uso de código pausados por 24 h"])
     H -->|"5 erros ou vencido"| E3["Código invalidado; botão Pedir novo código liberado após 60 s"]
     E3 --> B
     H -->|"Sim"| I["Cria a senha"]
@@ -115,7 +116,7 @@ flowchart TD
     classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
     classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
     class O ok
-    class E1,E2,E3,E4,E5 erro
+    class E1,E2,E3,E4,E5,E6 erro
     class S1 sis
 ```
 
@@ -124,6 +125,7 @@ flowchart TD
 | E-mail não cadastrado ou desativado | A mesma mensagem de e-mail cadastrado; o código não chega. Abaixo: "Não recebeu? Confira o e-mail digitado ou procure a administradora ou o síndico." | Corrige o e-mail ou pede o pré-cadastro | RN-CD-01, RN-CD-02 |
 | Código errado | "Código incorreto. Você tem mais N tentativas." | Digita de novo | RN-CD-02 |
 | 5 erros ou código vencido | "Este código não vale mais. Peça um novo." | Pede novo código (após 60 s); o anterior é invalidado | RN-CD-02 |
+| 10 códigos errados em 24 h (mesmo e-mail) | "Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde." (igual para e-mail cadastrado ou não; erro `CODIGO_PAUSADO`) | Espera 24 h | RN-CD-02, SEG-04 |
 | Senha fraca | Lista do requisito com o item pendente destacado | Ajusta a senha | RF-AC-01 |
 | Não aceita os termos | "Para usar o CondomiFacil, é preciso aceitar os documentos do seu condomínio." | Aceita depois; a conta fica ativa, mas sem acesso | RN-CD-03 |
 | Sem internet | "Não foi possível conectar. Verifique a internet e tente de novo." | Tenta de novo | DS 13.4 |
@@ -152,7 +154,7 @@ flowchart TD
     I --> J
     E1 --> R["Esqueci minha senha"]
     B --> R
-    R --> R1["Informa o e-mail e recebe código, mesmas regras de 3.1"]
+    R --> R1["Informa o e-mail e recebe código, mesmas regras de 3.1, inclusive a pausa de 24 h"]
     R1 --> R2["Cria nova senha"]
     R2 --> R3["Sistema encerra as outras sessões"]
     R3 --> J
@@ -167,6 +169,7 @@ flowchart TD
 | Situação | O que o usuário vê | Como sai | Regra |
 | --- | --- | --- | --- |
 | E-mail ou senha errados | "E-mail ou senha incorretos." (sem dizer qual dos dois) | Tenta de novo ou redefine a senha | SEG-04 |
+| Pausa de 24 h do código (recuperação) | Mesma mensagem e regra do fluxo 3.1: "Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde." | Espera 24 h | RN-CD-02, SEG-04 |
 | 5 senhas erradas seguidas | "Por segurança, o acesso foi pausado por 15 minutos. Você pode redefinir a senha agora." | Espera ou redefine | SEG-04 |
 | Conta desativada | "Seu acesso a este condomínio foi encerrado. Se for um engano, fale com a administradora." | Contato com a administradora | RN-CD-07 |
 | Vínculo com outro condomínio ainda ativo | Entra normalmente, só com as unidades ativas | — | RN-CD-05 |

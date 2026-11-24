@@ -1,5 +1,5 @@
 # Segurança
 
-Armazenamento seguro e limpeza de contexto, preservando operações pendentes conforme as regras documentadas.
+Armazenamento do refresh (`expo-secure-store` no app; vazio na web, onde o refresh só existe no cookie), identificador anônimo da instalação e a trava da renovação (Web Locks na web; só no processo no app).
 
-Diretório reservado, sem implementação. Referência: docs/06-frontend/frontend.md, seção 2.1.
+Referência: docs/06-frontend/frontend.md, seção 2.1.

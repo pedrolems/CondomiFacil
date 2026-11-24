@@ -9,7 +9,7 @@ type PropsBase = {
   /** Verbo no infinitivo que diz o que acontece (DS 10.1). */
   rotulo: string;
   onPress: () => void;
-  variante?: 'primario' | 'secundario';
+  variante?: 'primario' | 'secundario' | 'texto';
   /** Médio (48) é o padrão; grande (56) na portaria e no rodapé de largura total. */
   tamanho?: 'medio' | 'grande';
   /** Ícone Lucide opcional à esquerda, 20 dp. */
@@ -74,10 +74,11 @@ export function Button({
                   backgroundColor: pressionado ? tema.action.primaryPressed : tema.action.primary,
                 }
               : { backgroundColor: pressionado ? tema.surface : 'transparent' },
-          !primario && {
-            borderWidth: 1.5,
-            borderColor: desabilitado ? tema.action.disabled : tema.action.secondary,
-          },
+          !primario &&
+            variante !== 'texto' && {
+              borderWidth: 1.5,
+              borderColor: desabilitado ? tema.action.disabled : tema.action.secondary,
+            },
           // Anel de foco do DS 10: 2 dp em `focus`, afastado 2 dp do botão.
           focado && {
             outlineColor: tema.focus,

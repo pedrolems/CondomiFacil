@@ -1,6 +1,6 @@
 # PRD — CondomiFacil
 
-03/11/2026 · Atualizado em 24/11/2026 (RF-AC-09: troca de senha com sessão aberta, decisão de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: requisitos do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+03/11/2026 · Atualizado em 24/11/2026 (RF-AC-01, RF-AC-03 e SEG-04: teto de 10 códigos errados em 24 h; RF-AC-09: troca de senha com sessão aberta; decisões de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: requisitos do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Visão geral
 
@@ -183,9 +183,9 @@ São 155 requisitos em 14 módulos (154 do MVP e 1 da versão 2, RF-FI-14), cada
 
 | ID | Requisito | Perfil | Detalhe |
 | --- | --- | --- | --- |
-| RF-AC-01 | No primeiro acesso, enviar código ao e-mail pré-cadastrado; validado, o usuário cria a senha | Todos | Código de 6 dígitos, válido por 15 min, até 5 tentativas; reenvio após 60 s; mesma mensagem para e-mail cadastrado ou não; senha com no mínimo 8 caracteres |
+| RF-AC-01 | No primeiro acesso, enviar código ao e-mail pré-cadastrado; validado, o usuário cria a senha | Todos | Código de 6 dígitos, válido por 15 min, até 5 tentativas por código; depois de 10 códigos errados em 24 h para o mesmo e-mail, pedido e uso de código pausados por 24 h (SEG-04); reenvio após 60 s; mesma mensagem para e-mail cadastrado ou não; senha com no mínimo 8 caracteres |
 | RF-AC-02 | Aceitar termos de uso, política de privacidade e regimento do condomínio | Todos | Versão e data do aceite guardadas; novo aceite quando mudarem |
-| RF-AC-03 | Recuperar senha por e-mail | Todos | Mesmo fluxo do código de primeiro acesso |
+| RF-AC-03 | Recuperar senha por e-mail | Todos | Mesmo fluxo do código de primeiro acesso, inclusive o limite de tentativas e a pausa de 24 h (RF-AC-01, SEG-04) |
 | RF-AC-04 | Escolher a unidade ativa; painéis e métricas separados por unidade | Quem tem mais de uma unidade | Seletor no topo da tela inicial |
 | RF-AC-05 | Alternar tema claro e escuro | Todos | Opções "Igual ao aparelho" (padrão), "Claro" e "Escuro"; a escolha fica salva |
 | RF-AC-06 | Acessar o app pelo navegador (versão web) | Administradora, Suporte, Síndico | Mesmo código do app, via React Native Web |
@@ -466,7 +466,7 @@ O app trata dados pessoais de moradores, funcionários e visitantes, além de vo
 | SEG-01 | Proteger os dados dos usuários | HTTPS em toda comunicação; dados sensíveis criptografados no banco |
 | SEG-02 | Esconder chaves de API | Segredos só no servidor, em variáveis de ambiente; nunca dentro do app |
 | SEG-03 | Aceite de termos e política de privacidade | Versionado, com data e versão por usuário |
-| SEG-04 | Senhas e códigos | Hash Argon2 ou bcrypt; código de e-mail com validade de 15 min e limite de tentativas; login pausado por 15 min após 5 senhas erradas seguidas; mensagens de erro que não revelam se o e-mail está cadastrado |
+| SEG-04 | Senhas e códigos | Hash Argon2 ou bcrypt; código de e-mail com validade de 15 min, até 5 tentativas por código e pausa de 24 h do pedido e do uso de código depois de 10 códigos errados em 24 h para o mesmo e-mail (mesma resposta para e-mail cadastrado ou não); login pausado por 15 min após 5 senhas erradas seguidas; mensagens de erro que não revelam se o e-mail está cadastrado |
 | SEG-05 | Isolamento entre condomínios | Row Level Security no PostgreSQL |
 | SEG-06 | Sigilo do voto | Registro de que a unidade votou separado do conteúdo do voto |
 | SEG-07 | Sigilo do score e do reclamante | A API devolve o score só ao dono, exceto nos casos de RN-SC-02; a identidade do reclamante nunca é enviada ao alvo |

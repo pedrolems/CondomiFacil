@@ -1,5 +1,6 @@
 // Critérios 4 e 5 do RM-24 (parte estática): o lint barra o driver fora do tenant e o escopo
 // sistema fora do worker. Roda o ESLint do repositório sobre arquivos de controle.
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { ESLint } from 'eslint';
 import { expect, test } from 'vitest';
@@ -69,3 +70,14 @@ test('internos do tenant (transacao, banco, guarda, gerado) só pelo index fora 
     ),
   ).toHaveLength(0);
 });
+
+test('ExecutorDeAutenticacao não sai pelo index do tenant e só o módulo autenticacao o importa', async () => {
+  const tenant = await import('../src/compartilhado/tenant/index.js');
+  expect(tenant).not.toHaveProperty('ExecutorDeAutenticacao');
+  const donos = readdirSync(SRC, { recursive: true, encoding: 'utf8' })
+    .filter((f) => f.endsWith('.ts'))
+    .map((f) => f.replaceAll(path.sep, '/'))
+    .filter((f) => /tenant\/autenticacao\.js/.test(readFileSync(path.join(SRC, f), 'utf8')));
+  expect(donos.every((f) => f.startsWith('modulos/autenticacao/'))).toBe(true);
+  expect(donos.length).toBeGreaterThan(0);
+}, 60_000);

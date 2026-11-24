@@ -1,6 +1,6 @@
 /* Acesso e conta — fluxos 3.1, 3.2 e 3.3 */
 'use strict';
-const A = { tries: 0, codeTries: 5, mode: 'primeiro', pwChanges: 0, onbRole: 'morador', resendIn: 0 };
+const A = { tries: 0, codeTries: 5, mode: 'primeiro', pwChanges: 0, onbRole: 'morador', resendIn: 0, codeErrTotal: 0 };
 
 def('acesso', 'boas-vindas', 'Boas-vindas', 'Entrada', () => ({
   noTop: true, noTabs: true, banner: '',
@@ -43,25 +43,27 @@ def('acesso', 'email', 'Informar e-mail', 'Primeiro acesso (3.1)', () => ({
 }));
 
 def('acesso', 'codigo', 'Código de verificação', 'Primeiro acesso (3.1)', () => {
-  const dead = A.codeTries <= 0;
+  const paused = A.codeErrTotal >= 10, dead = A.codeTries <= 0 || paused;
   return {
     noTabs: true, top: { title: 'Código de verificação', back: 'acesso/email' },
     body: `<div class="stack-5">
+      ${paused ? banner('warning', 'clock', 'Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde.', { inline: true }) : ''}
       ${banner('info', 'mail', `Se o e-mail <b>${esc(FORM.email || 'ana.lima@email.com')}</b> estiver cadastrado, um código foi enviado.`, { inline: true })}
       <div class="field"><label for="otp0">Código de 6 dígitos</label>
         <div class="otp" role="group" aria-label="Código de verificação">${[0, 1, 2, 3, 4, 5].map(i => `<input id="otp${i}" inputmode="numeric" maxlength="1" autocomplete="${i === 0 ? 'one-time-code' : 'off'}" aria-label="Dígito ${i + 1}" ${dead ? 'disabled' : ''}>`).join('')}</div>
-        ${A.codeErr ? `<span class="error-msg" role="alert">${ic('circle-x')}${A.codeErr}</span>` : `<span class="help">Código válido por 15 minutos. Dica do protótipo: 123456.</span>`}
+        ${A.codeErr ? `<span class="error-msg" role="alert">${ic('circle-x')}${A.codeErr}</span>` : `<span class="help">Código válido por 15 minutos. Dica do protótipo: 123456. Códigos errados em 24 horas neste e-mail: ${A.codeErrTotal} de 10.</span>`}
       </div>
       <p class="help" style="margin:0">Não recebeu? Confira o e-mail digitado ou procure a administradora ou o síndico.</p>
-      ${btn(A.resendIn > 0 && !dead ? `Pedir novo código (${A.resendIn} s)` : 'Pedir novo código', { v: 'text', disabled: A.resendIn > 0 && !dead, on: () => { A.codeTries = 5; A.codeErr = ''; A.resendIn = 60; rerender(); toast('Novo código enviado. O anterior não vale mais.'); } })}
+      ${btn(A.resendIn > 0 && !dead ? `Pedir novo código (${A.resendIn} s)` : 'Pedir novo código', { v: 'text', disabled: (A.resendIn > 0 && !dead) || paused, on: () => { A.codeTries = 5; A.codeErr = ''; A.resendIn = 60; rerender(); toast('Novo código enviado. O anterior não vale mais.'); } })}
+      ${paused ? `<p class="disabled-reason">${ic('info')}Pausa de 24 horas por 10 códigos errados. Não é possível pedir novo código nem enviar este.</p>` + btn('Simular fim da pausa', { v: 'text', on: () => { A.codeErrTotal = 0; A.codeTries = 5; A.codeErr = ''; A.resendIn = 0; rerender(); } }) : ''}
       ${A.resendIn > 0 && !dead ? btn('Pular espera (protótipo)', { v: 'text', on: () => { A.resendIn = 0; rerender(); } }) : ''}
     </div>`,
     footer: btn('Continuar', { block: true, size: 'lg', disabled: dead, on: () => {
       const code = [...document.querySelectorAll('.otp input')].map(i => i.value).join('');
       if (code === '123456') { go(A.mode === 'recuperar' ? 'acesso/senha' : 'acesso/senha'); return; }
-      A.codeTries--;
-      A.codeErr = A.codeTries > 0 ? `Código incorreto. Você tem mais ${A.codeTries} ${A.codeTries === 1 ? 'tentativa' : 'tentativas'}.` : 'Este código não vale mais. Peça um novo.';
-      if (A.codeTries <= 0) A.resendIn = 0;
+      A.codeTries--; A.codeErrTotal++;
+      A.codeErr = A.codeErrTotal >= 10 ? '' : A.codeTries > 0 ? `Código incorreto. Você tem mais ${A.codeTries} ${A.codeTries === 1 ? 'tentativa' : 'tentativas'}.` : 'Este código não vale mais. Peça um novo.';
+      if (A.codeTries <= 0 || A.codeErrTotal >= 10) A.resendIn = 0;
       rerender();
     } }),
     after: () => {

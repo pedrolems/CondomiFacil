@@ -1,6 +1,6 @@
 # Regras de Negócio — CondomiFacil
 
-04/11/2026 · Atualizado em 24/11/2026 (RN-CD-29: troca de senha com sessão aberta, decisão de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: RN-PL-09 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (RN-CD-02: teto de 10 códigos errados em 24 horas; RN-CD-29: troca de senha com sessão aberta; decisões de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: RN-PL-09 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -75,7 +75,7 @@ Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pelo responsável
 | ID | Regra |
 | --- | --- |
 | RN-CD-01 | Todo usuário é pré-cadastrado pela administradora, pela equipe da plataforma no Gestão + Suporte ou pelo responsável administrativo local no Essencial com autogestão (RN-PL-08). Sem autoridade habilitada na implantação da autogestão, o Admin verifica identidade e representação em capacidade restrita (AG-02 A). O procedimento de 3.1 exige documentos por evento, recusa motivada, complementação e revisão independente. Por decisão 1C de 17/11/2026, o desenvolvimento usa somente dados fictícios; o operador será nomeado antes do primeiro condomínio oficial, sem designar Pedro. A verificação não abre conteúdo de gestão, reclamações ou scores nem usa Suporte no Essencial |
-| RN-CD-02 | No primeiro acesso, o usuário recebe um código de 6 dígitos no e-mail cadastrado, válido por 15 minutos, com até 5 tentativas; depois disso, precisa pedir novo código. Um novo código pode ser pedido após 60 segundos e invalida o anterior. A tela mostra a mesma mensagem para e-mails cadastrados e não cadastrados, para não revelar quem tem conta. A mesma regra vale para a recuperação de senha |
+| RN-CD-02 | No primeiro acesso, o usuário recebe um código de 6 dígitos no e-mail cadastrado, válido por 15 minutos, com até 5 tentativas; depois disso, precisa pedir novo código. Um novo código pode ser pedido após 60 segundos e invalida o anterior. A tela mostra a mesma mensagem para e-mails cadastrados e não cadastrados, para não revelar quem tem conta. A mesma regra vale para a recuperação de senha. **Teto acumulado (decisão de Pedro de 24/11/2026):** depois de **10 códigos errados em 24 horas** para o mesmo e-mail, somando todos os códigos, o pedido e o uso de código ficam pausados por 24 horas, no primeiro acesso e na recuperação, para e-mail cadastrado ou não, com a mesma resposta |
 | RN-CD-03 | O usuário só usa o app após aceitar termos de uso, política de privacidade, regimento do condomínio e a página "Como funciona" (RF-AC-07); nova versão de qualquer um exige novo aceite antes de continuar. Quem tem vínculo com mais de um condomínio aceita o regimento de cada um |
 | RN-CD-04 | Cada unidade tem exatamente um morador habilitado; a unidade não pode ser salva sem ele, e cada troca é registrada com data. A única exceção é a unidade desocupada (RN-CD-24) |
 | RN-CD-05 | Um usuário pode ter vínculo com várias unidades e condomínios; o app mostra só os dados da unidade ativa, e cada unidade tem painel e métricas separados |

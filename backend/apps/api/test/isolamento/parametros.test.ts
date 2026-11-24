@@ -102,6 +102,8 @@ test('política de carga só para o migrador e só INSERT; app_user continua sem
     from pg_policy p join pg_class c on c.oid = p.polrelid
     where c.relname like 'parametro_%' order by 1, 2`;
   expect(pol).toEqual([
+    { tabela: 'parametro_condominio', cmd: 'a', papeis: ['app_user'] },
+    { tabela: 'parametro_condominio', cmd: 'r', papeis: ['app_user'] },
     { tabela: 'parametro_definicao', cmd: 'a', papeis: ['migrador'] },
     { tabela: 'parametro_definicao', cmd: 'r', papeis: ['app_user'] },
     { tabela: 'parametro_padrao', cmd: 'a', papeis: ['migrador'] },

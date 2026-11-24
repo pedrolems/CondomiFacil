@@ -1,4 +1,6 @@
 // Log em JSON, uma linha por evento (backend §4.8). Nenhum campo passa sem `sanitizar`.
+import { UUID } from '../uuid.js';
+
 const PROIBIDOS = new Set([
   'nome',
   'email',
@@ -24,7 +26,6 @@ const PROIBIDOS = new Set([
 ]);
 
 const MASCARA = '[removido]';
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Dados pessoais que escapam em texto livre (mensagem de erro do driver, por exemplo).
 // Bordas (?<![\w-]) e (?![\w-]): nunca mascarar dentro de UUID, hash ou outro identificador.
 const B0 = String.raw`(?<![\w-])`;

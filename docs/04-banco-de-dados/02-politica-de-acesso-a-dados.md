@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026. **Atualizado em:** 23/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 24/11/2026.
 
 **Natureza:** política documental baseada no MER/DER lógico; não contém SQL executável, migrações nem concessões de acesso implementadas.
 
@@ -132,6 +132,8 @@ RLS controla linhas; não substitui privilégios por operação/coluna, projeç�
 As 131 entidades do dicionário MER §4, mais a solicitação de exportação gerencial do apêndice de 14/11/2026 (132 no total), estão nomeadas nas linhas abaixo, organizadas em seus 12 domínios. Nomes e escopos físicos continuam propostas do MER. Cada linha compartilhada aplica suas condições a todas as entidades nela listadas; diferenças constam na própria célula. A coluna Apagar distingue exclusão operacional de anonimização/expurgo da seção 7.
 
 ### 5.1 Identidade, acesso e aceites — 10 entidades
+
+**Modelo físico do RM-20 (24/11/2026):** `usuario` tem RLS forçada: o titular lê a própria projeção, sem o hash, e altera só o tema; o `app_autenticacao` lê e grava só as colunas de credencial. `sessao`, `desafio_acesso` e `controle_login` não têm RLS, por exceção explícita, e só o `app_autenticacao` tem privilégio. Na fase 2, a publicação de documentos é só por fixture.
 
 Fonte: [MER §4.1](01-mer-e-der.md#41-identidade-acesso-e-aceites); PRD RF-AC-01 a RF-AC-08, RF-LG-01/02 e SEG-03/04/11; RN-CD-01 a RN-CD-07 e RN-CD-18.
 

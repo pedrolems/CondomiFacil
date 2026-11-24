@@ -56,6 +56,7 @@ export class FiltroDeErros implements ExceptionFilter {
     if (erro.status >= 500) {
       this.logger.erro('erro_interno', { request_id: requestId, causa: excecao });
     }
+    for (const [nome, valor] of Object.entries(erro.cabecalhos ?? {})) res.setHeader(nome, valor);
     res.status(erro.status).json({
       codigo: erro.codigo,
       mensagem: erro.message,

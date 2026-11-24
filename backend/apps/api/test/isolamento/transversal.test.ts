@@ -4,19 +4,21 @@ import { randomUUID } from 'node:crypto';
 import type { TransactionSql as Tx } from 'postgres';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { conectar } from '../../db/scripts/ambiente.js';
-import { carregarCenario, condominio } from '../../db/seeds/fixtures.js';
+import { carregarCenario, condominio, usuario } from '../../db/seeds/fixtures.js';
 import { amb, BANCO_TESTE } from './apoio.js';
 
 const CENARIO = 'transversal-dois-condominios';
 const A = condominio(CENARIO, 'a', { nome: 'Condomínio Transversal A (fictício)' });
 const B = condominio(CENARIO, 'b', { nome: 'Condomínio Transversal B (fictício)' });
-const USUARIO = '00000000-0000-5000-8000-0000000000aa';
+// Ator real: as colunas de usuário têm FK para usuario desde o RM-20.
+const ATOR = usuario(CENARIO, 'ator');
+const USUARIO = ATOR.id;
 const app = conectar(amb, 'app_user', BANCO_TESTE);
 const ROLLBACK = new Error('rollback');
 
 beforeAll(async () => {
   expect(['carregado', 'ja-pronto']).toContain(
-    await carregarCenario(amb, { cenario: CENARIO, condominios: [A, B] }),
+    await carregarCenario(amb, { cenario: CENARIO, condominios: [A, B], usuarios: [ATOR] }),
   );
 });
 afterAll(() => app.end());

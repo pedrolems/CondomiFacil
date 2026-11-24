@@ -1,2 +1,7 @@
-// Montagem prevista das dependências internas do módulo acesso.
-// Sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3.
+import { Module } from '@nestjs/common';
+import { AceitesServico } from './aplicacao/aceites.servico.js';
+import { PerfilServico } from './aplicacao/perfil.servico.js';
+
+// Usa o TenantContext do TenantModule global (app_user).
+@Module({ providers: [AceitesServico, PerfilServico], exports: [AceitesServico, PerfilServico] })
+export class AcessoModule {}

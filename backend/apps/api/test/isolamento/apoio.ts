@@ -30,8 +30,9 @@ export interface Violacao {
   problema: string;
 }
 
-// Tabelas de condomifacil que podem ficar sem RLS (inventário revisado). Vazio por ora.
-export const EXCECOES_SEM_RLS: string[] = [];
+// Tabelas de condomifacil que podem ficar sem RLS (inventário revisado): só o plano de
+// autenticação (ADR-007, exceção do módulo autenticacao). O app_user não tem privilégio nelas.
+export const EXCECOES_SEM_RLS: string[] = ['controle_login', 'desafio_acesso', 'sessao'];
 
 /**
  * Auditoria do catálogo, rodando como app_user: RLS habilitada e forçada, dono migrador, todo
@@ -47,6 +48,7 @@ export async function auditarCatalogo(sql: Sql): Promise<Violacao[]> {
       dono: string;
       sem_politica: string[];
       proibidos: string[];
+      com_privilegio: boolean;
     }[]
   >`
     with t as (
@@ -73,13 +75,17 @@ export async function auditarCatalogo(sql: Sql): Promise<Violacao[]> {
         select p.priv from unnest(array['TRUNCATE', 'REFERENCES', 'TRIGGER']) p(priv)
         where (case p.priv when 'REFERENCES' then has_any_column_privilege(t.oid, p.priv)
                            else has_table_privilege(t.oid, p.priv) end)
-      ) as proibidos
+      ) as proibidos,
+    has_any_column_privilege(t.oid, 'SELECT, INSERT, UPDATE, REFERENCES')
+      or has_table_privilege(t.oid, 'DELETE, TRUNCATE, TRIGGER') as com_privilegio
     from t order by t.tabela`;
   const v: Violacao[] = [];
   for (const t of tabelas) {
     if (!EXCECOES_SEM_RLS.includes(t.tabela)) {
       if (!t.habilitada) v.push({ tabela: t.tabela, problema: 'RLS não habilitada' });
       if (!t.forcada) v.push({ tabela: t.tabela, problema: 'RLS não forçada' });
+    } else if (t.com_privilegio) {
+      v.push({ tabela: t.tabela, problema: 'exceção sem RLS com privilégio' });
     }
     if (t.dono !== 'migrador') v.push({ tabela: t.tabela, problema: `dono ${t.dono}` });
     for (const p of t.sem_politica)

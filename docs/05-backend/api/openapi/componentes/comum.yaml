@@ -219,10 +219,10 @@ components:
         examples:
           - req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     RetryAfter:
-      description: Segundos até a próxima tentativa, nas respostas `429` (e `503`, quando houver). Os valores de limite de taxa são lacuna.
+      description: Segundos inteiros, arredondados para cima e nunca 0, até a próxima tentativa, nas respostas `429` (e `503`, quando houver). Os valores de limite de taxa são lacuna.
       schema:
         type: integer
-        minimum: 0
+        minimum: 1
     Deprecation:
       description: Presente em rota obsoleta (Proposta). Indica que a rota está obsoleta e desde quando.
       schema:
@@ -283,6 +283,22 @@ components:
               value:
                 codigo: ORIGEM_NAO_PERMITIDA
                 mensagem: Não foi possível concluir a operação por este endereço.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro403AceitesPendentes:
+      description: Há aceite de documento pendente (RN-CD-03); o guard recusa as rotas de negócio. Liberados `/v1/acesso/*`, `/v1/eu`, `/v1/eu/sessoes*`, `/v1/eu/senha` e saúde. x-lacunas - ainda não aplicada às operações dos demais arquivos nem implementada; entra no RM-21.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            aceitesPendentes:
+              summary: Aceites pendentes (código e texto aprovados por Pedro em 24/11/2026)
+              value:
+                codigo: ACEITES_PENDENTES
+                mensagem: Aceite os documentos atualizados para continuar.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro403:
       description: Sem vínculo com o condomínio ou a unidade, ou sem permissão para o papel efetivo (guards de contexto, papel e unidade).

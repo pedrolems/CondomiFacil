@@ -8,7 +8,7 @@ const ATRIBUTOS: Record<Exclude<Papel, 'postgres'>, string> = {
   migrador: 'login nosuperuser nobypassrls nocreatedb nocreaterole noreplication',
   // API/worker: não dono, sem BYPASSRLS, sem herdar papéis.
   app_user: 'login nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit',
-  // Só o papel; grants por coluna (e CONNECT) entram no RM-20.
+  // Módulo autenticacao: grants por coluna dados pelas migrations do RM-20.
   app_autenticacao: 'login nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit',
   // Carga de fixtures; BYPASSRLS só em banco descartável.
   fixtures: 'login nosuperuser bypassrls nocreatedb nocreaterole noreplication noinherit',
@@ -62,7 +62,7 @@ export async function recriarBanco(
   try {
     await db.unsafe(`
       revoke all on database ${ident(banco)} from public;
-      grant connect on database ${ident(banco)} to app_user, fixtures;
+      grant connect on database ${ident(banco)} to app_user, app_autenticacao, fixtures;
       drop schema public;
 
       create schema condomifacil authorization migrador;

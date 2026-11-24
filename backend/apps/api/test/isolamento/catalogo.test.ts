@@ -17,12 +17,12 @@ afterAll(async () => {
   await removerBanco(CONTROLE);
 });
 
-test('(c) toda tabela de condomifacil passa na auditoria do catálogo; exceções explícitas (vazias)', async () => {
-  expect(EXCECOES_SEM_RLS).toEqual([]);
+test('(c) toda tabela de condomifacil passa na auditoria do catálogo; exceções explícitas só do plano de autenticação', async () => {
+  expect(EXCECOES_SEM_RLS).toEqual(['controle_login', 'desafio_acesso', 'sessao']);
   const [{ n }] = await app<
     [{ n: number }]
   >`select count(*)::int as n from pg_tables where schemaname = 'condomifacil'`;
-  expect(n).toBe(7);
+  expect(n).toBe(15);
   expect(await auditarCatalogo(app)).toEqual([]);
 });
 
@@ -35,6 +35,7 @@ test('(c) controle negativo: tabela de tenant criada sem RLS é apontada pela au
     await mig`grant select, truncate on condomifacil.tenant_sem_rls to app_user`;
     await mig`grant update (condominio_id) on condomifacil.tenant_sem_rls to app_user`; // grant só de coluna
     await mig`create function condomifacil.definer() returns int language sql security definer as 'select 1'`;
+    await mig`grant select on condomifacil.sessao to app_user`; // exceção sem RLS não pode ter privilégio
     const v = await auditarCatalogo(appControle);
     expect(v).toEqual(
       expect.arrayContaining([
@@ -44,6 +45,7 @@ test('(c) controle negativo: tabela de tenant criada sem RLS é apontada pela au
         { tabela: 'tenant_sem_rls', problema: 'UPDATE sem política permissiva' },
         { tabela: 'tenant_sem_rls', problema: 'privilégio TRUNCATE' },
         { tabela: 'condomifacil.definer()', problema: 'função SECURITY DEFINER' },
+        { tabela: 'sessao', problema: 'exceção sem RLS com privilégio' },
       ]),
     );
   } finally {
@@ -132,6 +134,8 @@ test('E4 e vigência: origem coerente com autor e versão; sem empate de vigênc
           ...a: [number, string, string | null, string | null, string]
         ) => expect(tx.savepoint((sp) => padrao(sp as Q, ...a))).rejects.toMatchObject({ code });
         const autor = '00000000-0000-5000-8000-0000000000aa';
+        await tx`insert into condomifacil.usuario (id, nome, email_normalizado)
+          values (${autor}, 'Autor Fictício', 'autor.e4@exemplo.test')`;
         await padrao(tx, 1, 'carga_versionada', null, '202611210003', '2026-01-01T00:00:00Z');
         await padrao(tx, 2, 'usuario', autor, null, '2026-02-01T00:00:00Z');
         await recusa('23514', 3, 'carga_versionada', autor, '1', '2026-03-01T00:00:00Z');

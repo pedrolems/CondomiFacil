@@ -15,7 +15,7 @@ import { validarComum } from '@condomifacil/shared-types';
 import type { Response } from 'express';
 import request from 'supertest';
 import { afterAll, beforeAll, expect, test } from 'vitest';
-import { carregarCenario, condominio } from '../../db/seeds/fixtures.js';
+import { carregarCenario, condominio, usuario } from '../../db/seeds/fixtures.js';
 import { ApiModule, configurarApp } from '../../src/api.module.js';
 import { lerConfig } from '../../src/compartilhado/config/config.js';
 import { Idempotencia } from '../../src/compartilhado/idempotencia/index.js';
@@ -36,7 +36,9 @@ import { opcoesApp, observador } from './apoio-api.js';
 const CENARIO = 'fundacao-api-dois-condominios';
 const A = condominio(CENARIO, 'a', { nome: 'Condomínio Fundação A (fictício)' });
 const B = condominio(CENARIO, 'b', { nome: 'Condomínio Fundação B (fictício)' });
-const USUARIO = '00000000-0000-5000-8000-0000000000bb';
+// Ator real: as colunas de usuário têm FK para usuario desde o RM-20.
+const ATOR = usuario(CENARIO, 'ator');
+const USUARIO = ATOR.id;
 const EMAIL = 'fulana.ficticia@exemplo.test';
 const NOME = 'Fulana Ficticia da Silva';
 
@@ -94,7 +96,7 @@ let obs: ReturnType<typeof observador>;
 
 beforeAll(async () => {
   expect(['carregado', 'ja-pronto']).toContain(
-    await carregarCenario(amb, { cenario: CENARIO, condominios: [A, B] }),
+    await carregarCenario(amb, { cenario: CENARIO, condominios: [A, B], usuarios: [ATOR] }),
   );
   obs = observador();
   const mod = await Test.createTestingModule({

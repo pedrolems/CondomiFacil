@@ -25,3 +25,19 @@ test('rejeita origem CORS inválida', () => {
     /CORS_ALLOWED_ORIGINS/,
   );
 });
+
+test('normaliza as origens CORS (esquema, host e porta, sem barra final) e remove repetições', () => {
+  const c = lerConfig({
+    APP_ENV: 'dev',
+    PORT: '3000',
+    CORS_ALLOWED_ORIGINS:
+      'http://web.exemplo.test/, HTTP://WEB.exemplo.test:80, https://app.exemplo.test:8443/x',
+  });
+  expect(c.CORS_ALLOWED_ORIGINS).toEqual([
+    'http://web.exemplo.test',
+    'https://app.exemplo.test:8443',
+  ]);
+  expect(() =>
+    lerConfig({ APP_ENV: 'dev', PORT: '3000', CORS_ALLOWED_ORIGINS: 'ftp://exemplo.test' }),
+  ).toThrow(/CORS_ALLOWED_ORIGINS/);
+});

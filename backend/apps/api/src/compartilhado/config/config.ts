@@ -6,12 +6,24 @@ export interface Config {
   CORS_ALLOWED_ORIGINS: string[];
 }
 
-function urlValida(v: string): boolean {
+/**
+ * Lista única de origens (CORS e CSRF do cliente web): http(s) apenas, normalizadas para
+ * esquema + host + porta, sem barra final nem repetição. `undefined` se algum item for inválido.
+ */
+export function lerOrigens(valor: string | undefined): string[] | undefined {
   try {
-    new URL(v);
-    return true;
+    const origens = (valor ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean)
+      .map((o) => {
+        const u = new URL(o);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('esquema');
+        return u.origin;
+      });
+    return [...new Set(origens)];
   } catch {
-    return false;
+    return undefined;
   }
 }
 
@@ -28,13 +40,10 @@ export function lerConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
 
   // Lista separada por vírgula; vazio = nenhuma origem cross-origin permitida (nunca `*`).
-  const origens = (env.CORS_ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean);
-  if (!origens.every(urlValida)) invalidas.push('CORS_ALLOWED_ORIGINS');
+  const origens = lerOrigens(env.CORS_ALLOWED_ORIGINS);
+  if (!origens) invalidas.push('CORS_ALLOWED_ORIGINS');
 
-  if (invalidas.length > 0 || !appEnv) {
+  if (invalidas.length > 0 || !appEnv || !origens) {
     throw new Error(`Configuração inválida ou ausente: ${invalidas.join(', ')}`);
   }
   return { APP_ENV: appEnv, PORT: port, CORS_ALLOWED_ORIGINS: origens };

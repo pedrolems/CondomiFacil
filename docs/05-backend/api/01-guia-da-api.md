@@ -293,7 +293,7 @@ Essa forma foi conferida com o `lint` e valida; as operações usam `security: [
 
 ## 2. Autenticação e sessão
 
-**Decidido (PRD, regras de negócio):** ninguém se cadastra sozinho; o pré-cadastro é da administradora ou do suporte (RF-AD-01, RN-CD-01). Primeiro acesso por código de 6 dígitos enviado ao e-mail, válido por 15 minutos, 5 tentativas, reenvio após 60 segundos (o novo invalida o anterior), senha com no mínimo 8 caracteres, login pausado por 15 minutos após 5 senhas erradas (RF-AC-01, RN-CD-02, SEG-04). A resposta de `POST /v1/acesso/codigo` é a mesma para e-mail cadastrado ou não.
+**Decidido (PRD, regras de negócio):** ninguém se cadastra sozinho; o pré-cadastro é da administradora ou do suporte (RF-AD-01, RN-CD-01). Primeiro acesso por código de 6 dígitos enviado ao e-mail, válido por 15 minutos, 5 tentativas, reenvio após 60 segundos (o novo invalida o anterior), senha com no mínimo 8 caracteres, login pausado por 15 minutos a partir da 5ª senha errada, que já responde `429 ACESSO_PAUSADO`, e pedido e uso de código pausados por 24 horas após 10 códigos errados em 24 horas, com `429 CODIGO_PAUSADO` (RF-AC-01, RN-CD-02, SEG-04). A resposta de `POST /v1/acesso/codigo` é a mesma para e-mail cadastrado ou não.
 
 **Proposta (ADR-007, arquitetura 3.3.1):**
 
@@ -332,6 +332,8 @@ sequenceDiagram
 ```
 
 Os caminhos `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha`, `/renovar`, `/sair` e `/aceites`, e `/v1/eu/sessoes` e `/v1/eu/senha`, estão fixados (Pedro, 24/11/2026) e definidos em `openapi/comum.yaml`. `X-App-Version` e a versão mínima seguem lacuna, fora do RM-20.
+
+Bloqueio por aceite pendente (RN-CD-03; Pedro, 24/11/2026): um guard no servidor recusa com `403 ACEITES_PENDENTES` todas as rotas de negócio enquanto houver aceite pendente. Ficam liberados `/v1/acesso/*` (inclusive aceites), `/v1/eu` (perfil e tema), `/v1/eu/sessoes*`, `/v1/eu/senha` e saúde. O código está no contrato; o guard é implementado no RM-21.
 
 ## 3. Contexto e autorização
 
@@ -540,6 +542,9 @@ Em `SNAKE_MAIUSCULO`, definidos no contrato e gerados em `shared-types`. Textos 
 | `SERVICO_INDISPONIVEL` | `503` | "Algo deu errado do nosso lado. Tente de novo em alguns minutos." | UF 15 |
 | `CHAVE_DE_IDEMPOTENCIA_REUTILIZADA` | `422` | Proposta (23/11/2026, a validar por Pedro): "Esta chave de idempotência já foi usada com outros dados." Mesma `Idempotency-Key` com corpo diferente (seção 9) | Proposta |
 | `ORIGEM_NAO_PERMITIDA` | `403` | "Não foi possível concluir a operação por este endereço." Cliente web sem `X-CondomiFacil-Web` ou com `Origin` fora da lista; proteção CSRF; o token não é consumido (ADR-007) | Aprovado por Pedro em 24/11/2026 |
+| `ACEITES_PENDENTES` | `403` | "Aceite os documentos atualizados para continuar." Há aceite pendente; recusa as rotas de negócio (seção 2) | RN-CD-03; aprovado por Pedro em 24/11/2026 |
+| `ACESSO_PAUSADO` | `429` | "Por segurança, o acesso foi pausado por 15 minutos. Você pode redefinir a senha agora." (na troca de senha: "...a troca de senha foi pausada..."). A partir da 5ª senha errada seguida, a própria 5ª já responde assim; mesmo contador do login e da troca de senha; traz `Retry-After` em segundos inteiros (SEG-04, RN-CD-07, RN-CD-29) | UF 3.2 e 3.4 |
+| `CODIGO_PAUSADO` | `429` | "Por segurança, novos códigos foram pausados por 24 horas. Tente de novo mais tarde." 10 códigos errados em 24 horas para o e-mail pausam o pedido e o uso de código (ativar e redefinir senha) por 24 horas; a própria 10ª tentativa errada já responde assim; igual para e-mail não cadastrado; traz `Retry-After` em segundos inteiros (RN-CD-02) | UF 3.1; código e regra aprovados por Pedro em 24/11/2026 |
 | `SENHA_ATUAL_INCORRETA` | `422` | "Senha atual incorreta." Senha atual errada na troca de senha; conta para a pausa de SEG-04 (RN-CD-29) | UF 3.4; código aprovado por Pedro em 24/11/2026 |
 
 A situação "Sem internet" de UF 15 não é erro da API: é do cliente (a requisição nem sai), e por isso não tem `codigo`.

@@ -9,3 +9,4 @@ allowBuilds:
   '@parcel/watcher': false
   core-js: false
   esbuild: false
+  argon2: false

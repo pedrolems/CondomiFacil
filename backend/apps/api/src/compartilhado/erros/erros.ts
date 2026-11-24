@@ -6,12 +6,19 @@ export interface DetalheDeErro {
   codigo?: string;
 }
 
+/** Retry-After sempre em segundos inteiros, arredondado para cima e nunca 0. */
+export const cabecalhoRetryAfter = (segundos: number): Record<string, string> => ({
+  'Retry-After': String(Math.max(1, Math.ceil(segundos))),
+});
+
 export class ErroDeAplicacao extends Error {
   constructor(
     readonly status: number,
     readonly codigo: string,
     mensagem: string,
     readonly detalhes?: DetalheDeErro[],
+    /** Cabeçalhos da resposta de erro, como Retry-After no 429. */
+    readonly cabecalhos?: Record<string, string>,
   ) {
     super(mensagem);
   }
@@ -81,11 +88,13 @@ export class ChaveDeIdempotenciaReutilizada extends ErroDeAplicacao {
 }
 
 export class LimiteDeTaxaExcedido extends ErroDeAplicacao {
-  constructor() {
+  constructor(retryAfterSegundos?: number) {
     super(
       429,
       'LIMITE_DE_TAXA_EXCEDIDO',
       'Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo.',
+      undefined,
+      retryAfterSegundos === undefined ? undefined : cabecalhoRetryAfter(retryAfterSegundos),
     );
   }
 }

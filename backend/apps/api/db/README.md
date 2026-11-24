@@ -23,7 +23,7 @@ Sobe o contêiner (`db/compose.yaml`, só em `127.0.0.1:54320`), cria ou atualiz
 | Comando (`pnpm --filter @condomifacil/api ...`) | Efeito |
 | --- | --- |
 | `db:instalar` | Instalação limpa descrita acima |
-| `db:seed` | Carrega o seed manual (três condomínios fictícios) como `fixtures`; repetir só informa "já pronto" |
+| `db:seed` | Carrega o seed manual (três condomínios e os documentos globais fictícios com versão 1) como `fixtures`; repetir só informa "já pronto" |
 | `db:flyway <comando>` | Flyway no banco local (`info`, `validate`, `migrate`) |
 | `test:banco` | Testes de banco real em `test/isolamento/` (rodam `db:instalar` no banco `condomifacil_teste`) |
 | `db:parar` | Remove o contêiner e o volume |
@@ -37,7 +37,7 @@ No CI, o job `banco` (`.github/workflows/ci.yml`, em todo PR, em paralelo à ver
 | `postgres` | Superusuário do contêiner | Só no provisionamento (`db/scripts/provisionar.ts`) |
 | `migrador` | `NOSUPERUSER NOBYPASSRLS`, dono do banco, de `condomifacil`, `infra_migracoes` e `extensoes` | Só o Flyway |
 | `app_user` | `NOSUPERUSER NOBYPASSRLS NOINHERIT`, não dono; sem `TRUNCATE`, `REFERENCES`, `TRIGGER` e sem acesso a `infra_migracoes` | API e worker (RM-24 em diante) |
-| `app_autenticacao` | Só o papel, sem grants nem `CONNECT` | Privilégios por coluna no RM-20 |
+| `app_autenticacao` | `NOSUPERUSER NOBYPASSRLS NOINHERIT`, `CONNECT` e `USAGE` em `condomifacil` | Só o módulo `autenticacao`: colunas de credencial de `usuario` e as tabelas `sessao`, `desafio_acesso` e `controle_login` (RM-20); nenhuma tabela de tenant. O refresh token tem o formato `<sessao_id>.<segredo>`, com a sessão buscada pela PK |
 | `fixtures` | `BYPASSRLS NOINHERIT` | Carga de fixtures em banco descartável; grants dados pelo provisionamento, fora da cadeia de migrations |
 
 ## Barreira das fixtures

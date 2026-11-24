@@ -153,6 +153,21 @@ components:
         type: string
         examples:
           - 1.0.0
+    ClienteWeb:
+      name: X-CondomiFacil-Web
+      in: header
+      required: false
+      description: |
+        Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+        20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+        volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+        Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+        proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+        terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+      schema:
+        type: string
+        enum:
+          - '1'
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -252,6 +267,22 @@ components:
               value:
                 codigo: SESSAO_EXPIRADA
                 mensagem: Por segurança, entre de novo na sua conta.
+                request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+    Erro403Origem:
+      description: Cliente web sem `X-CondomiFacil-Web`, ou `Origin` ausente, `null` ou fora da lista de origens permitidas (proteção CSRF; ADR-007). O token não é consumido.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/XRequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+          examples:
+            origemNaoPermitida:
+              summary: Origem não permitida (código e texto Proposta)
+              value:
+                codigo: ORIGEM_NAO_PERMITIDA
+                mensagem: Não foi possível concluir a operação por este endereço.
                 request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
     Erro403:
       description: Sem vínculo com o condomínio ou a unidade, ou sem permissão para o papel efetivo (guards de contexto, papel e unidade).

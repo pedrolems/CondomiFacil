@@ -1,10 +1,10 @@
 # Histórias de Usuário e Critérios de Aceite — CondomiFacil
 
-04/11/2026 · Atualizado em 20/11/2026 (US-AC-04: retry do refresh, ADR-007; antes, 17/11/2026, RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (US-AC-07: trocar senha, decisão de Pedro de 24/11/2026; antes, 20/11/2026, US-AC-04: retry do refresh, ADR-007; antes, 17/11/2026, RM-08: US-PL-03 a US-PL-05 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## Como ler
 
-São 77 histórias em 14 épicos (76 do MVP e 1 da versão 2, US-FI-06); cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
+São 78 histórias em 14 épicos (77 do MVP e 1 da versão 2, US-FI-06); cada uma é entregue quando todos os seus critérios de aceite passam nos testes.
 
 - **Formato:** "Como \[perfil\], quero \[ação\], para \[objetivo\]".
 - **IDs:** `US-<módulo>-<número>`. Cada história cita os requisitos (RF, RNF, SEG) do PRD — CondomiFacil e as regras (RN) das Regras de Negócio — CondomiFacil que ela implementa.
@@ -81,6 +81,18 @@ Requisitos: RF-AC-05, RF-AC-06
 - [ ] Dado o primeiro acesso, quando abro o app, então o tema segue o do aparelho.
 - [ ] Dado a tela de aparência, quando a abro, então vejo as opções "Igual ao aparelho", "Claro" e "Escuro".
 - [ ] Dado que escolho o tema manualmente, quando volto ao app, então a escolha é mantida.
+
+### US-AC-07 — Trocar senha
+
+Como usuário com a sessão aberta, quero trocar minha senha informando a atual, para mantê-la segura sem precisar sair e redefinir pelo e-mail.
+
+Requisitos: RF-AC-09 · RN-CD-29 · SEG-04
+
+- [ ] Dado a sessão aberta, quando informo a senha atual correta e uma nova senha com 8 ou mais caracteres, então a senha é trocada, a antiga deixa de funcionar e vejo a confirmação "Senha alterada. Você saiu dos outros aparelhos."
+- [ ] Dado a sessão aberta, quando informo a senha atual errada, então vejo "Senha atual incorreta." e a senha não muda.
+- [ ] Dado 5 senhas atuais erradas seguidas, quando tento de novo, então a troca fica pausada por 15 minutos, com a opção de redefinir a senha pelo e-mail (SEG-04).
+- [ ] Dado a troca concluída, quando ela termina, então todas as outras sessões são encerradas e a sessão atual continua aberta.
+- [ ] Dado a nova senha com menos de 8 caracteres, quando tento salvar, então o app mostra o requisito e não avança.
 
 ## Épico 2 — Administração do condomínio
 
@@ -1032,11 +1044,11 @@ Requisitos: RF-RL-11 · RN-RL-06/07/08.
 
 ## Cobertura
 
-As 77 histórias cobrem os 154 requisitos funcionais do PRD (76 histórias e 153 requisitos do MVP, mais US-FI-06 e RF-FI-14 da versão 2); requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
+As 78 histórias cobrem os 155 requisitos funcionais do PRD (77 histórias e 154 requisitos do MVP, mais US-FI-06 e RF-FI-14 da versão 2); requisitos não funcionais (RNF) e de segurança (SEG) são verificados nos testes de cada versão.
 
 | Épico | Histórias | Requisitos funcionais cobertos |
 | --- | --- | --- |
-| 1. Acesso e conta | US-AC-01 a US-AC-06 | RF-AC-01 a RF-AC-08 |
+| 1. Acesso e conta | US-AC-01 a US-AC-07 | RF-AC-01 a RF-AC-09 |
 | 2. Administração | US-AD-01 a US-AD-12 | RF-AD-01 a RF-AD-15, RF-AD-17 a RF-AD-21 |
 | 3. Reservas e pagamentos | US-RE-01 a US-RE-06 | RF-RE-01 a RF-RE-10, RF-PG-01 a RF-PG-04 |
 | 4. Visitantes e portaria | US-VI-01 a US-VI-08, US-AD-11 | RF-VI-01 a RF-VI-15 |

@@ -51,7 +51,7 @@ export interface paths {
         put?: never;
         /**
          * Entra com e-mail e senha
-         * @description **Proposta:** caminho não definido nos docs (a arquitetura 3.3.1 só cita código, ativação, aceites e renovação). Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). **Proposta, para não revelar quem tem conta (SEG-04, RN-CD-02):** o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Sem `Authorization` nem cabeçalhos de contexto.
+         * @description Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
          */
         post: operations["comumEntrar"];
         delete?: never;
@@ -71,7 +71,7 @@ export interface paths {
         put?: never;
         /**
          * Redefine a senha com o código recebido
-         * @description **Proposta:** caminho não definido nos docs. Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Sem `Authorization` nem cabeçalhos de contexto.
+         * @description Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.
          */
         post: operations["comumRedefinirSenha"];
         delete?: never;
@@ -91,7 +91,7 @@ export interface paths {
         put?: never;
         /**
          * Renova o token de acesso
-         * @description **Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.
+         * @description Origem no ADR-007 e na arquitetura 3.3.1. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. Web x app: com `X-CondomiFacil-Web: 1` (e `Origin` permitida), o refresh vem do cookie `rt` e o novo volta no mesmo cookie, nunca no corpo; sem o cabeçalho, o refresh vai e volta no corpo. Requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.
          */
         post: operations["comumRenovar"];
         delete?: never;
@@ -111,7 +111,7 @@ export interface paths {
         put?: never;
         /**
          * Sai da conta neste aparelho
-         * @description **Proposta:** caminho não definido nos docs; origem no ADR-007 e na arquitetura 3.7, sem ID de produto. Revoga a sessão atual (ADR-007) e, se `dispositivo_id` vier, remove o token de push do aparelho (arquitetura 3.7). O app apaga a cópia offline ao sair da conta (SEG-09). Exige `Authorization`, sem cabeçalhos de contexto.
+         * @description Origem no ADR-007 e na arquitetura 3.7. Revoga a sessão atual (ADR-007) e, se `dispositivo_id` vier, remove o token de push do aparelho (arquitetura 3.7). O app apaga a cópia offline ao sair da conta (SEG-09). Web x app: com `X-CondomiFacil-Web: 1` (e `Origin` permitida) a resposta apaga o cookie `rt`; sem o cabeçalho, nada muda no cookie. Requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem revogar a sessão. Exige `Authorization`, sem cabeçalhos de contexto.
          */
         post: operations["comumSair"];
         delete?: never;
@@ -197,7 +197,7 @@ export interface paths {
         };
         /**
          * Lista as sessões do usuário
-         * @description **Proposta:** origem no ADR-007, sem ID de produto; listagem não prevista em RF, extensão do modelo de sessão do ADR-007 (tabela `sessao`). Lista as sessões não revogadas, com o aparelho de cada uma, para o usuário encerrar as que não reconhece. Exige `Authorization`, sem cabeçalhos de contexto.
+         * @description Origem no ADR-007: listagem não prevista em RF, extensão do modelo de sessão (tabela `sessao`); caminho fixado em 24/11/2026. Lista as sessões não revogadas, com o aparelho de cada uma, para o usuário encerrar as que não reconhece. Exige `Authorization`, sem cabeçalhos de contexto.
          */
         get: operations["comumListarSessoes"];
         put?: never;
@@ -220,9 +220,29 @@ export interface paths {
         post?: never;
         /**
          * Encerra uma sessão
-         * @description **Proposta:** origem no ADR-007, sem ID de produto. Revoga a sessão informada (o refresh token dela deixa de valer); o token de acesso já emitido vale até expirar, no máximo 15 minutos. Só sessões do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.
+         * @description Origem no ADR-007; caminho fixado em 24/11/2026. Revoga a sessão informada (o refresh token dela deixa de valer); o token de acesso já emitido vale até expirar, no máximo 15 minutos. Só sessões do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.
          */
         delete: operations["comumEncerrarSessao"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/eu/senha": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Troca a senha com a sessão aberta
+         * @description Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos após 5 erros seguidos (SEG-04), no mesmo contador do login: com a troca pausada, responde `429 ACESSO_PAUSADO` com `Retry-After`. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.
+         */
+        post: operations["comumTrocarSenha"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -734,8 +754,14 @@ export interface components {
             senha: string;
             dispositivo: components["schemas"]["DispositivoInfoComum"];
         };
+        TrocarSenhaComum: {
+            /** @description Senha em uso. Nunca é devolvida. */
+            senha_atual: string;
+            /** @description Senha com no mínimo 8 caracteres (RF-AC-09). Nunca é devolvida. */
+            nova_senha: string;
+        };
         RenovarComum: {
-            /** @description Refresh token opaco. Obrigatório no app; na web vem do cookie `httpOnly` e o campo é omitido. */
+            /** @description Refresh token opaco. Obrigatório no app (sem `X-CondomiFacil-Web`); na web vem do cookie `rt` e o campo é omitido. */
             refresh_token?: string;
         };
         SairComum: {
@@ -743,10 +769,10 @@ export interface components {
             dispositivo_id?: components["schemas"]["Uuid"];
         };
         SessaoAbertaComum: {
-            /** @description JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007, Proposta). */
+            /** @description JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007). */
             token_acesso: string;
             token_acesso_expira_em: components["schemas"]["DataHora"];
-            /** @description Opaco e rotativo. Nulo na web: nesse caso vai no cookie `httpOnly`. */
+            /** @description Opaco e rotativo. Nulo na web (`X-CondomiFacil-Web: 1`): nesse caso vai só no cookie `rt`. */
             refresh_token?: string | null;
             /** @description Verdadeiro se há documento a aceitar antes de usar o app (RN-CD-03); ver `GET /v1/acesso/aceites`. */
             aceites_pendentes: boolean;
@@ -1265,6 +1291,16 @@ export interface components {
                 "application/json": components["schemas"]["Erro"];
             };
         };
+        /** @description Cliente web sem `X-CondomiFacil-Web`, ou `Origin` ausente, `null` ou fora da lista de origens permitidas (proteção CSRF; ADR-007). O token não é consumido. */
+        Erro403Origem: {
+            headers: {
+                "X-Request-Id": components["headers"]["XRequestId"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Erro"];
+            };
+        };
         /** @description Limite de taxa excedido. Traz `Retry-After`. Os valores dos limites são lacuna. */
         Erro429: {
             headers: {
@@ -1350,6 +1386,15 @@ export interface components {
          *     falta também (lacuna).
          */
         AppVersion: string;
+        /**
+         * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+         *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+         *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+         *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+         *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+         *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+         */
+        ClienteWeb: "1";
         /** @description Itens por página. Padrão 20, máximo 100 (Proposta). */
         Limite: number;
         /** @description Cursor opaco devolvido em `paginacao.proximo_cursor`. Não interpretar nem montar. */
@@ -1450,6 +1495,15 @@ export interface operations {
                  *     falta também (lacuna).
                  */
                 "X-App-Version"?: components["parameters"]["AppVersion"];
+                /**
+                 * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+                 *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+                 *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+                 *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+                 *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+                 *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+                 */
+                "X-CondomiFacil-Web"?: components["parameters"]["ClienteWeb"];
             };
             path?: never;
             cookie?: never;
@@ -1475,7 +1529,7 @@ export interface operations {
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
-                    /** @description Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). Nesse caso `refresh_token` não vai no corpo. */
+                    /** @description Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007). */
                     "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
@@ -1492,6 +1546,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["Erro400"];
+            403: components["responses"]["Erro403Origem"];
             /** @description Código incorreto, vencido ou invalidado (RN-CD-02). Mesmas respostas para e-mail não cadastrado. */
             422: {
                 headers: {
@@ -1518,6 +1573,15 @@ export interface operations {
                  *     falta também (lacuna).
                  */
                 "X-App-Version"?: components["parameters"]["AppVersion"];
+                /**
+                 * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+                 *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+                 *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+                 *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+                 *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+                 *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+                 */
+                "X-CondomiFacil-Web"?: components["parameters"]["ClienteWeb"];
             };
             path?: never;
             cookie?: never;
@@ -1542,7 +1606,7 @@ export interface operations {
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
-                    /** @description Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). */
+                    /** @description Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007). */
                     "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
@@ -1569,7 +1633,7 @@ export interface operations {
                     "application/json": components["schemas"]["Erro"];
                 };
             };
-            /** @description Conta desativada por mudança de morador ou desligamento (RN-CD-07). Só sai depois de credenciais corretas (Proposta). */
+            /** @description Conta desativada por mudança de morador ou desligamento (RN-CD-07), que só sai depois de credenciais corretas (SEG-04, RN-CD-02); ou cliente web com origem não permitida (`ORIGEM_NAO_PERMITIDA`, sem consumir tentativa de senha). */
             403: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
@@ -1580,7 +1644,7 @@ export interface operations {
                 };
             };
             426: components["responses"]["Erro426"];
-            /** @description Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (Proposta). Traz `Retry-After`. */
+            /** @description Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`. */
             429: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
@@ -1605,6 +1669,15 @@ export interface operations {
                  *     falta também (lacuna).
                  */
                 "X-App-Version"?: components["parameters"]["AppVersion"];
+                /**
+                 * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+                 *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+                 *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+                 *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+                 *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+                 *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+                 */
+                "X-CondomiFacil-Web"?: components["parameters"]["ClienteWeb"];
             };
             path?: never;
             cookie?: never;
@@ -1630,7 +1703,7 @@ export interface operations {
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
-                    /** @description Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). */
+                    /** @description Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007). */
                     "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
@@ -1647,6 +1720,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["Erro400"];
+            403: components["responses"]["Erro403Origem"];
             /** @description Código incorreto, vencido ou invalidado (RN-CD-02). Mesmas respostas para e-mail não cadastrado. */
             422: {
                 headers: {
@@ -1673,11 +1747,20 @@ export interface operations {
                  *     falta também (lacuna).
                  */
                 "X-App-Version"?: components["parameters"]["AppVersion"];
+                /**
+                 * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+                 *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+                 *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+                 *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+                 *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+                 *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+                 */
+                "X-CondomiFacil-Web"?: components["parameters"]["ClienteWeb"];
             };
             path?: never;
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 /**
                  * @example {
@@ -1692,7 +1775,7 @@ export interface operations {
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
-                    /** @description Só na web: novo refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). */
+                    /** @description Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o novo refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007). */
                     "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
@@ -1719,6 +1802,7 @@ export interface operations {
                     "application/json": components["schemas"]["Erro"];
                 };
             };
+            403: components["responses"]["Erro403Origem"];
             426: components["responses"]["Erro426"];
             429: components["responses"]["Erro429"];
             500: components["responses"]["Erro500"];
@@ -1735,6 +1819,15 @@ export interface operations {
                  *     falta também (lacuna).
                  */
                 "X-App-Version"?: components["parameters"]["AppVersion"];
+                /**
+                 * @description Marca o cliente web (decisão de Pedro em 24/11/2026; ADR-007, aceito com ressalvas em
+                 *     20/11/2026). Valor `1`, com `Origin` na lista de origens permitidas: o refresh token vai e
+                 *     volta no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo.
+                 *     Sem o cabeçalho, o cliente é o app e o refresh token vai no corpo. O mesmo sinal é a
+                 *     proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de
+                 *     terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token.
+                 */
+                "X-CondomiFacil-Web"?: components["parameters"]["ClienteWeb"];
             };
             path?: never;
             cookie?: never;
@@ -1754,13 +1847,15 @@ export interface operations {
             204: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
+                    /** @description Só na web (`X-CondomiFacil-Web: 1`): apaga o cookie `rt` (`Max-Age=0`; `Path=/v1/acesso`). */
+                    "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;
             };
             400: components["responses"]["Erro400"];
             401: components["responses"]["Erro401"];
-            403: components["responses"]["Erro403"];
+            403: components["responses"]["Erro403Origem"];
             426: components["responses"]["Erro426"];
             429: components["responses"]["Erro429"];
             500: components["responses"]["Erro500"];
@@ -2182,6 +2277,69 @@ export interface operations {
             404: components["responses"]["Erro404"];
             426: components["responses"]["Erro426"];
             429: components["responses"]["Erro429"];
+            500: components["responses"]["Erro500"];
+            503: components["responses"]["Erro503"];
+        };
+    };
+    comumTrocarSenha: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description Versão do app que chama. Abaixo do mínimo, a API responde `426` (Proposta). A política de
+                 *     versão mínima é lacuna: nenhum número está definido, e o comportamento quando o cabeçalho
+                 *     falta também (lacuna).
+                 */
+                "X-App-Version"?: components["parameters"]["AppVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "senha_atual": "senha-de-exemplo-123",
+                 *       "nova_senha": "outra-senha-de-exemplo-456"
+                 *     }
+                 */
+                "application/json": components["schemas"]["TrocarSenhaComum"];
+            };
+        };
+        responses: {
+            /** @description Senha trocada e outras sessões encerradas. A sessão atual continua aberta. */
+            204: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Erro400"];
+            401: components["responses"]["Erro401"];
+            403: components["responses"]["Erro403"];
+            /** @description Senha atual incorreta (RN-CD-29, SEG-04). Nunca `401`. */
+            422: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            426: components["responses"]["Erro426"];
+            /** @description Troca de senha pausada por 15 minutos após 5 senhas atuais erradas seguidas (SEG-04, mesmo contador do login), ou limite de taxa. Traz `Retry-After`. */
+            429: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    "Retry-After": components["headers"]["RetryAfter"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
             500: components["responses"]["Erro500"];
             503: components["responses"]["Erro503"];
         };

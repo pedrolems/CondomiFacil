@@ -68,6 +68,7 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | RF-AC-06 | Acessar o app pelo navegador (versão web) | sem operação | n/a | Requisito de interface: a versão web usa o mesmo código do app (React Native Web) e a mesma API; `comum.yaml` só registra a plataforma do cliente. |
 | RF-AC-07 | Exibir a página "Como funciona" com as regras de score, reclamações... | `comumListarAceitesPendentes`, `comumRegistrarAceites` | `comum.yaml` | |
 | RF-AC-08 | Onboarding guiado no primeiro acesso, por perfil | sem operação | n/a | Requisito de interface: onboarding guiado é só de tela, sem dado no servidor. |
+| RF-AC-09 | Trocar a senha com a sessão aberta, sem o código do e-mail | `comumTrocarSenha` | `comum.yaml` | |
 | RF-AD-01 | Pré-cadastrar moradores, funcionários, síndico e subsíndico | `administradoraListarVinculos`, `sindicoAutogestaoListarVinculos`, `administradoraPreCadastrarEmLote`, `sindicoAutogestaoPreCadastrarEmLote`, `administradoraPreCadastrarPessoa`, `sindicoAutogestaoPreCadastrarPessoa` |`administradora.yaml`, `sindico.yaml` | |
 | RF-AD-02 | Solicitar cadastro, alteração ou remoção de moradores e funcionários | `administradoraListarSolicitacoesDeCadastro`, `proprietarioNaoResidenteListarSolicitacoesDeLocacao`, `sindicoCriarSolicitacao`, `sindicoListarSolicitacoes` | `administradora.yaml`, `proprietario-nao-residente.yaml`, `sindico.yaml` | |
 | RF-AD-03 | Atender ou recusar solicitação, com motivo | `administradoraAtenderSolicitacaoDeCadastro`, `administradoraListarSolicitacoesDeCadastro`, `administradoraRecusarSolicitacaoDeCadastro`, `sindicoListarSolicitacoes` | `administradora.yaml`, `sindico.yaml` | |
@@ -205,7 +206,7 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | Arquivo | Operações (`operationId`) |
 | --- | --- |
 | `administradora.yaml` | 105 |
-| `comum.yaml` | 37 |
+| `comum.yaml` | 38 |
 | `conselho-fiscal.yaml` | 13 |
 | `limpeza.yaml` | 10 |
 | `morador.yaml` | 61 |
@@ -215,9 +216,9 @@ Gerada inicialmente em 10/11/2026 a partir do `x-rastreabilidade` de cada opera�
 | `sindico.yaml` | 136 |
 | `sync.yaml` | 2 |
 | `webhooks.yaml` | 2 |
-| **Total** | **431** |
+| **Total** | **432** |
 
-Os 431 já incluem as 82 operações de `/v1/sindico/gestao/` (contadas em `sindico.yaml`), as 6 operações de relatórios (contadas em `administradora.yaml`) e a operação técnica de saúde `comumConsultarSaude` (contada em `comum.yaml`, sem RF, BL-DV-03); não há soma adicional. Conferido em 17/11/2026 contra os YAML.
+Os 432 já incluem as 82 operações de `/v1/sindico/gestao/` (contadas em `sindico.yaml`), as 6 operações de relatórios (contadas em `administradora.yaml`), a operação técnica de saúde `comumConsultarSaude` e a troca de senha `comumTrocarSenha` (24/11/2026, RF-AC-09), ambas contadas em `comum.yaml`; não há soma adicional. Conferido em 24/11/2026 contra os YAML.
 
 As rotas de tempo real não são operações OpenAPI: estão em `asyncapi/tempo-real.yaml`. `webhooks.yaml` tem 2 operações (Asaas e Resend).
 
@@ -262,7 +263,7 @@ Colhidas dos `x-lacunas` dos arquivos YAML e agrupadas por tema (30 itens; os de
 
 | # | Pendência | Onde está |
 | --- | --- | --- |
-| 19 | Limites de taxa (`429`), tempo de guarda da `Idempotency-Key` e política de versão mínima do app (`426`, `X-App-Version` ausente) | `comum.yaml` (3, 12), `01-guia-da-api.md` |
+| 19 | Limites de taxa (`429`), tempo de guarda da `Idempotency-Key` (decidido em 20/11/2026, E17) e política de versão mínima do app (`426`, `X-App-Version` ausente); decisão de 24/11/2026: `X-App-Version` e versão mínima ficam fora do RM-20, como lacuna | `comum.yaml` (3, 12), `01-guia-da-api.md` |
 | 20 | Retenções: quarentena de webhooks (MER P-09), logs, auditoria da plataforma e do suporte, arquivos | `webhooks.yaml` (6), `plataforma.yaml` (7), `comum.yaml` (5) |
 | 21 | Arquivos: tempo de expiração dos URLs assinados, tipos de mídia, hash e verificação de vírus | `comum.yaml` (4, 5) |
 | 22 | ~~Tolerância controlada a retry legítimo: mecanismo/janela pendentes~~ **Resolvida em 20/11/2026** ([ADR-007](../../03-arquitetura/adr/007-autorizacao-jwt-sem-papeis.md)): reuso único do refresh anterior por 30 s; fora disso, replay revoga a sessão; implementação e prova na fase 2. Rotas sem ID de produto seguem propostas | `comum.yaml` (7, 8, 9, 14), ADR-007 |

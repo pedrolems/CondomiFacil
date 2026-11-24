@@ -304,7 +304,7 @@ Essa forma foi conferida com o `lint` e valida; as operações usam `security: [
 | Refresh token | Opaco, aleatório, guardado como hash no banco, rotativo (cada uso gera outro; replay revoga a sessão inteira; retry após resposta perdida (decisão de Pedro em 20/11/2026, [ADR-007](../../03-arquitetura/adr/007-autorizacao-jwt-sem-papeis.md)): o refresh anterior vale uma única vez por 30 s, enquanto o sucessor ainda não foi usado; o cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app); risco aceito: nos 30 s um token roubado também renova; ainda não implementado, a prova fica para a fase 2. Renovação em `POST /v1/acesso/renovar` |
 | Chaves | Identificador de chave (`kid`) para rotação sem derrubar sessões |
 | App | Tokens no `expo-secure-store` |
-| Web | Refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax`; token de acesso só em memória; exige proteção CSRF para o cookie de refresh |
+| Web x app (decisão de Pedro em 24/11/2026; ADR-007 aceito com ressalvas em 20/11/2026) | O cabeçalho `X-CondomiFacil-Web: 1`, com `Origin` na lista de origens permitidas, indica web: o refresh token vai no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo; o token de acesso fica só em memória. Sem o cabeçalho, o cliente é o app e o refresh vai no corpo. O mesmo sinal é a proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token. Usado em ativar, entrar, redefinir-senha, renovar e sair |
 | Revogação | Tabela de sessões; sair da conta, troca de senha e exclusão LGPD revogam |
 | Sessão expirada | `401` com `SESSAO_EXPIRADA`; o cliente volta ao login e depois à tela onde estava (UF 15) |
 
@@ -331,7 +331,7 @@ sequenceDiagram
     A-->>C: novo token de acesso + novo refresh token
 ```
 
-Os caminhos `/v1/acesso/codigo`, `/ativar`, `/aceites` e `/renovar` vêm da arquitetura 3.3.1 (`01-arquitetura.md`) e são Proposta. Os demais caminhos de `/v1/acesso/*` (login, recuperação, sair) são definidos em `openapi/comum.yaml`.
+Os caminhos `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha`, `/renovar`, `/sair` e `/aceites`, e `/v1/eu/sessoes` e `/v1/eu/senha`, estão fixados (Pedro, 24/11/2026) e definidos em `openapi/comum.yaml`. `X-App-Version` e a versão mínima seguem lacuna, fora do RM-20.
 
 ## 3. Contexto e autorização
 

@@ -221,7 +221,7 @@ def('portaria', 'menu', 'Menu', 'Menu', () => ({
   body: `<div class="pad"><div class="t-title-sm">José Ribeiro</div><div class="t-body-sm muted">Portaria principal · Blocos A e B · turno diurno</div></div>
     <div class="list">${row({ icon: 'wrench', title: 'Abrir chamado', on: () => { resetForm({ ctipo: 'limpeza' }); go('portaria/chamado-novo'); } })}
     ${sw('Modo treinamento', S.training, () => { S.training = !S.training; rerender(); toast(S.training ? 'Modo treinamento ligado. Nada aqui é real.' : 'Você saiu do treinamento.'); }, { sub: 'Lista fictícia. Nada é gravado e ninguém é avisado.' }).replace('switch-row', 'switch-row list-row')}
-    ${[['gauge', 'Meu score', 'score'], ['eye', 'Transparência', 'transparencia'], ['megaphone', 'Comunicados', 'comunicados'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']].map(([i, l, r]) => row({ icon: i, title: l, on: 'portaria/' + r })).join('')}
+    ${[['gauge', 'Meu score', 'score'], ['eye', 'Transparência', 'transparencia'], ['megaphone', 'Comunicados', 'comunicados'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade'], ['key-round', 'Trocar senha', 'trocar-senha']].map(([i, l, r]) => row({ icon: i, title: l, on: 'portaria/' + r })).join('')}
     ${row({ icon: 'log-out', title: 'Sair', on: sairStaff })}</div>`,
 }));
 function sairStaff() {
@@ -286,6 +286,6 @@ def('limpeza', 'avaliacoes', 'Minhas avaliações', 'Avaliações do atendimento
 def('limpeza', 'menu', 'Menu', 'Menu', () => ({
   tab: 'menu', top: { title: 'Menu' }, flush: true,
   body: `<div class="pad"><div class="t-title-sm">Sandra Rocha</div><div class="t-body-sm muted">Limpeza · turno da manhã</div></div>
-    <div class="list">${[['gauge', 'Meu score', 'score'], ['star', 'Minhas avaliações', 'avaliacoes'], ['eye', 'Transparência', 'transparencia'], ['megaphone', 'Comunicados', 'comunicados'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']].map(([i, l, r]) => row({ icon: i, title: l, on: 'limpeza/' + r })).join('')}
+    <div class="list">${[['gauge', 'Meu score', 'score'], ['star', 'Minhas avaliações', 'avaliacoes'], ['eye', 'Transparência', 'transparencia'], ['megaphone', 'Comunicados', 'comunicados'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade'], ['key-round', 'Trocar senha', 'trocar-senha']].map(([i, l, r]) => row({ icon: i, title: l, on: 'limpeza/' + r })).join('')}
     ${row({ icon: 'log-out', title: 'Sair', on: sairStaff })}</div>`,
 }));

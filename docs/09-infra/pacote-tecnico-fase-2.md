@@ -1,6 +1,6 @@
 # Pacote técnico da fase 2 — acesso, condomínio e permissões (RM-20 a RM-25)
 
-**Data:** 20/11/2026. **Atualizado em:** 23/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
+**Data:** 20/11/2026. **Atualizado em:** 24/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
 **Estado:** fase 2 liberada por Pedro em 20/11/2026. **Pacote aprovado por Pedro em 21/11/2026, com todas as decisões E1 a E22 na opção A (E1, E6, E7 e E17 já aprovadas em A em 20/11/2026; as demais em 21/11/2026; seção 7).** O código de produto da fase 2 está liberado, na ordem RM-25 e RM-24, RM-20 e RM-21, RM-23 e RM-22, na branch `feat/fase-2-acesso`, com commit por pacote RM aprovado um a um por Pedro (E22). O recorte do MER, da política de acesso e do contrato descrito aqui vale pelo aceite em E1 (opção A); o restante desses documentos continua proposta não aceita. Nada aqui libera deploy no Render ou no Supabase, dados reais, integração com o Asaas, commit, push ou merge. O formato segue o [pacote da fase 1](pacote-tecnico-fase-1.md). As fontes são o [roadmap](../roadmap.md) (seções 5.5, 5.6, 5.8 e 7), os [resultados das PoCs P2 a P5](../03-arquitetura/criterios-de-poc.md) e os relatórios em `pocs/rm-16/*/RELATORIO.md`. RM-25 executado em 21/11/2026 (commit `b883ba8`); RM-24 executado em 23/11/2026.
 
@@ -121,10 +121,10 @@ O contrato está em [`docs/05-backend/api/`](../05-backend/api/README.md), propo
 
 **O que falta no contrato (E9, E10 e E11):**
 
-- Os caminhos de `entrar`, `redefinir-senha`, `renovar` e `sair` estão marcados como Proposta. `renovar`, `sair` e as sessões estão sem RF (`x-rastreabilidade` vazia).
-- Não há operação de troca de senha com sessão aberta. A P2 usou `/v1/eu/senha`.
-- Não está definido como o servidor distingue web (cookie httpOnly com CSRF) de app (corpo).
-- Não há valores de limite de taxa, guarda da `Idempotency-Key`, nem `X-App-Version` e versão mínima (API README, pendência 19).
+- Decidido em 24/11/2026, por Pedro: os caminhos `/v1/acesso/entrar`, `/redefinir-senha`, `/renovar`, `/sair` e `/v1/eu/sessoes` ficam fixados como estão; `renovar`, `sair` e sessões são rastreados em ADR-007 e SEG-04 (antes: marcados como Proposta e sem RF). Contrato alinhado em 24/11/2026 (`comum.yaml`, com `comumTrocarSenha` e o parâmetro `ClienteWeb`).
+- Decidido em 24/11/2026, por Pedro: a troca de senha com sessão aberta é `POST /v1/eu/senha`, com RF-AC-09, RN-CD-29 e US-AC-07 novos (antes: sem operação; a P2 usou `/v1/eu/senha`).
+- Decidido em 24/11/2026, por Pedro: web e app se distinguem pelo cabeçalho `X-CondomiFacil-Web: 1` com `Origin` na lista permitida; a web usa o cookie httpOnly e, sem o cabeçalho, o cliente é o app e o refresh vai no corpo. O mesmo sinal serve de proteção CSRF.
+- Decidido em 24/11/2026, por Pedro: `X-App-Version` e versão mínima ficam fora do RM-20, como lacuna antes do piloto. Continuam sem valor definido o limite de taxa e a guarda da `Idempotency-Key` (API README, pendência 19).
 - O DTO de substituição é legado e "exige revisão antes de implementar" (`sindico.yaml`).
 - Não há operação para cadastrar administradora nem para listar os condomínios da administradora (`administradora.yaml` e `plataforma.yaml`, `x-lacunas`).
 - Não há operação para a primeira atribuição de Admin ou Suporte, nem para a primeira habilitação com comprovantes, ausência, contestação e transição (BL-DV-05 e BL-DV-06 da [baseline](../baseline-de-escopo-mvp.md)).

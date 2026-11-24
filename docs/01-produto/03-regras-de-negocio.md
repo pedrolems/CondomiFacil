@@ -1,6 +1,6 @@
 # Regras de Negócio — CondomiFacil
 
-04/11/2026 · Atualizado em 17/11/2026 (RM-08: RN-PL-09 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (RN-CD-29: troca de senha com sessão aberta, decisão de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: RN-PL-09 do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -102,6 +102,7 @@ Ninguém se cadastra sozinho: todo usuário é pré-cadastrado pelo responsável
 | RN-CD-26 | Quando a unidade tem mais de um proprietário, a administradora cadastra só o proprietário representante, que vota e recebe os avisos da unidade |
 | RN-CD-27 | Fora da substituição, o subsíndico tem uma gestão limitada: julga o previsto em RN-RC-03 e RN-RC-07; acompanha os chamados de manutenção e o andamento, sem indicar empresa nem mudar o status; sugere comunicados ao síndico (RN-CO-05); registra votos presenciais nas reuniões convocadas pelo síndico (RN-VO-11); e vê as encomendas com prazo de guarda vencido, sem marcar a devolução. Pode aprovar especificamente troca de conta na autogestão quando habilitado e independente do solicitante (RN-PG-01), sem executar finanças. Não convoca reuniões, não cria pautas, não encerra votações de pautas, não faz solicitações à administradora e não vê a inadimplência; a condução de eleição na ausência/vacância do síndico é a exceção específica de RN-VO-13, sem exigir substituição ativa para essa capacidade eleitoral |
 | RN-CD-28 | Na substituição, o subsíndico tem todas as funções do síndico, exceto ativar e desativar a substituição (RN-CD-12) |
+| RN-CD-29 | Com a sessão aberta, o usuário troca a senha informando a senha atual e a nova, com no mínimo 8 caracteres (RN-CD-02, RF-AC-01). A troca encerra todas as outras sessões e mantém a sessão atual. Senha atual errada conta para a mesma pausa de 15 minutos após 5 senhas erradas seguidas do login (SEG-04). Vale para todos os perfis, no app e na web. Decisão de Pedro de 24/11/2026 |
 
 ### 3.1 Implantação, representação e recuperação — decisões de 17/11/2026
 

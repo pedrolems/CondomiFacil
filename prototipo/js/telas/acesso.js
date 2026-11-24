@@ -1,6 +1,6 @@
 /* Acesso e conta — fluxos 3.1, 3.2 e 3.3 */
 'use strict';
-const A = { tries: 0, codeTries: 5, mode: 'primeiro', onbRole: 'morador', resendIn: 0 };
+const A = { tries: 0, codeTries: 5, mode: 'primeiro', pwChanges: 0, onbRole: 'morador', resendIn: 0 };
 
 def('acesso', 'boas-vindas', 'Boas-vindas', 'Entrada', () => ({
   noTop: true, noTabs: true, banner: '',
@@ -94,6 +94,33 @@ def('acesso', 'senha', 'Criar senha', 'Primeiro acesso (3.1)', () => {
       if (A.mode === 'recuperar') { go('morador/inicio'); setTimeout(() => toast('Senha alterada. As outras sessões foram encerradas.'), 50); }
       else go('acesso/termos');
     } }),
+  };
+});
+
+/* Trocar senha logado (3.4, RF-AC-09, RN-CD-29): mesma tela para todos os perfis com menu Minha conta */
+def(['morador', 'sindico', 'subsindico', 'portaria', 'limpeza', 'proprietario'], 'trocar-senha', 'Trocar senha', 'Conta (3.4)', ctx => {
+  const paused = A.pwChanges >= 5, s = FORM.nova || '', c = FORM.conf || '';
+  const req = [[s.length >= 8, 'Mínimo de 8 caracteres'], [s.length > 0 && s === c, 'Confirmação igual à nova senha']];
+  return {
+    noTabs: true, top: { title: 'Trocar senha', back: ctx.p + '/menu' },
+    body: `<div class="stack-5">
+      ${paused ? banner('warning', 'clock', 'Por segurança, a troca de senha foi pausada por 15 minutos. Você pode redefinir a senha agora.', { inline: true, action: btn('Esqueci minha senha', { v: 'secondary', size: 'sm', on: () => { A.mode = 'recuperar'; go('acesso/email'); } }) }) : ''}
+      ${field('Senha atual', input('atual', { type: 'password', attr: 'autocomplete="current-password"' }), { help: A.curErr && !paused ? '' : 'Protótipo: "errada" simula senha atual incorreta.' }).replace(/(<\/div>\s*)$/, `${A.curErr && !paused ? `<span class="error-msg" role="alert">${ic('circle-alert')}${A.curErr}</span>` : ''}$1`).replace('class="field "', `class="field ${A.curErr && !paused ? 'has-error' : ''}"`)}
+      ${field('Nova senha', input('nova', { type: 'password', attr: 'autocomplete="new-password"' }))}
+      ${field('Confirmar nova senha', input('conf', { type: 'password', attr: 'autocomplete="new-password"' }), { error: A.pwErr })}
+      <div class="stack-2">${req.map(([ok, t]) => `<div class="row t-body-sm ${ok ? 'c-success' : (A.pwTried ? 'c-danger' : 'muted')}">${ic(ok ? 'circle-check' : A.pwTried ? 'circle-x' : 'circle-minus')}${t}</div>`).join('')}</div>
+      <p class="help" style="margin:0">Ao salvar, os outros aparelhos serão desconectados.</p>
+    </div>`,
+    footer: btn('Salvar nova senha', { block: true, size: 'lg', disabled: paused, on: () => {
+      const a = FORM.atual || '', n = FORM.nova || '', k = FORM.conf || '';
+      A.curErr = ''; A.pwErr = '';
+      if (a === 'errada') { A.pwChanges++; A.curErr = A.pwChanges >= 5 ? '' : 'Senha atual incorreta.'; A.pwTried = false; rerender(); return; }
+      A.pwTried = true;
+      if (n.length < 8) { rerender(); return; }
+      if (n !== k) { A.pwErr = 'As senhas não são iguais.'; rerender(); return; }
+      A.pwTried = false; A.pwChanges = 0; resetForm({ role: FORM.role });
+      go(ctx.p + '/menu'); setTimeout(() => { toast(ic('check') + 'Senha alterada. Você saiu dos outros aparelhos.'); icons($('#toast')); }, 50);
+    } }) + (paused ? `<p class="disabled-reason">${ic('info')}Aguarde 15 minutos ou redefina a senha.</p>` + btn('Simular fim da pausa', { v: 'text', block: true, on: () => { A.pwChanges = 0; rerender(); } }) : ''),
   };
 });
 

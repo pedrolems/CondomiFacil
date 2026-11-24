@@ -1,6 +1,6 @@
 # Design System — CondomiFacil
 
-04/11/2026 · Atualizado em 15/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (tela "Trocar senha", seção 18) · @Pedro Lemos
 
 Este documento define os padrões visuais e de interação do CondomiFacil: cores, tipografia, espaçamento, ícones, componentes, padrões de tela, escrita e acessibilidade. Ele vale para o app (Android e iOS) e para a versão web, que saem do mesmo código em React Native.
 
@@ -1249,6 +1249,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 
 | Data | Mudança | Motivo |
 | --- | --- | --- |
+| 24/11/2026 | Tela "Trocar senha" (Menu > Minha conta), com o padrão da tela "Criar senha" mais o campo "Senha atual"; mensagens de sucesso, erro e pausa em texto e ícone (`check`, `circle-alert`, `clock`); sem componente nem token novo | Decisão de Pedro de 24/11/2026: troca de senha com sessão aberta (RF-AC-09, RN-CD-29, US-AC-07, UF 3.4) |
 | 17/11/2026 | Vistoria e uso de reserva sem internet (11.2): selo `warning` "Aguardando internet" com ícone `wifi-off`, preenchimento mantido, aviso de que a marcação ainda não foi registrada e, ao voltar a conexão, pedido para repetir a marcação; nada entra na fila offline. "Desfazer" da entrada offline (11.1): o aviso diz que a entrada está na fila e que o Desfazer cancela só a operação ainda pendente; depois do envio, informa que não dá para desfazer pela fila; o aviso com Desfazer permanece enquanto houver hover ou foco. Sem componente nem token novo | Pedro aprovou melhorias do protótipo sem mudar regra (RN-RE-13 e o desfazer de 10 s inalterados): evitar que o porteiro ache que a vistoria foi registrada e que o Desfazer desfaça o que já foi enviado. Compensação depois da fila segue pendência da API (User Flows 17) |
 | 17/11/2026 | Indicador de papel ativo "Atuando como: ..." no seletor de unidade (10.16), só para quem acumula papéis (morador que também é conselho fiscal; subsíndico, com "em substituição" quando ativa), em texto e ícone `user-round-check`. A classe `.u-role` é só estilo do protótipo, sem token nem componente novo no Design System | Pedro aprovou melhoria sem mudar permissão: deixar claro em que papel a pessoa age. Sem 12º perfil nem regra de troca de papel |
 | 17/11/2026 | Aviso de notificações do aparelho desativadas no detalhe da reserva e nas preferências de notificação (11.4, 13.5): o morador não receberá o lembrete da reserva; ícone `bell-off`, faixa `warning` inline. Sem canal novo | RN-RE-14 inalterada (só push): avisar quando o lembrete não chegará por escolha do aparelho, sem criar outro canal |
@@ -1314,6 +1315,7 @@ Em 08/11/2026, Pedro definiu a primeira conclusão offline pelo menor horário r
 | 6.2 Áreas de toque | RNF-12 |
 | 9. Movimento | PRD seção 9 (poucas animações), RNF-02 |
 | 10.4 Código de verificação | RF-AC-01, RF-AC-03, RN-CD-02, US-AC-01 |
+| Tela "Trocar senha" (formulário da seção 10) | RF-AC-09, RN-CD-29, SEG-04, US-AC-07 |
 | 10.10 Faixa de aviso | RF-VI-05, RF-VI-12, RN-CD-03, RNF-06, US-VI-04, US-VI-06 |
 | 10.16 Seletor de unidade | RF-AC-04, RN-CD-05, US-AC-05 |
 | 10.17 Estrelas | RF-PE-01, RF-CH-08, RN-PE-03, RN-PE-04, RN-CH-16, US-PE-01, US-CH-04 |

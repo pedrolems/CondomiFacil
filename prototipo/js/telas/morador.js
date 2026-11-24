@@ -581,7 +581,7 @@ def(RES, 'menu', 'Menu', 'Menu', ctx => {
     ...(GES.includes(p) ? [['wrench', 'Meus chamados', 'chamados']] : []),
     ...(p === 'morador' && S.conselho ? [['wallet', 'Finanças do condomínio', 'financas']] : []),
   ];
-  const conf = [['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']];
+  const conf = [['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade'], ['key-round', 'Trocar senha', 'trocar-senha']];
   return {
     tab: 'menu', top: { title: 'Menu' }, flush: true,
     body: `<div class="pad row"><span class="lead avatar" style="width:56px;height:56px;border-radius:50%;background:var(--info-container);color:var(--info-on);display:flex;align-items:center;justify-content:center;font-weight:700">${p === 'sindico' ? 'PA' : p === 'subsindico' ? 'CM' : 'AL'}</span><div><div class="t-title-sm">${p === 'sindico' ? 'Pedro Alves' : p === 'subsindico' ? 'Carla Mendes' : 'Ana Lima'}</div><div class="t-body-sm muted">${p === 'sindico' ? 'Síndico · Bloco B · Apto 101' : p === 'subsindico' ? 'Subsíndica · Bloco B · Apto 202' + (S.substituicao ? ' · em substituição' : '') : S.units[S.unit].name + (S.inquilino ? ' · Inquilina · Morador habilitado' : ' · Proprietária · Morador habilitado')}</div></div></div>
@@ -945,7 +945,7 @@ def([...RES, 'portaria', 'limpeza', 'proprietario'], 'como-usar', 'Como usar o a
 def('proprietario', 'menu', 'Menu', 'Menu', () => ({
   tab: 'menu', top: { title: 'Menu' }, flush: true,
   body: `<div class="pad"><div class="t-title-sm">Helena Duarte</div><div class="t-body-sm muted">Proprietária não residente · Bloco B · Apto 302</div></div>
-    <div class="list">${[['megaphone', 'Comunicados', 'comunicados'], ['inbox', 'Solicitações', 'solicitacoes'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade']].map(([i, l, r]) => row({ icon: i, title: l, on: 'proprietario/' + r })).join('')}
+    <div class="list">${[['megaphone', 'Comunicados', 'comunicados'], ['inbox', 'Solicitações', 'solicitacoes'], ['circle-help', 'Como funciona', 'como-funciona'], ['sparkles', 'Como usar o app', 'como-usar'], ['sun-moon', 'Aparência', 'aparencia'], ['bell', 'Notificações', 'notif-config'], ['shield', 'Privacidade e dados', 'privacidade'], ['key-round', 'Trocar senha', 'trocar-senha']].map(([i, l, r]) => row({ icon: i, title: l, on: 'proprietario/' + r })).join('')}
     ${row({ icon: 'log-out', title: 'Sair', on: 'acesso/boas-vindas' })}</div>`,
 }));
 

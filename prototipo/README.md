@@ -31,7 +31,7 @@ Funciona sem internet: a fonte Inter e os ícones Lucide 0.460.0 ficam em `vendo
 | `css/app.css` | Moldura do protótipo: hub, painel lateral, aparelho e painel web |
 | `js/core.js` | Rotas (`#/perfil/tela/arg`), layout, componentes e camadas |
 | `js/data.js` | Dados fictícios em memória |
-| `js/telas/acesso.js` | Fluxos 3.1 a 3.3: primeiro acesso, login, recuperação, termos, onboarding |
+| `js/telas/acesso.js` | Fluxos 3.1 a 3.4: primeiro acesso, login, recuperação, trocar senha, termos, onboarding |
 | `js/telas/morador.js` | Morador (e telas que o síndico reaproveita) e proprietário não residente |
 | `js/telas/sindico.js` | Aba Gestão do síndico e do subsíndico (permissões por estado da substituição) |
 | `js/telas/funcionarios.js` | Portaria e limpeza |
@@ -42,7 +42,7 @@ Funciona sem internet: a fonte Inter e os ícones Lucide 0.460.0 ficam em `vendo
 
 **Conclusão offline por horário do celular (RN-CH-04):** na Limpeza, ligue "Sem internet" e conclua "Lixeira do Bloco B". A folha permite simular Rita com horário anterior ou Sandra com horário anterior enviado depois. Ao voltar a conexão, vale o menor horário do celular e o aviso explica a correção. Operações têm identificador estável; reenvio não duplica o efeito. Se uma conclusão avaliada for superada, a nota fica somente no histórico do atendente original e sai das médias; a conclusão efetiva pode receber nova avaliação na mesma janela configurada, contada da disponibilização da correção, sem reiniciar as 48h para reabrir.
 
-- **Acesso e conta:** primeiro acesso (código: `123456`), login (senha `errada` ou `desativada` simula erros), novo aceite.
+- **Acesso e conta:** primeiro acesso (código: `123456`), login (senha `errada` ou `desativada` simula erros), novo aceite, trocar senha (`#/perfil/trocar-senha`, Menu > Trocar senha em todos os perfis de celular; senha atual `errada` simula erro e, com 5 erros, a pausa de 15 minutos).
 - **Morador:** Início · Reservas · Visitantes · Chamados · Menu.
 - **Score por pessoa/unidade:** Menu > Meu score identifica a unidade ativa. Trocar pelo seletor muda saldo, histórico e recuperação: o exemplo da primeira unidade tem 80; a segunda começa em 100. “Score baixo nesta unidade” altera só a unidade ativa; ao trocar, a outra permanece independente. Funcionários consultam score funcional do condomínio. A Transparência identifica a unidade do mandato do síndico; não reúne as pontuações de seus outros imóveis (RN-SC-02, RN-SC-13, RN-SC-14).
 - **Lembrete de reserva (RN-RE-14):** no Morador > Início > sino (Notificações), a notificação "Reserva amanhã" (Churrasqueira, com atalho que abre o detalhe da reserva e o botão "Cancelar reserva"). Em Menu > Notificações, o interruptor opcional "Lembrete de reserva" (ligado por padrão); desligado, a notificação some da lista. Na Administradora > Configurações, o parâmetro "Lembrete de reserva (antecedência do push)" (padrão 24h, faixa 1 a 72).

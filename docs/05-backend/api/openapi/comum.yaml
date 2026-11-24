@@ -8,12 +8,13 @@ info:
 
     **Decidido (PRD e regras de negócio):** ninguém se cadastra sozinho; primeiro acesso por código de 6 dígitos no e-mail, 15 minutos, 5 tentativas, reenvio após 60 segundos, mesma resposta para e-mail cadastrado ou não, senha com no mínimo 8 caracteres e pausa de 15 minutos após 5 senhas erradas (RF-AC-01, RN-CD-02, SEG-04).
 
+    **Decidido por Pedro em 24/11/2026 (recorte de acesso do RM-20):** caminhos fixados `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha`, `/renovar`, `/sair`, `/aceites`, `/v1/eu/sessoes` e `/v1/eu/senha`. Web x app: o cabeçalho `X-CondomiFacil-Web: 1`, com `Origin` permitida, indica web; o refresh token vai no cookie `rt` (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`) e nunca no corpo; sem o cabeçalho, o cliente é o app e o refresh vai no corpo. O mesmo sinal é a proteção CSRF: requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token (ADR-007, aceito com ressalvas em 20/11/2026). `X-App-Version` e versão mínima ficam fora do RM-20 (lacuna).
+
     **Proposta (não vem de decisão do Pedro nem do PRD):**
-    - Os caminhos `/v1/acesso/codigo`, `/ativar`, `/aceites` e `/renovar` vêm da arquitetura 3.3.1; os caminhos de **login (`/entrar`), recuperação (`/redefinir-senha`) e sair (`/sair`) não estão nos docs** e são Proposta.
-    - Caminhos `/v1/eu/*`, `/v1/arquivos/*`, `/v1/score` e `/v1/recursos`. `/v1/score` e `/v1/recursos` exigem `X-Condominio-Id`, por isso ficam fora de `/v1/eu`, que não leva cabeçalhos de contexto (guia, seção 3).    - Tokens, rotação do refresh e cookie na web seguem o ADR-007 (Proposta).
+    - Caminhos `/v1/eu/*` (exceto sessões e senha), `/v1/arquivos/*`, `/v1/score` e `/v1/recursos`. `/v1/score` e `/v1/recursos` exigem `X-Condominio-Id`, por isso ficam fora de `/v1/eu`, que não leva cabeçalhos de contexto (guia, seção 3).
     - Nomes de papéis, de tipos de notificação, de módulos de arquivo e de códigos de erro de regra de negócio.
 
-    **Autenticação por grupo de rota** (guia, seção 3): `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha` e `/renovar` não levam `Authorization` nem cabeçalhos de contexto; `/v1/saude` (operação técnica, BL-DV-03) também não. `/v1/acesso/sair`, `/v1/acesso/aceites` e todo `/v1/eu/*` levam `Authorization` sem cabeçalhos de contexto. `/v1/arquivos/*`, `/v1/score` e `/v1/recursos` levam `Authorization` e `X-Condominio-Id`.
+    **Autenticação por grupo de rota** (guia, seção 3): `/v1/acesso/codigo`, `/ativar`, `/entrar`, `/redefinir-senha` e `/renovar` não levam `Authorization` nem cabeçalhos de contexto; `/v1/saude` (operação técnica, BL-DV-03) também não. `/v1/acesso/sair`, `/v1/acesso/aceites` e todo `/v1/eu/*` (inclusive `/v1/eu/senha`) levam `Authorization` sem cabeçalhos de contexto. `/v1/arquivos/*`, `/v1/score` e `/v1/recursos` levam `Authorization` e `X-Condominio-Id`.
 
     **Privacidade:** nenhum exemplo expõe quem reclamou, quem avaliou, voto ou score de terceiros fora de RN-SC-02. O score é só número e texto, nunca verde ou vermelho. Dados de cartão nunca passam pela API (SEG-12). Limites de taxa: lacuna (guia, seção 10).
 servers:
@@ -92,7 +93,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 reenvioAntecipado:
-                  summary: Novo código pedido antes de 60 s (código e texto Proposta, sem origem em UF)
+                  summary: Novo código pedido antes de 60 s (texto Proposta, sem origem em UF; código de RN-CD-02)
                   value:
                     codigo: CODIGO_REENVIO_ANTECIPADO
                     mensagem: Você poderá pedir um novo código em instantes.
@@ -125,6 +126,7 @@ paths:
       security: []
       parameters:
       - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/ClienteWeb
       requestBody:
         required: true
         content:
@@ -145,7 +147,7 @@ paths:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
             Set-Cookie:
-              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta). Nesse caso `refresh_token` não vai no corpo.'
+              description: 'Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007).'
               schema:
                 type: string
           content:
@@ -181,6 +183,8 @@ paths:
                     codigo: CODIGO_INVALIDO_OU_VENCIDO
                     mensagem: Este código não vale mais. Peça um novo.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403Origem
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -200,12 +204,13 @@ paths:
     post:
       operationId: comumEntrar
       summary: Entra com e-mail e senha
-      description: '**Proposta:** caminho não definido nos docs (a arquitetura 3.3.1 só cita código, ativação, aceites e renovação). Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). **Proposta, para não revelar quem tem conta (SEG-04, RN-CD-02):** o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Sem `Authorization` nem cabeçalhos de contexto.'
+      description: 'Abre a sessão com e-mail e senha. A mensagem de erro não diz qual dos dois está errado; após 5 senhas erradas seguidas o acesso fica pausado por 15 minutos (SEG-04). Conta desativada por mudança ou desligamento recebe `403` (RN-CD-07). Para não revelar quem tem conta (SEG-04, RN-CD-02), o `403 ACESSO_ENCERRADO` só sai depois de e-mail e senha corretos; e a pausa de 15 minutos por e-mail (`429 ACESSO_PAUSADO`) vale igual para e-mail não cadastrado, contando as falhas pela chave de tentativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
       tags:
       - acesso
       security: []
       parameters:
       - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/ClienteWeb
       requestBody:
         required: true
         content:
@@ -225,7 +230,7 @@ paths:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
             Set-Cookie:
-              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              description: 'Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007).'
               schema:
                 type: string
           content:
@@ -256,7 +261,7 @@ paths:
                     mensagem: E-mail ou senha incorretos.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '403':
-          description: Conta desativada por mudança de morador ou desligamento (RN-CD-07). Só sai depois de credenciais corretas (Proposta).
+          description: Conta desativada por mudança de morador ou desligamento (RN-CD-07), que só sai depois de credenciais corretas (SEG-04, RN-CD-02); ou cliente web com origem não permitida (`ORIGEM_NAO_PERMITIDA`, sem consumir tentativa de senha).
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -271,10 +276,16 @@ paths:
                     codigo: ACESSO_ENCERRADO
                     mensagem: Seu acesso a este condomínio foi encerrado. Se for um engano, fale com a administradora.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+                origemNaoPermitida:
+                  summary: Origem não permitida (código e texto Proposta)
+                  value:
+                    codigo: ORIGEM_NAO_PERMITIDA
+                    mensagem: Não foi possível concluir a operação por este endereço.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
-          description: Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (Proposta). Traz `Retry-After`.
+          description: Acesso pausado por 15 minutos após 5 senhas erradas seguidas (SEG-04), ou limite de taxa. Vale igual para e-mail não cadastrado (SEG-04, RN-CD-02). Traz `Retry-After`.
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
@@ -286,7 +297,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 acessoPausado:
-                  summary: 5 senhas erradas (texto de UF 3.2; código Proposta)
+                  summary: 5 senhas erradas (texto de UF 3.2)
                   value:
                     codigo: ACESSO_PAUSADO
                     mensagem: Por segurança, o acesso foi pausado por 15 minutos. Você pode redefinir a senha agora.
@@ -305,12 +316,13 @@ paths:
     post:
       operationId: comumRedefinirSenha
       summary: Redefine a senha com o código recebido
-      description: '**Proposta:** caminho não definido nos docs. Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Sem `Authorization` nem cabeçalhos de contexto.'
+      description: 'Segue o mesmo fluxo do primeiro acesso: o código vem de `POST /v1/acesso/codigo` com `finalidade` `recuperacao_senha` (RF-AC-03, RN-CD-02). A senha antiga deixa de funcionar e as outras sessões são encerradas (US-AC-04); a sessão devolvida é a única ativa. Web x app: com `X-CondomiFacil-Web: 1` o refresh token vai no cookie `rt` e nunca no corpo; sem o cabeçalho, vai no corpo. Sem `Authorization` nem cabeçalhos de contexto.'
       tags:
       - acesso
       security: []
       parameters:
       - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/ClienteWeb
       requestBody:
         required: true
         content:
@@ -331,7 +343,7 @@ paths:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
             Set-Cookie:
-              description: 'Só na web: refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              description: 'Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007).'
               schema:
                 type: string
           content:
@@ -367,6 +379,8 @@ paths:
                     codigo: CODIGO_INVALIDO_OU_VENCIDO
                     mensagem: Este código não vale mais. Peça um novo.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403Origem
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -384,14 +398,15 @@ paths:
     post:
       operationId: comumRenovar
       summary: Renova o token de acesso
-      description: '**Proposta:** origem no ADR-007 e na arquitetura 3.3.1, sem ID de produto. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. No app, o refresh vai no corpo; na web, vem do cookie `httpOnly` e exige proteção CSRF. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
+      description: 'Origem no ADR-007 e na arquitetura 3.3.1. Troca o refresh token por um novo token de acesso (15 minutos) e um novo refresh token: o refresh é rotativo, cada uso gera outro, e replay revoga a sessão. Retry após resposta perdida (decisão de Pedro em 20/11/2026, ADR-007): o refresh anterior vale uma única vez por 30 segundos, enquanto o sucessor ainda não foi usado; fora disso, o reuso é replay e revoga a sessão inteira. O cliente impede renovações simultâneas (single-flight por processo, trava entre abas na web e entre processos no app). Risco aceito: nos 30 segundos, um token roubado também renova. Ainda não implementado nem provado; a prova fica para a fase 2. Web x app: com `X-CondomiFacil-Web: 1` (e `Origin` permitida), o refresh vem do cookie `rt` e o novo volta no mesmo cookie, nunca no corpo; sem o cabeçalho, o refresh vai e volta no corpo. Requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem consumir o token. Sem `Authorization` nem cabeçalhos de contexto, porque o token de acesso pode já ter expirado.'
       tags:
       - acesso
       security: []
       parameters:
       - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/ClienteWeb
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -405,7 +420,7 @@ paths:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
             Set-Cookie:
-              description: 'Só na web: novo refresh token em cookie `httpOnly`, `Secure`, `SameSite=Lax` (ADR-007, Proposta).'
+              description: 'Só na web (`X-CondomiFacil-Web: 1`): cookie `rt` com o novo refresh token (`HttpOnly; Secure; SameSite=Lax; Path=/v1/acesso`). Nesse caso `refresh_token` vem nulo no corpo (ADR-007).'
               schema:
                 type: string
           content:
@@ -435,6 +450,8 @@ paths:
                     codigo: SESSAO_EXPIRADA
                     mensagem: Por segurança, entre de novo na sua conta.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403Origem
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -443,18 +460,21 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
           $ref: ./componentes/comum.yaml#/components/responses/Erro503
-      x-rastreabilidade: []
+      x-rastreabilidade:
+      - ADR-007
+      - SEG-04
   /v1/acesso/sair:
     post:
       operationId: comumSair
       summary: Sai da conta neste aparelho
-      description: '**Proposta:** caminho não definido nos docs; origem no ADR-007 e na arquitetura 3.7, sem ID de produto. Revoga a sessão atual (ADR-007) e, se `dispositivo_id` vier, remove o token de push do aparelho (arquitetura 3.7). O app apaga a cópia offline ao sair da conta (SEG-09). Exige `Authorization`, sem cabeçalhos de contexto.'
+      description: 'Origem no ADR-007 e na arquitetura 3.7. Revoga a sessão atual (ADR-007) e, se `dispositivo_id` vier, remove o token de push do aparelho (arquitetura 3.7). O app apaga a cópia offline ao sair da conta (SEG-09). Web x app: com `X-CondomiFacil-Web: 1` (e `Origin` permitida) a resposta apaga o cookie `rt`; sem o cabeçalho, nada muda no cookie. Requisição web sem o cabeçalho, ou com `Origin` ausente, `null` ou de terceiro, recebe `403 ORIGEM_NAO_PERMITIDA` sem revogar a sessão. Exige `Authorization`, sem cabeçalhos de contexto.'
       tags:
       - acesso
       security:
       - bearerJwt: []
       parameters:
       - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      - $ref: ./componentes/comum.yaml#/components/parameters/ClienteWeb
       requestBody:
         required: false
         content:
@@ -469,12 +489,16 @@ paths:
           headers:
             X-Request-Id:
               $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Set-Cookie:
+              description: 'Só na web (`X-CondomiFacil-Web: 1`): apaga o cookie `rt` (`Max-Age=0`; `Path=/v1/acesso`).'
+              schema:
+                type: string
         '400':
           $ref: ./componentes/comum.yaml#/components/responses/Erro400
         '401':
           $ref: ./componentes/comum.yaml#/components/responses/Erro401
         '403':
-          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403Origem
         '426':
           $ref: ./componentes/comum.yaml#/components/responses/Erro426
         '429':
@@ -483,7 +507,9 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
           $ref: ./componentes/comum.yaml#/components/responses/Erro503
-      x-rastreabilidade: []
+      x-rastreabilidade:
+      - ADR-007
+      - SEG-04
   /v1/acesso/aceites:
     get:
       operationId: comumListarAceitesPendentes
@@ -616,7 +642,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 versaoDesatualizada:
-                  summary: Documento atualizado depois de o usuário abrir a tela (código e texto Proposta)
+                  summary: Documento atualizado depois de o usuário abrir a tela (código de RN-CD-03; texto Proposta, sem origem em UF)
                   value:
                     codigo: ACEITE_VERSAO_DESATUALIZADA
                     mensagem: Este documento foi atualizado. Leia a nova versão para aceitar.
@@ -810,7 +836,7 @@ paths:
     get:
       operationId: comumListarSessoes
       summary: Lista as sessões do usuário
-      description: '**Proposta:** origem no ADR-007, sem ID de produto; listagem não prevista em RF, extensão do modelo de sessão do ADR-007 (tabela `sessao`). Lista as sessões não revogadas, com o aparelho de cada uma, para o usuário encerrar as que não reconhece. Exige `Authorization`, sem cabeçalhos de contexto.'
+      description: 'Origem no ADR-007: listagem não prevista em RF, extensão do modelo de sessão (tabela `sessao`); caminho fixado em 24/11/2026. Lista as sessões não revogadas, com o aparelho de cada uma, para o usuário encerrar as que não reconhece. Exige `Authorization`, sem cabeçalhos de contexto.'
       tags:
       - acesso
       security:
@@ -862,12 +888,14 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
           $ref: ./componentes/comum.yaml#/components/responses/Erro503
-      x-rastreabilidade: []
+      x-rastreabilidade:
+      - ADR-007
+      - SEG-04
   /v1/eu/sessoes/{sessao_id}:
     delete:
       operationId: comumEncerrarSessao
       summary: Encerra uma sessão
-      description: '**Proposta:** origem no ADR-007, sem ID de produto. Revoga a sessão informada (o refresh token dela deixa de valer); o token de acesso já emitido vale até expirar, no máximo 15 minutos. Só sessões do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.'
+      description: 'Origem no ADR-007; caminho fixado em 24/11/2026. Revoga a sessão informada (o refresh token dela deixa de valer); o token de acesso já emitido vale até expirar, no máximo 15 minutos. Só sessões do próprio usuário; de outro usuário responde `404`. Exige `Authorization`, sem cabeçalhos de contexto.'
       tags:
       - acesso
       security:
@@ -900,7 +928,86 @@ paths:
           $ref: ./componentes/comum.yaml#/components/responses/Erro500
         '503':
           $ref: ./componentes/comum.yaml#/components/responses/Erro503
-      x-rastreabilidade: []
+      x-rastreabilidade:
+      - ADR-007
+      - SEG-04
+  /v1/eu/senha:
+    post:
+      operationId: comumTrocarSenha
+      summary: Troca a senha com a sessão aberta
+      description: 'Troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29; fluxo 3.4 dos User Flows). Encerra todas as outras sessões e mantém a atual, sem emitir token novo nem mexer em cookie. A senha atual errada responde `422 SENHA_ATUAL_INCORRETA`, e não `401`, para o cliente não tentar renovar a sessão. O erro conta para a pausa de 15 minutos após 5 erros seguidos (SEG-04), no mesmo contador do login: com a troca pausada, responde `429 ACESSO_PAUSADO` com `Retry-After`. Não leva `Idempotency-Key`: o guia (seção 9) a reserva aos POST que cobram ou reservam. Exige `Authorization`, sem cabeçalhos de contexto.'
+      tags:
+      - acesso
+      security:
+      - bearerJwt: []
+      parameters:
+      - $ref: ./componentes/comum.yaml#/components/parameters/AppVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrocarSenhaComum'
+            example:
+              senha_atual: senha-de-exemplo-123
+              nova_senha: outra-senha-de-exemplo-456
+      responses:
+        '204':
+          description: Senha trocada e outras sessões encerradas. A sessão atual continua aberta.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+        '400':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro400
+        '401':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro401
+        '403':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro403
+        '422':
+          description: Senha atual incorreta (RN-CD-29, SEG-04). Nunca `401`.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                senhaAtualIncorreta:
+                  summary: Senha atual errada (texto de UF 3.4; código Proposta)
+                  value:
+                    codigo: SENHA_ATUAL_INCORRETA
+                    mensagem: Senha atual incorreta.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '426':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro426
+        '429':
+          description: Troca de senha pausada por 15 minutos após 5 senhas atuais erradas seguidas (SEG-04, mesmo contador do login), ou limite de taxa. Traz `Retry-After`.
+          headers:
+            X-Request-Id:
+              $ref: ./componentes/comum.yaml#/components/headers/XRequestId
+            Retry-After:
+              $ref: ./componentes/comum.yaml#/components/headers/RetryAfter
+          content:
+            application/json:
+              schema:
+                $ref: ./componentes/comum.yaml#/components/schemas/Erro
+              examples:
+                acessoPausado:
+                  summary: 5 senhas atuais erradas (texto de UF 3.4)
+                  value:
+                    codigo: ACESSO_PAUSADO
+                    mensagem: Por segurança, a troca de senha foi pausada por 15 minutos. Você pode redefinir a senha agora.
+                    request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
+        '500':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro500
+        '503':
+          $ref: ./componentes/comum.yaml#/components/responses/Erro503
+      x-rastreabilidade:
+      - RF-AC-09
+      - RN-CD-29
+      - US-AC-07
+      - SEG-04
   /v1/eu/dispositivos:
     post:
       operationId: comumRegistrarDispositivo
@@ -2771,12 +2878,27 @@ components:
           writeOnly: true
         dispositivo:
           $ref: '#/components/schemas/DispositivoInfoComum'
+    TrocarSenhaComum:
+      type: object
+      required:
+      - senha_atual
+      - nova_senha
+      properties:
+        senha_atual:
+          type: string
+          writeOnly: true
+          description: Senha em uso. Nunca é devolvida.
+        nova_senha:
+          type: string
+          minLength: 8
+          writeOnly: true
+          description: Senha com no mínimo 8 caracteres (RF-AC-09). Nunca é devolvida.
     RenovarComum:
       type: object
       properties:
         refresh_token:
           type: string
-          description: Refresh token opaco. Obrigatório no app; na web vem do cookie `httpOnly` e o campo é omitido.
+          description: Refresh token opaco. Obrigatório no app (sem `X-CondomiFacil-Web`); na web vem do cookie `rt` e o campo é omitido.
     SairComum:
       type: object
       properties:
@@ -2792,14 +2914,14 @@ components:
       properties:
         token_acesso:
           type: string
-          description: JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007, Proposta).
+          description: JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007).
         token_acesso_expira_em:
           $ref: ./componentes/comum.yaml#/components/schemas/DataHora
         refresh_token:
           type:
           - string
           - 'null'
-          description: 'Opaco e rotativo. Nulo na web: nesse caso vai no cookie `httpOnly`.'
+          description: 'Opaco e rotativo. Nulo na web (`X-CondomiFacil-Web: 1`): nesse caso vai só no cookie `rt`.'
         aceites_pendentes:
           type: boolean
           description: Verdadeiro se há documento a aceitar antes de usar o app (RN-CD-03); ver `GET /v1/acesso/aceites`.
@@ -3623,7 +3745,8 @@ x-lacunas:
 - 'Lista de tipos de mídia aceitos, formato do hash, verificação de vírus e retenção de arquivos: lacuna (arquitetura 3.8).'
 - 'Estados de `pedido_lgpd` e códigos de `origem_tipo` de `movimento_score`: o MER/DER não os lista; ficam como texto livre com exemplo.'
 - "Retry do refresh resolvido em 20/11/2026 (ADR-007): reuso único do refresh anterior por 30 s; fora disso, replay revoga a sessão. Ainda não implementado nem provado; a prova fica para a fase 2."
-- 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem ID de produto que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`) e são Proposta. O guia só aceita IDs RF, RN, US e SEG em `x-rastreabilidade`, por isso a lista dessas operações fica vazia.'
+- 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem RF que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`). Caminhos fixados por Pedro em 24/11/2026 e rastreados por ADR-007 e SEG-04.'
+- 'Códigos novos do RM-20 a validar por Pedro: `ORIGEM_NAO_PERMITIDA` (403, proteção CSRF) e `SENHA_ATUAL_INCORRETA` (422), com `mensagem` de `ORIGEM_NAO_PERMITIDA` sem origem em UF. Textos sem origem em UF 3.1/3.2 seguem Proposta: reenvio antes de 60 s, limite de taxa e `ACEITE_VERSAO_DESATUALIZADA`.'
 - 'Lista de notificações (`GET /v1/eu/notificacoes`): RF-NO-01 só trata da escolha de tipos; a lista vem do MER (`notificacao`) e da arquitetura 3.7. Marcar como lida (`lida_em`) ficou fora por falta de RF.'
 - 'Primeira unidade ativa lembrada entre sessões e ordem do seletor de unidade: sem regra nos docs; o cliente decide.'
 - 'Cobrança em atraso como notificação obrigatória: proposta de produto fora das RN (UF 17); não consta como tipo obrigatório.'

@@ -1,6 +1,6 @@
 # PRD — CondomiFacil
 
-03/11/2026 · Atualizado em 17/11/2026 (RM-08: requisitos do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
+03/11/2026 · Atualizado em 24/11/2026 (RF-AC-09: troca de senha com sessão aberta, decisão de Pedro de 24/11/2026; antes, 17/11/2026, RM-08: requisitos do painel da plataforma, decisão de Pedro de 17/11/2026) · @Pedro Lemos
 
 ## 1. Visão geral
 
@@ -177,7 +177,7 @@ O CondomiFacil tem 11 perfis; síndico e subsíndico são papéis atribuídos po
 
 ## 4. Requisitos funcionais
 
-São 154 requisitos em 14 módulos (153 do MVP e 1 da versão 2, RF-FI-14), cada um com ID para histórias de usuário, tarefas e testes. RF-AD-22 a RF-AD-25 foram acrescentados em 17/11/2026 (RM-08) para dar ID testável ao painel da plataforma.
+São 155 requisitos em 14 módulos (154 do MVP e 1 da versão 2, RF-FI-14), cada um com ID para histórias de usuário, tarefas e testes. RF-AD-22 a RF-AD-25 foram acrescentados em 17/11/2026 (RM-08) para dar ID testável ao painel da plataforma. RF-AC-09 foi acrescentado em 24/11/2026 (troca de senha com sessão aberta).
 
 ### 4.1 Acesso e conta
 
@@ -191,6 +191,7 @@ São 154 requisitos em 14 módulos (153 do MVP e 1 da versão 2, RF-FI-14), cada
 | RF-AC-06 | Acessar o app pelo navegador (versão web) | Administradora, Suporte, Síndico | Mesmo código do app, via React Native Web |
 | RF-AC-07 | Exibir a página "Como funciona" com as regras de score, reclamações e recursos, aceita junto com o regimento | Todos | Texto revisado pelo parecer jurídico (SEG-16); sempre acessível no menu |
 | RF-AC-08 | Onboarding guiado no primeiro acesso, por perfil | Todos | 3 a 5 telas mostrando as tarefas principais do perfil; pode ser pulado e revisto depois |
+| RF-AC-09 | Trocar a senha com a sessão aberta | Todos | Informa a senha atual e a nova (mínimo de 8 caracteres); encerra as outras sessões e mantém a atual; senha atual errada conta para a pausa de 15 min após 5 erros seguidos (SEG-04); app e web |
 
 ### 4.2 Administração do condomínio
 

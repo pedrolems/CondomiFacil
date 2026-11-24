@@ -1,6 +1,6 @@
 # User Flows — CondomiFacil
 
-04/11/2026 · Atualizado em 20/11/2026 · @Pedro Lemos
+04/11/2026 · Atualizado em 24/11/2026 (fluxo 3.4, trocar senha) · @Pedro Lemos
 
 ## 1. Objetivo e como ler
 
@@ -39,6 +39,7 @@ Este documento mapeia, passo a passo, cada ação principal de cada perfil do Co
 | 3.1 | Primeiro acesso | Todos | Convite por e-mail | US-AC-01 a US-AC-03 |
 | 3.2 | Login e recuperação de senha | Todos | Abrir o app sem sessão | US-AC-04 |
 | 3.3 | Novo aceite e troca de unidade | Todos | Nova versão de termos; ter várias unidades | US-AC-02, US-AC-05 |
+| 3.4 | Trocar senha | Todos | Menu > Minha conta > Trocar senha | US-AC-07 |
 | 4.1 | Implantação e pré-cadastro | Administradora, Suporte | Novo condomínio | US-AD-01, US-AD-04, US-AD-05, US-AD-08 |
 | 4.2 | Solicitação do síndico | Síndico | Mudança em cadastro | US-AD-02 |
 | 4.3 | Mudança de morador e desligamento | Administradora, Suporte | Saída de alguém | US-AD-03, US-AD-09 |
@@ -174,6 +175,51 @@ flowchart TD
 
 - **Novo aceite.** Ao abrir o app depois que termos, política, regimento ou "Como funciona" mudaram, o usuário vê só o que mudou e aceita antes de continuar (RN-CD-03). Quem tem vínculo com dois condomínios aceita o regimento de cada um ao entrar nele. Recusar mantém a sessão, mas bloqueia o uso até o aceite.
 - **Troca de unidade.** Quem tem duas ou mais unidades vê o seletor no topo da tela inicial (RF-AC-04). Ao trocar, reservas, visitantes, reuniões, cobranças e métricas recarregam só para a unidade escolhida. Se a unidade foi desvinculada enquanto o app estava aberto, ela some do seletor e o app abre a próxima unidade ativa, com o aviso "Você não tem mais acesso à unidade X."
+
+### 3.4 Trocar senha — 24/11/2026
+
+Com a sessão aberta, o usuário troca a senha sem passar pelo código do e-mail (RF-AC-09, RN-CD-29, US-AC-07).
+
+- **Perfil:** todos, no app e na web.
+- **Entrada:** Menu > Minha conta > Trocar senha.
+- **Pré-condição:** sessão aberta.
+- **Resultado:** senha nova, outras sessões encerradas e sessão atual mantida.
+- **Tela:** reaproveita o padrão da tela "Criar senha" do fluxo 3.1 (formulário do Design System, seção 10), com o campo extra "Senha atual"; sem componente novo.
+
+```mermaid
+flowchart TD
+    A(["Menu > Minha conta > Trocar senha"]) --> B["Informa a senha atual, a nova e a confirmação"]
+    B --> C{"Troca pausada por 5 erros seguidos?"}
+    C -->|"Sim"| E1["Troca pausada por 15 min; opção Redefinir senha pelo e-mail"]
+    C -->|"Não"| D{"Nova senha com 8 ou mais caracteres e confirmação igual?"}
+    D -->|"Não"| E2["Mostra o requisito que falta"]
+    E2 --> B
+    D -->|"Sim"| F{"Senha atual confere?"}
+    F -->|"Não"| E3["Senha atual incorreta"]
+    E3 --> G{"5 erros seguidos?"}
+    G -->|"Não"| B
+    G -->|"Sim"| E1
+    F -->|"Sim"| H["Sistema grava a nova senha e encerra as outras sessões"]
+    H --> I(["Senha alterada; a sessão atual continua aberta"])
+    E1 --> R["Fluxo 3.2: Esqueci minha senha"]
+    classDef ok fill:#E8F5E9,stroke:#2E7D32,color:#0B1A44
+    classDef erro fill:#FDECEC,stroke:#C62828,color:#0B1A44
+    classDef sis fill:#F3F6FC,stroke:#0E359D,stroke-dasharray:5 5,color:#0B1A44
+    class I ok
+    class E1,E2,E3 erro
+    class H sis
+```
+
+| Situação | O que o usuário vê | Como sai | Regra |
+| --- | --- | --- | --- |
+| Troca concluída | Ícone `check` e "Senha alterada. Você saiu dos outros aparelhos." | Continua no app | RN-CD-29 |
+| Senha atual errada | Ícone `circle-alert` e "Senha atual incorreta." | Tenta de novo | RN-CD-29, SEG-04 |
+| Nova senha fraca | Lista do requisito com o item pendente destacado ("Mínimo de 8 caracteres") | Ajusta a senha | RF-AC-09 |
+| Confirmação diferente | "As senhas não são iguais." | Corrige a confirmação | RF-AC-09 |
+| 5 senhas atuais erradas seguidas | Ícone `clock` e "Por segurança, a troca de senha foi pausada por 15 minutos. Você pode redefinir a senha agora." | Espera ou usa "Esqueci minha senha" (3.2) | SEG-04 |
+| Sem internet | "Não foi possível conectar. Verifique a internet e tente de novo." | Tenta de novo | DS 13.4 |
+
+A pausa é a mesma do login (3.2): os erros de senha atual e de login contam juntos. Estado sempre em texto e ícone, nunca só por cor.
 
 ## 4. Administração do condomínio
 

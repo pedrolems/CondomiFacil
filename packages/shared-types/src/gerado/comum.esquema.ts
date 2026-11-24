@@ -177,12 +177,32 @@ export const esquemaComum = {
         }
       }
     },
+    "TrocarSenhaComum": {
+      "type": "object",
+      "required": [
+        "senha_atual",
+        "nova_senha"
+      ],
+      "properties": {
+        "senha_atual": {
+          "type": "string",
+          "writeOnly": true,
+          "description": "Senha em uso. Nunca é devolvida."
+        },
+        "nova_senha": {
+          "type": "string",
+          "minLength": 8,
+          "writeOnly": true,
+          "description": "Senha com no mínimo 8 caracteres (RF-AC-09). Nunca é devolvida."
+        }
+      }
+    },
     "RenovarComum": {
       "type": "object",
       "properties": {
         "refresh_token": {
           "type": "string",
-          "description": "Refresh token opaco. Obrigatório no app; na web vem do cookie `httpOnly` e o campo é omitido."
+          "description": "Refresh token opaco. Obrigatório no app (sem `X-CondomiFacil-Web`); na web vem do cookie `rt` e o campo é omitido."
         }
       }
     },
@@ -205,7 +225,7 @@ export const esquemaComum = {
       "properties": {
         "token_acesso": {
           "type": "string",
-          "description": "JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007, Proposta)."
+          "description": "JWT de 15 minutos, só com `sub` e `sid`, sem papéis nem condomínios (ADR-007)."
         },
         "token_acesso_expira_em": {
           "$ref": "#/$defs/DataHora"
@@ -215,7 +235,7 @@ export const esquemaComum = {
             "string",
             "null"
           ],
-          "description": "Opaco e rotativo. Nulo na web: nesse caso vai no cookie `httpOnly`."
+          "description": "Opaco e rotativo. Nulo na web (`X-CondomiFacil-Web: 1`): nesse caso vai só no cookie `rt`."
         },
         "aceites_pendentes": {
           "type": "boolean",
@@ -1642,6 +1662,9 @@ export const esquemaComum = {
     "res_comumAtivar_400": {
       "$ref": "#/$defs/Erro"
     },
+    "res_comumAtivar_403": {
+      "$ref": "#/$defs/Erro"
+    },
     "res_comumAtivar_422": {
       "$ref": "#/$defs/Erro"
     },
@@ -1693,6 +1716,9 @@ export const esquemaComum = {
     "res_comumRedefinirSenha_400": {
       "$ref": "#/$defs/Erro"
     },
+    "res_comumRedefinirSenha_403": {
+      "$ref": "#/$defs/Erro"
+    },
     "res_comumRedefinirSenha_422": {
       "$ref": "#/$defs/Erro"
     },
@@ -1718,6 +1744,9 @@ export const esquemaComum = {
       "$ref": "#/$defs/Erro"
     },
     "res_comumRenovar_401": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumRenovar_403": {
       "$ref": "#/$defs/Erro"
     },
     "res_comumRenovar_426": {
@@ -1970,6 +1999,33 @@ export const esquemaComum = {
       "$ref": "#/$defs/Erro"
     },
     "res_comumEncerrarSessao_503": {
+      "$ref": "#/$defs/Erro"
+    },
+    "req_comumTrocarSenha": {
+      "$ref": "#/$defs/TrocarSenhaComum"
+    },
+    "res_comumTrocarSenha_400": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_401": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_403": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_422": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_426": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_429": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_500": {
+      "$ref": "#/$defs/Erro"
+    },
+    "res_comumTrocarSenha_503": {
       "$ref": "#/$defs/Erro"
     },
     "req_comumRegistrarDispositivo": {

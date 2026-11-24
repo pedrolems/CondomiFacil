@@ -111,6 +111,10 @@ jobs:
             echo "$v=$s" >> "$GITHUB_ENV"
           done
 
+      # Os testes de API importam @condomifacil/shared-types, que precisa estar compilado.
+      - name: Compilar shared-types
+        run: pnpm --filter @condomifacil/shared-types build
+
       # Provisiona, migra (Flyway por Docker, rede do host) e testa.
       - name: Testes de banco (PostgreSQL 17 + Flyway)
         run: pnpm --filter @condomifacil/api test:banco

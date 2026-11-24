@@ -58,7 +58,9 @@ export async function auditarCatalogo(sql: Sql): Promise<Violacao[]> {
     select t.tabela, t.habilitada, t.forcada, t.dono,
       array(
         select p.priv from unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE']) p(priv)
-        where has_table_privilege(t.oid, p.priv)
+        -- has_any_column_privilege também enxerga grant por coluna (DELETE não tem coluna).
+        where (case p.priv when 'DELETE' then has_table_privilege(t.oid, p.priv)
+                           else has_any_column_privilege(t.oid, p.priv) end)
           and not exists (
             select from pg_policy pol
             where pol.polrelid = t.oid and pol.polpermissive
@@ -69,7 +71,8 @@ export async function auditarCatalogo(sql: Sql): Promise<Violacao[]> {
       ) as sem_politica,
       array(
         select p.priv from unnest(array['TRUNCATE', 'REFERENCES', 'TRIGGER']) p(priv)
-        where has_table_privilege(t.oid, p.priv)
+        where (case p.priv when 'REFERENCES' then has_any_column_privilege(t.oid, p.priv)
+                           else has_table_privilege(t.oid, p.priv) end)
       ) as proibidos
     from t order by t.tabela`;
   const v: Violacao[] = [];

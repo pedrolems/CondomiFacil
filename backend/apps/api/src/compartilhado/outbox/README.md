@@ -2,4 +2,4 @@
 
 Gravação transacional de evento_saida e despacho de eventos. Não importar módulos de domínio.
 
-Estrutura sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3 e atualizações.
+Implementado (RM-24): `registrarEvento` (na transação do ato) e `Despachante` (laço do worker, com `for update skip locked`, um `ManipuladorDeEvento` por `tipo`, entrega pelo menos uma vez). O despachante não está no `index.ts`: só o worker o importa.

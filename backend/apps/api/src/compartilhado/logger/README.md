@@ -2,4 +2,4 @@
 
 Log estruturado com filtro de dados sensíveis. Não importar módulos de domínio.
 
-Estrutura sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3 e atualizações.
+Implementado (RM-24): `LoggerJson` (uma linha JSON por evento) e `sanitizar`, que remove campos proibidos em qualquer profundidade e mascara e-mail, documento, telefone e token em texto; de `Error` só o tipo é registrado.

@@ -22,7 +22,7 @@ test('(c) toda tabela de condomifacil passa na auditoria do catálogo; exceçõe
   const [{ n }] = await app<
     [{ n: number }]
   >`select count(*)::int as n from pg_tables where schemaname = 'condomifacil'`;
-  expect(n).toBe(3);
+  expect(n).toBe(7);
   expect(await auditarCatalogo(app)).toEqual([]);
 });
 
@@ -33,6 +33,7 @@ test('(c) controle negativo: tabela de tenant criada sem RLS é apontada pela au
   try {
     await mig`create table condomifacil.tenant_sem_rls (id uuid primary key, condominio_id uuid not null)`;
     await mig`grant select, truncate on condomifacil.tenant_sem_rls to app_user`;
+    await mig`grant update (condominio_id) on condomifacil.tenant_sem_rls to app_user`; // grant só de coluna
     await mig`create function condomifacil.definer() returns int language sql security definer as 'select 1'`;
     const v = await auditarCatalogo(appControle);
     expect(v).toEqual(
@@ -40,6 +41,7 @@ test('(c) controle negativo: tabela de tenant criada sem RLS é apontada pela au
         { tabela: 'tenant_sem_rls', problema: 'RLS não habilitada' },
         { tabela: 'tenant_sem_rls', problema: 'RLS não forçada' },
         { tabela: 'tenant_sem_rls', problema: 'SELECT sem política permissiva' },
+        { tabela: 'tenant_sem_rls', problema: 'UPDATE sem política permissiva' },
         { tabela: 'tenant_sem_rls', problema: 'privilégio TRUNCATE' },
         { tabela: 'condomifacil.definer()', problema: 'função SECURITY DEFINER' },
       ]),

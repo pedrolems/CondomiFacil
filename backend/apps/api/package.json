@@ -13,13 +13,16 @@
     "db:instalar": "tsx db/scripts/instalar.ts",
     "db:flyway": "tsx db/scripts/flyway.ts",
     "db:seed": "tsx db/scripts/seed.ts",
-    "db:parar": "docker compose -f db/compose.yaml down -v"
+    "db:parar": "docker compose -f db/compose.yaml down -v",
+    "db:tipos": "tsx db/scripts/tipos.ts"
   },
   "dependencies": {
     "@condomifacil/shared-types": "workspace:*",
     "@nestjs/common": "12.5.1",
     "@nestjs/core": "12.5.1",
     "@nestjs/platform-express": "12.5.1",
+    "kysely": "0.29.9",
+    "kysely-postgres-js": "5.1.0",
     "postgres": "4.1.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
@@ -29,7 +32,10 @@
     "@nestjs/testing": "12.5.1",
     "@types/express": "5.0.6",
     "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
     "@types/supertest": "7.2.1",
+    "kysely-codegen": "0.20.0",
+    "pg": "8.23.1",
     "supertest": "7.3.2",
     "tsx": "4.23.15",
     "typescript": "6.0.3",

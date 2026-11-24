@@ -114,3 +114,11 @@ jobs:
       # Provisiona, migra (Flyway por Docker, rede do host) e testa.
       - name: Testes de banco (PostgreSQL 17 + Flyway)
         run: pnpm --filter @condomifacil/api test:banco
+
+      # E18: os tipos do Kysely vêm do banco migrado; diferença no Git significa tipos desatualizados.
+      - name: Tipos do banco em dia (kysely-codegen)
+        env:
+          DB_NOME: condomifacil_teste
+        run: |
+          pnpm --filter @condomifacil/api db:tipos
+          git diff --exit-code -- backend/apps/api/src/compartilhado/tenant/gerado

@@ -1,2 +1,5 @@
-// Montagem prevista das dependências internas do módulo auditoria.
-// Sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3.
+import { Module } from '@nestjs/common';
+import { AuditoriaServico } from './aplicacao/auditoria.servico.js';
+
+@Module({ providers: [AuditoriaServico], exports: [AuditoriaServico] })
+export class AuditoriaModule {}

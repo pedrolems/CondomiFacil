@@ -1,6 +1,6 @@
 # Guia da API — CondomiFacil
 
-**Estado:** Proposta de 10/11/2026, atualizada em 20/11/2026 (inclui o retry do refresh e a guarda de 24 h da idempotência), não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
+**Estado:** Proposta de 10/11/2026, atualizada em 23/11/2026 (propostas de texto para `VINCULO_INVALIDO` e `CHAVE_DE_IDEMPOTENCIA_REUTILIZADA` e resposta de erro sem guarda na idempotência) e em 20/11/2026 (inclui o retry do refresh e a guarda de 24 h da idempotência), não aceita pelo Pedro. Este guia é a fonte única das convenções que os arquivos YAML de `openapi/` e `asyncapi/` seguem. Onde o texto diz **Proposta**, a escolha não vem de decisão do Pedro nem do PRD. Onde diz **Decisão do Pedro**, vem do pedido de 10/11/2026.
 
 ## Índice
 
@@ -530,7 +530,7 @@ Em `SNAKE_MAIUSCULO`, definidos no contrato e gerados em `shared-types`. Textos 
 | `REQUISICAO_INVALIDA` | `400` | "Confira os campos destacados e tente de novo." | Proposta |
 | `SESSAO_EXPIRADA` | `401` | "Por segurança, entre de novo na sua conta." | UF 15 |
 | `SEM_PERMISSAO` | `403` | "Esta área é só para [perfil]." (por exemplo, "Esta área é só para síndico.") | UF 15 |
-| `VINCULO_INVALIDO` | `403` | Sem texto em UF 15 para usuário sem vínculo com o condomínio ou a unidade; usa o de `SEM_PERMISSAO` até o Pedro definir outro | Proposta |
+| `VINCULO_INVALIDO` | `403` | Sem texto em UF 15 para usuário sem vínculo com o condomínio ou a unidade; usa o de `SEM_PERMISSAO` até o Pedro definir outro. Proposta (23/11/2026, a validar por Pedro): "Esta área não está disponível para o seu acesso." | Proposta |
 | `RECURSO_NAO_ENCONTRADO` | `404` | "Não encontramos o que você procurou." | Proposta |
 | `CONFLITO_DADO_ALTERADO` | `409` | "Estas informações mudaram. Atualizamos a tela." | UF 15 |
 | `REGRA_DE_NEGOCIO_VIOLADA` | `422` | Texto da regra no caso concreto (cada operação define o código específico, seção abaixo) | Proposta |
@@ -538,7 +538,7 @@ Em `SNAKE_MAIUSCULO`, definidos no contrato e gerados em `shared-types`. Textos 
 | `LIMITE_DE_TAXA_EXCEDIDO` | `429` | "Muitas tentativas em pouco tempo. Aguarde um pouco e tente de novo." | Proposta |
 | `ERRO_INTERNO` | `500` | "Algo deu errado do nosso lado. Tente de novo em alguns minutos." | UF 15 |
 | `SERVICO_INDISPONIVEL` | `503` | "Algo deu errado do nosso lado. Tente de novo em alguns minutos." | UF 15 |
-| `CHAVE_DE_IDEMPOTENCIA_REUTILIZADA` | `422` | Texto a definir: mesma `Idempotency-Key` com corpo diferente (seção 9) | Proposta |
+| `CHAVE_DE_IDEMPOTENCIA_REUTILIZADA` | `422` | Proposta (23/11/2026, a validar por Pedro): "Esta chave de idempotência já foi usada com outros dados." Mesma `Idempotency-Key` com corpo diferente (seção 9) | Proposta |
 
 A situação "Sem internet" de UF 15 não é erro da API: é do cliente (a requisição nem sai), e por isso não tem `codigo`.
 
@@ -566,7 +566,7 @@ Em uso no contrato: `RESERVA_ESTADO_INVALIDO`, `VISITA_ESTADO_INVALIDO`, `ENCOME
 | Webhook | Unicidade por provedor e id do evento; repetição responde `200` sem reprocessar | `01-backend.md` 4.6, arquitetura 3.6, SEG-17 |
 | Pagamento em duplicidade | Alerta à administradora, devolução ou abatimento auditados | RN-FI-19 |
 
-Substituído em 20/11/2026: a lacuna do tempo de guarda da `Idempotency-Key` foi decidida por Pedro (E17 do pacote técnico da fase 2, opção A): tabela por condomínio, usuário e chave, com hash do corpo, guarda de 24 h e `422` para corpo diferente com a mesma chave.
+Substituído em 20/11/2026: a lacuna do tempo de guarda da `Idempotency-Key` foi decidida por Pedro (E17 do pacote técnico da fase 2, opção A): tabela por condomínio, usuário e chave, com hash do corpo, guarda de 24 h e `422` para corpo diferente com a mesma chave. Resposta de erro não é guardada; o reenvio com a mesma chave executa de novo (RM-24, 23/11/2026).
 
 ## 10. Limite de taxa
 

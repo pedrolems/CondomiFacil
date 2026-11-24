@@ -1,2 +1,7 @@
-// Fachada pública prevista do módulo auditoria.
-// Sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3.
+// Fachada pública do módulo auditoria.
+export {
+  AuditoriaServico,
+  type EntradaDeAuditoria,
+  type EntradaDeAuditoriaPlataforma,
+} from './aplicacao/auditoria.servico.js';
+export { AuditoriaModule } from './auditoria.module.js';

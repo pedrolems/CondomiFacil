@@ -2,4 +2,4 @@
 
 Núcleo do domínio auditoria. Outros módulos importam somente sua fachada index.ts.
 
-Estrutura sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3 e atualizações.
+Implementado (RM-24): `AuditoriaServico` (fachada em `index.ts`) grava `auditoria` e `auditoria_plataforma` na transação recebida; as tabelas só aceitam inclusão.

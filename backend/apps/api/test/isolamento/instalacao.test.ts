@@ -30,9 +30,13 @@ test('(a) db:instalar aplica todas as migrations do zero e termina com validate 
     const tabelas = await su<{ t: string }[]>`select tablename::text as t from pg_tables
       where schemaname = 'condomifacil' order by 1`;
     expect(tabelas.map((t) => t.t)).toEqual([
+      'auditoria',
+      'auditoria_plataforma',
       'condominio',
+      'evento_saida',
       'parametro_definicao',
       'parametro_padrao',
+      'requisicao_idempotente',
     ]);
   } finally {
     await su.end();

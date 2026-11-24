@@ -2,4 +2,4 @@
 
 Contratos PaymentGateway, Mailer, PushSender e ArmazenamentoDeObjetos. Não importar módulos de domínio.
 
-Estrutura sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3 e atualizações.
+Implementado (RM-24): porta `Mailer`. As demais portas (PaymentGateway, PushSender, armazenamento) vêm com as suas etapas.

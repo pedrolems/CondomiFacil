@@ -2,7 +2,7 @@
 
 **Estado:** Proposta para validação por Pedro Lemos.
 
-**Data:** 12/11/2026. **Atualizado em:** 20/11/2026.
+**Data:** 12/11/2026. **Atualizado em:** 23/11/2026.
 
 **Natureza:** política documental baseada no MER/DER lógico; não contém SQL executável, migrações nem concessões de acesso implementadas.
 
@@ -129,7 +129,7 @@ RLS controla linhas; não substitui privilégios por operação/coluna, projeç�
 
 ## 5. Matrizes e inventário explícito das entidades
 
-As 130 entidades do dicionário MER §4, mais a solicitação de exportação gerencial do apêndice de 14/11/2026 (131 no total), estão nomeadas nas linhas abaixo, organizadas em seus 12 domínios. Nomes e escopos físicos continuam propostas do MER. Cada linha compartilhada aplica suas condições a todas as entidades nela listadas; diferenças constam na própria célula. A coluna Apagar distingue exclusão operacional de anonimização/expurgo da seção 7.
+As 131 entidades do dicionário MER §4, mais a solicitação de exportação gerencial do apêndice de 14/11/2026 (132 no total), estão nomeadas nas linhas abaixo, organizadas em seus 12 domínios. Nomes e escopos físicos continuam propostas do MER. Cada linha compartilhada aplica suas condições a todas as entidades nela listadas; diferenças constam na própria célula. A coluna Apagar distingue exclusão operacional de anonimização/expurgo da seção 7.
 
 ### 5.1 Identidade, acesso e aceites — 10 entidades
 
@@ -310,7 +310,7 @@ Fonte: [MER §4.11](01-mer-e-der.md#411-finanças-gerenciais-do-condomínio); RN
 
 Não há vínculo individual exposto nas receitas de cobrança/reserva. CSV/PDF gerencial não é CSV individual de cobranças. Fontes individuais restritas com projeções diárias por categoria foram aprovadas por Pedro em 12/11/2026 (MER P-08); ADR-010 ajustado nesse ponto sem aceitação integral. O armazenamento físico ainda exige validação.
 
-### 5.12 Arquivos, notificações, auditoria e sincronização — 12 entidades
+### 5.12 Arquivos, notificações, auditoria e sincronização — 13 entidades
 
 Fonte: [MER §4.12](01-mer-e-der.md#412-arquivos-notificações-auditoria-e-sincronização), §6.2; SEG-08/09/11/13; RF-NO-01; RN-OF-01 a RN-OF-06; RN §14; arq. §3.7 a §3.9 e §4.5 a §4.8.
 
@@ -324,9 +324,10 @@ Fonte: [MER §4.12](01-mer-e-der.md#412-arquivos-notificações-auditoria-e-sinc
 | `notificacao` / condomínio | Destinatário; conteúdo seguro e referência não conferem acesso ao destino | B/R pelos eventos definidos, com mínimo de dados | Destinatário marca própria como lida por B; B agrupa conforme regra, sem editar fato de origem | NC operacional; retenção P-09 |
 | `entrega_notificacao` / condomínio | B entrega/diagnostica, sem consulta humana irrestrita de tokens/cargas | B por canal/tentativa autorizada | I/B registra recibo/erro sanitizado; falha push não apaga notificação interna | NC operacional; retenção P-09 |
 | `auditoria` / condomínio | Barreira do domínio de origem; acesso humano a tela/exportação de auditoria não especificado: NC. Acesso à tela de finanças não abre payload de reclamação | B junto de ato auditável, com ator/papel e dados sanitizados; não por formulário de usuário | Não reescrever evento; anonimização controlada quando aplicável, sem eliminar evidência obrigatória sem decisão | Sem apagar operacionalmente; retenção/finalidade P-09 |
-| `auditoria_plataforma` / global | Caminho restrito à finalidade de auditoria de plataforma; consulta humana geral não especificada: NC | B pelos atos globais | Sem reescrita humana; nunca copiar conteúdo operacional para esta tabela | NC operacional; retenção pendente |
+| `auditoria_plataforma` / global | Caminho restrito à finalidade de auditoria de plataforma; consulta humana geral não especificada: NC | B pelos atos globais | Sem reescrita humana; nunca copiar conteúdo operacional para esta tabela; o `app_user` só insere com o escopo de banco `plataforma` (`app.escopo`) e não tem SELECT | NC operacional; retenção pendente |
 | `execucao_rotina` / condomínio | R/B observa tentativas no tenant; painéis operacionais humanos não especificados: NC | R/B por rotina/janela | R/B registra andamento/erro; não repetir efeito já aplicado | NC operacional; retenção pendente |
-| `evento_saida` / condomínio | B/consumidor necessário ao evento; sem acesso humano geral ao outbox | B na transação do fato de domínio, carga mínima restrita | Consumidor B registra publicação/tentativa idempotente; não muda fato/tenant para reenviar a outro público | NC operacional; expurgo após processamento depende política própria |
+| `evento_saida` / condomínio | B/consumidor necessário ao evento; sem acesso humano geral ao outbox | B na transação do fato de domínio, carga mínima restrita | Consumidor B registra publicação/tentativa idempotente (o UPDATE alcança só `publicado_em`, `tentativas` e `ultimo_erro_sanitizado`, no contexto do condomínio); o despachante do worker descobre condomínios com pendência pelo escopo `sistema` (sem condomínio aberto), que lê só eventos pendentes e não publica; a API não usa esse escopo (decisão de Pedro, 23/11/2026); não muda fato/tenant para reenviar a outro público | NC operacional; expurgo após processamento depende política própria |
+| `requisicao_idempotente` / condomínio | B grava e lê a própria resposta (por condomínio, usuário e chave); sem acesso humano | B ao receber requisição com `Idempotency-Key` (E17) | B não edita; corpo diferente na mesma chave recusa com 422 | Sem DELETE operacional; guarda provisória de 24 h, expurgo é rotina futura (P-09) |
 
 ## 6. Proteções complementares e canais
 
@@ -464,7 +465,7 @@ Não são testes implementados nem evidência de banco seguro. São roteiros par
 
 ## 10. Critérios para validar esta proposta
 
-1. Conferir as 130 entidades do dicionário atual do MER contra as 12 matrizes e revisar todas as células NC antes de implementar operações ainda indefinidas.
+1. Conferir as 131 entidades do dicionário atual do MER contra as 12 matrizes e revisar todas as células NC antes de implementar operações ainda indefinidas.
 2. Conferir os 11 perfis, as condições de habilitação/responsabilidade/procuração/julgamento e o papel efetivo na data da ação. Identidade global e função acumulada não somam direitos proibidos em outra projeção.
 3. Confirmar que cada criação/atualização tem solicitante e processo executor distinguíveis, campos/ação delimitados e autoria histórica preservada; não traduzir matriz em CRUD irrestrito.
 4. Validar conjuntamente RLS, privilégios, serviço, DTO, arquivo, exportação, WebSocket, fila, cache, erro e log. Catálogo de RLS e testes propostos no ADR-001/arq. §4.11 devem cobrir leitura e escrita, ausência/vazamento de contexto e exceções.

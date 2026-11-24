@@ -63,6 +63,75 @@ const semHexSolto = {
   },
 };
 
+// ADR-001 item 4 e ADR-008: só compartilhado/tenant importa o driver e o Kysely (tipos são livres);
+// o escopo 'sistema' e o despachante do outbox são só do worker (decisão de Pedro, 23/11/2026).
+const API_SRC = 'backend/apps/api/src';
+const ARQUIVOS_DO_WORKER = [
+  `${API_SRC}/worker.module.ts`,
+  `${API_SRC}/main.worker.ts`,
+  `${API_SRC}/compartilhado/outbox/despachante.ts`,
+];
+const DRIVERS = [
+  { name: 'postgres', message: 'Acesso a dados só por compartilhado/tenant (ADR-001, ADR-008).' },
+  { name: 'kysely-postgres-js', message: 'Acesso a dados só por compartilhado/tenant (ADR-008).' },
+  { name: 'pg', message: 'Acesso a dados só por compartilhado/tenant (ADR-008).' },
+  {
+    name: 'kysely',
+    allowTypeImports: true,
+    message:
+      'Kysely em tempo de execução só em compartilhado/tenant; use o sql reexportado por ele.',
+  },
+];
+const semDriverForaDoTenant = {
+  files: [`${API_SRC}/**/*.ts`],
+  ignores: [`${API_SRC}/compartilhado/tenant/**`, ...ARQUIVOS_DO_WORKER],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: DRIVERS,
+        patterns: [
+          {
+            group: ['**/escopo-sistema*', '**/despachante*'],
+            message: 'Escopo sistema e despachante do outbox são só do worker.',
+          },
+          {
+            group: [
+              '**/tenant/transacao*',
+              '**/tenant/banco*',
+              '**/tenant/guarda*',
+              '**/tenant/gerado/*',
+            ],
+            message: 'Fora de compartilhado/tenant, importe só o index.ts do tenant.',
+          },
+        ],
+      },
+    ],
+  },
+};
+const workerSemDriver = {
+  files: ARQUIVOS_DO_WORKER,
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: DRIVERS,
+        patterns: [
+          {
+            group: [
+              '**/tenant/transacao*',
+              '**/tenant/banco*',
+              '**/tenant/guarda*',
+              '**/tenant/gerado/*',
+            ],
+            message: 'Fora de compartilhado/tenant, importe só o index.ts do tenant.',
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -83,5 +152,7 @@ export default tseslint.config(
   { languageOptions: { globals: globals.node } },
   fronteiras,
   semHexSolto,
+  semDriverForaDoTenant,
+  workerSemDriver,
   prettier,
 );

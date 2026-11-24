@@ -2,4 +2,4 @@
 
 TenantContext: único caminho ao banco com isolamento por condomínio. Não importar módulos de domínio.
 
-Estrutura sem implementação. Fonte: docs/05-backend/01-backend.md, seção 3 e atualizações.
+Implementado (RM-24): `TenantContext` (`executar` e `executarComoPlataforma`), guarda no driver que recusa consulta fora do contexto antes de chegar ao banco, Kysely sobre postgres.js e tipos gerados em `gerado/` (`pnpm db:tipos`). `escopo-sistema.ts` (leitura de pendências do outbox) é só do worker e fica fora do `index.ts`; o lint barra o import fora dele.

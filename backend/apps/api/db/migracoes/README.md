@@ -7,8 +7,9 @@ Migrations SQL versionadas do Flyway 13.12.2 OSS (ADR-008, aceito com ressalvas 
 | `V202611210001__fundacao_condominio.sql` | `USAGE` do `app_user` em `condomifacil`, função `condominio_atual()` e tabela `condominio` (RLS habilitada e forçada; `app_user` só lê o próprio tenant) |
 | `V202611210002__catalogo_de_parametros.sql` | Catálogos globais `parametro_definicao` e `parametro_padrao` (E4), RLS forçada e leitura pelo `app_user` |
 | `V202611210003__carga_parametros.sql` | CHECK do vocabulário de `tipo`, política `FOR INSERT TO migrador` nos dois catálogos e carga versionada dos 36 parâmetros da RN 13 (35 padrões; `reserva.valor` sem padrão), vigentes desde 21/11/2026 00:00 em America/Sao_Paulo |
+| `V202611230001__auditoria_outbox_idempotencia.sql` | RM-24: `auditoria` (tenant) e `auditoria_plataforma` (global) append-only por gatilho; outbox `evento_saida` por condomínio; `requisicao_idempotente` (E17, guarda de 24 h); função `escopo_atual()` (`app.escopo` = `plataforma` para incluir na auditoria de plataforma; `sistema`, sem tenant, para o despachante listar pendentes) |
 
-`parametro_condominio` e a FK `parametro_padrao.registrado_por_id -> usuario` entram no RM-20.
+`parametro_condominio` e as FKs para `usuario` (`parametro_padrao.registrado_por_id`, `auditoria.ator_usuario_id`, `auditoria_plataforma.ator_usuario_id` e `requisicao_idempotente.usuario_id`) entram no RM-20.
 
 ## Regras
 

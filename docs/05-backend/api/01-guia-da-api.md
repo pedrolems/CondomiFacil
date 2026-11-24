@@ -539,6 +539,8 @@ Em `SNAKE_MAIUSCULO`, definidos no contrato e gerados em `shared-types`. Textos 
 | `ERRO_INTERNO` | `500` | "Algo deu errado do nosso lado. Tente de novo em alguns minutos." | UF 15 |
 | `SERVICO_INDISPONIVEL` | `503` | "Algo deu errado do nosso lado. Tente de novo em alguns minutos." | UF 15 |
 | `CHAVE_DE_IDEMPOTENCIA_REUTILIZADA` | `422` | Proposta (23/11/2026, a validar por Pedro): "Esta chave de idempotência já foi usada com outros dados." Mesma `Idempotency-Key` com corpo diferente (seção 9) | Proposta |
+| `ORIGEM_NAO_PERMITIDA` | `403` | "Não foi possível concluir a operação por este endereço." Cliente web sem `X-CondomiFacil-Web` ou com `Origin` fora da lista; proteção CSRF; o token não é consumido (ADR-007) | Aprovado por Pedro em 24/11/2026 |
+| `SENHA_ATUAL_INCORRETA` | `422` | "Senha atual incorreta." Senha atual errada na troca de senha; conta para a pausa de SEG-04 (RN-CD-29) | UF 3.4; código aprovado por Pedro em 24/11/2026 |
 
 A situação "Sem internet" de UF 15 não é erro da API: é do cliente (a requisição nem sai), e por isso não tem `codigo`.
 

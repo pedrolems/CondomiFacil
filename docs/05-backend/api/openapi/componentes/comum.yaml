@@ -279,7 +279,7 @@ components:
             $ref: '#/components/schemas/Erro'
           examples:
             origemNaoPermitida:
-              summary: Origem não permitida (código e texto Proposta)
+              summary: Origem não permitida (código e texto aprovados por Pedro em 24/11/2026)
               value:
                 codigo: ORIGEM_NAO_PERMITIDA
                 mensagem: Não foi possível concluir a operação por este endereço.

@@ -242,7 +242,10 @@ function resetForm(o = {}) { FORM = Object.assign({}, o); }
 /* ---------- Camadas ---------- */
 function layerHost() { return $('#layer'); }
 let CUR_SHEET = null;
-function closeLayer() { const l = layerHost(); if (l) l.innerHTML = ''; CUR_SHEET = null; }
+function closeLayer() {
+  const l = layerHost(); if (l) l.innerHTML = ''; CUR_SHEET = null;
+  const m = $('#conta-menu'); if (m && m.getAttribute('aria-expanded') === 'true') { m.setAttribute('aria-expanded', 'false'); m.focus(); }
+}
 function sheet(html, o = {}) {
   const l = layerHost();
   if (typeof html === 'function') { CUR_SHEET = [html, o]; html = html(); } else CUR_SHEET = null;
@@ -375,7 +378,7 @@ function renderWeb(ctx, s) {
     <header class="web-top"><span class="wordmark">CondomiFacil</span>
       <button type="button" class="cond" ${cb(() => sheet(`<h2 class="t-title-md">Condomínios atendidos</h2>${S.condos.map((c, i) => row({ icon: 'building-2', title: c.nome, sub: c.unidades + ' unidades · ' + c.plano, right: i === S.condo ? ic('check') : '', noChev: true, on: () => { S.condo = i; closeLayer(); rerender(); toast('Mostrando ' + c.nome); } })).join('')}`))}>${ic('building-2')}${esc(S.condos[S.condo].nome)}${ic('chevrons-up-down')}</button>
       <span class="grow"></span>${iconBtn('search', 'Buscar', () => toast('Busca global: digite nome, unidade ou e-mail.'))}${iconBtn('bell', 'Notificações', 'admin/visao-geral', '<span class="dot"></span>')}
-      <span class="row" style="color:#fff;font-weight:600;font-size:14px"><span class="lead avatar" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center">AC</span>Admin Central</span></header>
+      <span class="row" style="color:#fff;font-weight:600;font-size:14px">Admin Central<button type="button" class="icon-btn" id="conta-menu" aria-label="Minha conta" title="Minha conta" aria-haspopup="dialog" aria-expanded="false" ${cb(() => { $('#conta-menu').setAttribute('aria-expanded', 'true'); sheet(`<h2 class="t-title-md">Minha conta</h2>${row({ icon: 'key-round', title: 'Trocar senha', on: () => { closeLayer(); go(ctx.p + '/trocar-senha'); } })}`); })}>${ic('circle-user')}</button></span></header>
     <div class="web-body"><nav class="web-nav" aria-label="Navegação lateral">${nav}</nav>
     <div class="web-main" id="web-main"><div class="inner" id="content">${s.body || ''}</div></div></div>
     <div id="toast"></div><div id="layer"></div></div>`;

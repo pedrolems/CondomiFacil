@@ -98,11 +98,13 @@ def('acesso', 'senha', 'Criar senha', 'Primeiro acesso (3.1)', () => {
 });
 
 /* Trocar senha logado (3.4, RF-AC-09, RN-CD-29): mesma tela para todos os perfis com menu Minha conta */
-def(['morador', 'sindico', 'subsindico', 'portaria', 'limpeza', 'proprietario'], 'trocar-senha', 'Trocar senha', 'Conta (3.4)', ctx => {
+def(['morador', 'sindico', 'subsindico', 'portaria', 'limpeza', 'proprietario', 'admin'], 'trocar-senha', 'Trocar senha', 'Conta (3.4)', ctx => {
+  const web = ctx.P.layout === 'web', volta = ctx.p + '/' + (web ? ctx.P.home : 'menu');
   const paused = A.pwChanges >= 5, s = FORM.nova || '', c = FORM.conf || '';
+  const tela = r => web ? { nav: '', body: `<div class="stack-5" style="max-width:480px">${btn('Voltar', { v: 'text', icon: 'arrow-left', on: volta })}<h1 class="t-title-lg">Trocar senha</h1>${r.body}${r.footer}</div>` } : r;
   const req = [[s.length >= 8, 'Mínimo de 8 caracteres'], [s.length > 0 && s === c, 'Confirmação igual à nova senha']];
-  return {
-    noTabs: true, top: { title: 'Trocar senha', back: ctx.p + '/menu' },
+  return tela({
+    noTabs: true, top: { title: 'Trocar senha', back: volta },
     body: `<div class="stack-5">
       ${paused ? banner('warning', 'clock', 'Por segurança, a troca de senha foi pausada por 15 minutos. Você pode redefinir a senha agora.', { inline: true, action: btn('Esqueci minha senha', { v: 'secondary', size: 'sm', on: () => { A.mode = 'recuperar'; go('acesso/email'); } }) }) : ''}
       ${field('Senha atual', input('atual', { type: 'password', attr: 'autocomplete="current-password"' }), { help: A.curErr && !paused ? '' : 'Protótipo: "errada" simula senha atual incorreta.' }).replace(/(<\/div>\s*)$/, `${A.curErr && !paused ? `<span class="error-msg" role="alert">${ic('circle-alert')}${A.curErr}</span>` : ''}$1`).replace('class="field "', `class="field ${A.curErr && !paused ? 'has-error' : ''}"`)}
@@ -119,9 +121,9 @@ def(['morador', 'sindico', 'subsindico', 'portaria', 'limpeza', 'proprietario'],
       if (n.length < 8) { rerender(); return; }
       if (n !== k) { A.pwErr = 'As senhas não são iguais.'; rerender(); return; }
       A.pwTried = false; A.pwChanges = 0; resetForm({ role: FORM.role });
-      go(ctx.p + '/menu'); setTimeout(() => { toast(ic('check') + 'Senha alterada. Você saiu dos outros aparelhos.'); icons($('#toast')); }, 50);
+      go(volta); setTimeout(() => { toast(ic('check') + 'Senha alterada. Você saiu dos outros aparelhos.'); icons($('#toast')); }, 50);
     } }) + (paused ? `<p class="disabled-reason">${ic('info')}Aguarde 15 minutos ou redefina a senha.</p>` + btn('Simular fim da pausa', { v: 'text', block: true, on: () => { A.pwChanges = 0; rerender(); } }) : ''),
-  };
+  });
 });
 
 const DOCS = [['termos', 'Termos de uso'], ['privacidade', 'Política de privacidade'], ['regimento', 'Regimento interno do Residencial Jardim Azul'], ['como', 'Como funciona (score, reclamações e reservas)']];

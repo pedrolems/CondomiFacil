@@ -93,7 +93,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 reenvioAntecipado:
-                  summary: Novo código pedido antes de 60 s (texto Proposta, sem origem em UF; código de RN-CD-02)
+                  summary: Novo código pedido antes de 60 s (texto aprovado por Pedro em 24/11/2026; código de RN-CD-02)
                   value:
                     codigo: CODIGO_REENVIO_ANTECIPADO
                     mensagem: Você poderá pedir um novo código em instantes.
@@ -277,7 +277,7 @@ paths:
                     mensagem: Seu acesso a este condomínio foi encerrado. Se for um engano, fale com a administradora.
                     request_id: req_01JD9ZQ3K8M2T7V5W0X4Y6A1BC
                 origemNaoPermitida:
-                  summary: Origem não permitida (código e texto Proposta)
+                  summary: Origem não permitida (código e texto aprovados por Pedro em 24/11/2026)
                   value:
                     codigo: ORIGEM_NAO_PERMITIDA
                     mensagem: Não foi possível concluir a operação por este endereço.
@@ -642,7 +642,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 versaoDesatualizada:
-                  summary: Documento atualizado depois de o usuário abrir a tela (código de RN-CD-03; texto Proposta, sem origem em UF)
+                  summary: Documento atualizado depois de o usuário abrir a tela (código de RN-CD-03; texto aprovado por Pedro em 24/11/2026)
                   value:
                     codigo: ACEITE_VERSAO_DESATUALIZADA
                     mensagem: Este documento foi atualizado. Leia a nova versão para aceitar.
@@ -974,7 +974,7 @@ paths:
                 $ref: ./componentes/comum.yaml#/components/schemas/Erro
               examples:
                 senhaAtualIncorreta:
-                  summary: Senha atual errada (texto de UF 3.4; código Proposta)
+                  summary: Senha atual errada (texto de UF 3.4; código aprovado por Pedro em 24/11/2026)
                   value:
                     codigo: SENHA_ATUAL_INCORRETA
                     mensagem: Senha atual incorreta.
@@ -3746,7 +3746,7 @@ x-lacunas:
 - 'Estados de `pedido_lgpd` e códigos de `origem_tipo` de `movimento_score`: o MER/DER não os lista; ficam como texto livre com exemplo.'
 - "Retry do refresh resolvido em 20/11/2026 (ADR-007): reuso único do refresh anterior por 30 s; fora disso, replay revoga a sessão. Ainda não implementado nem provado; a prova fica para a fase 2."
 - 'Listagem e encerramento de sessões (`/v1/eu/sessoes`), `/v1/acesso/renovar` e `/v1/acesso/sair`: sem RF que os sustente; derivam do ADR-007, da arquitetura 3.3.1 e 3.7 e do MER (`sessao`, `dispositivo`). Caminhos fixados por Pedro em 24/11/2026 e rastreados por ADR-007 e SEG-04.'
-- 'Códigos novos do RM-20 a validar por Pedro: `ORIGEM_NAO_PERMITIDA` (403, proteção CSRF) e `SENHA_ATUAL_INCORRETA` (422), com `mensagem` de `ORIGEM_NAO_PERMITIDA` sem origem em UF. Textos sem origem em UF 3.1/3.2 seguem Proposta: reenvio antes de 60 s, limite de taxa e `ACEITE_VERSAO_DESATUALIZADA`.'
+- 'Códigos novos do RM-20 (`ORIGEM_NAO_PERMITIDA`, 403, proteção CSRF, e `SENHA_ATUAL_INCORRETA`, 422) e os textos de `ORIGEM_NAO_PERMITIDA`, do reenvio antes de 60 s e de `ACEITE_VERSAO_DESATUALIZADA` aprovados por Pedro em 24/11/2026. O texto do limite de taxa (429 genérico) segue Proposta.'
 - 'Lista de notificações (`GET /v1/eu/notificacoes`): RF-NO-01 só trata da escolha de tipos; a lista vem do MER (`notificacao`) e da arquitetura 3.7. Marcar como lida (`lida_em`) ficou fora por falta de RF.'
 - 'Primeira unidade ativa lembrada entre sessões e ordem do seletor de unidade: sem regra nos docs; o cliente decide.'
 - 'Cobrança em atraso como notificação obrigatória: proposta de produto fora das RN (UF 17); não consta como tipo obrigatório.'

@@ -132,3 +132,14 @@ Registro técnico, sem mudar a decisão de 20/11/2026.
 - O refresh token tem o formato `<sessao_id>.<segredo>`, opaco para o cliente: o servidor acha a sessão pelo id; um segredo que não seja o vigente nem o retry válido é replay e revoga a sessão.
 - Modelo de **uma linha por sessão** para o B+E (`renovacao_hash_anterior`, `rotacionada_em`, `anterior_reusado_em`), que substitui a tabela de hashes aposentados da P2.
 - **Teto absoluto da sessão (decisão de Pedro de 24/11/2026, depois da revisão de segurança do RM-20):** a sessão expira **90 dias depois do login**, mesmo em uso. A janela deslizante de 30 dias continua valendo; o teto é parâmetro configurável. Acrescenta-se à decisão de 20/11/2026, sem reescrevê-la.
+
+## Ressalva de 24/11/2026 (prova E21 no Android)
+
+Registro técnico, sem mudar a decisão de 20/11/2026. Atualiza parcialmente o item "O `expo-secure-store` não foi provado em aparelho", que fica preservado acima como texto da decisão.
+
+- **Provado no Android (24/11/2026):** Expo Go 58.0.5 (SDK 58), Android 16 (API 36) no emulador, `expo-secure-store` 58.0.3, API local em `http://10.0.2.2:3000`, usuário fictício, sem dev build (opção A da E21).
+- Os 7 passos passaram: login e aceite dos 3 documentos; reabertura após force-stop e após reinício do emulador, logado, com renovação 200; sessão listada como "Este aparelho"; sair com 204 e renovação sem token 401; revogação por outro cliente com DELETE 204, renovação 401 e retorno ao login; nenhum token nos logs do Android, do Metro e da API.
+- O código usa só `SecureStore` com `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, sem `AsyncStorage`.
+- **Limite:** o conteúdo físico do armazenamento seguro não foi lido (exigiria root). A prova se apoia no comportamento dos passos e na leitura do código.
+- **Pendente:** prova no iPhone via Expo Go. Até lá, a ressalva do `expo-secure-store` segue aberta para o iOS. A web com cookie httpOnly está coberta pelos testes automáticos da API.
+- Evidências (capturas e logs) ficaram fora do repositório.

@@ -196,8 +196,24 @@ Regras mantidas: a pasta organiza, não protege (backend 3.4); `dominio/` sem Ne
 | E18 | CI do banco e imagem do Flyway | **A.** Job próprio `banco` em PR: `postgres:17` como serviço e imagem `flyway/flyway:13.12.2` fixada por digest com cache; kysely-codegen regenerado e conferido por diff. **B.** Java 25 com o pacote da CLI. **C.** Rodar o job só quando `db/` mudar | **A**, em paralelo ao job `verificar`. Fixar o digest torna o resultado reproduzível, e o job separado isola o peso de cerca de 1,1 GB. Antes, conferir na documentação oficial a telemetria do Flyway e como desligá-la. C deixaria passar mudança de código que quebra a RLS |
 | E19 | Lista do dia da portaria sob RLS (P3) | **A.** Não mitigar na fase 2, porque não toca o recorte; reavaliar na fase 3. **B.** Mitigar já | **A.** A portaria é fase 3. A ressalva continua no ADR-001 |
 | E20 | Escopo do RM-23 nos canais que ainda não existem | **A.** Provar HTTP, RLS e cache do servidor e do cliente agora, mais um teste reutilizável de revogação que arquivos, WebSocket, jobs e exportações terão de passar quando chegarem. **B.** Criar canais mínimos só para testar | **A.** Não cria código sem uso. O roadmap continua exigindo o teste quando cada canal entrar |
-| E21 | Prova de expo-secure-store em aparelho (ressalva do ADR-007) | **A.** Expo Go no emulador Android e no iPhone (o expo-secure-store vem no Expo Go), mais a web com cookie. **B.** Dev build | **A.** É o mesmo caminho do D8 e fecha a ressalva sem conta de loja. Dev build só se o Expo Go não bastar |
+| E21 | Prova de expo-secure-store em aparelho (ressalva do ADR-007) | **A.** Expo Go no emulador Android e no iPhone (o expo-secure-store vem no Expo Go), mais a web com cookie. **B.** Dev build | **A.** É o mesmo caminho do D8 e fecha a ressalva sem conta de loja. Dev build só se o Expo Go não bastar. **Resultado (24/11/2026):** Android provado; iPhone pendente. Ver a nota abaixo |
 | E22 | Branch e destino do código | **A.** Este pacote e o código na `feat/fase-2-acesso` (de `develop`, commit `108ae7a`), com commits por pacote RM aprovados um a um e PR para `develop` quando Pedro indicar. **B.** Uma branch por RM | **A.** A ordem é sequencial e uma branch evita rebases entre pacotes. Promoção a `staging`, `main` ou à branch de docs só por indicação de Pedro (regra de Git) |
+
+**Nota da E21: resultado no Android (24/11/2026, registro aprovado por Pedro).** Caminho A, Expo Go, sem dev build. Versões: Expo Go 58.0.5 (SDK 58), Android 16 (API 36) no emulador, `expo-secure-store` 58.0.3. API local em `http://10.0.2.2:3000`, com usuário fictício.
+
+Os 7 passos passaram:
+
+1. Login e aceite dos 3 documentos; o app chegou ao Início.
+2. Force-stop e reabertura: voltou logado, renovação 200.
+3. Reinício do emulador e reabertura: voltou logado, renovação 200.
+4. A sessão aparece como "Este aparelho" na lista de sessões.
+5. Sair: 204; reabertura nas boas-vindas; renovação sem token 401.
+6. Revogação da sessão por outro cliente: DELETE 204, renovação seguinte 401, app voltou ao login.
+7. Nenhum token nos logs do Android (logcat), do Metro e da API. O código usa só `SecureStore` com `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, sem `AsyncStorage`.
+
+Limite: o conteúdo físico do armazenamento seguro não foi lido (exigiria root). A prova se apoia no comportamento dos passos 2, 3 e 5 e na leitura do código. As evidências (capturas e logs) ficaram fora do repositório.
+
+Pendente: prova no iPhone via Expo Go, que depende de Pedro com o aparelho. A web com cookie httpOnly está coberta pelos testes automáticos da API. Até o iPhone, a E21 não está fechada e o critério do RM-20 (linha 167) continua valendo.
 
 ## 8. Riscos
 

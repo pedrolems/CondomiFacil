@@ -1,6 +1,6 @@
 # Pacote técnico da fase 2 — acesso, condomínio e permissões (RM-20 a RM-25)
 
-**Data:** 20/11/2026. **Atualizado em:** 24/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
+**Data:** 20/11/2026. **Atualizado em:** 25/11/2026. **Autor do produto e responsável pelas decisões:** Pedro Lemos.
 
 **Estado:** fase 2 liberada por Pedro em 20/11/2026. **Pacote aprovado por Pedro em 21/11/2026, com todas as decisões E1 a E22 na opção A (E1, E6, E7 e E17 já aprovadas em A em 20/11/2026; as demais em 21/11/2026; seção 7).** O código de produto da fase 2 está liberado, na ordem RM-25 e RM-24, RM-20 e RM-21, RM-23 e RM-22, na branch `feat/fase-2-acesso`, com commit por pacote RM aprovado um a um por Pedro (E22). O recorte do MER, da política de acesso e do contrato descrito aqui vale pelo aceite em E1 (opção A); o restante desses documentos continua proposta não aceita. Nada aqui libera deploy no Render ou no Supabase, dados reais, integração com o Asaas, commit, push ou merge. O formato segue o [pacote da fase 1](pacote-tecnico-fase-1.md). As fontes são o [roadmap](../roadmap.md) (seções 5.5, 5.6, 5.8 e 7), os [resultados das PoCs P2 a P5](../03-arquitetura/criterios-de-poc.md) e os relatórios em `pocs/rm-16/*/RELATORIO.md`. RM-25 executado em 21/11/2026 (commit `b883ba8`); RM-24 executado em 23/11/2026.
 
@@ -196,7 +196,7 @@ Regras mantidas: a pasta organiza, não protege (backend 3.4); `dominio/` sem Ne
 | E18 | CI do banco e imagem do Flyway | **A.** Job próprio `banco` em PR: `postgres:17` como serviço e imagem `flyway/flyway:13.12.2` fixada por digest com cache; kysely-codegen regenerado e conferido por diff. **B.** Java 25 com o pacote da CLI. **C.** Rodar o job só quando `db/` mudar | **A**, em paralelo ao job `verificar`. Fixar o digest torna o resultado reproduzível, e o job separado isola o peso de cerca de 1,1 GB. Antes, conferir na documentação oficial a telemetria do Flyway e como desligá-la. C deixaria passar mudança de código que quebra a RLS |
 | E19 | Lista do dia da portaria sob RLS (P3) | **A.** Não mitigar na fase 2, porque não toca o recorte; reavaliar na fase 3. **B.** Mitigar já | **A.** A portaria é fase 3. A ressalva continua no ADR-001 |
 | E20 | Escopo do RM-23 nos canais que ainda não existem | **A.** Provar HTTP, RLS e cache do servidor e do cliente agora, mais um teste reutilizável de revogação que arquivos, WebSocket, jobs e exportações terão de passar quando chegarem. **B.** Criar canais mínimos só para testar | **A.** Não cria código sem uso. O roadmap continua exigindo o teste quando cada canal entrar |
-| E21 | Prova de expo-secure-store em aparelho (ressalva do ADR-007) | **A.** Expo Go no emulador Android e no iPhone (o expo-secure-store vem no Expo Go), mais a web com cookie. **B.** Dev build | **A.** É o mesmo caminho do D8 e fecha a ressalva sem conta de loja. Dev build só se o Expo Go não bastar. **Resultado (24/11/2026):** Android provado; iPhone pendente. Ver a nota abaixo |
+| E21 | Prova de expo-secure-store em aparelho (ressalva do ADR-007) | **A.** Expo Go no emulador Android e no iPhone (o expo-secure-store vem no Expo Go), mais a web com cookie. **B.** Dev build | **A.** É o mesmo caminho do D8 e fecha a ressalva sem conta de loja. Dev build só se o Expo Go não bastar. **Resultado:** Android provado (24/11/2026) e iPhone provado (25/11/2026); E21 fechada. Ver as notas abaixo |
 | E22 | Branch e destino do código | **A.** Este pacote e o código na `feat/fase-2-acesso` (de `develop`, commit `108ae7a`), com commits por pacote RM aprovados um a um e PR para `develop` quando Pedro indicar. **B.** Uma branch por RM | **A.** A ordem é sequencial e uma branch evita rebases entre pacotes. Promoção a `staging`, `main` ou à branch de docs só por indicação de Pedro (regra de Git) |
 
 **Nota da E21: resultado no Android (24/11/2026, registro aprovado por Pedro).** Caminho A, Expo Go, sem dev build. Versões: Expo Go 58.0.5 (SDK 58), Android 16 (API 36) no emulador, `expo-secure-store` 58.0.3. API local em `http://10.0.2.2:3000`, com usuário fictício.
@@ -213,7 +213,21 @@ Os 7 passos passaram:
 
 Limite: o conteúdo físico do armazenamento seguro não foi lido (exigiria root). A prova se apoia no comportamento dos passos 2, 3 e 5 e na leitura do código. As evidências (capturas e logs) ficaram fora do repositório.
 
-Pendente: prova no iPhone via Expo Go, que depende de Pedro com o aparelho. A web com cookie httpOnly está coberta pelos testes automáticos da API. Até o iPhone, a E21 não está fechada e o critério do RM-20 (linha 167) continua valendo.
+**Nota da E21: resultado no iPhone (25/11/2026, registro aprovado por Pedro).** Caminho A, Expo Go, sem dev build. iPhone real com iOS 27.2.1, Expo Go 58.0.5 (SDK suportado 58.0.0), `expo-secure-store` 58.0.3, usuário fictício (`e21@exemplo.test`) e banco local em Docker. A rede local (API em `http://192.168.0.16:3000`) serviu no início; depois do reinício do iPhone ela deixou de alcançar o computador, e a prova seguiu pelo túnel do Expo (`--tunnel`) para o Metro e por túnel temporário do cloudflared para a API (mesmo caminho da prova D8 de 20/11/2026), ambos fechados ao final.
+
+Os 7 passos passaram, com evidência pelo log da API:
+
+1. Login; o app chegou ao Início (os 3 documentos já tinham sido aceitos na prova do Android, então a tela de aceite não apareceu).
+2. Fechamento pelo seletor de apps e reabertura: voltou logado, renovação 200.
+3. Reinício do iPhone e reabertura: voltou logado, renovação 200 com o refresh guardado desde o login, sem novo login; a sessão também sobreviveu à troca do endereço do Metro (rede local para túnel).
+4. A sessão aparece como "Este aparelho" na lista de sessões (GET 200).
+5. Sair: 204; reabertura nas boas-vindas, sem renovação.
+6. Revogação da sessão por outro cliente: DELETE 204, renovação seguinte 401, app voltou ao login.
+7. Nenhum token (JWT, refresh ou nomes dos campos) nos logs da API, do Metro e dos túneis. No iOS não há equivalente ao logcat lido no Android.
+
+Limite: o conteúdo físico do Keychain não foi lido; a prova se apoia no comportamento dos passos e na leitura do código. As evidências ficaram fora do repositório.
+
+A web com cookie httpOnly está coberta pelos testes automáticos da API. Com Android e iPhone provados, **a E21 está fechada** e o item "sessão no expo-secure-store provada em aparelho (E21)" do critério do RM-20 (linha 167) está atendido.
 
 ## 8. Riscos
 

@@ -1,6 +1,6 @@
 # Arquitetura — CondomiFacil
 
-06/11/2026 · Atualizado em 20/11/2026 · @Pedro Lemos
+06/11/2026 · Atualizado em 25/11/2026 · @Pedro Lemos
 
 **Resumo:** arquitetura de referência do MVP: um app Expo (Android, iOS e web) falando com uma API NestJS modular sobre PostgreSQL compartilhado com Row Level Security, com tempo real por WebSocket, rotinas agendadas por condomínio, pagamentos por gateway com webhooks idempotentes e um modo offline restrito à portaria e à limpeza.
 
@@ -1001,7 +1001,7 @@ Os ADRs estão em [`adr/`](adr/README.md), um arquivo por decisão. Os ADRs 002,
 | [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) | Provedor de nuvem, região e residência de dados | **Aceito, com ressalvas** (Supabase + Render, só MVP, 10/11/2026) | Revisão obrigatória antes do piloto com dados reais (custo, LGPD, PITR) |
 | [ADR-005](adr/005-email-transacional.md) | E-mail transacional: Resend | **Aceito, com ressalvas** (Resend, 10/11/2026) | Entregabilidade; LGPD; revisão do [ADR-004](adr/004-nuvem-regiao-residencia-dados.md) |
 | [ADR-006](adr/006-fila-agendador-eventos.md) | Fila e agendador (pg-boss x BullMQ/Redis) e distribuição de eventos | Proposta, a decidir | Carga esperada |
-| [ADR-007](adr/007-autorizacao-jwt-sem-papeis.md) | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | **Aceito, com ressalvas** (20/11/2026; PoC P2; retry do refresh B+E de 30 s) | HS256 simétrico; expo-secure-store provado no Android (24/11/2026), iPhone pendente; retry a provar na fase 2 |
+| [ADR-007](adr/007-autorizacao-jwt-sem-papeis.md) | Modelo de autorização: papéis resolvidos no servidor, JWT sem papéis, refresh rotativo | **Aceito, com ressalvas** (20/11/2026; PoC P2; retry do refresh B+E de 30 s) | HS256 simétrico; expo-secure-store provado no Android (24/11/2026) e no iPhone (25/11/2026); retry a provar na fase 2 |
 | [ADR-008](adr/008-orm-query-builder-migracoes.md) | ORM / query builder e migrações | **Aceito, com ressalvas** (20/11/2026; PoC P5; Kysely 0.29.9 com postgres.js e Flyway 13.12.2 OSS) | Supabase real e Supavisor não testados; imagem do Flyway de cerca de 1,1 GB no CI |
 | [ADR-009](adr/009-votacao-sigilo.md) | Votação: separação de registro e conteúdo, e limite de sigilo | Proposta | Parecer jurídico (SEG-16) |
 | [ADR-010](adr/010-anonimato-identidade-separada.md) | Anonimato: identidade em tabelas separadas, HMAC para unicidade, limites mínimos | Proposta | Parecer jurídico |

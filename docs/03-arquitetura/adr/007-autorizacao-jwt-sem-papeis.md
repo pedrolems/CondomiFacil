@@ -2,7 +2,7 @@
 
 - **Estado:** Aceito, com ressalvas (jose; refresh com retry B+E de 30 s). Decisão de Pedro em 20/11/2026
 - **Data:** 06/11/2026
-- **Atualizado em:** 24/11/2026
+- **Atualizado em:** 25/11/2026
 - **Decisores:** Pedro Lemos
 - **Depende de:** revisão de segurança
 - **Relacionado a:** [ADR-001](001-multi-tenant-rls.md), [ADR-008](008-orm-query-builder-migracoes.md)
@@ -142,4 +142,14 @@ Registro técnico, sem mudar a decisão de 20/11/2026. Atualiza parcialmente o i
 - O código usa só `SecureStore` com `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, sem `AsyncStorage`.
 - **Limite:** o conteúdo físico do armazenamento seguro não foi lido (exigiria root). A prova se apoia no comportamento dos passos e na leitura do código.
 - **Pendente:** prova no iPhone via Expo Go. Até lá, a ressalva do `expo-secure-store` segue aberta para o iOS. A web com cookie httpOnly está coberta pelos testes automáticos da API.
+- Evidências (capturas e logs) ficaram fora do repositório.
+
+## Ressalva de 25/11/2026 (prova E21 no iPhone)
+
+Registro técnico, sem mudar a decisão de 20/11/2026. Complementa a ressalva de 24/11/2026 (Android).
+
+- **Provado no iPhone (25/11/2026):** iPhone real com iOS 27.2.1, Expo Go 58.0.5 (SDK suportado 58.0.0), `expo-secure-store` 58.0.3, usuário fictício, banco local em Docker, sem dev build (opção A da E21). A rede local serviu no início; depois do reinício do aparelho a prova seguiu pelo túnel do Expo para o Metro e por túnel temporário do cloudflared para a API, fechados ao final.
+- Os 7 passos passaram, com evidência pelo log da API: login; reabertura após fechar pelo seletor de apps e após reiniciar o iPhone, logado, com renovação 200 e o refresh guardado desde o login (a sessão sobreviveu à troca do endereço do Metro); sessão listada como "Este aparelho"; sair com 204 e reabertura nas boas-vindas sem renovação; revogação por outro cliente com DELETE 204, renovação 401 e retorno ao login; nenhum token nos logs da API, do Metro e dos túneis.
+- **Limite:** o conteúdo físico do Keychain não foi lido; a prova se apoia no comportamento dos passos e na leitura do código. No iOS não há equivalente ao logcat lido no Android.
+- **Fechamento:** a ressalva do `expo-secure-store` fica fechada para Android e iOS. A web com cookie httpOnly está coberta pelos testes automáticos da API.
 - Evidências (capturas e logs) ficaram fora do repositório.

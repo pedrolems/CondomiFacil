@@ -13,6 +13,6 @@ Componentes base, layout e apresentações puras. Recebem propriedades e callbac
 
 `Dialog`, `DataTable` e as stories continuam reservados. `react`, `react-native` e `react-native-svg` são `peerDependencies`: o app instala as versões do Expo SDK.
 
-Comandos: `pnpm --filter @condomifacil/ui build` (`dist/`), `typecheck` e `test` (Jest com jest-expo e Testing Library). No Jest, `lucide-react-native` aponta para o build CommonJS (`moduleNameMapper`), porque a condição `react-native` entrega `.mjs`, que o preset não transforma.
+Comandos: `pnpm --filter @condomifacil/ui build` (`dist/`), `typecheck` e `test` (Jest com jest-expo e Testing Library). No Jest, `lucide-react-native` aponta para o build CommonJS (`moduleNameMapper`), porque a condição `react-native` entrega `.mjs`, que o preset não transforma. `testTimeout` é 20000 ms: o primeiro teste de cada arquivo paga a partida a frio (react-native, lucide e tema sob jest-expo) e estourava os 5000 ms padrão no CI e com cache limpo.
 
 Referência: `docs/06-frontend/biblioteca-de-componentes.md`, seções 2 e 5.
